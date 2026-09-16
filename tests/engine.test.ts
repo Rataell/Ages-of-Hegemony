@@ -102,7 +102,7 @@ describe('snapshots', () => {
   it('round trips JSON and rejects corrupt or unsupported snapshots', () => {
     const state = game();
     expect(unwrap(deserializeGameState(serializeGameState(state)))).toEqual(state);
-    for (const json of ['bad json', '{}', JSON.stringify({ ...state, schemaVersion: 2 }), JSON.stringify({ ...state, playerCount: 6 }), JSON.stringify({ ...state, version: 8 })]) expect(deserializeGameState(json).ok).toBe(false);
+    for (const json of ['bad json', '{}', JSON.stringify({ ...state, schemaVersion: 999 }), JSON.stringify({ ...state, playerCount: 6 }), JSON.stringify({ ...state, version: 8 })]) expect(deserializeGameState(json).ok).toBe(false);
   });
   it('rejects negative resources and invalid pending-order ownership at the boundary', () => {
     const state = game();

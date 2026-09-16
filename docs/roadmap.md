@@ -1,33 +1,37 @@
-# Pendências deliberadas e riscos
+# Próximas rodadas e riscos
 
-## Próximas especificações de design
+## v0.4 — Economia, distritos, construções e recursos territoriais
 
-- Definir payload e validação de cada ação antes de adicionar seu executor.
-- Definir custos e modificadores de pontos de comando antes de limitar ou consumir ordens.
-- Definir o encerramento do planejamento: confirmações, prazos, desistência e jogadores desconectados.
-- Definir ordenação e conflitos da resolução simultânea antes de adicionar subfases.
-- Definir mapa inicial, terrenos, visibilidade e exploração antes de publicar tiles aos jogadores.
-- Definir escala de estabilidade, desenvolvimento e recursos antes de criar cidades/economia.
-- Definir avanço de era e hegemonia antes de adicionar transições ou condições de vitória.
-
-Governos, formas de Estado, civilizações jogáveis, teias tecnológicas completas, custos de tecnologia, combate, dano, moral, unidades, naval, espionagem, revoltas, maravilhas e balanceamento econômico ficam fora desta rodada.
+- Especificar produção territorial, distritos e edifícios antes de implementar comandos.
+- Definir custo/requisitos de fundação; initialCities é somente setup confiável.
+- Revisar valores provisórios de população, especializações, desenvolvimento, governos e administração.
+- Confirmar política de excedente compartilhado, arredondamento e estoque de progresso.
+- Definir custos de pontos de comando; hoje só se calcula a capacidade.
+- Especificar hooks futuros de influência, conhecimento, preparação militar, desigualdade e reformas antes de ativá-los.
 
 ## Engenharia antes de multiplayer
 
-- Adicionar autenticação real e autorização de lobby/scheduler; manter a identidade fora do corpo do comando.
-- Implementar HTTP/WS autenticado sobre `GameService`, com projeções por destinatário, limites de tamanho/frequência e política de reconexão.
-- Definir idempotência e ordenação de comandos aceitos; reenvio após conflito não pode ocorrer silenciosamente.
-- Adicionar teste de integração PostgreSQL real para migração, round-trip JSONB e CAS entre conexões independentes.
-- Adicionar migrações de snapshots e política de compatibilidade de replays ao mudar regras/RNG.
-- Medir custo de cópia, validação e log; criar checkpoints e histórico segmentado quando necessário.
-- Definir entrega de eventos pós-commit (por exemplo, outbox) antes de broadcast confiável.
-- Implementar testes E2E Playwright quando houver fluxo jogável na UI.
+- Autenticação real e autorização de lobby/scheduler; identidade fora do JSON.
+- HTTP/WebSocket autenticado sobre GameService, limites de entrada/frequência, reconexão e idempotência.
+- Fog of war e conhecimento diplomático. As listas de visibilidade da projeção devem vir do servidor, nunca diretamente do cliente.
+- Fechamento do planejamento, prazos e ordenação da resolução simultânea. Gestão imediata não resolve conflitos entre jogadores.
+- Integração PostgreSQL real: migração inicial, JSONB e CAS entre conexões independentes.
+- Conversão explícita de snapshots v1 quando houver cenários reais; não adivinhar estabilidade, desenvolvimento ou trabalhadores antigos.
+- Entrega confiável pós-commit e identidade de eventos: múltiplos eventos agora compartilham uma revisão.
+- Medir cópia/validação integral e segmentar logs/checkpoints para partidas longas.
+- E2E Playwright quando a UI tiver comandos jogáveis.
+
+## Fora do escopo
+
+Combate, unidades detalhadas, battle resolver, mapa procedural, Teia completa, religião, eleições, sucessão, classes sociais, corrupção avançada, revoltas, felicidade individual, distritos completos, edifícios, trade routes, tratados, espionagem, hegemonia, IA e matchmaking.
 
 ## Riscos conhecidos
 
-1. Snapshot/log completos têm crescimento linear por comando; não adequados sem medição a partidas longas.
-2. Revisionamento detecta disputa, mas não estabelece justiça de resolução entre jogadores.
-3. O estado autoritativo e eventos contêm ordens privadas; publicar esses objetos seria vazamento.
-4. Replay de comandos é determinístico para a mesma sequência; o log atual sozinho não reconstitui uma partida do zero.
-5. O adaptador Prisma pode compilar e passar testes com doubles sem provar configuração, permissões ou concorrência de um banco real.
-6. Overrides transitivos devem ser revisitados em upgrades; ver ADR 0002.
+1. Arredondamento para baixo tem efeitos fortes em produções pequenas; números são provisórios.
+2. Cópia e validação integral ficam mais caras conforme o log cresce.
+3. Controle de versão não define justiça de iniciativa/ordenação.
+4. Estado autoritativo não deve ser publicado por broadcast; usar projeções autorizadas.
+5. Snapshot v1 requer conversão deliberada; rejeição orientada preserva o original.
+6. Eventos de excesso registram a avaliação após crescimento. A estabilidade final pode mudar o status, sem reaplicar consequências no mesmo ciclo.
+7. Schemas verificam integridade estrutural, não autenticidade nem toda a causalidade histórica. Persistência é fronteira confiável.
+8. Overrides transitivos do CLI Prisma precisam de revisão em upgrades; ver ADR 0002.

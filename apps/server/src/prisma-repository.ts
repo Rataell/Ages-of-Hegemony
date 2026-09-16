@@ -1,4 +1,4 @@
-import { GameStateSchema, type GameId, type GameState } from '@aoh/game-domain';
+import { deserializeGameState, GameStateSchema, type GameId, type GameState } from '@aoh/game-domain';
 import { PrismaClient, Prisma } from './generated/prisma/client.js';
 import type { GameRepository } from './repository.js';
 
@@ -7,7 +7,9 @@ export class PrismaGameRepository implements GameRepository {
   async find(id: GameId): Promise<GameState | null> {
     const row = await this.client.game.findUnique({ where: { id } });
     if (!row) return null;
-    const state = GameStateSchema.parse(row.snapshot);
+    const decoded = deserializeGameState(JSON.stringify(row.snapshot));
+    if (!decoded.ok) throw new Error(`${decoded.error.code}: ${decoded.error.message}`);
+    const state = decoded.value;
     if (state.gameId !== row.id || BigInt(state.version) !== row.version) throw new Error('Corrupt game snapshot metadata');
     return state;
   }

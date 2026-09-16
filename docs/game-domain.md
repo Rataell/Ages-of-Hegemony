@@ -1,37 +1,47 @@
-# Domínio inicial
+# Domínio — v0.3
 
-IDs nominais: `GameId`, `PlayerId`, `CivilizationId`, `CityId`, `HexId`. Os quatro primeiros usam identificadores ASCII limitados a 100 caracteres; IDs reservados de objetos JavaScript são rejeitados. Hexágonos têm identidade canônica `q,r` em coordenadas axiais inteiras, limitadas a ±1.000.000 no mapa persistido.
+`game-domain` define contratos Zod e tipos TypeScript inferidos. As regras executáveis continuam no `game-engine`.
 
-| Conceito | Valores |
-| --- | --- |
-| Era | FOUNDATION, EXPANSION, CIVILIZATION, EMPIRES, HEGEMONY |
-| Recursos | FOOD, MATERIALS, WEALTH, KNOWLEDGE, INFLUENCE |
-| Domínios | KNOWLEDGE, SOCIETY, ECONOMY, WARFARE, CULTURE |
-| Hegemonias | MILITARY, ECONOMIC, SCIENTIFIC, CULTURAL, POLITICAL, TERRITORIAL |
-| Ordens | EXPLORE, EXPAND, DEVELOP, BUILD, RECRUIT, RESEARCH, MOVE, NEGOTIATE, INFLUENCE |
+## Organização
+
+- `core.ts`: IDs nominais, enums, recursos, coordenadas e alocação populacional.
+- `rules.ts`: GameRulesConfig, defaults provisórios e validação da configuração.
+- `model.ts`: cidade, civilização, jogador, estado, comandos, eventos e invariantes.
+- `serialization.ts`: encode/decode validado com discriminação de versão.
+
+São preservados IDs nominais, recursos, cinco eras, cinco domínios, seis hegemonias conceituais e ordens da Rodada 1. Não há implementação de vitória.
 
 ## Estado
 
-`GameState` contém `schemaVersion`, `gameId`, `version`, `seed`, `rng`, `status`, `playerCount`, `players`, `map`, `round`, `era`, `phase`, `config`, `pendingOrders`, `eventLog`.
+GameState conserva gameId, version, seed/RNG, status, playerCount, players, map, round, era, phase, config, pendingOrders e eventLog. schemaVersion agora é 2. O RNG continua Mulberry32 v1 e não é consumido por manutenção ou gestão.
 
-A partida nasce ativa, na Fundação, rodada 1, fase MAINTENANCE e revisão 0. Há uma civilização vazia por jogador, recursos zerados, sem cidades ou mapa gerado. Um mapa explícito pode ser fornecido na criação. Esses valores são convenções técnicas de inicialização, não balanceamento.
+CivilizationState inclui government (inicialmente PROTO_GOVERNANCE), capitalCityId, administrativeCapacity, administrativeLoad, administrationStatus e cidades. CityState inclui name, population, stability, development, specialization, workers, foundedRound e growthProgress, além das identidades.
 
-`PlayerState` tem identidade, nome, recursos e civilização. `CivilizationState` contém identidade, proprietário e cidades. `CityState` contém `id`, `ownerId`, `hexId`, `population`, `stability`, `development`. População e desenvolvimento usam inteiros não negativos; estabilidade aceita número finito, sem inventar escala. Nenhum comando de fundação de cidades foi implementado.
+Os schemas exigem trabalhadores inteiros não negativos somando exatamente a população, estabilidade inteira 0–100, desenvolvimento 1–5 e dentro do máximo configurado, população até o cap, progresso até um threshold, propriedade coerente, capital própria, hexágonos válidos e únicos e administração não negativa com status consistente. O motor recalcula administração ao criar cidades, executar gestão e manutenção. Todo output de comando passa pelo schema antes de retornar.
 
-Referências de proprietário, cidade e hexágono são verificadas no snapshot. IDs de civilizações, cidades, jogadores e tiles não podem se repetir nos respectivos conjuntos. É necessário existir exatamente uma fila de ordens por jogador.
+## Comandos
 
-## Recursos
+| Comando | Autoridade/fase | Efeito |
+| --- | --- | --- |
+| SUBMIT_ORDER | Jogador, PLANNING | Registra intenção genérica na fila própria |
+| ADVANCE_PHASE | Scheduler interno | Próxima fase legal; manutenção ao sair dela |
+| ASSIGN_POPULATION | Dono, PLANNING | Substitui distribuição preservando população |
+| DEVELOP_CITY | Dono, PLANNING | Paga custo configurado e aumenta um nível |
+| SPECIALIZE_CITY | Dono, PLANNING | Escolha inicial de especialização |
+| ADOPT_GOVERNMENT | Jogador, PLANNING | Escolha inicial de governo |
 
-`ResourcePool` possui `food`, `materials`, `wealth`, `knowledge`, `influence`. Valores são inteiros seguros e não negativos nesta fundação. Uma futura economia fracionária deve definir unidade mínima explícita antes de mudar esse contrato.
+Todos exigem expectedVersion. Os novos comandos de gestão carregam playerId; o serviço compara com a identidade confiável externa ao JSON. Comandos rejeitados não gastam recursos nem geram eventos. Payloads estritos rejeitam campos inesperados.
 
-`addResource` e `spendResource` retornam `Result<ResourcePool, GameRuleError>` e não alteram o pool recebido. Valores negativos, fracionários, não finitos e overflow são rejeitados; gastos insuficientes retornam erro. `canAfford(pool, cost)` recebe dois pools completos e compara os cinco recursos, aceitando custo zero e rejeitando dados inválidos.
+## Eventos
 
-## Ordens e eventos
+Mantidos: GAME_CREATED, ORDER_SUBMITTED e PHASE_ADVANCED.
 
-`PlayerOrder` é um envelope com `id`, `playerId`, `type` e `targetHexId` opcional. O alvo, se presente, deve existir no mapa. Ainda não é um payload completo de ação. Não há custos, prioridades, alcance ou execução implícita.
+Adicionados: CITY_DEVELOPED, CITY_SPECIALIZED, POPULATION_ASSIGNED, POPULATION_GROWN, GROWTH_PROGRESS_CHANGED, FOOD_SHORTAGE, FOOD_CONSUMED, RESOURCES_PRODUCED, STABILITY_CHANGED, GOVERNMENT_ADOPTED e ADMINISTRATIVE_OVEREXTENSION.
 
-IDs de ordens são únicos **dentro da rodada**. O servidor rejeita duplicatas, sem prometer idempotência de transporte. O histórico preserva ordem e rodada, permitindo distinguir IDs reutilizados em rodadas diferentes.
+Uma transação pode gerar múltiplos eventos com a mesma revisão. A ordem do array define sua sequência. Não há timestamps implícitos. O log permanece privado e não é event sourcing completo.
 
-Eventos implementados: `GAME_CREATED`, `ORDER_SUBMITTED`, `PHASE_ADVANCED`. Cada transição aceita gera exatamente um evento, com revisão e rodada. A criação gera o evento de revisão 0. O log é privado e inclui o envelope da ordem. `CITY_FOUNDED`, `RESOURCE_GAINED`, `TECH_UNLOCKED`, `ARMY_MOVED`, `BATTLE_RESOLVED`, `TREATY_SIGNED`, `ERA_ADVANCED` e `HEGEMONY_DECLARED` só devem ganhar payloads quando seus sistemas forem especificados.
+## Compatibilidade
 
-O log não é um sistema completo de event sourcing: não guarda todo o input inicial nem a futura configuração de regras. O replay validado nesta rodada usa snapshot inicial e sequência de comandos. Schemas validam forma, referências e sequência de versões, mas não provam autenticidade criptográfica nem toda a causalidade de um snapshot externo.
+JSONB e GameRepository permanecem. Snapshot 1 é rejeitado com SNAPSHOT_MIGRATION_REQUIRED, sem sobrescrever dados. A forma antiga de **criação** (jogadores, seed, config opcional com somente baseCommandPoints) continua aceita, recebendo defaults atuais. Isso não implica migração automática de partidas salvas.
+
+Veja [cidades/população](cities-and-population.md), [governos](governments.md) e [ADR 0003](decisions/0003-civilization-maintenance-and-snapshots.md).

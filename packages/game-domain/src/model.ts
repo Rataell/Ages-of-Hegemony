@@ -1,119 +1,124 @@
 import { z } from 'zod';
+import {
+  IdentifierSchema, GameIdSchema, PlayerIdSchema, CivilizationIdSchema, CityIdSchema, HexIdSchema,
+  EraSchema, RoundPhaseSchema, OrderTypeSchema, NonNegativeIntegerSchema as N, PositiveIntegerSchema as P,
+  SeedSchema, ResourcePoolSchema, HexTileSchema, PopulationAllocationSchema, CitySpecializationSchema,
+  GovernmentSchema, GovernmentTypeSchema, StabilitySchema, DevelopmentSchema,
+} from './core.js';
+import { GameRulesConfigSchema, createDefaultRules } from './rules.js';
 
-const identifier = z.string().min(1).max(100).regex(/^[a-zA-Z0-9][a-zA-Z0-9:_-]*$/)
-  .refine((id) => !['__proto__', 'constructor', 'prototype'].includes(id), 'Reserved identifier');
-export const GameIdSchema = identifier.brand<'GameId'>();
-export const PlayerIdSchema = identifier.brand<'PlayerId'>();
-export const CivilizationIdSchema = identifier.brand<'CivilizationId'>();
-export const CityIdSchema = identifier.brand<'CityId'>();
-export const HexIdSchema = z.string().regex(/^-?\d+,-?\d+$/).brand<'HexId'>();
-export type GameId = z.infer<typeof GameIdSchema>;
-export type PlayerId = z.infer<typeof PlayerIdSchema>;
-export type CivilizationId = z.infer<typeof CivilizationIdSchema>;
-export type CityId = z.infer<typeof CityIdSchema>;
-export type HexId = z.infer<typeof HexIdSchema>;
-
-export const EraSchema = z.enum(['FOUNDATION', 'EXPANSION', 'CIVILIZATION', 'EMPIRES', 'HEGEMONY']);
-export const CivilizationDomainSchema = z.enum(['KNOWLEDGE', 'SOCIETY', 'ECONOMY', 'WARFARE', 'CULTURE']);
-export const HegemonyTypeSchema = z.enum(['MILITARY', 'ECONOMIC', 'SCIENTIFIC', 'CULTURAL', 'POLITICAL', 'TERRITORIAL']);
-export const RoundPhaseSchema = z.enum(['MAINTENANCE', 'PLANNING', 'RESOLUTION', 'REACTION', 'END_ROUND']);
-export const OrderTypeSchema = z.enum(['EXPLORE', 'EXPAND', 'DEVELOP', 'BUILD', 'RECRUIT', 'RESEARCH', 'MOVE', 'NEGOTIATE', 'INFLUENCE']);
-export const ResourceTypeSchema = z.enum(['FOOD', 'MATERIALS', 'WEALTH', 'KNOWLEDGE', 'INFLUENCE']);
-export type Era = z.infer<typeof EraSchema>;
-export type CivilizationDomain = z.infer<typeof CivilizationDomainSchema>;
-export type HegemonyType = z.infer<typeof HegemonyTypeSchema>;
-export type RoundPhase = z.infer<typeof RoundPhaseSchema>;
-export type OrderType = z.infer<typeof OrderTypeSchema>;
-export type ResourceType = z.infer<typeof ResourceTypeSchema>;
-
-export const NonNegativeIntegerSchema = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
-export const SeedSchema = z.number().int().min(0).max(0xffffffff);
-export const ResourcePoolSchema = z.strictObject({
-  food: NonNegativeIntegerSchema, materials: NonNegativeIntegerSchema,
-  wealth: NonNegativeIntegerSchema, knowledge: NonNegativeIntegerSchema, influence: NonNegativeIntegerSchema,
-});
-export type ResourcePool = z.infer<typeof ResourcePoolSchema>;
-export const emptyResourcePool = (): ResourcePool => ({ food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 });
-export const AxialCoordinatesSchema = z.strictObject({ q: z.number().int().min(-1_000_000).max(1_000_000), r: z.number().int().min(-1_000_000).max(1_000_000) });
-export type AxialCoordinates = z.infer<typeof AxialCoordinatesSchema>;
-export const HexTileSchema = z.strictObject({ id: HexIdSchema, q: AxialCoordinatesSchema.shape.q, r: AxialCoordinatesSchema.shape.r });
-export type HexTile = z.infer<typeof HexTileSchema>;
 export const CityStateSchema = z.strictObject({
-  id: CityIdSchema, ownerId: PlayerIdSchema, hexId: HexIdSchema,
-  population: NonNegativeIntegerSchema, stability: z.number().finite(), development: NonNegativeIntegerSchema,
+  id: CityIdSchema, ownerId: PlayerIdSchema, hexId: HexIdSchema, name: z.string().trim().min(1).max(80),
+  population: N, stability: StabilitySchema, development: DevelopmentSchema,
+  specialization: CitySpecializationSchema.nullable(), workers: PopulationAllocationSchema,
+  foundedRound: P, growthProgress: N,
+}).superRefine((city, ctx) => {
+  if (Object.values(city.workers).reduce((sum, value) => sum + BigInt(value), 0n) !== BigInt(city.population)) ctx.addIssue({ code: 'custom', message: 'Allocated population must equal city population' });
 });
 export type CityState = z.infer<typeof CityStateSchema>;
-export const CivilizationStateSchema = z.strictObject({ id: CivilizationIdSchema, ownerId: PlayerIdSchema, cities: z.array(CityStateSchema) });
+export const CivilizationStateSchema = z.strictObject({
+  id: CivilizationIdSchema, ownerId: PlayerIdSchema, cities: z.array(CityStateSchema),
+  capitalCityId: CityIdSchema.nullable(), government: GovernmentSchema,
+  administrativeCapacity: N, administrativeLoad: N, administrationStatus: z.enum(['WITHIN_CAPACITY', 'OVEREXTENDED']),
+});
 export type CivilizationState = z.infer<typeof CivilizationStateSchema>;
 export const PlayerStateSchema = z.strictObject({ id: PlayerIdSchema, name: z.string().trim().min(1).max(80), civilization: CivilizationStateSchema, resources: ResourcePoolSchema });
 export type PlayerState = z.infer<typeof PlayerStateSchema>;
-export const GameConfigSchema = z.strictObject({ baseCommandPoints: NonNegativeIntegerSchema });
-export type GameConfig = z.infer<typeof GameConfigSchema>;
-export const DEFAULT_GAME_CONFIG: Readonly<GameConfig> = Object.freeze({ baseCommandPoints: 4 });
 
-// Intent envelope only. Action-specific payloads and costs await game-design specifications.
-export const PlayerOrderSchema = z.strictObject({ id: identifier, playerId: PlayerIdSchema, type: OrderTypeSchema, targetHexId: HexIdSchema.optional() });
+export const PlayerOrderSchema = z.strictObject({ id: IdentifierSchema, playerId: PlayerIdSchema, type: OrderTypeSchema, targetHexId: HexIdSchema.optional() });
 export type PlayerOrder = z.infer<typeof PlayerOrderSchema>;
+const playerCommand = { expectedVersion: N, playerId: PlayerIdSchema };
 export const GameCommandSchema = z.discriminatedUnion('type', [
-  z.strictObject({ type: z.literal('SUBMIT_ORDER'), expectedVersion: NonNegativeIntegerSchema, order: PlayerOrderSchema }),
-  z.strictObject({ type: z.literal('ADVANCE_PHASE'), expectedVersion: NonNegativeIntegerSchema, nextPhase: RoundPhaseSchema }),
+  z.strictObject({ type: z.literal('SUBMIT_ORDER'), expectedVersion: N, order: PlayerOrderSchema }),
+  z.strictObject({ type: z.literal('ADVANCE_PHASE'), expectedVersion: N, nextPhase: RoundPhaseSchema }),
+  z.strictObject({ ...playerCommand, type: z.literal('ASSIGN_POPULATION'), cityId: CityIdSchema, workers: PopulationAllocationSchema }),
+  z.strictObject({ ...playerCommand, type: z.literal('DEVELOP_CITY'), cityId: CityIdSchema }),
+  z.strictObject({ ...playerCommand, type: z.literal('SPECIALIZE_CITY'), cityId: CityIdSchema, specialization: CitySpecializationSchema }),
+  z.strictObject({ ...playerCommand, type: z.literal('ADOPT_GOVERNMENT'), government: GovernmentTypeSchema }),
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
+export type ManagementCommand = Exclude<GameCommand, { type: 'SUBMIT_ORDER' | 'ADVANCE_PHASE' }>;
 
-const eventBase = { version: NonNegativeIntegerSchema, round: z.number().int().positive().max(Number.MAX_SAFE_INTEGER) };
+const eventBase = { version: N, round: P };
+const cityEvent = { ...eventBase, playerId: PlayerIdSchema, cityId: CityIdSchema };
 export const GameEventSchema = z.discriminatedUnion('type', [
   z.strictObject({ ...eventBase, type: z.literal('GAME_CREATED') }),
   z.strictObject({ ...eventBase, type: z.literal('ORDER_SUBMITTED'), order: PlayerOrderSchema }),
   z.strictObject({ ...eventBase, type: z.literal('PHASE_ADVANCED'), from: RoundPhaseSchema, to: RoundPhaseSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('CITY_DEVELOPED'), development: DevelopmentSchema, cost: ResourcePoolSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('CITY_SPECIALIZED'), specialization: CitySpecializationSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('POPULATION_ASSIGNED'), workers: PopulationAllocationSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('POPULATION_GROWN'), amount: P, population: N }),
+  z.strictObject({ ...cityEvent, type: z.literal('GROWTH_PROGRESS_CHANGED'), from: N, to: N }),
+  z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('FOOD_SHORTAGE'), required: N, paid: N, deficit: P }),
+  z.strictObject({ ...cityEvent, type: z.literal('STABILITY_CHANGED'), from: StabilitySchema, to: StabilitySchema }),
+  z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('GOVERNMENT_ADOPTED'), government: GovernmentTypeSchema }),
+  z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('ADMINISTRATIVE_OVEREXTENSION'), load: N, capacity: N }),
+  z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('RESOURCES_PRODUCED'), resources: ResourcePoolSchema }),
+  z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('FOOD_CONSUMED'), amount: N }),
 ]);
 export type GameEvent = z.infer<typeof GameEventSchema>;
-export type GameRuleErrorCode = 'INVALID_INPUT' | 'INVALID_STATE' | 'INVALID_PLAYER_COUNT' | 'VERSION_CONFLICT' | 'INVALID_PHASE_TRANSITION' | 'WRONG_PHASE' | 'UNKNOWN_PLAYER' | 'UNKNOWN_HEX' | 'DUPLICATE_ORDER' | 'INVALID_RESOURCE' | 'INSUFFICIENT_RESOURCES' | 'NOT_ACTIVE';
+export type GameRuleErrorCode = 'INVALID_INPUT' | 'INVALID_STATE' | 'INVALID_PLAYER_COUNT' | 'VERSION_CONFLICT' | 'INVALID_PHASE_TRANSITION' | 'WRONG_PHASE' | 'UNKNOWN_PLAYER' | 'UNKNOWN_HEX' | 'DUPLICATE_ORDER' | 'INVALID_RESOURCE' | 'INSUFFICIENT_RESOURCES' | 'NOT_ACTIVE' | 'CITY_NOT_OWNED' | 'INVALID_ALLOCATION' | 'MAX_DEVELOPMENT' | 'CRITICAL_STABILITY' | 'ALREADY_SPECIALIZED' | 'DEVELOPMENT_REQUIRED' | 'GOVERNMENT_ALREADY_ADOPTED' | 'NUMERIC_OVERFLOW' | 'SNAPSHOT_MIGRATION_REQUIRED' | 'UNSUPPORTED_SCHEMA';
 export interface GameRuleError { readonly code: GameRuleErrorCode; readonly message: string }
 
+export const InitialCitySchema = z.strictObject({
+  id: CityIdSchema, ownerId: PlayerIdSchema, hexId: HexIdSchema, name: CityStateSchema.shape.name,
+  population: N.optional(), workers: PopulationAllocationSchema.optional(),
+});
+// Trusted lobby/scenario input; not a free city-founding rule for players.
 export const CreateGameInputSchema = z.strictObject({
   gameId: GameIdSchema, seed: SeedSchema,
-  players: z.array(z.strictObject({ id: PlayerIdSchema, name: PlayerStateSchema.shape.name })).min(2).max(6),
-  config: GameConfigSchema.optional(),
-  map: z.array(HexTileSchema).optional(),
+  players: z.array(z.strictObject({ id: PlayerIdSchema, name: PlayerStateSchema.shape.name, resources: ResourcePoolSchema.optional() })).min(2).max(6),
+  config: z.union([GameRulesConfigSchema, z.strictObject({ baseCommandPoints: N }).transform((old) => ({ ...createDefaultRules(), ...old }))]).optional(),
+  map: z.array(HexTileSchema).optional(), initialCities: z.array(InitialCitySchema).optional(),
 });
 export type CreateGameInput = z.infer<typeof CreateGameInputSchema>;
 
 export const GameStateSchema = z.strictObject({
-  schemaVersion: z.literal(1), gameId: GameIdSchema, version: NonNegativeIntegerSchema,
+  schemaVersion: z.literal(2), gameId: GameIdSchema, version: N,
   seed: SeedSchema, rng: z.strictObject({ algorithm: z.literal('mulberry32-v1'), state: SeedSchema }),
   status: z.enum(['ACTIVE', 'FINISHED']), playerCount: z.number().int().min(2).max(6),
   players: z.array(PlayerStateSchema).min(2).max(6), map: z.array(HexTileSchema),
-  round: z.number().int().positive().max(Number.MAX_SAFE_INTEGER), era: EraSchema, phase: RoundPhaseSchema,
-  config: GameConfigSchema,
+  round: P, era: EraSchema, phase: RoundPhaseSchema, config: GameRulesConfigSchema,
   pendingOrders: z.record(PlayerIdSchema, z.array(PlayerOrderSchema)), eventLog: z.array(GameEventSchema),
 }).superRefine((state, ctx) => {
   const fail = (message: string) => ctx.addIssue({ code: 'custom', message });
-  const players = new Set(state.players.map((player) => player.id));
+  const players = new Set<string>(state.players.map((player) => player.id));
   if (players.size !== state.playerCount || state.players.length !== state.playerCount) fail('Player count or unique IDs mismatch');
   if (new Set(state.players.map((p) => p.civilization.id)).size !== state.playerCount) fail('Duplicate civilization');
   const hexes = new Set(state.map.map((hex) => hex.id));
   if (hexes.size !== state.map.length || state.map.some((hex) => hex.id !== `${hex.q},${hex.r}`)) fail('Invalid or duplicate hex identity');
   const cityIds = new Set<string>();
+  const occupiedHexes = new Set<string>();
   for (const player of state.players) {
-    if (player.civilization.ownerId !== player.id) fail('Civilization owner mismatch');
-    for (const city of player.civilization.cities) {
-      if (city.ownerId !== player.id || !hexes.has(city.hexId) || cityIds.has(city.id)) fail('Invalid city ownership, hex or ID');
-      cityIds.add(city.id);
+    const civ = player.civilization;
+    if (civ.ownerId !== player.id) fail('Civilization owner mismatch');
+    if (civ.cities.length === 0 ? civ.capitalCityId !== null : !civ.cities.some((city) => city.id === civ.capitalCityId)) fail('Capital must belong to civilization');
+    if ((civ.administrativeLoad > civ.administrativeCapacity) !== (civ.administrationStatus === 'OVEREXTENDED')) fail('Administration status mismatch');
+    for (const city of civ.cities) {
+      if (city.ownerId !== player.id || !hexes.has(city.hexId) || cityIds.has(city.id) || occupiedHexes.has(city.hexId)) fail('Invalid city ownership, hex or duplicate city');
+      cityIds.add(city.id); occupiedHexes.add(city.hexId);
+      if (city.development > state.config.maxDevelopment || city.population > (state.config.developmentPopulationCaps[city.development - 1] ?? 0)) fail('City exceeds development or population cap');
+      if (city.growthProgress > state.config.growthThreshold || city.foundedRound > state.round) fail('Invalid growth progress or founding round');
+      if (city.specialization !== null && city.development < state.config.specializationMinimumDevelopment) fail('Specialization requires development');
     }
   }
   const keys = Object.keys(state.pendingOrders);
-  if (keys.length !== players.size || keys.some((key) => !players.has(PlayerIdSchema.parse(key)))) fail('Pending-order players mismatch');
+  if (keys.length !== players.size || keys.some((key) => !players.has(key))) fail('Pending-order players mismatch');
   const orderIds = new Set<string>();
-  for (const [playerId, orders] of Object.entries(state.pendingOrders)) {
-    for (const order of orders) {
-      if (order.playerId !== playerId || orderIds.has(order.id) || (order.targetHexId !== undefined && !hexes.has(order.targetHexId))) fail('Invalid order owner, target or duplicate ID');
-      orderIds.add(order.id);
-    }
+  for (const [playerId, orders] of Object.entries(state.pendingOrders)) for (const order of orders) {
+    if (order.playerId !== playerId || orderIds.has(order.id) || (order.targetHexId !== undefined && !hexes.has(order.targetHexId))) fail('Invalid order owner, target or duplicate ID');
+    orderIds.add(order.id);
   }
-  if (state.eventLog.length !== state.version + 1 || state.eventLog[0]?.type !== 'GAME_CREATED') fail('Event log/version mismatch');
-  state.eventLog.forEach((event, index) => {
-    if (event.version !== index || event.round > state.round || (index > 0 && event.type === 'GAME_CREATED')) fail('Invalid event sequence');
+  if (state.eventLog[0]?.type !== 'GAME_CREATED' || state.eventLog[0]?.version !== 0 || state.eventLog.at(-1)?.version !== state.version) fail('Event log/version mismatch');
+  let revision = 0;
+  let round = 1;
+  for (const [index, event] of state.eventLog.entries()) {
+    if (event.version < revision || event.version > revision + 1 || event.round < round || event.round > state.round || (index > 0 && (event.type === 'GAME_CREATED' || event.version === 0))) fail('Invalid event sequence');
+    revision = event.version; round = event.round;
     if (event.type === 'ORDER_SUBMITTED' && !players.has(event.order.playerId)) fail('Unknown event player');
-  });
+    if ('playerId' in event && !players.has(event.playerId)) fail('Unknown event player');
+    if ('cityId' in event && !state.players.find((player) => player.id === event.playerId)?.civilization.cities.some((city) => city.id === event.cityId)) fail('Unknown event city or owner');
+  }
 });
 export type GameState = z.infer<typeof GameStateSchema>;

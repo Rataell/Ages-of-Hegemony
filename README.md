@@ -1,6 +1,6 @@
 # Ages of Hegemony
 
-Fundação técnica de um jogo 4X original para **2–6 jogadores**. Esta rodada entrega domínio, motor determinístico e pontos de integração; não implementa balanceamento, efeitos das ações ou multiplayer completo.
+Jogo 4X original para **2–6 jogadores**, na v0.3: cidades, população, estabilidade, governos e administração sobre um motor determinístico. Valores de balanceamento são provisórios; combate e multiplayer completo continuam fora do escopo.
 
 ## Executar
 
@@ -21,7 +21,7 @@ npm run dev:web
 npm run dev:server
 ```
 
-Interface: http://localhost:3000. Health check: http://127.0.0.1:4000/health. A interface é uma página de apresentação estática; a prova funcional fica em `npm run demo`. Rotas HTTP que alteram partidas ainda não estão expostas.
+Interface: http://localhost:3000. Health check: http://127.0.0.1:4000/health. A interface inspeciona um cenário determinístico calculado no servidor: governo, administração, cidades e trabalhadores. É somente leitura e não acessa partidas reais. `npm run demo` executa o mesmo cenário, com crescimento e round-trip do snapshot. Rotas HTTP que alteram partidas ainda não estão expostas.
 
 ## PostgreSQL opcional
 
@@ -45,7 +45,7 @@ npx prisma migrate deploy
 | `npm run typecheck` | Compilação estrita dos pacotes, servidor, testes e Next.js |
 | `npm test` | Vitest: regras, determinismo, validação e fronteiras do servidor |
 | `npm run build` | Pacotes/servidor JavaScript + build de produção Next.js |
-| `npm run demo` | Criar → planejar → enviar ordem → completar rodada → restaurar snapshot |
+| `npm run demo` | Criar cidade → adotar governo → alocar → produzir/consumir/crescer → especializar → desenvolver → restaurar |
 | `npm run db:validate` | Validação do schema Prisma |
 
 ## Organização
@@ -63,4 +63,6 @@ docs/                       arquitetura, domínio, loop, decisões e pendências
 tests/                      testes Vitest e configuração de tipos
 ```
 
-Consulte [arquitetura](docs/architecture.md), [domínio](docs/game-domain.md), [loop](docs/game-loop.md), [decisões](docs/decisions/0001-independent-engine.md) e [pendências](docs/roadmap.md).
+Consulte [arquitetura](docs/architecture.md), [domínio](docs/game-domain.md), [loop](docs/game-loop.md), [cidades/população](docs/cities-and-population.md), [governos](docs/governments.md), [compatibilidade](docs/decisions/0003-civilization-maintenance-and-snapshots.md) e [pendências](docs/roadmap.md).
+
+Snapshots atuais usam schema 2. Snapshots da Rodada 1 são recusados com orientação explícita de conversão e devem ser preservados; o commit `9d63e69` continua sendo a referência para carregá-los. Não há migração SQL nova nesta rodada.

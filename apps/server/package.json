@@ -1,4 +1,19 @@
 {
-  "name": "@aoh/server", "version": "0.1.0", "private": true, "type": "module",
-  "dependencies": { "@aoh/game-engine": "*", "@aoh/game-domain": "*", "@aoh/shared": "*", "@prisma/client": "^7.0.0", "@prisma/adapter-pg": "^7.0.0" }
+  "name": "@aoh/server",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./debug": {
+      "types": "./dist/debug-scenario.d.ts",
+      "default": "./dist/debug-scenario.js"
+    }
+  },
+  "dependencies": {
+    "@aoh/game-engine": "*",
+    "@aoh/game-domain": "*",
+    "@aoh/shared": "*",
+    "@prisma/client": "^7.0.0",
+    "@prisma/adapter-pg": "^7.0.0"
+  }
 }

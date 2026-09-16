@@ -1,5 +1,5 @@
-import { GameCommandSchema, type GameId, type PlayerId, type GameState, type GameRuleError, type RoundPhase } from '@aoh/game-domain';
-import { applyCommand, createGame } from '@aoh/game-engine';
+import { GameCommandSchema, type CityId, type GameId, type PlayerId, type GameState, type GameRuleError, type RoundPhase } from '@aoh/game-domain';
+import { applyCommand, commandPoints, createGame } from '@aoh/game-engine';
 import { err, ok, type Result } from '@aoh/shared';
 import type { GameRepository } from './repository.js';
 
@@ -8,13 +8,23 @@ type ServiceError = GameRuleError | { readonly code: 'NOT_FOUND' | 'FORBIDDEN' |
 export interface AuthenticatedPlayer { readonly playerId: PlayerId }
 
 // Explicit allowlist: no authoritative state, opponent orders or private event log leaks.
-export function playerView(state: GameState, playerId: PlayerId) {
+export interface TrustedVisibility {
+  readonly visibleCityIds: readonly CityId[];
+  readonly knownGovernmentPlayerIds: readonly PlayerId[];
+}
+export function playerView(state: GameState, playerId: PlayerId, visibility: TrustedVisibility = { visibleCityIds: [], knownGovernmentPlayerIds: [] }) {
   const player = state.players.find((entry) => entry.id === playerId);
   if (!player) return null;
   return structuredClone({
     gameId: state.gameId, version: state.version, round: state.round, era: state.era,
     phase: state.phase, status: state.status, playerCount: state.playerCount,
     player, pendingOrders: state.pendingOrders[playerId] ?? [], config: state.config,
+    commandPoints: commandPoints(player.civilization, state.config),
+    visibleCities: state.players.filter((owner) => owner.id !== playerId).flatMap((owner) => owner.civilization.cities
+      .filter((city) => visibility.visibleCityIds.includes(city.id))
+      .map((city) => ({ id: city.id, ownerId: city.ownerId, hexId: city.hexId, name: city.name, population: city.population, development: city.development, specialization: city.specialization }))),
+    knownGovernments: state.players.filter((owner) => owner.id !== playerId && visibility.knownGovernmentPlayerIds.includes(owner.id))
+      .map((owner) => ({ playerId: owner.id, government: owner.civilization.government })),
   });
 }
 export type PlayerView = NonNullable<ReturnType<typeof playerView>>;
@@ -29,8 +39,10 @@ export class GameService {
   }
   async submit(gameId: GameId, principal: AuthenticatedPlayer, input: unknown): Promise<Result<PlayerView, ServiceError>> {
     const command = GameCommandSchema.safeParse(input);
-    if (!command.success) return err({ code: 'INVALID_INPUT', message: 'Invalid order command' });
-    if (command.data.type !== 'SUBMIT_ORDER' || command.data.order.playerId !== principal.playerId) return err({ code: 'FORBIDDEN', message: 'Players may submit only their own orders' });
+    if (!command.success) return err({ code: 'INVALID_INPUT', message: 'Invalid player command' });
+    if (command.data.type === 'ADVANCE_PHASE') return err({ code: 'FORBIDDEN', message: 'Only the scheduler may advance phases' });
+    const actor = command.data.type === 'SUBMIT_ORDER' ? command.data.order.playerId : command.data.playerId;
+    if (actor !== principal.playerId) return err({ code: 'FORBIDDEN', message: 'Players may submit only their own commands' });
     const state = await this.repository.find(gameId);
     if (!state) return err({ code: 'NOT_FOUND', message: 'Unknown game' });
     const result = applyCommand(state, command.data);

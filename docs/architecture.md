@@ -12,7 +12,7 @@ Servidor Node.js → GameService → game-engine → game-domain → shared
             memória       Prisma → PostgreSQL
 ```
 
-`apps/web` não importa o motor nem Prisma. `game-engine` não conhece servidor, transporte ou banco. `game-domain` define schemas Zod e deriva tipos com `z.infer`, evitando divergência entre contrato runtime e TypeScript. `shared` contém somente o resultado discriminado genérico.
+`apps/web` não importa o motor nem Prisma diretamente. Seu Server Component de inspeção chama `@aoh/server/debug`, que executa um cenário isolado e devolve uma projeção; nenhuma regra roda no navegador. `game-engine` não conhece servidor, transporte ou banco. `game-domain` define schemas Zod e deriva tipos com `z.infer`. `shared` contém somente o resultado discriminado genérico.
 
 Workspaces npm e project references TypeScript bastam para este tamanho de monorepo; não há orquestrador adicional. Os exports dos pacotes apontam para `dist`, e `compile` resolve a ordem. Alterações nos pacotes precisam de uma nova compilação antes de executar consumidores.
 
@@ -24,13 +24,13 @@ O serviço carrega o snapshot autoritativo, valida o comando no motor e persiste
 
 A única rota HTTP implementada é `GET /health`, ligada a loopback. O futuro adaptador WebSocket deve usar o mesmo serviço, autenticar a sessão, validar limites de entrada, lidar com conflitos e enviar `PlayerView` apenas ao destinatário correto. O serviço não abre sockets, permitindo usar um transporte síncrono ou um executor assíncrono.
 
-`PlayerView` usa lista explícita de campos. Não inclui seed, RNG, outros jogadores, mapa não filtrado nem eventLog autoritativo (que contém ordens privadas). Visibilidade do mapa, diplomacia, eventos públicos e dados de adversários aguardam especificação. Nunca publicar `GameState` diretamente por broadcast.
+`PlayerView` usa lista explícita de campos. Não inclui seed, RNG, adversários completos, mapa não filtrado nem eventLog. Uma política interna confiável pode liberar população/desenvolvimento/especialização de cidades visíveis e governos conhecidos. Alocação adversária e detalhes internos não são incluídos; por padrão não há dados adversários visíveis. A política real de fog of war aguarda especificação. Nunca publicar `GameState` diretamente por broadcast.
 
 ## Persistência
 
 Um registro `Game` tem `id`, `version` (`BIGINT`) e `snapshot` (`JSONB`). O domínio usa números inteiros seguros; o adaptador converte a versão para `bigint` somente na fronteira Prisma. O snapshot é validado ao escrever e ao ler, e a leitura verifica a coerência com as colunas de controle.
 
-`schemaVersion = 1` versiona o formato persistido, enquanto `version` conta transições. Formatos desconhecidos são rejeitados. Migrações de snapshots ainda precisam ser implementadas quando o domínio mudar. A migração SQL inicial está versionada; execução contra um PostgreSQL real é uma verificação adicional de integração, não coberta pelos doubles de teste.
+`schemaVersion = 2` versiona o formato persistido, enquanto `version` conta transições. V1 retorna `SNAPSHOT_MIGRATION_REQUIRED`; versões desconhecidas retornam `UNSUPPORTED_SCHEMA`. Não há conversão silenciosa. Uma transição pode emitir vários eventos com a mesma revisão, em ordem estável. O JSONB existente acomoda o novo domínio sem migração SQL nova. Execução contra PostgreSQL real é uma verificação adicional, não coberta pelos doubles. Veja ADR 0003.
 
 ## Determinismo e limites
 
