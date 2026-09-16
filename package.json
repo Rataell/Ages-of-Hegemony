@@ -1,0 +1,35 @@
+{
+  "name": "ages-of-hegemony",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev:web": "npm run dev -w @aoh/web",
+    "dev:server": "npm run compile && node apps/server/dist/main.js",
+    "db:generate": "prisma generate",
+    "db:validate": "prisma validate",
+    "db:migrate": "prisma migrate dev",
+    "compile": "npm run db:generate && tsc -b",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "npm run compile && tsc -p tests/tsconfig.json && npm run typecheck -w @aoh/web",
+    "test": "npm run compile && vitest run",
+    "build": "npm run compile && npm run build -w @aoh/web",
+    "demo": "npm run compile && node apps/server/dist/demo.js",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^10.0.0",
+    "prisma": "^7.0.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.0.0"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.2",
+    "mysql2": "3.24.4"
+  }
+}
