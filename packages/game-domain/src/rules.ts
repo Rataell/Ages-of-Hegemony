@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TerritoryRulesSchema, createDefaultTerritoryRules } from './territory.js';
 import { CitySpecializationSchema, DevelopmentSchema, GovernmentSchema, NonNegativeIntegerSchema as N, PositiveIntegerSchema as P, ResourcePoolSchema, StabilitySchema, emptyResourcePool } from './core.js';
 
 const signed = z.number().int().min(-100).max(100);
@@ -18,6 +19,7 @@ export const SpecializationModifiersSchema = z.strictObject({
   administrativeCapacity: N, futureRecruitmentPreparation: N, futureInfluenceBonus: N,
 });
 export const GameRulesConfigSchema = z.strictObject({
+  territory: TerritoryRulesSchema,
   baseCommandPoints: N, foodPerPopulation: N, growthThreshold: P,
   maxGrowthPerMaintenance: P, initialPopulation: N, initialStability: StabilitySchema,
   maxDevelopment: DevelopmentSchema,
@@ -35,6 +37,7 @@ export const GameRulesConfigSchema = z.strictObject({
   const { criticalMax, unstableMax, tenseMax, stableMax } = rules.stabilityThresholds;
   if (!(criticalMax < unstableMax && unstableMax < tenseMax && tenseMax < stableMax && stableMax < 100)) ctx.addIssue({ code: 'custom', message: 'Stability bands must be strictly increasing and leave five nonempty bands' });
   if (rules.initialPopulation > rules.developmentPopulationCaps[0]) ctx.addIssue({ code: 'custom', message: 'Initial population exceeds settlement capacity' });
+  if (rules.territory.foundingPopulation > rules.developmentPopulationCaps[0]) ctx.addIssue({ code: 'custom', message: 'Founding population exceeds capacity' });
   if (rules.specializationMinimumDevelopment > rules.maxDevelopment) ctx.addIssue({ code: 'custom', message: 'Specialization minimum exceeds max development' });
   rules.developmentPopulationCaps.forEach((cap, i, caps) => {
     if (i > 0 && cap < (caps[i - 1] ?? cap)) ctx.addIssue({ code: 'custom', message: 'Population caps must not decrease' });
@@ -55,6 +58,7 @@ const government: GovernmentModifiers = {
 const specialization = { producerBonus: 0, artisanBonus: 0, merchantBonus: 0, scholarBonus: 0, administrativeCapacity: 0, futureRecruitmentPreparation: 0, futureInfluenceBonus: 0 };
 // Provisional balance values, cloned and validated for each match.
 const defaults: GameRulesConfig = {
+  territory: createDefaultTerritoryRules(),
   baseCommandPoints: 4, foodPerPopulation: 1, growthThreshold: 10,
   maxGrowthPerMaintenance: 1, initialPopulation: 2, initialStability: 60, maxDevelopment: 5,
   developmentPopulationCaps: [3, 5, 8, 12, 16],

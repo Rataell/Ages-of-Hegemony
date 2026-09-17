@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CityIdSchema, HexIdSchema, GovernmentTypeSchema, createDefaultRules } from '@aoh/game-domain';
+import { CityIdSchema, HexIdSchema, InitialHexTileSchema, GovernmentTypeSchema, createDefaultRules } from '@aoh/game-domain';
 import { applyCommand, commandPoints, deriveAdministration, deriveCityProduction, refreshAdministration } from '@aoh/game-engine';
 import { playerId } from './helpers.js';
 import { cityGame, cityId, firstCity, firstPlayer, maintain, manage, planning, workers } from './civilization-helpers.js';
@@ -26,7 +26,7 @@ describe('government adoption and declarative modifiers', () => {
   it('capital crisis affects the state without dependence on city iteration order', () => {
     const state = cityGame(); const player = firstPlayer(state); const capital = firstCity(state);
     const id = CityIdSchema.parse('regional-city'); const hexId = HexIdSchema.parse('3,0');
-    state.map.push({ id: hexId, q: 3, r: 0 });
+    state.map.push(InitialHexTileSchema.parse({ id: hexId, q: 3, r: 0, ownerId: player.id, controllerCityId: id }));
     player.civilization.cities.push({ ...structuredClone(capital), id, hexId });
     player.civilization.government = 'MONARCHY'; capital.stability = 19;
     const normal = maintain(state);
@@ -63,7 +63,7 @@ describe('government adoption and declarative modifiers', () => {
   it('confederation scales capacity and stability with cities while reducing command points', () => {
     const state = cityGame(); const player = firstPlayer(state);
     const id = CityIdSchema.parse('regional'); const hexId = HexIdSchema.parse('4,0');
-    state.map.push({ id: hexId, q: 4, r: 0 });
+    state.map.push(InitialHexTileSchema.parse({ id: hexId, q: 4, r: 0, ownerId: player.id, controllerCityId: id }));
     player.civilization.cities.push({ ...structuredClone(firstCity(state)), id, hexId });
     player.civilization.government = 'CONFEDERATION';
     const after = maintain(state); const civ = firstPlayer(after).civilization;

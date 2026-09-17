@@ -11,3 +11,7 @@ dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1
 dt { color: #b4bfc7; }
 dd { margin: 0; overflow-wrap: anywhere; }
 li { overflow-wrap: anywhere; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+th, td { text-align: left; padding: 10px; border-bottom: 1px solid #3a4651; vertical-align: top; }
+section p { overflow-wrap: anywhere; }

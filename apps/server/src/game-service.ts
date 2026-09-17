@@ -1,5 +1,5 @@
-import { GameCommandSchema, type CityId, type GameId, type PlayerId, type GameState, type GameRuleError, type RoundPhase } from '@aoh/game-domain';
-import { applyCommand, commandPoints, createGame } from '@aoh/game-engine';
+import { GameCommandSchema, type CityId, type GameId, type HexId, type HexTile, type PlayerId, type GameState, type GameRuleError, type RoundPhase } from '@aoh/game-domain';
+import { applyCommand, commandPoints, createGame, infrastructureStats, maintainPlayer, tileYieldBreakdown } from '@aoh/game-engine';
 import { err, ok, type Result } from '@aoh/shared';
 import type { GameRepository } from './repository.js';
 
@@ -11,15 +11,32 @@ export interface AuthenticatedPlayer { readonly playerId: PlayerId }
 export interface TrustedVisibility {
   readonly visibleCityIds: readonly CityId[];
   readonly knownGovernmentPlayerIds: readonly PlayerId[];
+  readonly visibleHexIds?: readonly HexId[];
+}
+function inspectYield(tile: HexTile, state: GameState) {
+  try { return { yield: tileYieldBreakdown(tile, state.config).total, yieldError: null }; }
+  catch (error: unknown) {
+    if (error instanceof RangeError) return { yield: null, yieldError: error.message };
+    throw error;
+  }
 }
 export function playerView(state: GameState, playerId: PlayerId, visibility: TrustedVisibility = { visibleCityIds: [], knownGovernmentPlayerIds: [] }) {
   const player = state.players.find((entry) => entry.id === playerId);
   if (!player) return null;
+  let economy = null; let economyError: string | null = null;
+  try { economy = maintainPlayer(player, state.config, state.round, state.version, state.map).economy; }
+  catch (error: unknown) { if (error instanceof RangeError) economyError = error.message; else throw error; }
+  const lastEconomicEvent = [...state.eventLog].reverse().find((event) => event.type === 'RESOURCES_PRODUCED' && event.playerId === player.id && event.breakdown !== undefined);
   return structuredClone({
     gameId: state.gameId, version: state.version, round: state.round, era: state.era,
     phase: state.phase, status: state.status, playerCount: state.playerCount,
     player, pendingOrders: state.pendingOrders[playerId] ?? [], config: state.config,
     commandPoints: commandPoints(player.civilization, state.config),
+    economyPreview: economy, economyError,
+    lastEconomy: lastEconomicEvent?.type === 'RESOURCES_PRODUCED' ? { round: lastEconomicEvent.round, version: lastEconomicEvent.version, breakdown: lastEconomicEvent.breakdown } : null,
+    cityInfrastructure: player.civilization.cities.map((city) => ({ cityId: city.id, ...infrastructureStats(city, state.config) })),
+    visibleTerritory: state.map.filter((tile) => tile.ownerId === playerId || visibility.visibleHexIds?.includes(tile.id))
+      .map((tile) => ({ id: tile.id, q: tile.q, r: tile.r, terrain: tile.terrain, features: tile.features, ownerId: tile.ownerId, controllerCityId: tile.controllerCityId, improvement: tile.improvement, ...inspectYield(tile, state) })),
     visibleCities: state.players.filter((owner) => owner.id !== playerId).flatMap((owner) => owner.civilization.cities
       .filter((city) => visibility.visibleCityIds.includes(city.id))
       .map((city) => ({ id: city.id, ownerId: city.ownerId, hexId: city.hexId, name: city.name, population: city.population, development: city.development, specialization: city.specialization }))),

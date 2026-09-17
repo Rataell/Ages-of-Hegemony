@@ -1,6 +1,6 @@
 # Ages of Hegemony
 
-Jogo 4X original para **2–6 jogadores**, na v0.3: cidades, população, estabilidade, governos e administração sobre um motor determinístico. Valores de balanceamento são provisórios; combate e multiplayer completo continuam fora do escopo.
+Jogo 4X original para **2–6 jogadores**, na v0.4: economia territorial, melhorias, expansão urbana, distritos e edifícios sobre um motor determinístico. Valores de balanceamento são provisórios; combate e multiplayer completo continuam fora do escopo.
 
 ## Executar
 
@@ -21,7 +21,7 @@ npm run dev:web
 npm run dev:server
 ```
 
-Interface: http://localhost:3000. Health check: http://127.0.0.1:4000/health. A interface inspeciona um cenário determinístico calculado no servidor: governo, administração, cidades e trabalhadores. É somente leitura e não acessa partidas reais. `npm run demo` executa o mesmo cenário, com crescimento e round-trip do snapshot. Rotas HTTP que alteram partidas ainda não estão expostas.
+Interface: http://localhost:3000. Health check: http://127.0.0.1:4000/health. A interface inspeciona um cenário determinístico calculado no servidor: governo, administração, cidades, território, infraestrutura e breakdown econômico. É somente leitura e não acessa partidas reais. `npm run demo` executa o mesmo cenário, funda uma segunda cidade, restaura snapshot v3 idêntico e demonstra migração explícita v2. Rotas HTTP que alteram partidas ainda não estão expostas.
 
 ## PostgreSQL opcional
 
@@ -45,7 +45,7 @@ npx prisma migrate deploy
 | `npm run typecheck` | Compilação estrita dos pacotes, servidor, testes e Next.js |
 | `npm test` | Vitest: regras, determinismo, validação e fronteiras do servidor |
 | `npm run build` | Pacotes/servidor JavaScript + build de produção Next.js |
-| `npm run demo` | Criar cidade → adotar governo → alocar → produzir/consumir/crescer → especializar → desenvolver → restaurar |
+| `npm run demo` | Reclamar → trabalhar → melhorar → produzir → construir → fundar → administrar → restaurar v3 e migrar v2 |
 | `npm run db:validate` | Validação do schema Prisma |
 
 ## Organização

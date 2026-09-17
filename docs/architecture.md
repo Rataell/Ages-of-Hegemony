@@ -30,7 +30,15 @@ A única rota HTTP implementada é `GET /health`, ligada a loopback. O futuro ad
 
 Um registro `Game` tem `id`, `version` (`BIGINT`) e `snapshot` (`JSONB`). O domínio usa números inteiros seguros; o adaptador converte a versão para `bigint` somente na fronteira Prisma. O snapshot é validado ao escrever e ao ler, e a leitura verifica a coerência com as colunas de controle.
 
-`schemaVersion = 2` versiona o formato persistido, enquanto `version` conta transições. V1 retorna `SNAPSHOT_MIGRATION_REQUIRED`; versões desconhecidas retornam `UNSUPPORTED_SCHEMA`. Não há conversão silenciosa. Uma transição pode emitir vários eventos com a mesma revisão, em ordem estável. O JSONB existente acomoda o novo domínio sem migração SQL nova. Execução contra PostgreSQL real é uma verificação adicional, não coberta pelos doubles. Veja ADR 0003.
+`schemaVersion = 3` versiona o formato persistido, enquanto `version` conta transições. V1 e v2 retornam `SNAPSHOT_MIGRATION_REQUIRED`; versões desconhecidas retornam `UNSUPPORTED_SCHEMA`. V2 tem transformação explícita `migrateSnapshotV2ToV3`, que valida contratos históricos congelados, preserva UNKNOWN e infere somente centros de cidades. V1 mantém a orientação de conversão manual. Não há conversão silenciosa. Uma transição pode emitir vários eventos com a mesma revisão, em ordem estável. JSONB acomoda v3 sem migração SQL nova. Execução contra PostgreSQL real é uma verificação adicional, não coberta pelos doubles. Veja [ADR 0004](decisions/0004-territorial-economy-and-snapshot-v3.md).
+
+## Economia territorial
+
+`game-domain/territory.ts` define catálogos configuráveis, infraestrutura e contratos de breakdown. Invariantes relacionais validam ownership, controlador, conectividade, alcance, trabalho e infraestrutura ao carregar snapshots. A distância axial compartilhada evita divergência com o motor.
+
+`game-engine/territory-commands.ts` executa os seis comandos territoriais; `economy.ts` explica produção por fonte; `urban.ts` deriva capacidades e limiar de crescimento. `maintenance.ts` mantém a sequência econômica e retorna reconciliação exata. Aritmética centralizada usa BigInt intermediário e verifica inteiros seguros antes de retornar números.
+
+`GameService` autentica o ator por contexto externo, persiste via CAS e projeta território próprio ou liberado pela política confiável de visibilidade. Último breakdown próprio e prévia são separados. A UI de inspeção apenas renderiza esses valores. Claims imediatos em território livre não implementam disputa simultânea; CAS protege a gravação, não estabelece iniciativa estratégica.
 
 ## Determinismo e limites
 

@@ -36,7 +36,21 @@ export type ResourcePool = z.infer<typeof ResourcePoolSchema>;
 export const emptyResourcePool = (): ResourcePool => ({ food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 });
 export const AxialCoordinatesSchema = z.strictObject({ q: z.number().int().min(-1_000_000).max(1_000_000), r: z.number().int().min(-1_000_000).max(1_000_000) });
 export type AxialCoordinates = z.infer<typeof AxialCoordinatesSchema>;
-export const HexTileSchema = z.strictObject({ id: HexIdSchema, q: AxialCoordinatesSchema.shape.q, r: AxialCoordinatesSchema.shape.r });
+export const TerrainTypeSchema = z.enum(['UNKNOWN', 'PLAINS', 'FOREST', 'HILLS', 'MOUNTAINS', 'COAST', 'SEA']);
+export type TerrainType = z.infer<typeof TerrainTypeSchema>;
+export const TerrainFeatureSchema = z.enum(['RIVER', 'FERTILE', 'TIMBER', 'STONE', 'METAL', 'FISH']);
+export type TerrainFeature = z.infer<typeof TerrainFeatureSchema>;
+export const ImprovementTypeSchema = z.enum(['FARM', 'LUMBER_CAMP', 'QUARRY', 'MINE', 'FISHERY']);
+export type ImprovementType = z.infer<typeof ImprovementTypeSchema>;
+export const TileYieldSchema = z.strictObject({ food: NonNegativeIntegerSchema, materials: NonNegativeIntegerSchema, wealth: NonNegativeIntegerSchema });
+export type TileYield = z.infer<typeof TileYieldSchema>;
+export const HexTileSchema = z.strictObject({
+  id: HexIdSchema, q: AxialCoordinatesSchema.shape.q, r: AxialCoordinatesSchema.shape.r,
+  terrain: TerrainTypeSchema, features: z.array(TerrainFeatureSchema), ownerId: PlayerIdSchema.nullable(),
+  controllerCityId: CityIdSchema.nullable(), improvement: ImprovementTypeSchema.nullable(),
+});
+// Defaults apply only at the trusted scenario boundary, never while decoding a v3 snapshot.
+export const InitialHexTileSchema = HexTileSchema.extend({ terrain: TerrainTypeSchema.default('UNKNOWN'), features: z.array(TerrainFeatureSchema).default([]), ownerId: PlayerIdSchema.nullable().default(null), controllerCityId: CityIdSchema.nullable().default(null), improvement: ImprovementTypeSchema.nullable().default(null) });
 export type HexTile = z.infer<typeof HexTileSchema>;
 export const PositiveIntegerSchema = NonNegativeIntegerSchema.min(1);
 export const RESOURCE_KEYS = ['food', 'materials', 'wealth', 'knowledge', 'influence'] as const;

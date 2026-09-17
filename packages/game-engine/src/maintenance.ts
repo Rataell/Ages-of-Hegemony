@@ -1,12 +1,15 @@
-import { RESOURCE_KEYS, type GameEvent, type GameRulesConfig, type PlayerState } from '@aoh/game-domain';
-import { clampStability, deriveAdministration, governmentStabilityDelta, multiply, percent, populationCap, refreshAdministration, sum, totalProduction } from './civilization.js';
+import { RESOURCE_KEYS, emptyResourcePool, type EconomyBreakdown, type HexTile, type GameEvent, type GameRulesConfig, type PlayerState } from '@aoh/game-domain';
+import { clampStability, deriveAdministration, governmentStabilityDelta, multiply, percent, populationCap, refreshAdministration, sum } from './civilization.js';
+import { deriveCityProductionBreakdown, sumProduction } from './economy.js';
+import { infrastructureStats } from './urban.js';
 
 // Pure pipeline: the caller commits this result together with the phase transition.
-export function maintainPlayer(player: PlayerState, rules: GameRulesConfig, round: number, version: number): { player: PlayerState; events: GameEvent[] } {
-  if (player.civilization.cities.length === 0) return { player: { ...player, civilization: refreshAdministration(player.civilization, rules) }, events: [] };
+export function maintainPlayer(player: PlayerState, rules: GameRulesConfig, round: number, version: number, map: readonly HexTile[] = []): { player: PlayerState; events: GameEvent[]; economy: EconomyBreakdown } {
   const base = { playerId: player.id, round, version };
   const events: GameEvent[] = [];
-  const production = totalProduction(player.civilization, rules);
+  const breakdowns = player.civilization.cities.map((city) => deriveCityProductionBreakdown(city, player.civilization, rules, map));
+  const gross = sumProduction(breakdowns);
+  const production = { ...gross };
   const resources = { ...player.resources };
   for (const key of RESOURCE_KEYS) resources[key] = sum([resources[key], production[key]]);
   const required = multiply(sum(player.civilization.cities.map((city) => city.population)), rules.foodPerPopulation);
@@ -22,16 +25,17 @@ export function maintainPlayer(player: PlayerState, rules: GameRulesConfig, roun
   let cities = player.civilization.cities.map((city) => {
     if (shortage || city.population >= populationCap(city, rules)) return { ...city, workers: { ...city.workers } };
     const progress = sum([city.growthProgress, shares.get(city.id) ?? 0]);
-    const growth = Math.min(Math.floor(progress / rules.growthThreshold), rules.maxGrowthPerMaintenance, populationCap(city, rules) - city.population);
+    const threshold = infrastructureStats(city, rules).growthThreshold;
+    const growth = Math.min(Math.floor(progress / threshold), rules.maxGrowthPerMaintenance, populationCap(city, rules) - city.population);
     const population = sum([city.population, growth]);
     // Bank at most one threshold so capped cities do not accumulate unbounded bursts.
-    const growthProgress = Math.min(rules.growthThreshold, progress - multiply(growth, rules.growthThreshold));
+    const growthProgress = Math.min(threshold, progress - multiply(growth, threshold));
     if (growth > 0) events.push({ ...base, cityId: city.id, type: 'POPULATION_GROWN', amount: growth, population });
     if (growthProgress !== city.growthProgress) events.push({ ...base, cityId: city.id, type: 'GROWTH_PROGRESS_CHANGED', from: city.growthProgress, to: growthProgress });
     return { ...city, population, growthProgress, workers: { ...city.workers, unassigned: sum([city.workers.unassigned, growth]) } };
   });
   const afterGrowth = { ...player.civilization, cities };
-  const administration = deriveAdministration(afterGrowth, rules);
+  const administration = deriveAdministration(afterGrowth, rules, map);
   const overextended = administration.administrationStatus === 'OVEREXTENDED';
   if (overextended) {
     events.push({ ...base, type: 'ADMINISTRATIVE_OVEREXTENSION', load: administration.administrativeLoad, capacity: administration.administrativeCapacity });
@@ -50,9 +54,12 @@ export function maintainPlayer(player: PlayerState, rules: GameRulesConfig, roun
     return { ...city, stability };
   });
   // Recompute final derived values after stability crosses a government threshold.
-  const civilization = refreshAdministration({ ...player.civilization, cities }, rules);
-  return { player: { ...player, resources, civilization }, events: [
-    { ...base, type: 'RESOURCES_PRODUCED', resources: production },
+  const civilization = refreshAdministration({ ...player.civilization, cities }, rules, map);
+  const administrativeAdjustment = emptyResourcePool(); const netChange = emptyResourcePool();
+  for (const key of RESOURCE_KEYS) { administrativeAdjustment[key] = production[key] - gross[key]; netChange[key] = resources[key] - player.resources[key]; }
+  const economy: EconomyBreakdown = { cities: breakdowns, gross, administrativeAdjustment, credited: production, foodRequired: required, foodPaid: paid, opening: { ...player.resources }, closing: resources, netChange };
+  return { player: { ...player, resources, civilization }, economy, events: cities.length === 0 ? [] : [
+    { ...base, type: 'RESOURCES_PRODUCED', resources: production, breakdown: economy },
     { ...base, type: 'FOOD_CONSUMED', amount: paid }, ...events,
   ] };
 }

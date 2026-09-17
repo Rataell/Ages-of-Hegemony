@@ -1,37 +1,42 @@
 # Próximas rodadas e riscos
 
-## v0.4 — Economia, distritos, construções e recursos territoriais
+## v0.4 — Implementado
 
-- Especificar produção territorial, distritos e edifícios antes de implementar comandos.
-- Definir custo/requisitos de fundação; initialCities é somente setup confiável.
-- Revisar valores provisórios de população, especializações, desenvolvimento, governos e administração.
-- Confirmar política de excedente compartilhado, arredondamento e estoque de progresso.
-- Definir custos de pontos de comando; hoje só se calcula a capacidade.
-- Especificar hooks futuros de influência, conhecimento, preparação militar, desigualdade e reformas antes de ativá-los.
+Terrenos/features, ownership/controlador, claims conectados, trabalho por produtor, cinco melhorias, fundação abstrata, sete distritos e sete edifícios mínimos. Produção determinística com breakdown reconciliado, carga territorial, snapshot v3 e migração explícita v2. Inspeção e demo usam projeções do servidor. Custos e efeitos permanecem provisórios.
+
+## Próximas decisões de produto
+
+- Resolver futuro para disputas simultâneas de claims, independente de CAS e chegada da rede.
+- Regras de navegação e exploração de SEA; atualmente só COAST com FISH aceita FISHERY.
+- Transferência administrativa entre cidades, substituição de melhorias e demolição, se necessárias.
+- Revisão de balanceamento territorial, especialização, crescimento, slots e carga administrativa.
+- Filas e tempo de construção apenas após especificação; v0.4 é instantânea.
+- Custos de pontos de comando e hooks ainda inativos de governos/especializações.
+- Gerador procedural como sistema próprio, sem embuti-lo em cenários ou migrações.
 
 ## Engenharia antes de multiplayer
 
 - Autenticação real e autorização de lobby/scheduler; identidade fora do JSON.
-- HTTP/WebSocket autenticado sobre GameService, limites de entrada/frequência, reconexão e idempotência.
-- Fog of war e conhecimento diplomático. As listas de visibilidade da projeção devem vir do servidor, nunca diretamente do cliente.
-- Fechamento do planejamento, prazos e ordenação da resolução simultânea. Gestão imediata não resolve conflitos entre jogadores.
-- Integração PostgreSQL real: migração inicial, JSONB e CAS entre conexões independentes.
-- Conversão explícita de snapshots v1 quando houver cenários reais; não adivinhar estabilidade, desenvolvimento ou trabalhadores antigos.
-- Entrega confiável pós-commit e identidade de eventos: múltiplos eventos agora compartilham uma revisão.
-- Medir cópia/validação integral e segmentar logs/checkpoints para partidas longas.
+- HTTP/WebSocket autenticado sobre GameService, limites, reconexão e idempotência.
+- Fog of war e conhecimento diplomático; listas de visibilidade vêm somente do servidor.
+- Fechamento do planejamento, prazos e ordenação autoritativa de resolução.
+- PostgreSQL real: JSONB e CAS entre conexões independentes; doubles não substituem essa integração.
+- Processo operacional de backup e gravação deliberada de snapshots migrados v2; conversão v1 continua manual.
+- Entrega confiável pós-commit e identidade de eventos que compartilham uma revisão.
+- Medir validação/cópia integral, conectividade e crescimento do log com breakdowns; depois introduzir checkpoints se necessário.
 - E2E Playwright quando a UI tiver comandos jogáveis.
 
-## Fora do escopo
+## Fora do escopo atual
 
-Combate, unidades detalhadas, battle resolver, mapa procedural, Teia completa, religião, eleições, sucessão, classes sociais, corrupção avançada, revoltas, felicidade individual, distritos completos, edifícios, trade routes, tratados, espionagem, hegemonia, IA e matchmaking.
+Combate, unidades móveis, guerras, diplomacia, rotas internacionais, Teia Civilizacional completa, fog of war completo, geração procedural, IA e hegemonia. MILITARY/BARRACKS apenas expõem capacidade de guarnição. Religião, eleições, sucessão, classes sociais, corrupção avançada, revoltas, espionagem e matchmaking também aguardam sistemas próprios.
 
 ## Riscos conhecidos
 
-1. Arredondamento para baixo tem efeitos fortes em produções pequenas; números são provisórios.
-2. Cópia e validação integral ficam mais caras conforme o log cresce.
-3. Controle de versão não define justiça de iniciativa/ordenação.
-4. Estado autoritativo não deve ser publicado por broadcast; usar projeções autorizadas.
-5. Snapshot v1 requer conversão deliberada; rejeição orientada preserva o original.
-6. Eventos de excesso registram a avaliação após crescimento. A estabilidade final pode mudar o status, sem reaplicar consequências no mesmo ciclo.
-7. Schemas verificam integridade estrutural, não autenticidade nem toda a causalidade histórica. Persistência é fronteira confiável.
+1. Arredondamento para baixo pesa em produções pequenas; testes fixam a ordem, mas balanceamento precisa de jogo real.
+2. Validação/cópia integral e busca de conexão aumentam de custo com mapa e histórico.
+3. Controle de versão não define justiça de iniciativa.
+4. Estado autoritativo nunca deve ser publicado por broadcast; usar projeções autorizadas.
+5. UNKNOWN preserva legado sem inventar geografia, mas exige cenário explícito para ativar trabalho territorial nesses hexes.
+6. Excesso administrativo é avaliado após crescimento; estabilidade final pode mudar status sem reaplicar penalidades no ciclo.
+7. Schemas garantem integridade estrutural/relacional, não autenticidade nem toda causalidade histórica.
 8. Overrides transitivos do CLI Prisma precisam de revisão em upgrades; ver ADR 0002.

@@ -2,16 +2,19 @@ import { z } from 'zod';
 import {
   IdentifierSchema, GameIdSchema, PlayerIdSchema, CivilizationIdSchema, CityIdSchema, HexIdSchema,
   EraSchema, RoundPhaseSchema, OrderTypeSchema, NonNegativeIntegerSchema as N, PositiveIntegerSchema as P,
-  SeedSchema, ResourcePoolSchema, HexTileSchema, PopulationAllocationSchema, CitySpecializationSchema,
+  SeedSchema, ResourcePoolSchema, HexTileSchema, InitialHexTileSchema, ImprovementTypeSchema, PopulationAllocationSchema, CitySpecializationSchema,
   GovernmentSchema, GovernmentTypeSchema, StabilitySchema, DevelopmentSchema,
 } from './core.js';
 import { GameRulesConfigSchema, createDefaultRules } from './rules.js';
+import { BuildingStateSchema, BuildingTypeSchema, DistrictStateSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
+import { territorialInvariantErrors } from './territory-invariants.js';
 
 export const CityStateSchema = z.strictObject({
   id: CityIdSchema, ownerId: PlayerIdSchema, hexId: HexIdSchema, name: z.string().trim().min(1).max(80),
   population: N, stability: StabilitySchema, development: DevelopmentSchema,
   specialization: CitySpecializationSchema.nullable(), workers: PopulationAllocationSchema,
   foundedRound: P, growthProgress: N,
+  workedHexIds: z.array(HexIdSchema), districts: z.array(DistrictStateSchema), buildings: z.array(BuildingStateSchema),
 }).superRefine((city, ctx) => {
   if (Object.values(city.workers).reduce((sum, value) => sum + BigInt(value), 0n) !== BigInt(city.population)) ctx.addIssue({ code: 'custom', message: 'Allocated population must equal city population' });
 });
@@ -35,9 +38,16 @@ export const GameCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({ ...playerCommand, type: z.literal('DEVELOP_CITY'), cityId: CityIdSchema }),
   z.strictObject({ ...playerCommand, type: z.literal('SPECIALIZE_CITY'), cityId: CityIdSchema, specialization: CitySpecializationSchema }),
   z.strictObject({ ...playerCommand, type: z.literal('ADOPT_GOVERNMENT'), government: GovernmentTypeSchema }),
+  z.strictObject({ ...playerCommand, type: z.literal('CLAIM_HEX'), cityId: CityIdSchema, hexId: HexIdSchema }),
+  z.strictObject({ ...playerCommand, type: z.literal('ASSIGN_WORKED_HEXES'), cityId: CityIdSchema, hexIds: z.array(HexIdSchema) }),
+  z.strictObject({ ...playerCommand, type: z.literal('IMPROVE_HEX'), hexId: HexIdSchema, improvement: ImprovementTypeSchema }),
+  z.strictObject({ ...playerCommand, type: z.literal('FOUND_CITY'), cityId: CityIdSchema, hexId: HexIdSchema, name: CityStateSchema.shape.name }),
+  z.strictObject({ ...playerCommand, type: z.literal('BUILD_DISTRICT'), cityId: CityIdSchema, district: DistrictTypeSchema }),
+  z.strictObject({ ...playerCommand, type: z.literal('BUILD_BUILDING'), cityId: CityIdSchema, building: BuildingTypeSchema }),
 ]);
 export type GameCommand = z.infer<typeof GameCommandSchema>;
-export type ManagementCommand = Exclude<GameCommand, { type: 'SUBMIT_ORDER' | 'ADVANCE_PHASE' }>;
+export type TerritoryCommand = Extract<GameCommand, { type: 'CLAIM_HEX' | 'ASSIGN_WORKED_HEXES' | 'IMPROVE_HEX' | 'FOUND_CITY' | 'BUILD_DISTRICT' | 'BUILD_BUILDING' }>;
+export type ManagementCommand = Exclude<GameCommand, TerritoryCommand | { type: 'SUBMIT_ORDER' | 'ADVANCE_PHASE' }>;
 
 const eventBase = { version: N, round: P };
 const cityEvent = { ...eventBase, playerId: PlayerIdSchema, cityId: CityIdSchema };
@@ -54,12 +64,18 @@ export const GameEventSchema = z.discriminatedUnion('type', [
   z.strictObject({ ...cityEvent, type: z.literal('STABILITY_CHANGED'), from: StabilitySchema, to: StabilitySchema }),
   z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('GOVERNMENT_ADOPTED'), government: GovernmentTypeSchema }),
   z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('ADMINISTRATIVE_OVEREXTENSION'), load: N, capacity: N }),
-  z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('RESOURCES_PRODUCED'), resources: ResourcePoolSchema }),
+  z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('RESOURCES_PRODUCED'), resources: ResourcePoolSchema, breakdown: EconomyBreakdownSchema.optional() }),
   z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('FOOD_CONSUMED'), amount: N }),
+  z.strictObject({ ...cityEvent, type: z.literal('HEX_CLAIMED'), hexId: HexIdSchema, cost: ResourcePoolSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('WORKED_HEXES_ASSIGNED'), hexIds: z.array(HexIdSchema) }),
+  z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('HEX_IMPROVED'), hexId: HexIdSchema, improvement: ImprovementTypeSchema, cost: ResourcePoolSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('CITY_FOUNDED'), hexId: HexIdSchema, name: z.string(), cost: ResourcePoolSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('DISTRICT_BUILT'), district: DistrictTypeSchema, cost: ResourcePoolSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('BUILDING_BUILT'), building: BuildingTypeSchema, cost: ResourcePoolSchema }),
 ]);
 export type GameEvent = z.infer<typeof GameEventSchema>;
 export type GameRuleErrorCode = 'INVALID_INPUT' | 'INVALID_STATE' | 'INVALID_PLAYER_COUNT' | 'VERSION_CONFLICT' | 'INVALID_PHASE_TRANSITION' | 'WRONG_PHASE' | 'UNKNOWN_PLAYER' | 'UNKNOWN_HEX' | 'DUPLICATE_ORDER' | 'INVALID_RESOURCE' | 'INSUFFICIENT_RESOURCES' | 'NOT_ACTIVE' | 'CITY_NOT_OWNED' | 'INVALID_ALLOCATION' | 'MAX_DEVELOPMENT' | 'CRITICAL_STABILITY' | 'ALREADY_SPECIALIZED' | 'DEVELOPMENT_REQUIRED' | 'GOVERNMENT_ALREADY_ADOPTED' | 'NUMERIC_OVERFLOW' | 'SNAPSHOT_MIGRATION_REQUIRED' | 'UNSUPPORTED_SCHEMA';
-export interface GameRuleError { readonly code: GameRuleErrorCode; readonly message: string }
+export interface GameRuleError { readonly code: GameRuleErrorCode | 'INVALID_TERRITORY' | 'HEX_NOT_FREE' | 'HEX_NOT_OWNED' | 'OUT_OF_RANGE' | 'DISCONNECTED_TERRITORY' | 'INVALID_WORKED_HEXES' | 'INVALID_IMPROVEMENT' | 'ALREADY_IMPROVED' | 'INVALID_CITY_SITE' | 'CITY_TOO_CLOSE' | 'DUPLICATE_CITY' | 'DISTRICT_LIMIT' | 'DUPLICATE_DISTRICT' | 'MISSING_DISTRICT' | 'DUPLICATE_BUILDING'; readonly message: string }
 
 export const InitialCitySchema = z.strictObject({
   id: CityIdSchema, ownerId: PlayerIdSchema, hexId: HexIdSchema, name: CityStateSchema.shape.name,
@@ -70,12 +86,12 @@ export const CreateGameInputSchema = z.strictObject({
   gameId: GameIdSchema, seed: SeedSchema,
   players: z.array(z.strictObject({ id: PlayerIdSchema, name: PlayerStateSchema.shape.name, resources: ResourcePoolSchema.optional() })).min(2).max(6),
   config: z.union([GameRulesConfigSchema, z.strictObject({ baseCommandPoints: N }).transform((old) => ({ ...createDefaultRules(), ...old }))]).optional(),
-  map: z.array(HexTileSchema).optional(), initialCities: z.array(InitialCitySchema).optional(),
+  map: z.array(InitialHexTileSchema).optional(), initialCities: z.array(InitialCitySchema).optional(),
 });
 export type CreateGameInput = z.infer<typeof CreateGameInputSchema>;
 
 export const GameStateSchema = z.strictObject({
-  schemaVersion: z.literal(2), gameId: GameIdSchema, version: N,
+  schemaVersion: z.literal(3), gameId: GameIdSchema, version: N,
   seed: SeedSchema, rng: z.strictObject({ algorithm: z.literal('mulberry32-v1'), state: SeedSchema }),
   status: z.enum(['ACTIVE', 'FINISHED']), playerCount: z.number().int().min(2).max(6),
   players: z.array(PlayerStateSchema).min(2).max(6), map: z.array(HexTileSchema),
@@ -83,6 +99,7 @@ export const GameStateSchema = z.strictObject({
   pendingOrders: z.record(PlayerIdSchema, z.array(PlayerOrderSchema)), eventLog: z.array(GameEventSchema),
 }).superRefine((state, ctx) => {
   const fail = (message: string) => ctx.addIssue({ code: 'custom', message });
+  for (const message of territorialInvariantErrors(state)) fail(message);
   const players = new Set<string>(state.players.map((player) => player.id));
   if (players.size !== state.playerCount || state.players.length !== state.playerCount) fail('Player count or unique IDs mismatch');
   if (new Set(state.players.map((p) => p.civilization.id)).size !== state.playerCount) fail('Duplicate civilization');

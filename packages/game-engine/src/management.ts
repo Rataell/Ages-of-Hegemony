@@ -22,6 +22,7 @@ export function manageCivilization(state: GameState, command: ManagementCommand,
     case 'ASSIGN_POPULATION': {
       const allocated = Object.values(command.workers).reduce((total, value) => total + BigInt(value), 0n);
       if (allocated !== BigInt(city.population)) return err({ code: 'INVALID_ALLOCATION', message: 'Workers must sum to city population' });
+      if (command.workers.producers < city.workedHexIds.length) return err({ code: 'INVALID_WORKED_HEXES', message: 'Unassign worked hexes before reducing producers' });
       city = { ...city, workers: { ...command.workers } };
       event = { ...base, cityId: city.id, type: 'POPULATION_ASSIGNED', workers: city.workers };
       break;
