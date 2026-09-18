@@ -5,6 +5,7 @@ import { HexMap } from './hex-map';
 import { CityInspector, HexInspector } from './inspectors';
 import { ActionBrowser, GovernmentEffects } from './action-browser';
 import { ResourceDisplay } from './resource-display';
+import { CompendiumModal } from './compendium-modal';
 import { label, ruleMessage } from './presentation';
 
 function eventText(event: LocalView['events'][number], data: LocalView) {
@@ -31,6 +32,60 @@ function eventText(event: LocalView['events'][number], data: LocalView) {
   }
 }
 
+function getOnboardingStep(data: LocalView | null, cityId: string | null) {
+  if (!data) {
+    return {
+      title: 'Primeiros Passos da Civilização',
+      instruction: '1. Avance para Planejamento. 2. Selecione a capital. 3. Distribua habitantes e reivindique um vizinho. 4. Atribua o território trabalhado e avance as fases.',
+    };
+  }
+
+  const civ = data.view.player.civilization;
+  const currentCity = civ.cities.find(c => c.id === cityId);
+  const claimedCount = data.view.visibleTerritory.filter(t => t.ownerId === data.view.player.id).length;
+  const totalWorked = civ.cities.reduce((sum, c) => sum + c.workedHexIds.length, 0);
+
+  if (data.view.phase === 'MAINTENANCE') {
+    return {
+      title: 'Passo 1/5: Conclua a Manutenção',
+      instruction: 'Clique em "Executar manutenção" na barra inferior para entrar na fase de Planejamento.',
+    };
+  }
+
+  if (!currentCity) {
+    return {
+      title: 'Passo 2/5: Selecione sua Capital',
+      instruction: `Clique em ★ ${civ.cities[0]?.name ?? 'sua capital'} no conselho civilizacional à esquerda ou no atlas.`,
+    };
+  }
+
+  if (currentCity.workers.producers === 0 && currentCity.workers.artisans === 0) {
+    return {
+      title: 'Passo 3/5: Aloque os Habitantes',
+      instruction: 'Abra "Habitantes & Trabalho" no inspetor à direita e defina 1 Produtor e 1 Artesão.',
+    };
+  }
+
+  if (claimedCount <= 1) {
+    return {
+      title: 'Passo 4/5: Reivindique Território',
+      instruction: 'Clique em um hexágono vizinho com borda tracejada no atlas e selecione "Reivindicar território" (1 Influência).',
+    };
+  }
+
+  if (totalWorked === 0) {
+    return {
+      title: 'Passo 5/5: Trabalhe a Terra',
+      instruction: 'Na cidade, clique em "Atribuir território", clique no hexágono no mapa e confirme a atribuição.',
+    };
+  }
+
+  return {
+    title: 'Orientação: Governança Ativa',
+    instruction: 'Excelente! Desenvolva a cidade, construa distritos e avance as fases no botão inferior para colher a produção.',
+  };
+}
+
 export default function GameShell() {
   const [data, setData] = useState<LocalView | null>(null);
   const [count, setCount] = useState(2);
@@ -49,6 +104,9 @@ export default function GameShell() {
   const [worked, setWorked] = useState<string[]>([]);
   const [tab, setTab] = useState('Civilização');
   const [report, setReport] = useState(false);
+  const [compendiumOpen, setCompendiumOpen] = useState(false);
+
+  const onboardingStep = getOnboardingStep(data, cityId);
 
   async function request(body: Record<string, unknown>) {
     if (locked.current) return;
@@ -222,6 +280,14 @@ export default function GameShell() {
             {t}
           </button>
         ))}
+        <button
+          type="button"
+          className="compendium-nav-btn"
+          onClick={() => setCompendiumOpen(true)}
+          title="Abrir compêndio de regras, governos, distritos e conceitos"
+        >
+          📖 Compêndio
+        </button>
         <span className="future-system-tag">Hegemonia · em desenvolvimento</span>
       </nav>
 
@@ -340,11 +406,11 @@ export default function GameShell() {
               <div className="guidance-content">
                 <div className="guidance-head">
                   <span className="guidance-seal">✦</span>
-                  <b>Primeiros Passos da Civilização</b>
+                  <b>{onboardingStep.title}</b>
                 </div>
                 {!helpMinimized && (
                   <p>
-                    1. Avance para <strong>Planejamento</strong>. 2. Selecione a <strong>capital</strong>. 3. Distribua habitantes e reivindique um vizinho. 4. Atribua o território trabalhado e avance as fases.
+                    {onboardingStep.instruction}
                   </p>
                 )}
               </div>
@@ -569,6 +635,18 @@ export default function GameShell() {
           run={run}
           close={() => setModal(null)}
           busy={busy}
+        />
+      )}
+
+      {/* 7. COMPENDIUM & RULES MODAL */}
+      {compendiumOpen && (
+        <CompendiumModal
+          isOpen={compendiumOpen}
+          onClose={() => setCompendiumOpen(false)}
+          onRestartTutorial={() => {
+            setHelp(true);
+            setHelpMinimized(false);
+          }}
         />
       )}
 

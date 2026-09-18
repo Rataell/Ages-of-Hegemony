@@ -43,8 +43,38 @@ test('local visual loop, authoritative feedback, map crash regression and visual
   await page.getByRole('button', { name: 'Diminuir zoom' }).click();
   await page.getByRole('button', { name: 'Centralizar' }).click();
 
-  // Dismiss guidance banner
+  // Onboarding verification: initial step, minimize, dismiss
+  await expect(page.locator('.guidance')).toContainText('Passo 1/5: Conclua a Manutenção');
+  await page.getByRole('button', { name: 'Minimizar' }).click();
+  await expect(page.getByRole('button', { name: 'Expandir' })).toBeVisible();
+  await page.getByRole('button', { name: 'Expandir' }).click();
   await page.getByRole('button', { name: 'Dispensar orientação' }).click();
+  await expect(page.locator('.guidance')).toHaveCount(0);
+
+  // In-game compendium verification: open, capture, switch categories, search, restart onboarding
+  await page.getByRole('button', { name: '📖 Compêndio' }).click();
+  await expect(page.locator('.compendium-dialog')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Compêndio & Manual de Regras' })).toBeVisible();
+  await capture('compendium');
+
+  await page.getByRole('button', { name: 'Distritos', exact: true }).click();
+  await expect(page.locator('.compendium-card').filter({ hasText: 'Agrário' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Edifícios', exact: true }).click();
+  await expect(page.locator('.compendium-card').filter({ hasText: 'Celeiro' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Regras & Conceitos', exact: true }).click();
+  await expect(page.locator('.compendium-card').filter({ hasText: 'Estabilidade Social' })).toBeVisible();
+
+  await page.getByPlaceholder('Buscar no compêndio…').fill('Celeiro');
+  await expect(page.locator('.compendium-card').filter({ hasText: 'Celeiro' })).toBeVisible();
+
+  // Test onboarding restart button inside compendium
+  await page.getByRole('button', { name: '✦ Reiniciar Tutorial' }).click();
+  await expect(page.locator('.compendium-dialog')).not.toBeVisible();
+  await expect(page.locator('.guidance')).toBeVisible();
+  await page.getByRole('button', { name: 'Dispensar orientação' }).click();
+  await expect(page.locator('.guidance')).toHaveCount(0);
 
   // 1. World Map Scene
   await capture('world-map');
