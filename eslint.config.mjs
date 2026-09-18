@@ -7,6 +7,10 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   { files: ['**/*.ts', '**/*.tsx'], rules: { '@typescript-eslint/no-explicit-any': 'error' } },
   {
+    files: ['apps/web/app/play/**/*.ts', 'apps/web/app/play/**/*.tsx'],
+    rules: { 'no-restricted-imports': ['error', { patterns: ['@aoh/game-engine', '@aoh/game-engine/*', '@prisma/*', 'node:*'] }] }
+  },
+  {
     files: ['packages/game-engine/src/**/*.ts', 'packages/game-domain/src/**/*.ts'],
     rules: {
       'no-restricted-imports': ['error', { patterns: ['react', 'react/*', 'next', 'next/*', '@prisma/*', 'node:*', '@aoh/server', '@aoh/web'] }],

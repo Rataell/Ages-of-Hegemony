@@ -1,0 +1,104 @@
+import { expect, test } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+
+test('local visual loop, authoritative feedback and responsive evidence', async ({ page }) => {
+  const evidence = 'docs/evidence/product-slice'; await mkdir(evidence, { recursive: true });
+  const browserErrors: string[] = []; page.on('pageerror', error => browserErrors.push(error.message));
+  async function capture(screen: string) {
+    for (const [width, height] of [[1440,900],[1280,800],[390,844]] as const) {
+      await page.setViewportSize({ width, height });
+      if (screen === 'city' && width === 390) await page.locator('.context-inspector').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${evidence}/${width}-${screen}.png` });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+    await page.setViewportSize({ width:1440, height:900 });
+    await page.evaluate(() => window.scrollTo(0,0));
+  }
+  await page.goto('/'); await page.getByRole('button', { name: 'Nova Partida', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Aurélia', exact: true }).first()).toBeVisible();
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 25, 29)');
+  await page.getByRole('button', { name: 'Dispensar orientação' }).click();
+  await capture('map');
+  await page.getByRole('button', { name: 'Executar manutenção' }).click();
+  await expect(page.getByText('Planejamento', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Fechar relatório' }).click();
+  await page.getByRole('button', { name: /★ Aurélia/ }).click();
+  await page.getByLabel('Produtores', { exact: true }).fill('1');
+  await page.getByLabel('Artesãos', { exact: true }).fill('1');
+  await page.getByRole('button', { name: 'Aplicar distribuição' }).click();
+  await expect(page.getByLabel('Artesãos', { exact: true })).toHaveValue('1');
+  await expect(page.getByRole('status')).toContainText('Decisão aplicada');
+  await capture('city');
+  await page.getByRole('button', { name: 'Planície 3,2', exact: true }).click();
+  await page.getByRole('button', { name: 'Reivindicar território', exact: true }).click();
+  await expect(page.locator('.top-bar .influence b')).toHaveText('19');
+  await page.getByRole('button', { name: 'Melhorar território', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirmar Fazenda', exact: true }).click();
+  await expect(page.locator('.top-bar .materials b')).toHaveText('49');
+  await page.getByRole('button', { name: 'Cidade', exact: true }).click();
+  await page.getByRole('button', { name: 'Atribuir território' }).click();
+  await page.getByRole('button', { name: 'Planície 3,2', exact: true }).click();
+  await page.getByRole('button', { name: 'Aplicar territórios' }).click();
+  await expect(page.getByText('1 trabalhados · 2 elegíveis · 1 produtores')).toBeVisible();
+  await page.getByRole('button', { name: 'Construir distrito', exact: true }).click();
+  await capture('district');
+  await page.getByRole('button', { name: 'Confirmar Agrário', exact: true }).click();
+  await page.getByRole('button', { name: 'Construir edifício', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirmar Celeiro', exact: true }).click();
+  for (let i = 0; i < 4; i++) {
+    const response = page.waitForResponse(r => r.url().endsWith('/api/local') && r.request().postDataJSON().action === 'advance');
+    await page.getByRole('button', { name: /Avançar fase/ }).click(); await response;
+    await expect(page.locator('main')).toHaveAttribute('aria-busy', 'false');
+  }
+  await page.getByRole('button', { name: 'Executar manutenção' }).click();
+  await expect(page.getByRole('heading', { name: 'Relatório · Rodada 2' })).toBeVisible();
+  await expect(page.getByText('Alimento consumido: 2 / necessário 2')).toBeVisible();
+  await capture('report');
+  await page.getByRole('button', { name: 'Fechar relatório' }).click();
+  // Invalid request through the transport must expose its real rule error and preserve state.
+  const rejected = await page.evaluate(async () => {
+    const query = async (body: unknown) => (await fetch('/api/local', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })).json();
+    const current = await query({ action:'view' });
+    return query({ action:'command', command:{ type:'DEVELOP_CITY', cityId:'capital-2', playerId:current.data.view.player.id, expectedVersion:current.data.view.version } });
+  });
+  expect(rejected.error).toContain('CITY_NOT_OWNED');
+  await page.getByRole('button', { name: 'Planície 3,2, trabalhado', exact: true }).click();
+  await expect(page.getByText('Território já possui proprietário.')).toBeVisible();
+  for (const [width,height] of [[1280,800],[390,844]]) {
+    await page.setViewportSize({ width: width!, height: height! });
+    await page.screenshot({ path: `${evidence}/${width}-territory-full.png`, fullPage:true });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  }
+  await page.setViewportSize({ width:1440, height:900 });
+  await page.getByRole('button', { name:'Adotar governo', exact:true }).click();
+  await page.getByRole('button', { name:'Confirmar Monarquia', exact:true }).click();
+  await expect(page.locator('.civ-brand')).toContainText('Monarquia');
+  await page.getByRole('button', { name:'Cidade', exact:true }).click();
+  await page.getByText('Desenvolvimento e especialização', { exact:true }).click();
+  await page.getByRole('button', { name:'Desenvolver cidade', exact:true }).click();
+  await expect(page.locator('.inspector-title')).toContainText('Desenvolvimento II');
+  await page.getByRole('button', { name:'Desenvolver cidade', exact:true }).click();
+  await expect(page.locator('.inspector-title')).toContainText('Desenvolvimento III');
+  await page.getByRole('button', { name:'Planície 4,2', exact:true }).click();
+  await page.getByRole('button', { name:'Reivindicar território', exact:true }).click();
+  await page.getByRole('button', { name:'Fundar cidade', exact:true }).click();
+  await page.getByLabel('Nome da cidade').fill('Fronteira');
+  await page.getByRole('button', { name:'Confirmar fundação', exact:true }).click();
+  await expect(page.locator('.city-link').filter({ hasText:'Fronteira' })).toBeVisible();
+  await page.getByText('Developer / Hotseat', { exact:true }).click();
+  await page.getByLabel('Ver como').selectOption('player-2');
+  await expect(page.locator('.civ-brand')).toContainText('Valgard');
+  await expect(page.locator('.city-link').filter({ hasText:'Fronteira' })).toHaveCount(0);
+  await page.getByLabel('Ver como').selectOption('player-1');
+  await expect(page.locator('.city-link').filter({ hasText:'Fronteira' })).toBeVisible();
+  expect(browserErrors).toEqual([]);
+});
+
+test('HTTP boundary rejects foreign origins and scheduler command injection', async ({ request }) => {
+  expect((await request.post('/api/local', { headers:{ Origin:'https://example.invalid' }, data:{ action:'start', count:2 } })).status()).toBe(403);
+  const headers = { Origin:'http://127.0.0.1:3107' };
+  const start = await request.post('/api/local', { headers, data:{ action:'start', count:2 } });
+  expect(start.ok()).toBe(true); const data = await start.json();
+  const result = await request.post('/api/local', { headers, data:{ action:'command', command:{ type:'ADVANCE_PHASE', nextPhase:'PLANNING', expectedVersion:data.data.view.version } } });
+  expect(result.status()).toBe(409); expect((await result.json()).error).toContain('FORBIDDEN');
+});

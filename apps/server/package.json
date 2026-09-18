@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./local-play": {
+      "types": "./dist/local-play.d.ts",
+      "default": "./dist/local-play.js"
+    },
     "./debug": {
       "types": "./dist/debug-scenario.d.ts",
       "default": "./dist/debug-scenario.js"

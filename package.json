@@ -18,14 +18,16 @@
     "db:migrate": "prisma migrate dev",
     "compile": "npm run db:generate && tsc -b",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "npm run compile && tsc -p tests/tsconfig.json && npm run typecheck -w @aoh/web",
+    "typecheck": "npm run compile && tsc -p tests/tsconfig.json && tsc -p e2e/tsconfig.json && npm run typecheck -w @aoh/web",
     "test": "npm run compile && vitest run",
+    "test:e2e": "playwright test",
     "build": "npm run compile && npm run build -w @aoh/web",
     "demo": "npm run compile && node apps/server/dist/demo.js",
     "check": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.0.0",
     "eslint": "^10.0.0",
     "prisma": "^7.0.0",

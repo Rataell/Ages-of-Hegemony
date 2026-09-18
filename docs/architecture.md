@@ -12,7 +12,7 @@ Servidor Node.js → GameService → game-engine → game-domain → shared
             memória       Prisma → PostgreSQL
 ```
 
-`apps/web` não importa o motor nem Prisma diretamente. Seu Server Component de inspeção chama `@aoh/server/debug`, que executa um cenário isolado e devolve uma projeção; nenhuma regra roda no navegador. `game-engine` não conhece servidor, transporte ou banco. `game-domain` define schemas Zod e deriva tipos com `z.infer`. `shared` contém somente o resultado discriminado genérico.
+`apps/web` não importa o motor nem Prisma diretamente. Client Components enviam comandos para o Route Handler `POST /api/local`, exclusivo de desenvolvimento. O adaptador `@aoh/server/local-play` resolve a perspectiva da sessão, chama GameService e devolve projeções e previews. Os imports do cliente para esse pacote são somente tipos e desaparecem do bundle. `game-engine` não conhece servidor, transporte ou banco. `game-domain` define schemas Zod e deriva tipos com `z.infer`. `shared` contém somente o resultado discriminado genérico.
 
 Workspaces npm e project references TypeScript bastam para este tamanho de monorepo; não há orquestrador adicional. Os exports dos pacotes apontam para `dist`, e `compile` resolve a ordem. Alterações nos pacotes precisam de uma nova compilação antes de executar consumidores.
 
@@ -22,7 +22,7 @@ O serviço carrega o snapshot autoritativo, valida o comando no motor e persiste
 
 `GameService.submit` aceita identidade previamente autenticada, separada do JSON do comando, e compara essa identidade ao proprietário da ordem. O contexto é uma capacidade interna, não uma implementação de autenticação. `advance` é reservado a um futuro scheduler/admin. Não expor esse método diretamente a jogadores.
 
-A única rota HTTP implementada é `GET /health`, ligada a loopback. O futuro adaptador WebSocket deve usar o mesmo serviço, autenticar a sessão, validar limites de entrada, lidar com conflitos e enviar `PlayerView` apenas ao destinatário correto. O serviço não abre sockets, permitindo usar um transporte síncrono ou um executor assíncrono.
+`GET /health` permanece ligado a loopback. `POST /api/local` oferece uma capacidade separada de desenvolvimento: cookie HttpOnly/SameSite Strict, origem exata, JSON limitado e bloqueio fora de NODE_ENV=development. O modo permite explicitamente trocar perspectivas e avançar o scheduler, sem representar autorização multiplayer. O futuro adaptador WebSocket deve autenticar a sessão, validar limites de entrada, lidar com conflitos e enviar `PlayerView` apenas ao destinatário correto. O serviço não abre sockets.
 
 `PlayerView` usa lista explícita de campos. Não inclui seed, RNG, adversários completos, mapa não filtrado nem eventLog. Uma política interna confiável pode liberar população/desenvolvimento/especialização de cidades visíveis e governos conhecidos. Alocação adversária e detalhes internos não são incluídos; por padrão não há dados adversários visíveis. A política real de fog of war aguarda especificação. Nunca publicar `GameState` diretamente por broadcast.
 
@@ -38,7 +38,7 @@ Um registro `Game` tem `id`, `version` (`BIGINT`) e `snapshot` (`JSONB`). O dom�
 
 `game-engine/territory-commands.ts` executa os seis comandos territoriais; `economy.ts` explica produção por fonte; `urban.ts` deriva capacidades e limiar de crescimento. `maintenance.ts` mantém a sequência econômica e retorna reconciliação exata. Aritmética centralizada usa BigInt intermediário e verifica inteiros seguros antes de retornar números.
 
-`GameService` autentica o ator por contexto externo, persiste via CAS e projeta território próprio ou liberado pela política confiável de visibilidade. Último breakdown próprio e prévia são separados. A UI de inspeção apenas renderiza esses valores. Claims imediatos em território livre não implementam disputa simultânea; CAS protege a gravação, não estabelece iniciativa estratégica.
+`GameService` valida o ator recebido por contexto externo, persiste via CAS e projeta território próprio ou liberado pela política confiável de visibilidade. Último breakdown próprio e prévia são separados. Local Play revela geografia e cidades públicas dos fixtures, mas mantém privados recursos, trabalhadores e eventos adversários. A disponibilidade de ações usa `applyCommand` sobre cópias sem persistir; custos vêm dos catálogos. Previews não alteram estado nem substituem validação no submit. Claims imediatos não implementam disputa simultânea; CAS protege a gravação, não estabelece iniciativa estratégica.
 
 ## Determinismo e limites
 

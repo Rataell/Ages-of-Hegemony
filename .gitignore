@@ -8,3 +8,8 @@ apps/server/src/generated/
 !.env.example
 coverage/
 *.log
+# npm is authoritative; preserve but ignore provisional local pnpm artifacts.
+pnpm-lock.yaml
+pnpm-workspace.yaml
+test-results/
+playwright-report/

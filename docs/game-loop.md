@@ -1,5 +1,9 @@
 # Ciclo de rodada — v0.4
 
+A vertical slice permite percorrer esse ciclo em `npm run dev:web`. Nova Partida começa em MAINTENANCE; **Executar manutenção** realiza produção/consumo e abre o relatório antes de PLANNING. **Avançar fase** percorre exatamente uma transição. RESOLUTION/REACTION exibem aviso de sistemas futuros. O jogador local assume explicitamente a capacidade de scheduler de desenvolvimento; isso não é um protocolo multiplayer.
+
+Roteiro visual: adote governo, distribua habitantes, reivindique o hex `3,2` a partir de Aurélia, atribua um produtor e construa Fazenda. Construa distrito Agrário e Celeiro. Desenvolva a capital até III, reivindique `4,2` e funde uma cidade ali sem atribuir trabalhador ao local. Avance até a próxima manutenção e observe estoque, crescimento, estabilidade e carga. Os recursos iniciais generosos são conteúdo do fixture, não mudança de balanceamento.
+
 ```text
 MAINTENANCE → PLANNING → RESOLUTION → REACTION → END_ROUND → MAINTENANCE
 ```

@@ -21,7 +21,13 @@ npm run dev:web
 npm run dev:server
 ```
 
-Interface: http://localhost:3000. Health check: http://127.0.0.1:4000/health. A interface inspeciona um cenário determinístico calculado no servidor: governo, administração, cidades, território, infraestrutura e breakdown econômico. É somente leitura e não acessa partidas reais. `npm run demo` executa o mesmo cenário, funda uma segunda cidade, restaura snapshot v3 idêntico e demonstra migração explícita v2. Rotas HTTP que alteram partidas ainda não estão expostas.
+Interface jogável: http://127.0.0.1:3000. Use **Nova Partida**, escolha 2–6 jogadores locais e execute a primeira manutenção para entrar em Planejamento. O mapa SVG permite selecionar cidades e territórios, distribuir população, reivindicar, trabalhar, melhorar, construir, desenvolver e fundar cidades. A barra inferior avança as fases e abre o relatório econômico.
+
+**Local Development Gameplay Session:** hotseat/perspectivas de debug, sem IA, autenticação ou multiplayer. O servidor mantém progresso temporário em memória. `POST /api/local` funciona somente em desenvolvimento; `next dev` escuta loopback. O navegador nunca executa regras nem recebe GameState completo. Leia [Local Play](docs/local-play-mode.md) e [guia da vertical slice](docs/product-vertical-slice.md).
+
+Health check opcional: http://127.0.0.1:4000/health. Não é necessário iniciar `dev:server` para jogar. `npm run demo` continua executando o cenário técnico e verificando restauração v3 e migração explícita v2.
+
+E2E: `npx playwright install chromium`, depois `npm run test:e2e`. O teste inicia o servidor quando necessário e grava screenshots em `docs/evidence/product-slice/`. npm e `package-lock.json` são autoritativos; arquivos provisórios locais de pnpm são ignorados, não representam migração.
 
 ## PostgreSQL opcional
 
@@ -65,4 +71,4 @@ tests/                      testes Vitest e configuração de tipos
 
 Consulte [arquitetura](docs/architecture.md), [domínio](docs/game-domain.md), [loop](docs/game-loop.md), [cidades/população](docs/cities-and-population.md), [governos](docs/governments.md), [compatibilidade](docs/decisions/0003-civilization-maintenance-and-snapshots.md) e [pendências](docs/roadmap.md).
 
-Snapshots atuais usam schema 2. Snapshots da Rodada 1 são recusados com orientação explícita de conversão e devem ser preservados; o commit `9d63e69` continua sendo a referência para carregá-los. Não há migração SQL nova nesta rodada.
+Snapshots atuais usam schema 3. V2 requer migração explícita `migrateSnapshotV2ToV3`. Snapshots da Rodada 1 são recusados com orientação explícita de conversão e devem ser preservados; o commit `9d63e69` continua sendo a referência para carregá-los. Não há migração SQL nova nesta rodada.

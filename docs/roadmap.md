@@ -1,5 +1,11 @@
 # Próximas rodadas e riscos
 
+## First Playable Product Slice
+
+Interface cartográfica SVG, comandos de gestão reais, previews no servidor, hotseat de desenvolvimento e relatório privado. Fixtures manuais Duel/Standard/Epic (84/126/168 hexes), sem geração procedural. Veja [relatório](round-product-slice-report.md).
+
+Gate obrigatório antes de multiplayer persistente: comprovar PostgreSQL real, JSONB, CAS entre conexões independentes, backup/restauração e isolamento de sessões. Local Play usa somente memória e não cumpre esse gate. Ordens genéricas continuam infraestrutura futura; nenhuma resolução estratégica foi adicionada.
+
 ## v0.4 — Implementado
 
 Terrenos/features, ownership/controlador, claims conectados, trabalho por produtor, cinco melhorias, fundação abstrata, sete distritos e sete edifícios mínimos. Produção determinística com breakdown reconciliado, carga territorial, snapshot v3 e migração explícita v2. Inspeção e demo usam projeções do servidor. Custos e efeitos permanecem provisórios.
@@ -24,7 +30,7 @@ Terrenos/features, ownership/controlador, claims conectados, trabalho por produt
 - Processo operacional de backup e gravação deliberada de snapshots migrados v2; conversão v1 continua manual.
 - Entrega confiável pós-commit e identidade de eventos que compartilham uma revisão.
 - Medir validação/cópia integral, conectividade e crescimento do log com breakdowns; depois introduzir checkpoints se necessário.
-- E2E Playwright quando a UI tiver comandos jogáveis.
+- Manter E2E Playwright da gestão jogável e ampliar cobertura conforme surgirem sistemas reais.
 
 ## Fora do escopo atual
 
