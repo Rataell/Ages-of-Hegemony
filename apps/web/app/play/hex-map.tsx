@@ -1,41 +1,305 @@
 'use client';
-import { memo, useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import type { LocalView } from '@aoh/server/local-play';
 import { label, roman } from './presentation';
-type Props = { data: LocalView; selected: string | null; focus: string | null; working: boolean; worked: string[]; onSelect: (id: string) => void };
-const position = (q: number, r: number) => ({ x: 70 + 52 * Math.sqrt(3) * (q + r / 2), y: 70 + 78 * r });
-const points = Array.from({ length: 6 }, (_, i) => `${50 * Math.cos((60 * i - 30) * Math.PI / 180)},${50 * Math.sin((60 * i - 30) * Math.PI / 180)}`).join(' ');
-const glyphs: Record<string, string> = { PLAINS: '⌁', FOREST: '♠', HILLS: '⌃⌃', MOUNTAINS: '△', COAST: '≈', SEA: '≈', UNKNOWN: '?' };
-const featureGlyphs: Record<string, string> = { RIVER: '∿', FERTILE: '✧', TIMBER: '⋈', STONE: '◇', METAL: '◆', FISH: '⋊' };
-export const HexMap = memo(function HexMap({ data, selected, focus, working, worked, onSelect }: Props) {
-  const [zoom, setZoom] = useState(1.15); const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null); const [moved, setMoved] = useState(false);
+
+type Props = {
+  data: LocalView;
+  selected: string | null;
+  focus: string | null;
+  working: boolean;
+  worked: string[];
+  onSelect: (id: string) => void;
+};
+
+export const position = (q: number, r: number) => ({
+  x: 80 + 56 * Math.sqrt(3) * (q + r / 2),
+  y: 80 + 84 * r,
+});
+
+export const points = Array.from({ length: 6 }, (_, i) => {
+  const angle = ((60 * i - 30) * Math.PI) / 180;
+  return `${(52 * Math.cos(angle)).toFixed(1)},${(52 * Math.sin(angle)).toFixed(1)}`;
+}).join(' ');
+
+const innerPoints = Array.from({ length: 6 }, (_, i) => {
+  const angle = ((60 * i - 30) * Math.PI) / 180;
+  return `${(47 * Math.cos(angle)).toFixed(1)},${(47 * Math.sin(angle)).toFixed(1)}`;
+}).join(' ');
+
+const terrainGlyphs: Record<string, string> = {
+  PLAINS: '⌁',
+  FOREST: '♠',
+  HILLS: '⌃⌃',
+  MOUNTAINS: '▲',
+  COAST: '≈',
+  SEA: '≈',
+  UNKNOWN: '?',
+};
+
+const featureGlyphs: Record<string, string> = {
+  RIVER: '≈',
+  FERTILE: '✦',
+  TIMBER: '⋈',
+  STONE: '◇',
+  METAL: '◆',
+  FISH: '⋊',
+};
+
+const improvementIcons: Record<string, string> = {
+  FARM: '🌾',
+  LUMBER_CAMP: '🪵',
+  QUARRY: '🪨',
+  MINE: '⛏',
+  FISHERY: '🐟',
+};
+
+export const HexMap = memo(function HexMap({
+  data,
+  selected,
+  focus,
+  working,
+  worked,
+  onSelect,
+}: Props) {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [zoom, setZoom] = useState(1.15);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+  const [moved, setMoved] = useState(false);
+
   const tiles = data.view.visibleTerritory;
-  const width = Math.max(...tiles.map(t => position(t.q, t.r).x)) + 80; const height = Math.max(...tiles.map(t => position(t.q, t.r).y)) + 80;
-  const center = tiles.find(t => t.id === focus); const at = center ? position(center.q, center.r) : { x: width / 2, y: height / 2 };
+  const width = Math.max(...tiles.map(t => position(t.q, t.r).x), 600) + 100;
+  const height = Math.max(...tiles.map(t => position(t.q, t.r).y), 500) + 100;
+  const center = tiles.find(t => t.id === focus);
+  const at = center ? position(center.q, center.r) : { x: width / 2, y: height / 2 };
+
   const cities = [...data.view.player.civilization.cities, ...data.view.visibleCities];
-  return <section className="map-stage" aria-label="Mapa do mundo">
-    <div className="map-heading"><span className="eyebrow">ATLAS DE {label(data.view.era).toUpperCase()}</span><span>{tiles.length} territórios · mapa revelado</span></div>
-    <svg className="world-map" viewBox={`${at.x - width / (2 * zoom) - pan.x} ${at.y - height / (2 * zoom) - pan.y} ${width / zoom} ${height / zoom}`} aria-label="Mapa hexagonal interativo"
-      onPointerDown={e => { setDrag({ x: e.clientX, y: e.clientY }); setMoved(false); }}
-      onPointerMove={e => { if (drag && e.buttons) { const dx = e.clientX - drag.x; const dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 3) { setMoved(true); setPan(p => ({ x: p.x + dx * width / e.currentTarget.clientWidth / zoom, y: p.y + dy * height / e.currentTarget.clientHeight / zoom })); setDrag({ x: e.clientX, y: e.clientY }); } } }}
-      onPointerUp={() => setDrag(null)} onPointerLeave={() => setDrag(null)}>
-      <defs><pattern id="sea-lines" width="18" height="14" patternUnits="userSpaceOnUse"><path d="M0 7Q4 3 9 7T18 7" fill="none" stroke="currentColor" strokeOpacity=".12" /></pattern></defs>
-      {tiles.map(tile => {
-        const p = position(tile.q, tile.r); const city = cities.find(c => c.hexId === tile.id);
-        const owner = data.players.findIndex(player => player.id === tile.ownerId) + 1;
-        const isWorked = data.view.player.civilization.cities.some(c => c.workedHexIds.includes(tile.id));
-        const eligible = working ? data.workable.includes(tile.id) : data.claimable.includes(tile.id);
-        return <g key={tile.id} transform={`translate(${p.x} ${p.y})`} role="button" tabIndex={0} aria-pressed={selected === tile.id} aria-label={`${city?.name ?? label(tile.terrain)} ${tile.id}${isWorked ? ', trabalhado' : ''}`} className={`hex terrain-${tile.terrain} owner-${owner} ${selected === tile.id ? 'selected' : ''} ${eligible ? 'eligible' : ''} ${working && !eligible ? 'unavailable' : ''}`} onClick={() => { if (!moved) onSelect(tile.id); }} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(tile.id); } }}>
-          <title>{label(tile.terrain)} · {tile.id} · {tile.ownerId ? data.players.find(p => p.id === tile.ownerId)?.name : 'Livre'} · Controle: {tile.controllerCityId ?? 'nenhum'}{eligible ? ' · Elegível' : ''}</title>
-          <polygon points={points} /><polygon className="water-lines" points={points} />
-          {city ? <><path className="city-icon" d="M-13 0V-18H-5V-10H4V-23H12V0ZM-18 0H18" /><text className="city-name" y="17">{city.id === data.view.player.civilization.capitalCityId ? '★ ' : ''}{city.name}</text><text className="city-stat" y="32">{city.population} hab. · {roman[city.development]}</text></> : <><text className="terrain-glyph" y="5">{glyphs[tile.terrain]}</text><text className="features" y="24">{tile.features.map(f => featureGlyphs[f]).join(' ')}</text></>}
-          {tile.improvement && <text className="improved" x="-27" y="-24">▤</text>}
-          {(working ? worked.includes(tile.id) : isWorked) && <circle className="worked" cx="28" cy="-25" r="6" />}
-        </g>;
-      })}
-    </svg>
-    <div className="map-tools"><button aria-label="Diminuir zoom" onClick={() => setZoom(z => Math.max(.6, z - .25))}>−</button><button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>Centralizar</button><button aria-label="Aumentar zoom" onClick={() => setZoom(z => Math.min(3, z + .25))}>+</button></div>
-    <div className="map-legend">Arraste para mover · Enter para selecionar<br /><span>◌ Reivindicável</span> <span>● Trabalhado</span> <span>▤ Melhoria</span>{working && <strong>Selecione territórios para trabalhar</strong>}</div>
-  </section>;
+  const capitalId = data.view.player.civilization.capitalCityId;
+
+  const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (e.button !== 0) return;
+    setDrag({ x: e.clientX, y: e.clientY });
+    setMoved(false);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!drag || !(e.buttons & 1)) return;
+    const dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) {
+      setMoved(true);
+      // BUGFIX: Safely sample dimensions from svgRef with non-zero fallbacks before calling setPan
+      const svg = svgRef.current;
+      const clientW = svg?.clientWidth || svg?.getBoundingClientRect().width || 800;
+      const clientH = svg?.clientHeight || svg?.getBoundingClientRect().height || 600;
+      const safeW = clientW > 0 ? clientW : 800;
+      const safeH = clientH > 0 ? clientH : 600;
+      const deltaX = (dx * width) / (safeW * zoom);
+      const deltaY = (dy * height) / (safeH * zoom);
+
+      setPan(p => ({ x: p.x + deltaX, y: p.y + deltaY }));
+      setDrag({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handlePointerEnd = useCallback(() => {
+    setDrag(null);
+  }, []);
+
+  return (
+    <section className="map-stage" aria-label="Mapa do mundo">
+      <div className="map-heading">
+        <span className="eyebrow">ATLAS DE {label(data.view.era).toUpperCase()}</span>
+        <span>{tiles.length} territórios cartografados · projeção estratégica</span>
+      </div>
+
+      <svg
+        ref={svgRef}
+        className="world-map"
+        viewBox={`${at.x - width / (2 * zoom) - pan.x} ${at.y - height / (2 * zoom) - pan.y} ${width / zoom} ${height / zoom}`}
+        aria-label="Mapa hexagonal interativo"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerLeave={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onLostPointerCapture={handlePointerEnd}
+      >
+        <defs>
+          <pattern id="sea-waves" width="24" height="16" patternUnits="userSpaceOnUse">
+            <path d="M0 8 Q6 3 12 8 T24 8" fill="none" stroke="currentColor" strokeOpacity=".18" strokeWidth="1.2" />
+          </pattern>
+          <pattern id="forest-dots" width="14" height="14" patternUnits="userSpaceOnUse">
+            <circle cx="7" cy="7" r="1.5" fill="currentColor" fillOpacity=".15" />
+          </pattern>
+          <pattern id="hills-hatching" width="18" height="18" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="18" stroke="currentColor" strokeOpacity=".12" strokeWidth="1" />
+          </pattern>
+          <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
+        {tiles.map(tile => {
+          const p = position(tile.q, tile.r);
+          const city = cities.find(c => c.hexId === tile.id);
+          const ownerIndex = data.players.findIndex(player => player.id === tile.ownerId);
+          const owner = ownerIndex >= 0 ? ownerIndex + 1 : 0;
+          const isPlayerOwned = tile.ownerId === data.view.player.id;
+          const isForeign = tile.ownerId && !isPlayerOwned;
+          const isWorked = data.view.player.civilization.cities.some(c => c.workedHexIds.includes(tile.id));
+          const eligible = working ? data.workable.includes(tile.id) : data.claimable.includes(tile.id);
+          const isSelected = selected === tile.id;
+          const isCapital = city?.id === capitalId;
+
+          const stateClasses = [
+            `hex`,
+            `terrain-${tile.terrain}`,
+            `owner-${owner}`,
+            isSelected ? 'selected' : '',
+            eligible ? 'eligible' : '',
+            working && !eligible ? 'unavailable' : '',
+            isForeign ? 'foreign' : '',
+            isWorked ? 'is-worked' : '',
+          ].filter(Boolean).join(' ');
+
+          const ariaTitle = `${city?.name ?? label(tile.terrain)} ${tile.id}${isWorked ? ', trabalhado' : ''}`;
+
+          return (
+            <g
+              key={tile.id}
+              transform={`translate(${p.x} ${p.y})`}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
+              aria-label={ariaTitle}
+              className={stateClasses}
+              onClick={() => {
+                if (!moved) onSelect(tile.id);
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelect(tile.id);
+                }
+              }}
+            >
+              <title>
+                {label(tile.terrain)} · {tile.id} · {tile.ownerId ? data.players.find(pl => pl.id === tile.ownerId)?.name : 'Livre'} · Controle: {tile.controllerCityId ?? 'nenhum'}
+                {eligible ? (working ? ' · Elegível para trabalho' : ' · Reivindicável') : ''}
+                {isWorked ? ' · Trabalhado' : ''}
+              </title>
+
+              {/* Base terrain polygon */}
+              <polygon className="hex-base" points={points} />
+
+              {/* Terrain texture/hatching layer */}
+              <polygon className="hex-texture" points={innerPoints} />
+
+              {/* Subtle ownership wash/fill */}
+              {owner > 0 && <polygon className="hex-owner-tint" points={innerPoints} />}
+
+              {/* Territorial border outline */}
+              <polygon className="hex-border" points={points} />
+
+              {/* Content: City Monument or Rural Terrain */}
+              {city ? (
+                <g className={`city-anchor ${isCapital ? 'is-capital' : ''}`}>
+                  {/* City bastion/monument foundation */}
+                  <rect x="-24" y="-22" width="48" height="42" rx="4" className="city-plate" />
+                  
+                  {/* City architectural emblem */}
+                  {isCapital ? (
+                    <g className="capital-crest">
+                      <path
+                        d="M-14 -4 L-14 -16 L-7 -10 L0 -19 L7 -10 L14 -16 L14 -4 Z M-16 -4 L16 -4 L16 -1 L-16 -1 Z"
+                        className="citadel-crest capital-citadel"
+                      />
+                      <circle cx="0" cy="-21" r="2.5" className="capital-crown-gem" />
+                    </g>
+                  ) : (
+                    <path
+                      d="M-12 -3 L-12 -14 L-6 -14 L-6 -9 L6 -9 L6 -14 L12 -14 L12 -3 Z M-14 -3 L14 -3 L14 0 L-14 0 Z"
+                      className="citadel-crest municipal-citadel"
+                    />
+                  )}
+
+                  {/* City Name Banner */}
+                  <g transform="translate(0, 10)">
+                    <rect x="-30" y="-8" width="60" height="15" rx="3" className="city-banner-bg" />
+                    <text className="city-name" y="3">
+                      {isCapital ? '★ ' : ''}{city.name}
+                    </text>
+                  </g>
+
+                  {/* Population & Development Pill */}
+                  <g transform="translate(0, 24)">
+                    <rect x="-26" y="-6" width="52" height="12" rx="6" className="city-pill-bg" />
+                    <text className="city-stat" y="3">
+                      {city.population} hab · {roman[city.development]}
+                    </text>
+                  </g>
+                </g>
+              ) : (
+                <g className="rural-tile">
+                  <text className="terrain-glyph" y="4">
+                    {terrainGlyphs[tile.terrain]}
+                  </text>
+                  {tile.features.length > 0 && (
+                    <text className="features" y="22">
+                      {tile.features.map(f => featureGlyphs[f] ?? '').join(' ')}
+                    </text>
+                  )}
+                </g>
+              )}
+
+              {/* Improvement Badge (Top Left) */}
+              {tile.improvement && (
+                <g transform="translate(-25, -23)" className="improvement-badge">
+                  <title>{label(tile.improvement)}</title>
+                  <circle cx="0" cy="0" r="9" className="badge-bg" />
+                  <text className="improvement-symbol" x="0" y="3.5">
+                    {improvementIcons[tile.improvement] ?? '▤'}
+                  </text>
+                </g>
+              )}
+
+              {/* Worked Territory Seal (Top Right) */}
+              {(working ? worked.includes(tile.id) : isWorked) && (
+                <g transform="translate(25, -23)" className="worked-seal">
+                  <title>Território trabalhado</title>
+                  <circle cx="0" cy="0" r="8.5" className="worked-bg" />
+                  <circle cx="0" cy="0" r="5" className="worked-inner" />
+                </g>
+              )}
+
+              {/* Claimable frontier indicator */}
+              {eligible && !working && (
+                <polygon className="frontier-pulse" points={innerPoints} />
+              )}
+            </g>
+          );
+        })}
+      </svg>
+
+      <div className="map-tools">
+        <button aria-label="Diminuir zoom" onClick={() => setZoom(z => Math.max(0.6, z - 0.25))}>−</button>
+        <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>Centralizar</button>
+        <button aria-label="Aumentar zoom" onClick={() => setZoom(z => Math.min(3, z + 0.25))}>+</button>
+      </div>
+
+      <div className="map-legend">
+        <span className="legend-hint">Arraste para mover o atlas · Clique para inspecionar</span>
+        <div className="legend-items">
+          <span><i className="legend-swatch border-claimable" /> Reivindicável</span>
+          <span><i className="legend-swatch seal-worked" /> Trabalhado</span>
+          <span><i className="legend-swatch icon-improved" /> Melhoria</span>
+          <span><i className="legend-swatch mark-capital" /> ★ Capital</span>
+        </div>
+        {working && <strong className="working-prompt">Modo Atribuição: Selecione os territórios para os produtores trabalharem</strong>}
+      </div>
+    </section>
+  );
 });
