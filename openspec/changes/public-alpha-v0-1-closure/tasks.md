@@ -28,7 +28,7 @@
 
 - [x] 4.1 Implement posture and tactical faces in resolution and store real values in battle records; gate: combat tests with breakdown sums.
 - [x] 4.2 Compute modifier breakdowns by source for both sides; gate: arithmetic invariant test.
-- [x] 4.3 Enforce stack limits per hex (`alpha-stack.ts`, limits in `balance.stack`): MOVE at queue time and at resolution, RECRUIT, retreat, victorious advance; projected `stacks` view and preview notes share one verdict; gate: `tests/alpha-stack.test.ts` and the conflict E2E.
+- [x] 4.3 Enforce stack limits per hex (`alpha-stack.ts`, limits in `balance.stack`): MOVE at queue time and at resolution, RECRUIT, retreat, victorious advance; projected `stacks` view and preview notes share one verdict; gate: `tests/alpha-stack.test.ts` and the conflict E2E. Re-verified 2026-09-20: 588 tests and 4 of 4 E2E green.
 - [ ] 4.4 Add fortification levels and damage state to defense and siege; gate: city assault tests.
 - [ ] 4.5 Expose a dice-free combat preview through the projection; gate: projection leak test.
 
@@ -87,8 +87,8 @@
 
 - [ ] 11.1 Obtain Git remote, hosting target, `ALPHA_SESSION_SECRET` and `ALPHA_PUBLIC_ORIGIN` from the owner; gate: all present, none invented.
 - [ ] 11.2 Configure the hosting environment and apply migrations with the deploy command; gate: health endpoint returns ok.
-- [ ] 11.3 Run the public smoke test: create, join, act, reload; gate: pass.
-- [ ] 11.4 Add the test-build label and limitations disclosure to the landing page; gate: visual check.
+- [ ] 11.3 Run the public smoke test: create, join, act, reload; gate: pass. `scripts/alpha-smoke.mjs` exists and passed locally against a production build and real PostgreSQL, including a process restart; the public run is pending.
+- [ ] 11.4 Add the test-build label and limitations disclosure to the landing page; gate: visual check. Label, test-environment notice, feedback link (`NEXT_PUBLIC_ALPHA_FEEDBACK_URL`) and diagnostics copy are in the entry page and the in-game about panel; the visual check is pending.
 - [ ] 11.5 Run a 2 to 6 participant playtest to a winner including a server restart; gate: recorded outcome and defect log.
 - [ ] 11.6 Document rollback and verify stored matches survive it; gate: rollback drill.
 

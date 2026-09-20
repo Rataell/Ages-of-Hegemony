@@ -15,6 +15,7 @@ const TABS=[['world','Mundo'],['research','Teia Civilizacional'],['cards','Carta
 const INSPECTORS:[Inspector,string][]=[['city','Cidade'],['territory','Território'],['military','Militar']];
 
 /** Same shell as the local slice: top bar, area navigation, council | atlas | inspector, bottom action bar. */
+const feedbackUrl=process.env.NEXT_PUBLIC_ALPHA_FEEDBACK_URL||'';
 export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoomView;busy:boolean;send:AlphaSend;theme:string;onTheme:(theme:string)=>void}){
   const game=room.game!,player=game.view.player,civ=player.civilization,identity=CIVILIZATIONS.find(c=>c.id===game.self.civilization);
   const [tab,setTab]=useState('world'),[inspector,setInspector]=useState<Inspector>('city'),[selected,setSelected]=useState<string|null>(civ.cities[0]?.hexId??null),[selectedCity,setSelectedCity]=useState(civ.cities[0]?.id??''),[focus,setFocus]=useState<string|null>(civ.cities[0]?.hexId??null);
@@ -67,7 +68,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoo
           <small>Escolha privada; só é revelada quando houver batalha.</small></section>
         <section><div className="section-head"><h3>Peças</h3><span className="count-pill">{ownUnits.length}</span></div>
           <ArmyList units={ownUnits} selected={units} onSelect={pick} stacks={game.stacks} rules={game.rules.units}/></section>
-        <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p></details>
+        <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p>{feedbackUrl&&<a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a>}<p>Ambiente de teste: a partida pode ser reiniciada ou apagada.</p></details>
       </aside>
       <div className="world-column"><HexMap data={mapData} units={game.units} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
       <aside className="context-inspector alpha-inspector">

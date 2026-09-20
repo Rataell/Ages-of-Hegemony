@@ -4,7 +4,8 @@ Esta branch ainda não é uma versão pública liberada. A interface usa `TEST B
 
 ## Bloqueadores de liberação
 
-- PostgreSQL real ainda não foi conectado e validado neste ambiente. A migration está escrita, mas não executada contra o banco alpha.
+- Closed Alpha: deploy preparado em [deploy-railway.md](deploy-railway.md), não executado. Falta remote Git, projeto Railway/Supabase e os segredos do dono. Smoke (`scripts/alpha-smoke.mjs`: lobby, 2 pessoas, rodada, recarga, reinício, continuação) passou em build de produção contra PostgreSQL 18 real e embarcado, não no Docker `db-test`, no Supabase nem no domínio público.
+- As migrations foram aplicadas e testadas em PostgreSQL local real, mas ainda não no banco Supabase da alpha.
 - Não há URL pública, destino Railway confirmado nem remote Git configurado.
 - O E2E alpha intercepta HTTP no navegador e executa o boundary real com um repository de teste em memória. Não comprova transporte implantado ou durabilidade PostgreSQL.
 - Assentamentos neutros, manual alpha completo, compêndio alpha e apresentação de componentes ainda precisam ser concluídos.

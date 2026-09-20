@@ -6,7 +6,8 @@ import { GuestSessions } from './guest-session.js';
 import { AlphaHttp } from './alpha-http.js';
 export type { AlphaRoomView } from './alpha-service.js';
 export type { AlphaPlayerView } from './alpha-projection.js';
-const expectedMigration='20260919000100_alpha_match';
+const expectedMigrations=['20260919000100_alpha_match','20260920000100_alpha_match_archive'];
+const release='alpha-v0.1';
 type Runtime={http:AlphaHttp;client:PrismaClient};
 const processState=globalThis as typeof globalThis&{aohAlphaRuntime?:Runtime};
 function runtime():Runtime {
@@ -25,9 +26,9 @@ export async function alphaHealth():Promise<Response>{
   try{
     const {client}=runtime();await client.$queryRaw`SELECT 1`;
     const rows=await client.$queryRaw<{migration_name:string;finished_at:Date|null;rolled_back_at:Date|null}[]>`SELECT migration_name, finished_at, rolled_back_at FROM _prisma_migrations`;
-    const migration=rows.some(r=>r.migration_name===expectedMigration&&r.finished_at!==null&&r.rolled_back_at===null);
+    const migration=expectedMigrations.every(name=>rows.some(r=>r.migration_name===name&&r.finished_at!==null&&r.rolled_back_at===null));
     const failed=rows.some(r=>r.finished_at===null&&r.rolled_back_at===null);
     const ready=migration&&!failed;
-    return Response.json({ok:ready,service:'ages-of-hegemony-alpha',database:true,migration:ready},{status:ready?200:503,headers:{'Cache-Control':'no-store'}});
-  }catch{return Response.json({ok:false,service:'ages-of-hegemony-alpha',database:false,migration:false},{status:503,headers:{'Cache-Control':'no-store'}});}
+    return Response.json({ok:ready,service:'ages-of-hegemony-alpha',release,database:true,migration:ready},{status:ready?200:503,headers:{'Cache-Control':'no-store'}});
+  }catch{return Response.json({ok:false,service:'ages-of-hegemony-alpha',release,database:false,migration:false},{status:503,headers:{'Cache-Control':'no-store'}});}
 }

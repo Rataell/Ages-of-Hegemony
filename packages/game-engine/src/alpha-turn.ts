@@ -33,7 +33,9 @@ export function beginAlphaPlanning(input: AlphaState): AlphaState {
   return AlphaStateSchema.parse(state);
 }
 
-const UNSUPPORTED = new Set(['PROPOSE_TRADE', 'RESPOND_TRADE', 'CONTEST_PRESENCE', 'INDEPENDENT_ACTION']);
+/** Commands that exist in the schema but have no rules yet. No control may send them; the reducer refuses them with NOT_IMPLEMENTED. */
+export const ALPHA_UNSUPPORTED_COMMANDS = ['PROPOSE_TRADE', 'RESPOND_TRADE', 'CONTEST_PRESENCE', 'INDEPENDENT_ACTION'] as const;
+const UNSUPPORTED = new Set<string>(ALPHA_UNSUPPORTED_COMMANDS);
 const PHASE_LABEL: Record<AlphaState['phase'], string> = {
   WORLD_PULSE: 'Pulso do mundo', PLANNING: 'Planejamento', URBAN_ACTIONS: 'Ações urbanas', ORDERS_MOVEMENT: 'Ordens e movimento',
   DIPLOMACY_TRADE: 'Diplomacia e comércio', CONFLICTS: 'Conflitos', INTEGRATION_MAINTENANCE: 'Integração e manutenção', END_ROUND: 'Fim da rodada',
