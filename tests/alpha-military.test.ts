@@ -25,15 +25,15 @@ describe('alpha military pieces',()=>{
     expect(()=>validateMilitaryOrder(state,p1,{id:'move1',type:'MOVE',unitIds:['u1'],path:[state.core.map[2]!.id]})).toThrow();
     expect(()=>validateMilitaryOrder(state,p2,{id:'move1',type:'MOVE',unitIds:['u1'],path:[state.core.map[1]!.id]})).toThrow();
   });
-  it('resolves dice, casualties and retreat reproducibly without mutating an earlier snapshot',()=>{
+  it('resolves tactical dice, casualties and retreat reproducibly without mutating an earlier snapshot',()=>{
     const first=setup();first.units=[
       ...Array.from({length:4},(_,i)=>({id:`a${i}`,ownerId:p1,kind:'INFANTRY' as const,hexId:first.core.map[2]!.id,recruitedRound:1})),
       ...Array.from({length:4},(_,i)=>({id:`d${i}`,ownerId:p2,kind:'INFANTRY' as const,hexId:first.core.map[3]!.id,recruitedRound:1})),
     ];
     const second=structuredClone(first);const order={id:'attack1',type:'ATTACK' as const,unitIds:['a0','a1','a2','a3'],target:first.core.map[3]!.id,posture:'ASSAULT' as const};
     resolveBattle(first,p1,order);resolveBattle(second,p1,order);expect(first).toEqual(second);
-    const battle=first.battles[0]!;expect(battle.attackDice.every(n=>n>=1&&n<=6)).toBe(true);
-    expect(battle.attackTotal).toBe(battle.attackStrength+battle.attackModifiers+battle.attackDice[0]+battle.attackDice[1]);
+    const battle=first.battles[0]!;expect(battle.attackerTactical).toHaveLength(4);expect(battle.attackDice).toBeUndefined();
+    expect(battle.attackTotal).toBe(battle.attackStrength+battle.attackModifiers);expect(battle.attackModifiers).toBe(battle.attackBreakdown.reduce((n,m)=>n+m.amount,0));
     expect(battle.losses.length).toBeGreaterThan(0);expect(battle.retreat).not.toBeNull();
     expect(first.units.every(u=>!battle.losses.includes(u.id))).toBe(true);expect(AlphaStateSchema.safeParse(first).success).toBe(true);
   });

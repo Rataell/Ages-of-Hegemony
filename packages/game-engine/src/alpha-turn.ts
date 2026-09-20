@@ -69,6 +69,9 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if (!result.ok) return result;
       state.core = result.value; commitLegacyReducer(state, actor, legacyBefore); syncCityMetadata(state); if(!free) player.spentCommands++;
       alphaEvent(state,'MANAGEMENT','Decisão de gestão aplicada.',[actor]);
+    } else if (command.type === 'SET_DEFENSE_POSTURE') {
+      player.defensePosture = command.posture;
+      alphaEvent(state, 'DEFENSE_POSTURE', 'Postura defensiva definida.', [actor]);
     } else if (command.type === 'LEADER_ABILITY') {
       useLeaderAbility(state, actor);
     } else if (command.type === 'URBAN_ACTION') {

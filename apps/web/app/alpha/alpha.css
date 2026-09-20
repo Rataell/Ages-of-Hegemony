@@ -113,3 +113,8 @@ button.alpha-card { text-align: left; }
 
 .alpha-leader-head { display: flex; gap: 12px; align-items: center; }
 .alpha-leader-avatar { display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--border); font-weight: 700; letter-spacing: 0.04em; }
+
+.alpha-breakdown ul { list-style: none; padding: 0; margin: 4px 0; }
+.alpha-breakdown li { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+.alpha-attack-preview { margin-top: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+.alpha-roll-notes { font-size: 0.85em; padding-left: 16px; }

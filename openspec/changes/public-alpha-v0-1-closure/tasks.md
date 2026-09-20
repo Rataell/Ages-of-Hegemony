@@ -26,8 +26,8 @@
 
 ## 4. D. Combat
 
-- [ ] 4.1 Implement posture and tactical faces in resolution and store real values in battle records; gate: combat tests with breakdown sums.
-- [ ] 4.2 Compute modifier breakdowns by source for both sides; gate: arithmetic invariant test.
+- [x] 4.1 Implement posture and tactical faces in resolution and store real values in battle records; gate: combat tests with breakdown sums.
+- [x] 4.2 Compute modifier breakdowns by source for both sides; gate: arithmetic invariant test.
 - [ ] 4.3 Enforce stack limits per hex; gate: movement rejection tests.
 - [ ] 4.4 Add fortification levels and damage state to defense and siege; gate: city assault tests.
 - [ ] 4.5 Expose a dice-free combat preview through the projection; gate: projection leak test.

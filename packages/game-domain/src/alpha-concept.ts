@@ -103,7 +103,43 @@ export const TradeOfferSchema = z.strictObject({
 
 export const BattlePostureSchema = z.enum(['ASSAULT', 'HOLD', 'MANEUVER']);
 export const TacticalFaceSchema = z.enum(['EMPTY', 'IMPACT', 'GUARD', 'MANEUVER', 'COMMAND']);
+export type BattlePosture = z.infer<typeof BattlePostureSchema>;
+export type TacticalFace = z.infer<typeof TacticalFaceSchema>;
 export const BattleModifierSchema = z.strictObject({ source: z.string().min(1).max(120), amount: z.number().int().min(-100).max(100) });
+
+/**
+ * Tactical combat configuration: every threshold and modifier in one place (ALPHA). Each unit that fights rolls one die whose
+ * faces are listed here. Postures are circular (each beats one and loses to one) and each empowers one face.
+ */
+const PostureRuleSchema = z.strictObject({ beats: BattlePostureSchema, empowers: TacticalFaceSchema });
+export const CombatConfigSchema = z.strictObject({
+  mediumMargin: P, largeMargin: P, unsuppliedPenalty: N, hillDefense: N, mountainDefense: N, postureAdvantage: N,
+  dieFaces: z.array(TacticalFaceSchema).length(6),
+  impactValue: P, empoweredBonus: N, maneuverValue: P,
+  posture: z.strictObject({ ASSAULT: PostureRuleSchema, HOLD: PostureRuleSchema, MANEUVER: PostureRuleSchema }),
+  guardCancels: P, holdGuardCancels: P,
+  command: z.strictObject({
+    cavalryFlank: N, cavalryFlankTerrains: z.array(z.enum(['UNKNOWN', 'PLAINS', 'FOREST', 'HILLS', 'MOUNTAINS', 'COAST', 'SEA'])),
+    cityGuardProtection: N, navalTerrains: z.array(z.enum(['UNKNOWN', 'PLAINS', 'FOREST', 'HILLS', 'MOUNTAINS', 'COAST', 'SEA'])), navalBonus: N,
+    siegeBreachSteps: P, rangedConversions: P,
+  }),
+  fortification: z.strictObject({
+    levelBonus: z.strictObject({ NONE: N, PALISADE: N, STONE_WALL: N, FORTRESS: N, BASTION: N, CITADEL: N }),
+    damagedPercent: z.number().int().min(0).max(100), fortifiedDefenderBonus: N,
+  }),
+});
+export type CombatConfig = z.infer<typeof CombatConfigSchema>;
+export function alphaCombatConfig(): CombatConfig {
+  return CombatConfigSchema.parse({
+    mediumMargin: 3, largeMargin: 6, unsuppliedPenalty: 2, hillDefense: 1, mountainDefense: 2, postureAdvantage: 1,
+    dieFaces: ['EMPTY', 'IMPACT', 'IMPACT', 'GUARD', 'MANEUVER', 'COMMAND'],
+    impactValue: 1, empoweredBonus: 1, maneuverValue: 1,
+    posture: { ASSAULT: { beats: 'MANEUVER', empowers: 'IMPACT' }, HOLD: { beats: 'ASSAULT', empowers: 'GUARD' }, MANEUVER: { beats: 'HOLD', empowers: 'MANEUVER' } },
+    guardCancels: 1, holdGuardCancels: 2,
+    command: { cavalryFlank: 1, cavalryFlankTerrains: ['PLAINS'], cityGuardProtection: 1, navalTerrains: ['COAST', 'SEA'], navalBonus: 1, siegeBreachSteps: 1, rangedConversions: 1 },
+    fortification: { levelBonus: { NONE: 0, PALISADE: 1, STONE_WALL: 2, FORTRESS: 3, BASTION: 4, CITADEL: 5 }, damagedPercent: 50, fortifiedDefenderBonus: 1 },
+  });
+}
 
 export const IndependentTypeSchema = z.enum(['VILLAGE', 'TOWN', 'CITY_STATE']);
 export const IndependentAttitudeSchema = z.enum(['FRIENDLY', 'NEUTRAL', 'WARY', 'HOSTILE']);

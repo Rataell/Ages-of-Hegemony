@@ -25,6 +25,14 @@ function recurringSources(state:AlphaState,actor:PlayerId):RecurringSource[] {
  * Credits the recurring PRODUCTION effects of one timing. ON_PRODUCE effects bound to a city (great projects) apply only with that
  * city's PRODUCE; unbound ON_PRODUCE effects apply with any PRODUCE. The other timings ignore `cityId`.
  */
+/** The strength bonus of a civilization split by origin, for the combat breakdown. Adds up to institutionBonus(..., 'STRENGTH'). */
+export function strengthSources(state:AlphaState,actor:PlayerId):{technology:number;leader:number;other:number} {
+  const player=state.players.find(p=>p.playerId===actor)!;
+  const technology=sum(player.research.map(id=>ADVANCEMENTS.find(a=>a.id===id)!.effect).filter(e=>e.kind==='STRENGTH').map(e=>e.amount));
+  const leader=sum(player.temporaryEffects.filter(e=>e.round===state.core.round&&e.effect.kind==='STRENGTH'&&e.source.startsWith('leader-')).map(e=>e.effect.amount));
+  const total=sum(cardEffects(state,actor).filter(e=>e.kind==='STRENGTH').map(e=>e.amount));
+  return {technology,leader,other:total-leader};
+}
 /** Amounts of one timing (for ON_PRODUCE: those bound to `cityId` or to no city), without crediting anything. */
 export function recurringAmounts(state:AlphaState,actor:PlayerId,timing:EffectTiming,cityId?:string):ResourcePool {
   const total={food:0,materials:0,wealth:0,knowledge:0,influence:0};

@@ -39,8 +39,16 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     await expect(army).toHaveCount(10);
     for(const checkbox of await army.getByRole('checkbox').all())await checkbox.check();
     await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
+    await a.getByLabel('Postura do ataque',{exact:false}).selectOption('MANEUVER');
+    await b.getByLabel('Se for atacado, sua civilização adota',{exact:false}).selectOption('HOLD');
     await a.getByRole('button',{name:'Ordenar ataque',exact:true}).click();
     await expect(a.locator('.alpha-order')).toContainText('Ataque');
+    // The preview explains the static modifiers by origin and reveals neither dice nor the defender's posture.
+    const preview=a.locator('.alpha-attack-preview');
+    await expect(preview).toContainText('Seu ataque');await expect(preview).toContainText('Postura escolhida: Manobra');
+    await expect(preview).toContainText('Postura defensiva do adversário: desconhecida');
+    await expect(preview).toContainText('Faces do dado: Vazio, Impacto, Impacto, Guarda, Manobra, Comando');
+    await expect(preview).not.toContainText('Faces do ataque');
 
     async function confirmRound(){
       const round=(await repository.find(room.id))!.game!.core.round;
@@ -64,8 +72,12 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     for(const [i,page] of pages.entries()){
       await page.reload();await page.getByRole('button',{name:'Crônicas',exact:true}).click();
       const displayed=page.locator('.alpha-battle');await expect(displayed).toHaveCount(1);
-      await expect(displayed.getByLabel(`Dados ${battle.attackDice.join(' e ')}`,{exact:true})).toBeVisible();
-      await expect(displayed.getByLabel(`Dados ${battle.defenseDice.join(' e ')}`,{exact:true})).toBeVisible();
+      const face:Record<string,string>={EMPTY:'Vazio',IMPACT:'Impacto',GUARD:'Guarda',MANEUVER:'Manobra',COMMAND:'Comando'};
+      await expect(displayed.getByLabel(`Faces do ataque ${battle.attackerTactical.map(r=>face[r.face]).join(' e ')}`,{exact:true})).toBeVisible();
+      await expect(displayed.getByLabel(`Faces da defesa ${battle.defenderTactical.map(r=>face[r.face]).join(' e ')}`,{exact:true})).toBeVisible();
+      expect(battle.attackerPosture).toBe('MANEUVER');expect(battle.defenderPosture).toBe('HOLD');
+      await expect(displayed).toContainText('Manobra');await expect(displayed).toContainText('Defesa');
+      for(const item of [...battle.attackBreakdown,...battle.defenseBreakdown])await expect(displayed).toContainText(item.source);
       await expect(displayed).toContainText(`= ${battle.attackTotal}`);
       await expect(displayed).toContainText(`= ${battle.defenseTotal}`);
       await expect(displayed).toContainText(`Retirada para ${battle.retreat}`);

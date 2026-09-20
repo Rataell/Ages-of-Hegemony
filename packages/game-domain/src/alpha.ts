@@ -7,7 +7,7 @@ import { ALPHA_CARDS, GREAT_PROJECTS } from './alpha-cards.js';
 import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
 import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
-  ALPHA_ERA_MILESTONES, AlphaBalanceSchema, AlphaCitySchema, AlphaEraMilestoneSchema, AlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
+  ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
   BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, RaidBandSchema, TacticalFaceSchema,
   TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool,
 } from './alpha-concept.js';
@@ -32,7 +32,7 @@ export const AlphaRulesSchema = z.strictObject({
   planningSeconds: z.union([z.literal(0), z.literal(180), z.literal(300), z.literal(480), z.literal(3600), z.literal(14400), z.literal(28800)]),
   worldPreset: MapPresetSchema,
   balance: AlphaBalanceSchema,
-  combat: z.strictObject({ dice: z.literal(2), sides: z.literal(6), mediumMargin: P, largeMargin: P, unsuppliedPenalty: N, hillDefense: N, mountainDefense: N, postureAdvantage: z.literal(1) }),
+  combat: CombatConfigSchema,
 });
 export type AlphaRules = z.infer<typeof AlphaRulesSchema>;
 export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED'): AlphaRules {
@@ -50,7 +50,7 @@ export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD
     cardsPerRound:2,eventEvery:2,roadCost:{food:0,materials:1,wealth:0,knowledge:0,influence:0},advisorCost:{food:0,materials:0,wealth:3,knowledge:2,influence:0},treatyDuration:3,routeIncome:2,foreignRouteIncome:1,
     units:alphaUnitCatalog(), movementCosts:{UNKNOWN:1,PLAINS:1,FOREST:2,HILLS:2,MOUNTAINS:3,COAST:1,SEA:1}, supplyRadius:3,
     worldPreset,balance:alphaBalance(),milestones:structuredClone(ALPHA_ERA_MILESTONES),
-    combat: { dice: 2, sides: 6, mediumMargin: 3, largeMargin: 6, unsuppliedPenalty: 2, hillDefense: 1, mountainDefense: 2, postureAdvantage:1 } });
+    combat: alphaCombatConfig() });
 }
 export const UrbanBuildTargetSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('DISTRICT'), district: DistrictTypeSchema }),
@@ -65,6 +65,8 @@ export const RoundLedgerSchema = z.strictObject({
   cities: z.array(z.strictObject({ cityId: CityIdSchema, population: N, stability: N })),
 });
 export type RoundLedger = z.infer<typeof RoundLedgerSchema>;
+export const TacticalRollSchema = z.strictObject({ unitId: IdentifierSchema, face: TacticalFaceSchema, effect: z.string().max(160).default('') });
+export const FortificationSnapshotSchema = z.strictObject({ level: FortificationLevelSchema, state: FortificationStateSchema });
 export const UnitClassSchema = AlphaUnitClassSchema;
 export const UnitSchema = z.strictObject({ id: IdentifierSchema, ownerId: PlayerIdSchema, kind: UnitClassSchema, hexId: HexIdSchema, recruitedRound: P });
 export type AlphaUnit = z.infer<typeof UnitSchema>;
@@ -84,6 +86,8 @@ const StrategicPlayerSchema = z.strictObject({
   knownHexIds: z.array(HexIdSchema), orders: z.array(StrategicOrderSchema),
   victories: N, exploredRegions: N, foreignInfluence: N,
   contacts:z.array(PlayerIdSchema),abilityRound:N,
+  /** Posture this civilization holds when attacked. Private until a battle reveals it. */
+  defensePosture:BattlePostureSchema.default('HOLD'),
   /** The civilization's permanent leader (assigned automatically) and whether this Era's ability was used. */
   leader:LeaderStateSchema.nullable().default(null),
   influencedCities:z.array(CityIdSchema),
@@ -123,10 +127,13 @@ export const AlphaStateSchema = z.strictObject({
     attackerUnits:z.array(IdentifierSchema),defenderUnits:z.array(IdentifierSchema),
     attackerPosture:BattlePostureSchema.default('ASSAULT'),defenderPosture:BattlePostureSchema.default('HOLD'),
     attackBreakdown:z.array(BattleModifierSchema).default([]),defenseBreakdown:z.array(BattleModifierSchema).default([]),
-    attackerTactical:z.array(z.strictObject({unitId:IdentifierSchema,face:TacticalFaceSchema})).default([]),
-    defenderTactical:z.array(z.strictObject({unitId:IdentifierSchema,face:TacticalFaceSchema})).default([]),
+    attackerTactical:z.array(TacticalRollSchema).default([]),
+    defenderTactical:z.array(TacticalRollSchema).default([]),
+    /** Fortification of the defended city before and after the battle (a siege can damage or breach it). */
+    fortification:z.strictObject({cityId:CityIdSchema,before:FortificationSnapshotSchema,after:FortificationSnapshotSchema}).nullable().default(null),
     attackStrength:N,defenseStrength:N,attackModifiers:z.number().int(),defenseModifiers:z.number().int(),
-    attackDice:z.tuple([P.max(6),P.max(6)]),defenseDice:z.tuple([P.max(6),P.max(6)]),
+    /** Legacy two-dice rolls of matches resolved before tactical combat; absent on tactical battles. */
+    attackDice:z.tuple([P.max(6),P.max(6)]).optional(),defenseDice:z.tuple([P.max(6),P.max(6)]).optional(),
     attackTotal:z.number().int(),defenseTotal:z.number().int(),winnerId:PlayerIdSchema,losses:z.array(IdentifierSchema),retreat:HexIdSchema.nullable()})),
   winner: z.strictObject({ playerId: PlayerIdSchema, reason: z.enum(['HEGEMONY', 'ROUND_LIMIT']), round: P }).nullable(),
   events: z.array(AlphaEventSchema),
@@ -189,7 +196,9 @@ export const AlphaStateSchema = z.strictObject({
   for (const event of state.events) if (event.round > state.core.round || event.audience?.some(id => !owners.has(id))) fail('Invalid event audience or round');
   for(const battle of state.battles) {
     if(!hexes.has(battle.hexId)||!owners.has(battle.attackerId)||!owners.has(battle.defenderId)||battle.attackerId===battle.defenderId||battle.round>state.core.round)fail('Invalid battle participants');
-    if(battle.attackTotal!==battle.attackStrength+battle.attackModifiers+battle.attackDice[0]+battle.attackDice[1]||battle.defenseTotal!==battle.defenseStrength+battle.defenseModifiers+battle.defenseDice[0]+battle.defenseDice[1])fail('Battle arithmetic mismatch');
+    const legacyAttack=battle.attackDice?battle.attackDice[0]+battle.attackDice[1]:0,legacyDefense=battle.defenseDice?battle.defenseDice[0]+battle.defenseDice[1]:0;
+    if(battle.attackTotal!==battle.attackStrength+battle.attackModifiers+legacyAttack||battle.defenseTotal!==battle.defenseStrength+battle.defenseModifiers+legacyDefense)fail('Battle arithmetic mismatch');
+    if(!battle.attackDice&&(battle.attackBreakdown.reduce((n,m)=>n+m.amount,0)!==battle.attackModifiers||battle.defenseBreakdown.reduce((n,m)=>n+m.amount,0)!==battle.defenseModifiers))fail('Battle breakdown mismatch');
     if(battle.winnerId!==(battle.attackTotal>battle.defenseTotal?battle.attackerId:battle.defenderId))fail('Battle winner mismatch');
   }
 });
@@ -214,6 +223,7 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('ADVANCE_ERA'),expectedVersion:N}),
   z.strictObject({type:z.literal('CIVILIZATION_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('LEADER_ABILITY'),expectedVersion:N}),
+  z.strictObject({type:z.literal('SET_DEFENSE_POSTURE'),expectedVersion:N,posture:BattlePostureSchema}),
   z.strictObject({type:z.literal('BUILD_ROAD'),expectedVersion:N,hexId:HexIdSchema}),
   z.strictObject({ type: z.literal('MANAGE'), expectedVersion: N, command: GameCommandSchema }),
   z.strictObject({ type: z.literal('QUEUE_ORDER'), expectedVersion: N, order: StrategicOrderSchema }),

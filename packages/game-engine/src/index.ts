@@ -20,3 +20,4 @@ export * from './alpha-resources.js';
 export * from './alpha-urban.js';
 export { CORE_PHASE_MIRROR, INTERACTIVE_PHASES, LEGAL_COMMANDS, advanceAfterReady, openRound, prestigeRanking, setAlphaPhase } from './alpha-phases.js';
 export * from './alpha-leaders.js';
+export * from './alpha-combat.js';

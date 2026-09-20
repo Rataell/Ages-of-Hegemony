@@ -1,11 +1,8 @@
 import { AlphaEraSchema, type AlphaState, type AlphaUnit, type HexId, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
-import { alphaRandomInteger } from './alpha-random.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaPay } from './alpha-resources.js';
 import { institutionBonus } from './alpha-institutions.js';
 import { atWar, bordersOpen } from './alpha-diplomacy.js';
-import { occupyCity } from './alpha-cities.js';
-import { infrastructureStats } from './urban.js';
 import { leaderSupplyBonus } from './alpha-leaders.js';
 
 /** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
@@ -27,7 +24,7 @@ export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:A
   alphaPay(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal));
   state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId:city.hexId,recruitedRound:state.core.round});
 }
-function canEnter(state:AlphaState,unit:AlphaUnit,target:HexId):boolean {
+export function canEnter(state:AlphaState,unit:AlphaUnit,target:HexId):boolean {
   const tile=state.core.map.find(t=>t.id===target);if(!tile)return false;
   return state.rules.units[unit.kind].domain==='SEA'?['COAST','SEA'].includes(tile.terrain):!['SEA','UNKNOWN'].includes(tile.terrain);
 }
@@ -69,31 +66,4 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
     const defender=enemies[0]?.ownerId??city!.ownerId;if(!atWar(state,actor,defender))throw new Error('Declare guerra antes de ordenar um ataque a outra civilização.');
     if(new Set(units.map(u=>u?.hexId)).size!==1)throw new Error('Uma força de ataque deve partir do mesmo hex.');
   }
-}
-export function resolveBattle(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'ATTACK'}>):void {
-  validateMilitaryOrder(state,actor,order);
-  const attackers=state.units.filter(u=>order.unitIds.includes(u.id));const tile=state.core.map.find(t=>t.id===order.target)!;
-  const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target);
-  const defenderId=state.units.find(u=>u.hexId===order.target&&u.ownerId!==actor)?.ownerId??city!.ownerId;
-  const defenders=state.units.filter(u=>u.hexId===order.target&&u.ownerId===defenderId);
-  const strength=(units:AlphaUnit[])=>units.reduce((sum,u)=>sum+state.rules.units[u.kind].strength,0);
-  const modifier=(units:AlphaUnit[],attack:boolean)=>institutionBonus(state,attack?actor:defenderId,'STRENGTH')+units.reduce((sum,u)=>sum+state.rules.units[u.kind].terrainModifiers[tile.terrain]+(attack&&city?state.rules.units[u.kind].cityModifier:0),0)-(units.length&&units.some(u=>!unitSupply(state,u).supplied)?state.rules.combat.unsuppliedPenalty:0);
-  const roll=():[number,number]=>[1+alphaRandomInteger(state,6),1+alphaRandomInteger(state,6)];
-  const attackDice=roll(),defenseDice=roll();const attackStrength=strength(attackers),defenseStrength=strength(defenders)+(city?city.development+infrastructureStats(city,state.core.config).garrisonCapacity:0);
-  const attackModifiers=modifier(attackers,true),defenseModifiers=modifier(defenders,false)+(tile.terrain==='HILLS'?state.rules.combat.hillDefense:tile.terrain==='MOUNTAINS'?state.rules.combat.mountainDefense:0);
-  const attackTotal=attackStrength+attackModifiers+attackDice[0]+attackDice[1],defenseTotal=defenseStrength+defenseModifiers+defenseDice[0]+defenseDice[1];
-  const attackerWins=attackTotal>defenseTotal;const losers=attackerWins?defenders:attackers;const margin=Math.abs(attackTotal-defenseTotal);
-  const casualties=margin>=state.rules.combat.largeMargin?3:margin>=state.rules.combat.mediumMargin?2:1;
-  const losses=[...losers].sort((a,b)=>state.rules.units[a.kind].strength-state.rules.units[b.kind].strength||(a.id<b.id?-1:a.id>b.id?1:0)).slice(0,casualties).map(u=>u.id);
-  const survivors=losers.filter(u=>!losses.includes(u.id));let retreat:HexId|null=attackerWins?null:attackers[0]!.hexId;
-  if(attackerWins&&survivors.length) {
-    retreat=hexNeighbors(tile).map(hexId).sort().find(id=>survivors.every(u=>canEnter(state,u,id))&&!state.units.some(u=>u.hexId===id&&u.ownerId!==defenderId)&&state.core.map.some(t=>t.id===id&&(t.ownerId===null||t.ownerId===defenderId)))??null;
-    if(retreat)survivors.forEach(u=>u.hexId=retreat!);else losses.push(...survivors.map(u=>u.id));
-  }
-  state.units=state.units.filter(u=>!losses.includes(u.id));
-  if(attackerWins) {
-    attackers.forEach(u=>u.hexId=order.target);state.players.find(p=>p.playerId===actor)!.victories++;
-    if(city&&city.ownerId!==actor)occupyCity(state,actor,city.id);
-  }
-  state.battles.push({id:`battle-${state.battles.length+1}`,round:state.core.round,hexId:order.target,attackerId:actor,defenderId,attackerUnits:attackers.map(u=>u.id),defenderUnits:defenders.map(u=>u.id),attackerPosture:order.posture,defenderPosture:'HOLD',attackBreakdown:[],defenseBreakdown:[],attackerTactical:[],defenderTactical:[],attackStrength,defenseStrength,attackModifiers,defenseModifiers,attackDice,defenseDice,attackTotal,defenseTotal,winnerId:attackerWins?actor:defenderId,losses,retreat});
 }

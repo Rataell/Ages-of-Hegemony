@@ -12,7 +12,7 @@ The system SHALL accept an attack only from units of one hex, against an enemy a
 - **THEN** the order is rejected and asks for a war declaration
 
 ### Requirement: Strength and dice resolution
-The system SHALL resolve a battle by comparing each side's strength plus modifiers plus two six-sided dice drawn from the private random source, with the higher total winning and ties going to the defender.
+The system SHALL resolve a battle by comparing each side's strength plus modifiers, where the modifiers include the outcome of one six-sided tactical die per participating combat unit drawn from the private random source (faces EMPTY, IMPACT, IMPACT, GUARD, MANEUVER, COMMAND), with the higher total winning and ties going to the defender. Every number involved SHALL live in the central combat configuration.
 
 #### Scenario: Determinism
 - **WHEN** the same battle is resolved twice from identical state
@@ -20,10 +20,10 @@ The system SHALL resolve a battle by comparing each side's strength plus modifie
 
 #### Scenario: Arithmetic
 - **WHEN** a battle record is stored
-- **THEN** each total equals strength plus modifiers plus both dice
+- **THEN** each total equals strength plus the sum of the recorded modifier breakdown
 
 ### Requirement: Postures and tactical faces
-The system SHALL let each side hold an assault, hold or maneuver posture, with a one-point advantage under the posture rules, and SHALL record per-unit tactical faces.
+The system SHALL let each side hold an assault, hold or maneuver posture, with a small circular advantage (no posture wins automatically), and SHALL record per-unit tactical faces. COMMAND SHALL act by unit class: infantry impact or guard by posture, guard extra guard and city protection, ranged converting one empty allied die to impact, cavalry flank where terrain allows, siege breaching fortifications, fleet naval superiority. GUARD cancels enemy IMPACT. The defender's posture is private until a battle is resolved.
 
 #### Scenario: Posture recorded
 - **WHEN** a battle is resolved
