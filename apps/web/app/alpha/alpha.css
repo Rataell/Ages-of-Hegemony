@@ -110,3 +110,6 @@ button.alpha-card { text-align: left; }
 .alpha-urban-pick[data-blocked="true"] { opacity: 0.62; }
 .alpha-urban-pick[aria-pressed="true"] { outline: 2px solid var(--accent, currentColor); }
 .alpha-urban-detail { padding: 12px; border: 1px solid var(--border); border-radius: 6px; display: grid; gap: 6px; }
+
+.alpha-leader-head { display: flex; gap: 12px; align-items: center; }
+.alpha-leader-avatar { display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--border); font-weight: 700; letter-spacing: 0.04em; }

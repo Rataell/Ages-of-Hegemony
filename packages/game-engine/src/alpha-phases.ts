@@ -34,7 +34,7 @@ type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
   'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'HIRE_ADVISOR',
   'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'BUILD_ROAD',
-  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'READY',
+  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'READY',
 ];
 /** Commands legal in each phase. Everything else is rejected with WRONG_PHASE before any rule runs. */
 export const LEGAL_COMMANDS: Readonly<Record<AlphaRoundPhase, ReadonlySet<CommandType>>> = {

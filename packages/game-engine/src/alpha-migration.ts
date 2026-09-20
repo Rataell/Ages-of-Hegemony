@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-  AlphaStateSchema, GameStateSchema, WORLD_PULSE_CARDS, alphaBalance, alphaRules, alphaUnitCatalog,
+  AlphaStateSchema, GameStateSchema, WORLD_PULSE_CARDS, leaderStateFor, alphaBalance, alphaRules, alphaUnitCatalog,
   emptyAlphaResourcePool, legacyToAlphaResources,
   type AlphaCity, type AlphaError, type AlphaState, type AlphaTelemetry, type GameState,
 } from '@aoh/game-domain';
@@ -88,7 +88,7 @@ export function migrateSnapshotV4ToV5(input: unknown): Result<AlphaState, AlphaE
   const rules = { ...alphaRules(old.data.rules.preset), ...raw.rules, planningSeconds, worldPreset: 'MIXED', balance: alphaBalance(), units: alphaUnitCatalog(), milestones: alphaRules(old.data.rules.preset).milestones, combat: alphaRules(old.data.rules.preset).combat };
   const players: Array<Record<string, unknown>> = (raw.players ?? []).map(player => {
     const owner = raw.core.players.find(candidate => candidate.id === player.playerId);
-    return { ...player, era: player.era === 'HEGEMONY' && !player.hegemony ? 'ASCENSION' : player.era, resources: owner ? legacyToAlphaResources(owner.resources) : emptyAlphaResourcePool(), legacyCulturalTrack: Number(player.foreignInfluence ?? 0) };
+    return { ...player, era: player.era === 'HEGEMONY' && !player.hegemony ? 'ASCENSION' : player.era, resources: owner ? legacyToAlphaResources(owner.resources) : emptyAlphaResourcePool(), legacyCulturalTrack: Number(player.foreignInfluence ?? 0), leader: leaderStateFor(typeof player.civilization === 'string' ? player.civilization : null) };
   });
   const civilizationByPlayer = new Map(players.map(player => [String(player.playerId), typeof player.civilization === 'string' ? player.civilization : null]));
   const cities = initialCities(raw.core, civilizationByPlayer);

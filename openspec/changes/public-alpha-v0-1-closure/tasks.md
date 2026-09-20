@@ -89,3 +89,7 @@
 - [ ] 11.4 Add the test-build label and limitations disclosure to the landing page; gate: visual check.
 - [ ] 11.5 Run a 2 to 6 participant playtest to a winner including a server restart; gate: recorded outcome and defect log.
 - [ ] 11.6 Document rollback and verify stored matches survive it; gate: rollback drill.
+
+## 12. Leaders (small addition)
+
+- [x] 12.1 Add one permanent leader per civilization (12) with a small passive and a once-per-Era ability, centralised in `packages/game-domain/src/alpha-leaders.ts` (`ALPHA_LEADER_BUDGET`); leaders are assigned automatically, are distinct from advisors, and are shown in the era panel with an avatar placeholder; gate: `tests/alpha-leaders.test.ts` (17 tests).

@@ -13,6 +13,7 @@ import { settleWithPioneer } from './alpha-cities.js';
 import { alphaEvent } from './alpha-events.js';
 import { LEGAL_COMMANDS, advanceAfterReady, openRound } from './alpha-phases.js';
 import { performUrbanAction, syncCityMetadata } from './alpha-urban.js';
+import { ensureLeaders, useLeaderAbility } from './alpha-leaders.js';
 
 export { alphaEvent } from './alpha-events.js';
 
@@ -25,6 +26,7 @@ export function alphaCommandCapacity(state: AlphaState, playerId: PlayerId): num
 /** Opens the first round (or any round waiting at WORLD_PULSE): ledgers, cards and one world pulse, then PLANNING. No city output is credited. */
 export function beginAlphaPlanning(input: AlphaState): AlphaState {
   const state = AlphaStateSchema.parse(input);
+  ensureLeaders(state);
   if (state.phase !== 'WORLD_PULSE') throw new Error('Início requer o Pulso do mundo.');
   openRound(state);
   return AlphaStateSchema.parse(state);
@@ -43,6 +45,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
   const parsed = AlphaCommandSchema.safeParse(raw);
   if (!parsed.success) return err({ code:'INVALID_INPUT', message:'Comando inválido.' });
   const state = validated.data; const command = parsed.data;
+  ensureLeaders(state);
   if (command.expectedVersion !== state.version) return err({ code:'VERSION_CONFLICT', message:'A partida mudou. Atualize antes de confirmar novamente.' });
   if (state.version === Number.MAX_SAFE_INTEGER) return err({ code:'NUMERIC_OVERFLOW', message:'Limite de versões atingido.' });
   if (state.core.status !== 'ACTIVE') return err({ code:'NOT_ACTIVE', message:'Esta partida já terminou.' });
@@ -66,6 +69,8 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if (!result.ok) return result;
       state.core = result.value; commitLegacyReducer(state, actor, legacyBefore); syncCityMetadata(state); if(!free) player.spentCommands++;
       alphaEvent(state,'MANAGEMENT','Decisão de gestão aplicada.',[actor]);
+    } else if (command.type === 'LEADER_ABILITY') {
+      useLeaderAbility(state, actor);
     } else if (command.type === 'URBAN_ACTION') {
       performUrbanAction(state, actor, command);
     } else if (command.type === 'READY') {

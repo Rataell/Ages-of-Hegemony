@@ -4,6 +4,7 @@ import { GameCommandSchema, GameStateSchema } from './model.js';
 import { AlphaUnitClassSchema, UnitCatalogEntrySchema, alphaUnitCatalog } from './alpha-catalog.js';
 import { ADVANCEMENTS, CIVILIZATIONS, AlphaEffectSchema } from './alpha-institutions.js';
 import { ALPHA_CARDS, GREAT_PROJECTS } from './alpha-cards.js';
+import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
 import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
   ALPHA_ERA_MILESTONES, AlphaBalanceSchema, AlphaCitySchema, AlphaEraMilestoneSchema, AlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
@@ -83,6 +84,8 @@ const StrategicPlayerSchema = z.strictObject({
   knownHexIds: z.array(HexIdSchema), orders: z.array(StrategicOrderSchema),
   victories: N, exploredRegions: N, foreignInfluence: N,
   contacts:z.array(PlayerIdSchema),abilityRound:N,
+  /** The civilization's permanent leader (assigned automatically) and whether this Era's ability was used. */
+  leader:LeaderStateSchema.nullable().default(null),
   influencedCities:z.array(CityIdSchema),
   hegemony:HegemonyDeclarationSchema.nullable(),
   ambitionsChosen:z.boolean(),cardsPlayed:N,temporaryEffects:z.array(z.strictObject({source:IdentifierSchema,effect:AlphaEffectSchema,round:P})),
@@ -175,6 +178,7 @@ export const AlphaStateSchema = z.strictObject({
     if(new Set(player.influencedCities).size!==player.influencedCities.length||player.influencedCities.some(id=>!cities.some(c=>c.id===id))||player.foreignInfluence!==player.influencedCities.length)fail('Invalid foreign influence');
     if(player.hegemony&&(player.era!=='HEGEMONY'||player.hegemony.declaredRound>state.core.round||(player.hegemony.qualifiedSince!==null&&(player.hegemony.qualifiedSince<player.hegemony.declaredRound||player.hegemony.qualifiedSince>state.core.round))))fail('Invalid hegemony declaration');
     if(player.civilization!==null&&!CIVILIZATIONS.some(c=>c.id===player.civilization))fail('Unknown civilization');
+    if(player.leader!==null&&LEADERS.find(l=>l.id===player.leader!.leaderId)?.civilizationId!==player.civilization)fail('Leader must belong to the player civilization');
     if(player.research.some(id=>!ADVANCEMENTS.some(a=>a.id===id)))fail('Unknown advancement');
     for(const id of player.research){const node=ADVANCEMENTS.find(a=>a.id===id);if(!node)continue;if(node.prerequisites.some(p=>!player.research.includes(p))||node.excludes.some(p=>player.research.includes(p))||AlphaEraSchema.options.indexOf(node.era)>AlphaEraSchema.options.indexOf(player.era))fail('Illegal research prerequisites, exclusion or era');}
     if(player.contacts.some(id=>!owners.has(id)||id===player.playerId)||new Set(player.contacts).size!==player.contacts.length||player.abilityRound>state.core.round)fail('Invalid contact or ability timing');
@@ -209,6 +213,7 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('DECLARE_WAR'),expectedVersion:N,targetId:PlayerIdSchema}),
   z.strictObject({type:z.literal('ADVANCE_ERA'),expectedVersion:N}),
   z.strictObject({type:z.literal('CIVILIZATION_ABILITY'),expectedVersion:N}),
+  z.strictObject({type:z.literal('LEADER_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('BUILD_ROAD'),expectedVersion:N,hexId:HexIdSchema}),
   z.strictObject({ type: z.literal('MANAGE'), expectedVersion: N, command: GameCommandSchema }),
   z.strictObject({ type: z.literal('QUEUE_ORDER'), expectedVersion: N, order: StrategicOrderSchema }),

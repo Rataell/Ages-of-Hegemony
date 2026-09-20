@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, PlayerIdSchema, REGION_TEMPLATES, alphaRules, templateMetalDeposit, type AlphaState } from '@aoh/game-domain';
 import {
-  alphaGain, alphaGainLegacy, alphaStorageCapacity, beginAlphaPlanning, createAlphaGame, metalSites,
+  alphaGain, alphaGainLegacy, alphaStorageCapacity, beginAlphaPlanning, leaderStorageBonus, createAlphaGame, metalSites,
 } from '@aoh/game-engine';
 import { completeRound, must, readyAll, urban } from './alpha-rounds.js';
 
@@ -116,7 +116,7 @@ describe('storage capacity', () => {
   it('scales base capacity with cities and building bonuses', () => {
     const state = created();
     const base = alphaStorageCapacity(state, p1);
-    expect(base.foodCapacity).toBe(state.rules.balance.baseStorage.foodCapacity);
+    expect(base.foodCapacity).toBe(state.rules.balance.baseStorage.foodCapacity + leaderStorageBonus(state, p1, 'food'));
     state.cities.find(c => c.currentOwnerId === p1)!.buildings.push('GRANARY', 'WAREHOUSE');
     const after = alphaStorageCapacity(state, p1);
     expect(after.foodCapacity).toBe(base.foodCapacity + state.rules.balance.storagePerBuilding.GRANARY);

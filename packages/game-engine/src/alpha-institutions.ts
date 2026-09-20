@@ -77,7 +77,7 @@ export function eraMilestones(state:AlphaState,actor:PlayerId) {
 export function advanceEra(state:AlphaState,actor:PlayerId):void {
   const milestones=eraMilestones(state,actor);if(!milestones.next)throw new Error('Sua civilização já está na Era da Hegemonia.');
   if(!milestones.canAdvance)throw new Error(`Cumpra ao menos ${milestones.needed} dos ${milestones.total} critérios para avançar de era (${milestones.satisfied} cumpridos).`);
-  const player=state.players.find(p=>p.playerId===actor)!;player.era=milestones.next;player.prestige+=2;
+  const player=state.players.find(p=>p.playerId===actor)!;player.era=milestones.next;player.prestige+=2;if(player.leader)player.leader.eraAbilityUsed=false;
 }
 export function civilizationAbility(state:AlphaState,actor:PlayerId):void {
   const player=state.players.find(p=>p.playerId===actor)!;const civ=CIVILIZATIONS.find(c=>c.id===player.civilization);

@@ -22,6 +22,7 @@ The playable alpha was in the middle of a v4 to v5 transition (Concept Bible: se
 - `alpha-world-systems`: regions, exploration, world pulse, independents, raid bands, trade offers and routes (F).
 - `alpha-multiplayer-privacy`: guest identity, seats, authorization, projections, CAS conflicts (G).
 - `alpha-play-interface`: PT-BR playable UI for all v5 actions, previews, breakdowns, responsive layout (H).
+- `alpha-civilization-leaders`: one permanent leader per civilization with a small passive and a once-per-Era ability (small addition to B/H).
 - `alpha-persistence`: PostgreSQL storage, migrations, restart durability, decode-time migration (I).
 - `alpha-release-gates`: the automated and manual gates that must be green before any tag, commit of a release or deploy (J).
 - `alpha-public-playtest`: deploy target, environment, smoke test and a real 2 to 6 player playtest (K).

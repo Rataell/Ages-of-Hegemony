@@ -1,4 +1,4 @@
-import { REGION_TEMPLATES, templateMetalDeposit, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainType } from '@aoh/game-domain';
+import { REGION_TEMPLATES, leaderStateFor, templateMetalDeposit, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
@@ -32,7 +32,7 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   if(!created.ok)throw new Error(created.error.message);
   const migrated=migrateSnapshotV3ToV4(created.value);if(!migrated.ok)throw new Error(migrated.error.message);
   const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED');state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
-  state.players.forEach((p,i)=>{p.civilization=input.players[i]!.civilization??CIVILIZATIONS[i]!.id;const center=state.core.players[i]!.civilization.cities[0]!.hexId;state.units.push({id:`pioneer-${i+1}`,ownerId:p.playerId,kind:'PIONEER',hexId:center,recruitedRound:1});const city=state.cities.find(city=>city.currentOwnerId===p.playerId)!;city.nativeIdentity=p.civilization;});
+  state.players.forEach((p,i)=>{p.civilization=input.players[i]!.civilization??CIVILIZATIONS[i]!.id;p.leader=leaderStateFor(p.civilization);const center=state.core.players[i]!.civilization.cities[0]!.hexId;state.units.push({id:`pioneer-${i+1}`,ownerId:p.playerId,kind:'PIONEER',hexId:center,recruitedRound:1});const city=state.cities.find(city=>city.currentOwnerId===p.playerId)!;city.nativeIdentity=p.civilization;});
   const occupied=new Set(state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)));
   const neutral=state.core.map.filter(tile=>!occupied.has(tile.id)&&!['SEA','UNKNOWN'].includes(tile.terrain)).sort((a,b)=>a.id.localeCompare(b.id));
   state.independents=neutral.slice(0,3).map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));

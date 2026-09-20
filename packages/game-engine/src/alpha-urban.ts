@@ -6,6 +6,7 @@ import { applyCommand } from './engine.js';
 import { percent } from './arithmetic.js';
 import { deriveCityProductionBreakdown } from './economy.js';
 import { alphaEvent } from './alpha-events.js';
+import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
 import { applyRecurringEffects, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, commitLegacyReducer, metalSites } from './alpha-resources.js';
@@ -154,7 +155,7 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     for (const unit of AlphaUnitClassSchema.options) list.push(option(state, actor, id, 'RECRUIT', { unit }, `Força ${state.rules.units[unit].strength} · Movimento ${state.rules.units[unit].movement}`));
     list.push(option(state, actor, id, 'PROMOTE_MOOD', {}, `Ânimo +1 (máximo ${balance.promoteMoodCeiling} por esta ação)`));
     list.push(option(state, actor, id, 'SUPPORT_TRADE', {}, `Renda de rota: +${state.rules.routeIncome} Riqueza por rota originada`));
-    list.push(option(state, actor, id, 'CIVIC_ACTION', {}, occupied ? `Integração +${balance.integrationPerAction}%` : `+${balance.civicInfluence} Influência e coesão local`));
+    list.push(option(state, actor, id, 'CIVIC_ACTION', {}, occupied ? `Integração +${balance.integrationPerAction + leaderIntegrationBonus(state, actor)}%` : `+${balance.civicInfluence} Influência e coesão local`));
     cities[id] = list;
   }
   const firstCity = owned[0]?.cityId;
@@ -276,7 +277,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
         const occupation = state.occupations.find(candidate => candidate.cityId === city.id && candidate.occupierId === actor);
         if (occupation && state.core.round <= occupation.sinceRound) throw new Error('A integração fica disponível na rodada seguinte à captura.');
         alphaPay(state, actor, state.rules.integrationCost);
-        meta.integration = Math.min(100, meta.integration + balance.integrationPerAction);
+        meta.integration = Math.min(100, meta.integration + balance.integrationPerAction + leaderIntegrationBonus(state, actor));
         telemetry.cityIntegration += 1;
         if (meta.integration >= 100) {
           meta.status = 'OWNED';

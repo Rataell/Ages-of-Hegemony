@@ -3,6 +3,7 @@ import {
   type AlphaResourcePool, type AlphaState, type PlayerId, type ResourcePool, type RoundLedger,
 } from '@aoh/game-domain';
 import { sum } from './arithmetic.js';
+import { leaderStorageBonus } from './alpha-leaders.js';
 
 /**
  * Converts a cost to the seven-resource shape. A generic legacy `materials` cost never invents a metal requirement:
@@ -115,6 +116,11 @@ export function alphaStorageCapacity(state: AlphaState, actor: PlayerId) {
     else if (building === 'TREASURY' || building === 'BANK') capacity.wealthCapacity += amount;
     else if (building === 'WAREHOUSE') { capacity.woodCapacity += amount; capacity.stoneCapacity += amount; capacity.metalCapacity += amount; }
   }
+  capacity.foodCapacity += leaderStorageBonus(state, actor, 'food');
+  capacity.woodCapacity += leaderStorageBonus(state, actor, 'wood');
+  capacity.stoneCapacity += leaderStorageBonus(state, actor, 'stone');
+  capacity.metalCapacity += leaderStorageBonus(state, actor, 'metal');
+  capacity.wealthCapacity += leaderStorageBonus(state, actor, 'wealth');
   return capacity;
 }
 

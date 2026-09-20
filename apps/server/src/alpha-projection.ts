@@ -1,5 +1,5 @@
 import type { AlphaState, PlayerId } from '@aoh/game-domain';
-import { alphaCommandCapacity, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { alphaCommandCapacity, leaderAbilityBlock, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -16,6 +16,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     phase:state.phase,urban:urbanOptions(state,actor),
     worldPulse:state.worldPulse.current?{id:state.worldPulse.current.id,name:state.worldPulse.current.name,type:state.worldPulse.current.type}:null,
     cityStates:state.cities.filter(c=>c.currentOwnerId===actor).map(c=>({cityId:c.cityId,status:c.status,integration:c.integration,mood:c.mood,level:c.level,localCohesion:c.localCohesion,urbanActionsUsed:c.urbanActionsUsed,fortification:c.fortification.level})),
+    leaderBlock:leaderAbilityBlock(state,actor),
     self:progress,commandCapacity:alphaCommandCapacity(state,actor),rules:state.rules,
     milestones:eraMilestones(state,actor),
     cityDetails:economic.player.civilization.cities.map(c=>({id:c.id,category:stabilityCategory(c.stability,state.core.config),production:deriveCityProductionBreakdown(c,economic.player.civilization,state.core.config,state.core.map)})),
