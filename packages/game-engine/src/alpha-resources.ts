@@ -40,7 +40,7 @@ export function ledgerOf(state: AlphaState, actor: PlayerId): RoundLedger {
   const pool = state.players.find(player => player.playerId === actor)?.resources ?? emptyAlphaResourcePool();
   const ledger: RoundLedger = {
     playerId: actor, round, opening: toLegacy(pool), production: zeroPool(), mining: zeroPool(), trade: zeroPool(), institutions: zeroPool(), other: zeroPool(),
-    losses: zeroPool(), expenses: zeroPool(), upkeepRequired: zeroPool(), upkeepPaid: zeroPool(), discarded: zeroPool(), institutionsCollected: false,
+    losses: zeroPool(), expenses: zeroPool(), upkeepRequired: zeroPool(), upkeepPaid: zeroPool(), discarded: zeroPool(),
     cities: (state.core.players.find(player => player.id === actor)?.civilization.cities ?? []).map(city => ({ cityId: city.id, population: city.population, stability: city.stability })),
   };
   state.roundLedgers.push(ledger);

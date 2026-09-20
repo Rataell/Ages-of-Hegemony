@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, PlayerIdSchema, alphaToLegacyResources, type AlphaState } from '@aoh/game-domain';
-import { alphaStorageCapacity, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, deriveCityProductionBreakdown, occupyCity } from '@aoh/game-engine';
+import { alphaGain, alphaStorageCapacity, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, deriveCityProductionBreakdown, occupyCity } from '@aoh/game-engine';
 import { completeRound, must, readyAll } from './alpha-rounds.js';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
@@ -76,16 +76,11 @@ describe('urban actions: PRODUCE', () => {
     expect(after.telemetry.productionByResource.food).toBeGreaterThan(0);
   });
 
-  it('credits persistent institutional production once per round, on the first PRODUCE', () => {
+  it('leaves institutional income to its own timing instead of taking it from PRODUCE', () => {
     const state = urban();
-    expect(state.roundLedgers.find(l => l.playerId === p1)!.institutionsCollected).toBe(false);
-    const first = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
-    const ledger = first.roundLedgers.find(l => l.playerId === p1)!;
-    expect(ledger.institutionsCollected).toBe(true);
-    expect(Object.values(ledger.institutions).some(v => v > 0)).toBe(true);
-    const again = structuredClone(first); again.cities.find(c => c.cityId === c1)!.urbanActionsUsed = 0;
-    const second = must(again, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
-    expect(second.roundLedgers.find(l => l.playerId === p1)!.institutions).toEqual(ledger.institutions);
+    const before = state.roundLedgers.find(l => l.playerId === p1)!.institutions;
+    const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
+    expect(after.roundLedgers.find(l => l.playerId === p1)!.institutions).toEqual(before);
   });
 
   it('discards what does not fit and records the discard', () => {
@@ -96,7 +91,7 @@ describe('urban actions: PRODUCE', () => {
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
     expect(pool(after).food).toBe(cap.foodCapacity);
     const ledger = after.roundLedgers.find(l => l.playerId === p1)!;
-    expect(ledger.discarded.food).toBe(ledger.production.food + ledger.institutions.food);
+    expect(ledger.discarded.food).toBe(ledger.production.food);
     expect(after.events.some(e => e.type === 'STORAGE_DISCARD')).toBe(true);
   });
 
@@ -292,7 +287,9 @@ describe('urban actions: SUPPORT_TRADE and CIVIC_ACTION', () => {
     let state = urban();
     const target = c2;
     occupyCity(state, p1, target as never);
+    alphaGain(state, p1, { influence: 32 });
     expect(state.cities.find(c => c.cityId === target)).toMatchObject({ status: 'OCCUPIED', integration: 0, currentOwnerId: p1 });
+    state = readyAll(completeRound(state));
     const step = state.rules.balance.integrationPerAction, needed = Math.ceil(100 / step);
     for (let i = 0; i < needed; i++) {
       expect(state.cities.find(c => c.cityId === target)!.status).toBe('OCCUPIED');

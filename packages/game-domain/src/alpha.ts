@@ -61,8 +61,6 @@ export const RoundLedgerSchema = z.strictObject({
   playerId: PlayerIdSchema, round: P, opening: ResourcePoolSchema,
   production: ResourcePoolSchema, mining: ResourcePoolSchema, trade: ResourcePoolSchema, institutions: ResourcePoolSchema, other: ResourcePoolSchema,
   losses: ResourcePoolSchema, expenses: ResourcePoolSchema, upkeepRequired: ResourcePoolSchema, upkeepPaid: ResourcePoolSchema, discarded: ResourcePoolSchema,
-  /** Persistent institutional production (civilization passives, advancements, projects, advisors) is credited once per round, on the player's first PRODUCE. */
-  institutionsCollected: z.boolean().default(false),
   cities: z.array(z.strictObject({ cityId: CityIdSchema, population: N, stability: N })),
 });
 export type RoundLedger = z.infer<typeof RoundLedgerSchema>;
@@ -199,7 +197,6 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('CONTEST_PRESENCE'),expectedVersion:N,cityId:CityIdSchema,defenderCivilizationId:IdentifierSchema}),
   z.strictObject({type:z.literal('INDEPENDENT_ACTION'),expectedVersion:N,peopleId:IdentifierSchema,action:z.enum(['TRADE','NEGOTIATE','INFLUENCE','PROTECT','INTEGRATE','CONQUER'])}),
   z.strictObject({type:z.literal('SETTLE'),expectedVersion:N,unitId:IdentifierSchema,name:z.string().trim().min(1).max(80)}),
-  z.strictObject({type:z.literal('INTEGRATE_CITY'),expectedVersion:N,cityId:CityIdSchema}),
   z.strictObject({type:z.literal('DECLARE_HEGEMONY'),expectedVersion:N,path:HegemonyPathSchema}),
   z.strictObject({type:z.literal('CHOOSE_AMBITIONS'),expectedVersion:N,cardIds:z.array(IdentifierSchema).length(2)}),
   z.strictObject({type:z.literal('PLAY_CARD'),expectedVersion:N,cardId:IdentifierSchema}),
@@ -210,10 +207,8 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('RESPOND_TREATY'),expectedVersion:N,treatyId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('END_TREATY'),expectedVersion:N,treatyId:IdentifierSchema}),
   z.strictObject({type:z.literal('DECLARE_WAR'),expectedVersion:N,targetId:PlayerIdSchema}),
-  z.strictObject({type:z.literal('RESEARCH'),expectedVersion:N,advancementId:IdentifierSchema}),
   z.strictObject({type:z.literal('ADVANCE_ERA'),expectedVersion:N}),
   z.strictObject({type:z.literal('CIVILIZATION_ABILITY'),expectedVersion:N}),
-  z.strictObject({type:z.literal('RECRUIT'),expectedVersion:N,cityId:CityIdSchema,kind:UnitClassSchema}),
   z.strictObject({type:z.literal('BUILD_ROAD'),expectedVersion:N,hexId:HexIdSchema}),
   z.strictObject({ type: z.literal('MANAGE'), expectedVersion: N, command: GameCommandSchema }),
   z.strictObject({ type: z.literal('QUEUE_ORDER'), expectedVersion: N, order: StrategicOrderSchema }),

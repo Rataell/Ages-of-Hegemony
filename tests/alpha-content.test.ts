@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readyAll, urban } from './alpha-rounds.js';
 import { ADVANCEMENTS, ALPHA_CARDS, CIVILIZATIONS, GREAT_PROJECTS, AlphaStateSchema } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, eraMilestones, serializeAlphaState } from '@aoh/game-engine';
 function setup(){return beginAlphaPlanning(createAlphaGame({gameId:'content-alpha',seed:25,preset:'QUICK',players:[{id:'p1',name:'Um'},{id:'p2',name:'Dois'}]}));}
@@ -17,10 +18,10 @@ describe('declarative alpha content',()=>{
     expect(ADVANCEMENTS.filter(a=>a.convergence).every(a=>a.prerequisites.length>=2)).toBe(true);
   });
   it('research costs resources, grants its declared effect and rejects unmet prerequisites atomically',()=>{
-    const state=setup(),actor=state.players[0]!.playerId;const initial=serializeAlphaState(state);
-    expect(applyAlphaCommand(state,actor,{type:'RESEARCH',expectedVersion:0,advancementId:'adv-2-1-1'}).ok).toBe(false);
+    const state=readyAll(setup()),actor=state.players[0]!.playerId;const initial=serializeAlphaState(state);
+    expect(urban(state,actor,'RESEARCH',{advancementId:'adv-2-1-1'}).ok).toBe(false);
     expect(serializeAlphaState(state)).toBe(initial);
-    const result=applyAlphaCommand(state,actor,{type:'RESEARCH',expectedVersion:0,advancementId:'adv-1-1-1'});expect(result.ok).toBe(true);if(!result.ok)return;
+    const result=urban(state,actor,'RESEARCH',{advancementId:'adv-1-1-1'});expect(result.ok).toBe(true);if(!result.ok)return;
     expect(result.value.players[0]!.research).toEqual(['adv-1-1-1']);expect(result.value.core.players[0]!.resources.knowledge).toBe(state.core.players[0]!.resources.knowledge-2);
     expect(eraMilestones(result.value,actor).missing).toContain('districts');
   });

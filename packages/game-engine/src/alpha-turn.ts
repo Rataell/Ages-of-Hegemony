@@ -2,14 +2,14 @@ import { AlphaCommandSchema, AlphaStateSchema, type AlphaError, type AlphaState,
 import { err, ok, type Result } from '@aoh/shared';
 import { applyCommand } from './engine.js';
 import { commandPoints } from './civilization.js';
-import { recruitUnit, validateMilitaryOrder } from './alpha-military.js';
+import { validateMilitaryOrder } from './alpha-military.js';
 import { alphaPay, commitLegacyReducer } from './alpha-resources.js';
-import { advanceEra, civilizationAbility, institutionBonus, researchAdvancement } from './alpha-institutions.js';
+import { advanceEra, civilizationAbility, institutionBonus } from './alpha-institutions.js';
 import { manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration } from './alpha-world.js';
 import { manageCard } from './alpha-cards.js';
 import { declareHegemony, refreshHegemony } from './alpha-hegemony.js';
-import { integrateCity, settleWithPioneer } from './alpha-cities.js';
+import { settleWithPioneer } from './alpha-cities.js';
 import { alphaEvent } from './alpha-events.js';
 import { LEGAL_COMMANDS, advanceAfterReady, openRound } from './alpha-phases.js';
 import { performUrbanAction, syncCityMetadata } from './alpha-urban.js';
@@ -55,6 +55,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     if (command.type === 'MANAGE') {
       if (command.command.type === 'ADVANCE_PHASE' || command.command.type === 'SUBMIT_ORDER') return err({ code:'FORBIDDEN', message:'Use os controles de planejamento da alpha.' });
       if (command.command.playerId !== actor) return err({ code:'FORBIDDEN', message:'Você só pode comandar sua própria civilização.' });
+      if (command.command.type === 'BUILD_DISTRICT' || command.command.type === 'BUILD_BUILDING') return err({ code:'USE_URBAN_ACTION', message:'Construa pela ação urbana Construir.' });
       const management=command.command;
       const occupied=state.occupations.some(o=>('cityId' in management&&management.type!=='FOUND_CITY'&&management.cityId===o.cityId)||('hexId' in management&&state.core.map.find(t=>t.id===management.hexId)?.controllerCityId===o.cityId));
       if(occupied)throw new Error('Integre a cidade ocupada antes de administrar seus territórios e construções.');
@@ -88,10 +89,6 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if(player.spentCommands+player.orders.length>=alphaCommandCapacity(state,actor))throw new Error('Sem pontos de comando disponíveis.');
       settleWithPioneer(state,actor,command.unitId,command.name);player.spentCommands++;refreshKnowledge(state);
       alphaEvent(state,'CITY_FOUNDED','Pioneiro estabeleceu uma nova cidade.',[actor]);
-    } else if(command.type==='INTEGRATE_CITY') {
-      if(player.spentCommands+player.orders.length>=alphaCommandCapacity(state,actor))throw new Error('Sem pontos de comando disponíveis.');
-      integrateCity(state,actor,command.cityId);player.spentCommands++;
-      alphaEvent(state,'CITY_INTEGRATED','Cidade integrada à administração.',[actor]);
     } else if(command.type==='DECLARE_HEGEMONY') {
       declareHegemony(state,actor,command.path);
       alphaEvent(state,'HEGEMONY_DECLARED','Uma civilização declarou seu caminho hegemônico.');
@@ -105,18 +102,16 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if(paid&&player.spentCommands+player.orders.length>=alphaCommandCapacity(state,actor))throw new Error('Sem pontos de comando disponíveis.');
       manageDiplomacy(state,actor,command);if(paid)player.spentCommands++;
       alphaEvent(state,'DIPLOMACY','Decisão diplomática registrada.',[actor]);
-    } else if(command.type==='RECRUIT'||command.type==='BUILD_ROAD'||command.type==='RESEARCH'||command.type==='ADVANCE_ERA'||command.type==='CIVILIZATION_ABILITY') {
+    } else if(command.type==='BUILD_ROAD'||command.type==='ADVANCE_ERA'||command.type==='CIVILIZATION_ABILITY') {
       if(player.spentCommands+player.orders.length>=alphaCommandCapacity(state,actor))throw new Error('Sem pontos de comando disponíveis.');
-      if(command.type==='RECRUIT')recruitUnit(state,actor,command.cityId,command.kind);
-      else if(command.type==='RESEARCH')researchAdvancement(state,actor,command.advancementId);
-      else if(command.type==='ADVANCE_ERA')advanceEra(state,actor);
+      if(command.type==='ADVANCE_ERA')advanceEra(state,actor);
       else if(command.type==='CIVILIZATION_ABILITY')civilizationAbility(state,actor);
       else {
         const tile=state.core.map.find(t=>t.id===command.hexId&&t.ownerId===actor);
         if(!tile||state.roads.includes(tile.id))throw new Error('Construa estrada em território próprio sem estrada.');
         alphaPay(state,actor,state.rules.roadCost);state.roads.push(tile.id);
       }
-      player.spentCommands++;alphaEvent(state,'ACTION_COMPLETED',({RECRUIT:'Peça recrutada.',BUILD_ROAD:'Estrada construída.',RESEARCH:'Avanço pesquisado.',ADVANCE_ERA:'Nova era alcançada.',CIVILIZATION_ABILITY:'Habilidade civilizacional utilizada.'})[command.type],[actor]);
+      player.spentCommands++;alphaEvent(state,'ACTION_COMPLETED',({BUILD_ROAD:'Estrada construída.',ADVANCE_ERA:'Nova era alcançada.',CIVILIZATION_ABILITY:'Habilidade civilizacional utilizada.'})[command.type],[actor]);
     }
     refreshHegemony(state);
     state.version++;

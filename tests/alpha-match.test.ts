@@ -12,6 +12,7 @@ describe('deterministic complete alpha scenario',()=>{
     expect(state.battles[0]!.retreat).not.toBeNull();
     expect(state.projects).toHaveLength(1);expect(state.roundReports.some(r=>r.trade.wealth>0)).toBe(true);
     expect(state.players[0]!.research).toHaveLength(11);
-    for(const command of ['PLAY_CARD','SETTLE','RECRUIT','PROPOSE_TREATY','RESPOND_TREATY','DECLARE_WAR','ADVANCE_ERA','DECLARE_HEGEMONY','BUILD_PROJECT'])expect(trace.some(t=>t.command===command)).toBe(true);
+    for(const command of ['PLAY_CARD','SETTLE','URBAN_ACTION','PROPOSE_TREATY','RESPOND_TREATY','DECLARE_WAR','ADVANCE_ERA','DECLARE_HEGEMONY','BUILD_PROJECT'])expect(trace.some(t=>t.command===command)).toBe(true);
+    for(const action of ['PRODUCE','BUILD','RECRUIT','RESEARCH','SUPPORT_TRADE'])expect(state.telemetry.actionsByType[action],action).toBeGreaterThan(0);
   },15000);
 });

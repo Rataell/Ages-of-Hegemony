@@ -8,7 +8,7 @@ import { alphaCommandCapacity, applyAlphaCommand, beginAlphaPlanning, createGame
  */
 export function scriptedMatchSetup():AlphaState {
   const centers=[[[0,0],[0,3],[3,3],[6,0],[6,3]],[[10,0],[10,3],[13,0],[13,3],[10,6]]] as const;
-  const initial=createGame({gameId:'alpha-scripted-match',seed:61,
+  const initial=createGame({gameId:'6f1b5c9a-3d2e-4f8a-9b7c-1a2b3c4d5e61',seed:61,
     players:[{id:'p1',name:'Aurélia',resources:{food:500,materials:500,wealth:500,knowledge:500,influence:500}},{id:'p2',name:'Valgard',resources:{food:500,materials:500,wealth:500,knowledge:500,influence:500}}],
     map:Array.from({length:16*9},(_,i)=>({id:`${i%16-1},${Math.floor(i/16)-1}`,q:i%16-1,r:Math.floor(i/16)-1,terrain:'PLAINS'})),
     initialCities:centers.flatMap((cities,p)=>cities.map(([q,r],i)=>({id:`c${p+1}-${i}`,ownerId:`p${p+1}`,hexId:`${q},${r}`,name:`Centro ${p+1}.${i}`,population:2,workers:{producers:1,artisans:1,merchants:0,scholars:0,soldiers:0,unassigned:0}}))),
@@ -46,9 +46,23 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
     }
     if(state.core.status==='ACTIVE'&&state.core.round===initialRound)throw new Error('Round failed to progress');
   }
+  /** Confirms phases until the urban phase opens (without leaving the round). */
+  function toUrban(){
+    for(let guard=0;guard<8&&state.core.status==='ACTIVE'&&state.phase!=='URBAN_ACTIONS';guard++){const pending=state.players.find(p=>!p.ready);if(!pending)break;submit(pending.playerId,{type:'READY'});}
+  }
+  /** One canonical urban action by p1, in the requested city or in the first one that has not acted this round. */
+  function urbanAct(action:string,extra:Record<string,unknown>={},cityId?:string){
+    for(let attempt=0;attempt<4;attempt++){
+      toUrban();
+      const free=state.cities.filter(c=>c.currentOwnerId===p1&&c.status==='OWNED'&&c.urbanActionsUsed===0&&(!cityId||c.cityId===cityId));
+      if(free.length){submit(p1,{type:'URBAN_ACTION',cityId:free[0]!.cityId,action,...extra});return;}
+      round();
+    }
+    throw new Error(`No city could take ${action}`);
+  }
   function perform(command:Record<string,unknown>){
     const player=state.players[0]!;
-    if(player.spentCommands+player.orders.length>=alphaCommandCapacity(state,p1))round();
+    if(state.phase!=='PLANNING'||player.spentCommands+player.orders.length>=alphaCommandCapacity(state,p1))round();
     submit(p1,command);
   }
   function manage(command:Record<string,unknown>){perform({type:'MANAGE',command:{...command,playerId:p1,expectedVersion:state.core.version}});}
@@ -63,26 +77,26 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
     submit(p2,{type:'RESPOND_TREATY',treatyId:state.treaties.at(-1)!.id,accept:true});
   }
   perform({type:'QUEUE_ORDER',order:{id:'explore',type:'EXPLORE',unitId:'pioneer',target:'1,0',rotation:0}});
-  perform({type:'RESEARCH',advancementId:'adv-1-1-1'});round();
+  urbanAct('RESEARCH',{advancementId:'adv-1-1-1'});round();
   perform({type:'QUEUE_ORDER',order:{id:'route',type:'TRADE',fromCityId:'c1-0',toCityId:'c2-0'}});
   perform({type:'QUEUE_ORDER',order:{id:'settler-move',type:'MOVE',unitIds:['pioneer'],path:['3,0']}});
-  perform({type:'RECRUIT',cityId:'c1-0',kind:'INFANTRY'});round();
+  urbanAct('RECRUIT',{unit:'INFANTRY'},'c1-0');round();
   perform({type:'SETTLE',unitId:'pioneer',name:'Travessia'});
   perform({type:'DECLARE_WAR',targetId:p2});
   checkpoint?.('beforeAttack',structuredClone(state));
   perform({type:'QUEUE_ORDER',order:{id:'battle',type:'ATTACK',unitIds:Array.from({length:10},(_,i)=>`army-${i}`),target:'9,0'}});round();
   const foundation=ADVANCEMENTS.filter(a=>a.era==='FOUNDATION'&&a.id!=='adv-1-1-1');
-  for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length))perform({type:'RESEARCH',advancementId:node.id});
+  for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length))urbanAct('RESEARCH',{advancementId:node.id});
   for(const cityId of ['c1-0','c1-1','c1-2'])for(let i=0;i<2;i++)manage({type:'DEVELOP_CITY',cityId});
-  for(const [cityId,district] of [['c1-0','ACADEMIC'],['c1-1','AGRARIAN'],['c1-2','COMMERCIAL'],['c1-3','CULTURAL']])manage({type:'BUILD_DISTRICT',cityId,district});
+  for(const [cityId,district] of [['c1-0','ACADEMIC'],['c1-1','AGRARIAN'],['c1-2','COMMERCIAL'],['c1-3','CULTURAL']])urbanAct('BUILD',{build:{kind:'DISTRICT',district}},cityId);
   for(const cityId of ['c1-0','c1-1','c1-2','c1-4']){
-    manage({type:'BUILD_DISTRICT',cityId,district:'ADMINISTRATIVE'});manage({type:'BUILD_BUILDING',cityId,building:'ARCHIVE'});
+    urbanAct('BUILD',{build:{kind:'DISTRICT',district:'ADMINISTRATIVE'}},cityId);urbanAct('BUILD',{build:{kind:'BUILDING',building:'ARCHIVE'}},cityId);
   }
   const claims:Record<string,string[]>={'c1-0':['1,0','0,1'],'c1-1':['1,3','0,4','0,2'],'c1-2':['4,3','3,4','3,2'],'c1-3':['7,0','6,1'],'c1-4':['7,3','6,4']};
   for(const [cityId,hexIds] of Object.entries(claims))for(const hexId of hexIds)manage({type:'CLAIM_HEX',cityId,hexId});
   manage({type:'IMPROVE_HEX',hexId:'1,0',improvement:'FARM'});
   submit(p1,{type:'MANAGE',command:{type:'ASSIGN_WORKED_HEXES',playerId:p1,cityId:CityIdSchema.parse('c1-0'),hexIds:['1,0'],expectedVersion:state.core.version}});
-  perform({type:'ADVANCE_ERA'});perform({type:'RESEARCH',advancementId:'adv-2-1-2'});perform({type:'ADVANCE_ERA'});
+  perform({type:'ADVANCE_ERA'});urbanAct('RESEARCH',{advancementId:'adv-2-1-2'});perform({type:'ADVANCE_ERA'});
   perform({type:'BUILD_PROJECT',projectId:'archive-of-horizons',cityId:'c1-0'});
   perform({type:'ADVANCE_ERA'});perform({type:'ADVANCE_ERA'});perform({type:'ADVANCE_ERA'});
   submit(p1,{type:'DECLARE_HEGEMONY',path:'TERRITORIAL'});

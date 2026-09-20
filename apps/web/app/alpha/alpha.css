@@ -103,3 +103,10 @@ button.alpha-card { text-align: left; }
 .alpha-about { margin: 20px!important; }
 @media(max-width:1100px) { .alpha-world-layout { grid-template-columns: 170px minmax(300px,1fr); } .alpha-inspector { grid-column: 1 / -1; max-height: none; } .alpha-entry { gap: 30px; } }
 @media(max-width:650px) { .alpha-entry { display: block; padding: 24px 18px; } .alpha-entry-forms { margin-top: 28px; padding: 18px; } .alpha-masthead { padding: 14px; gap: 8px; } .alpha-wordmark { font-size: 11px; letter-spacing: .08em; } .alpha-masthead > small { font-size: 10px; } .alpha-world-layout { display: flex; flex-direction: column; padding: 0 8px; } .alpha-council { max-height: 190px; order: 2; } .alpha-world-layout .map-stage { height: 52vh; min-height: 340px; order: 1; } .alpha-inspector { order: 3; } .alpha-player-board { padding: 16px; gap: 16px; } .alpha-player-board .resources { flex-wrap: wrap; gap: 14px; } .alpha-lobby,.alpha-panel { padding: 18px 12px; } .alpha-round-bar { padding: 16px; } .alpha-round-bar ol { flex-wrap: wrap; } .alpha-round-bar button { width: 100%; } .alpha-intro h1 { font-size: 48px; } }
+
+.alpha-urban { display: grid; gap: 10px; padding: 14px 0; }
+.alpha-produce { padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-raised, transparent); }
+.alpha-urban-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; }
+.alpha-urban-pick[data-blocked="true"] { opacity: 0.62; }
+.alpha-urban-pick[aria-pressed="true"] { outline: 2px solid var(--accent, currentColor); }
+.alpha-urban-detail { padding: 12px; border: 1px solid var(--border); border-radius: 6px; display: grid; gap: 6px; }

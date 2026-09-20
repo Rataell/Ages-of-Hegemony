@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, PlayerIdSchema, REGION_TEMPLATES, alphaRules, templateMetalDeposit, type AlphaState } from '@aoh/game-domain';
 import {
-  alphaGain, alphaGainLegacy, alphaStorageCapacity, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, metalSites,
+  alphaGain, alphaGainLegacy, alphaStorageCapacity, beginAlphaPlanning, createAlphaGame, metalSites,
 } from '@aoh/game-engine';
-import { completeRound, must, readyAll } from './alpha-rounds.js';
+import { completeRound, must, readyAll, urban } from './alpha-rounds.js';
 
 const p1 = PlayerIdSchema.parse('p1');
 function created(): AlphaState { return createAlphaGame({ gameId: 'storage-alpha', seed: 51, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] }); }
@@ -168,8 +168,8 @@ describe('storage capacity', () => {
   });
 
   it('keeps purchases working under the caps', () => {
-    const state = beginAlphaPlanning(created());
-    const result = applyAlphaCommand(state, p1, { type: 'RESEARCH', expectedVersion: state.version, advancementId: 'adv-1-1-1' });
+    const state = readyAll(beginAlphaPlanning(created()));
+    const result = urban(state, p1, 'RESEARCH', { advancementId: 'adv-1-1-1' });
     expect(result.ok).toBe(true);
   });
 

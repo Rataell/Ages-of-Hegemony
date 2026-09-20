@@ -1,6 +1,6 @@
 import { CityIdSchema, connectedTo, type AlphaState, type CityId, type PlayerId } from '@aoh/game-domain';
 import { refreshAdministration } from './civilization.js';
-import { alphaPay, commitLegacyReducer } from './alpha-resources.js';
+import { commitLegacyReducer } from './alpha-resources.js';
 import { foundCityAt } from './founding.js';
 
 export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,name:string):void {
@@ -51,14 +51,4 @@ export function occupyCity(state:AlphaState,actor:PlayerId,cityId:CityId):void {
   state.core.version++;
   state.core.eventLog.push({type:'CITY_TRANSFERRED',version:state.core.version,round:state.core.round,cityId,playerId:actor,previousOwnerId:previous.id});
   for(const player of state.core.players)player.civilization=refreshAdministration(player.civilization,state.core.config,state.core.map);
-}
-
-export function integrateCity(state:AlphaState,actor:PlayerId,cityId:CityId):void {
-  const occupation=state.occupations.find(o=>o.cityId===cityId&&o.occupierId===actor);
-  if(!occupation)throw new Error('Escolha uma cidade sob sua ocupação.');
-  if(state.core.round<=occupation.sinceRound)throw new Error('A integração fica disponível na rodada seguinte à captura.');
-  alphaPay(state,actor,state.rules.integrationCost);
-  state.occupations=state.occupations.filter(o=>o.cityId!==cityId);
-  const meta=state.cities.find(c=>c.cityId===cityId);
-  if(meta){meta.status='OWNED';meta.integration=100;}
 }

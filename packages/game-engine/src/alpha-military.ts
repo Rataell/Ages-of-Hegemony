@@ -1,21 +1,28 @@
 import { AlphaEraSchema, type AlphaState, type AlphaUnit, type HexId, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { alphaRandomInteger } from './alpha-random.js';
-import { alphaCostWithMetal, alphaPay } from './alpha-resources.js';
+import { alphaCanAfford, alphaCostWithMetal, alphaPay } from './alpha-resources.js';
 import { institutionBonus } from './alpha-institutions.js';
 import { atWar, bordersOpen } from './alpha-diplomacy.js';
 import { occupyCity } from './alpha-cities.js';
 import { infrastructureStats } from './urban.js';
 
-export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):void {
+/** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
+export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):string|null {
   const player=state.core.players.find(p=>p.id===actor)!;const progress=state.players.find(p=>p.playerId===actor)!;
   const city=player.civilization.cities.find(c=>c.id===cityId);
-  if(!city||state.occupations.some(o=>o.cityId===cityId))throw new Error('Recrute em uma cidade própria não ocupada.');
+  if(!city||state.occupations.some(o=>o.cityId===cityId))return 'Recrute em uma cidade própria não ocupada.';
   const entry=state.rules.units[kind];const tile=state.core.map.find(t=>t.id===city.hexId)!;
-  if(AlphaEraSchema.options.indexOf(progress.era)<AlphaEraSchema.options.indexOf(entry.era))throw new Error('Sua civilização ainda não alcançou a era exigida.');
-  if(entry.militaryInfrastructure&&!city.districts.some(d=>d.type==='MILITARY'))throw new Error('Esta peça requer distrito Militar.');
-  if(kind==='FLEET'&&tile.terrain!=='COAST')throw new Error('Esquadras requerem uma cidade costeira.');
-  if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)throw new Error('Reserva de unidades esgotada.');
+  if(AlphaEraSchema.options.indexOf(progress.era)<AlphaEraSchema.options.indexOf(entry.era))return 'Sua civilização ainda não alcançou a era exigida.';
+  if(entry.militaryInfrastructure&&!city.districts.some(d=>d.type==='MILITARY'))return 'Esta peça requer distrito Militar.';
+  if(kind==='FLEET'&&tile.terrain!=='COAST')return 'Esquadras requerem uma cidade costeira.';
+  if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)return 'Reserva de unidades esgotada.';
+  if(!alphaCanAfford(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal)))return 'Recursos insuficientes para esta ação.';
+  return null;
+}
+export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):void {
+  const blocked=recruitBlock(state,actor,cityId,kind);if(blocked)throw new Error(blocked);
+  const city=state.core.players.find(p=>p.id===actor)!.civilization.cities.find(c=>c.id===cityId)!;const entry=state.rules.units[kind];
   alphaPay(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal));
   state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId:city.hexId,recruitedRound:state.core.round});
 }

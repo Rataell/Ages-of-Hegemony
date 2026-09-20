@@ -1,8 +1,15 @@
 import { z } from 'zod';
 import { CivilizationDomainSchema, ResourcePoolSchema, emptyResourcePool } from './core.js';
 import { AlphaEraSchema } from './alpha-concept.js';
+/**
+ * When a recurring resource effect is credited. ON_PRODUCE: with the PRODUCE action of the city it belongs to. ROUND_START:
+ * when the round opens. MAINTENANCE: in integration and maintenance (the default for institutional income). ONCE: at the moment
+ * the effect is earned or played (cards, abilities, world choices); it never recurs.
+ */
+export const EffectTimingSchema=z.enum(['ON_PRODUCE','ROUND_START','MAINTENANCE','ONCE']);
+export type EffectTiming=z.infer<typeof EffectTimingSchema>;
 export const AlphaEffectSchema=z.discriminatedUnion('kind',[
-  z.strictObject({kind:z.literal('PRODUCTION'),resource:z.enum(['food','materials','wealth','knowledge','influence']),amount:z.number().int().min(1).max(5)}),
+  z.strictObject({kind:z.literal('PRODUCTION'),resource:z.enum(['food','materials','wealth','knowledge','influence']),amount:z.number().int().min(1).max(5),timing:EffectTimingSchema.optional()}),
   z.strictObject({kind:z.enum(['STRENGTH','MOVEMENT','COMMAND']),amount:z.number().int().min(1).max(2)}),
 ]);
 export type AlphaEffect=z.infer<typeof AlphaEffectSchema>;
@@ -45,4 +52,4 @@ const civilizations=[
 ] as const;
 const colors=['#c8a45c','#7ca6b8','#b6798c','#69a69a','#aab875','#bd8f66','#9b92bf','#80af82','#c294b1','#d1b77d','#91a7ba','#c59a78'];
 const resourceNames={food:'Alimento',materials:'Materiais',wealth:'Riqueza',knowledge:'Conhecimento',influence:'Influência'};
-export const CIVILIZATIONS:readonly AlphaCivilization[]=civilizations.map(([id,name,identity,first,second,ability],i)=>({id,name,identity,color:colors[i]!,symbol:`civilization-${i+1}`,bias:`Ênfase em ${resourceNames[first]} e ${resourceNames[second]}; não restringe escolhas.`,passives:[{kind:'PRODUCTION',resource:first,amount:1},{kind:'PRODUCTION',resource:second,amount:1}],ability:{name:ability,effects:[{kind:'PRODUCTION',resource:first,amount:2},{kind:'PRODUCTION',resource:second,amount:1}]}}));
+export const CIVILIZATIONS:readonly AlphaCivilization[]=civilizations.map(([id,name,identity,first,second,ability],i)=>({id,name,identity,color:colors[i]!,symbol:`civilization-${i+1}`,bias:`Ênfase em ${resourceNames[first]} e ${resourceNames[second]}; não restringe escolhas.`,passives:[{kind:'PRODUCTION',resource:first,amount:1},{kind:'PRODUCTION',resource:second,amount:1}],ability:{name:ability,effects:[{kind:'PRODUCTION',resource:first,amount:2,timing:'ONCE'},{kind:'PRODUCTION',resource:second,amount:1,timing:'ONCE'}]}}));

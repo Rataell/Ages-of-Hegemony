@@ -90,11 +90,15 @@ The system SHALL produce identical states and event histories when the same comm
 - **THEN** final states and command traces are equal
 
 ### Requirement: No automatic production
-The system SHALL credit city output only through the PRODUCE urban action (mining included), credit persistent institutional production once per round on the player's first PRODUCE, and SHALL NOT credit any city output by advancing a phase or a round.
+The system SHALL credit city output only through the PRODUCE urban action (mining included) and SHALL NOT credit any city output by advancing a phase or a round. Recurring institutional effects SHALL follow their own timing (ON_PRODUCE with the city's PRODUCE, ROUND_START when the round opens, MAINTENANCE in integration and maintenance, ONCE when earned) and SHALL NOT depend on any city choosing PRODUCE unless explicitly tied to production.
 
 #### Scenario: Idle round
 - **WHEN** a round completes and no city took PRODUCE
-- **THEN** every player's report shows zero production, mining and institutional gains, and only upkeep, world pulse and discards change balances
+- **THEN** every player's report shows zero production and mining, while MAINTENANCE and ROUND_START institutional effects are still credited under their own timing
+
+#### Scenario: Timing
+- **WHEN** the same civilization plays a round with and without PRODUCE
+- **THEN** its MAINTENANCE institutional income is identical in both reports
 
 #### Scenario: Growth
 - **WHEN** maintenance computes population growth

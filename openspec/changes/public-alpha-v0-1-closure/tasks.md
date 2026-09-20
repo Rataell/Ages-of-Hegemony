@@ -19,7 +19,7 @@
 
 - [x] 3.1 Make `state.phase` the single loop driver for the eight phases and adapt the legacy core phase; gate: `tests/alpha-phases.test.ts` (24 tests). The core phase is mirrored, never advanced through the core reducer.
 - [x] 3.2 Draw and apply the world pulse in the first phase and report it; gate: pulse draw, application, ledger and report tests in `tests/alpha-phases.test.ts`.
-- [ ] 3.3 Move the remaining planning commands (legacy RECRUIT, RESEARCH, INTEGRATE_CITY, treaties proposed in PLANNING) into their intended phases and add per-phase command limits; urban actions, orders, diplomacy, conflicts and maintenance already have their own phases; gate: phase tests.
+- [x] 3.3 Make URBAN_ACTION the single domain path for BUILD, RECRUIT, RESEARCH, PRODUCE, PROMOTE_MOOD, SUPPORT_TRADE and CIVIC_ACTION: the legacy RECRUIT, RESEARCH and INTEGRATE_CITY commands are removed (no adapter needed), and MANAGE rejects BUILD_DISTRICT and BUILD_BUILDING with USE_URBAN_ACTION; integration is the paid, next-round CIVIC_ACTION on an occupied city; gate: `tests/alpha-phases.test.ts`, `tests/alpha-urban.test.ts`, `tests/alpha-cities.test.ts`, scripted match. Treaties stay in PLANNING and DIPLOMACY_TRADE by design (war must precede attack orders).
 - [x] 3.4 Fix round-report arithmetic for seven resources and storage discards; gate: `tests/alpha-report.test.ts` (7 tests). Reports are built at END_ROUND from a per-round ledger (production, mining, trade, institutions, other, losses, expenses, upkeep, discarded); old reports still parse. The report keeps the legacy five-resource vocabulary (materials = wood + stone + metal); a per-resource seven-column report is left to the interface work in H.
 - [ ] 3.5 Correct Hegemony copy and error text to the six-era structure; keep the Scientific path metric aligned with the Ascension tier; gate: hegemony tests, copy grep.
 - [x] 3.6 Extend the scripted full-match scenario to run through all eight phases and finish; gate: `tests/alpha-match.test.ts` twice deterministic (the scenario now takes PRODUCE and SUPPORT_TRADE urban actions every round).
@@ -58,8 +58,9 @@
 ## 8. H. UI and playability
 
 - [ ] 8.1 Show seven resources, storage limits, city level, mood, integration and fortification; gate: component test and 1440 screenshot.
-- [ ] 8.2 Add controls for urban actions, trade offers, independent-people actions, cultural contests and posture; gate: coverage test comparing commands with controls.
-- [ ] 8.3 Show costs, missing resources and reasons before commitment; gate: disabled-state E2E.
+- [x] 8.2a Urban controls for every urban action (PRODUCE, BUILD district/building/fortification, RECRUIT, RESEARCH, PROMOTE_MOOD, SUPPORT_TRADE, CIVIC_ACTION) in one panel, with no legacy control left for the same actions; gate: E2E `alpha-play` (produce, build, recruit, research).
+- [ ] 8.2b Add controls for trade offers, independent-people actions, cultural contests and posture once their rules exist (F, E, D); gate: coverage test comparing commands with controls.
+- [x] 8.3 Show costs, missing resources and reasons before commitment for urban actions: cost, effect, requirements, actions left and the exact block reason come from the server preview (`urbanOptions`), which shares its validators with the action and is tested for parity; gate: `tests/alpha-urban-options.test.ts`, E2E `alpha-play` disabled-state assertions. Other commands (treaties, cards, projects) still show costs only.
 - [ ] 8.4 Show round report, world pulse and battle detail with modifier sources; gate: E2E battle scenario.
 - [ ] 8.5 Correct Portuguese copy for eras, phases, victory and the compendium against the implemented rules; gate: review checklist in the report.
 - [ ] 8.6 Verify 1440, 1280 and 390 pixel layouts in both themes and keyboard access; gate: screenshots and manual notes.

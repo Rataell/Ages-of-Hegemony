@@ -4,6 +4,7 @@ import {
   alphaCanAfford, alphaCost, alphaDrain, alphaGainLegacy, alphaPay, applyAlphaCommand, beginAlphaPlanning,
   commitLegacyReducer, createAlphaGame,
 } from '@aoh/game-engine';
+import { readyAll, urban } from './alpha-rounds.js';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 
 const p1 = PlayerIdSchema.parse('p1');
@@ -14,10 +15,10 @@ const inSync = (state: AlphaState) => state.players.every((p, i) => JSON.stringi
 
 describe('seven-resource authority', () => {
   it('keeps production after a later purchase', () => {
-    const state = setup();
+    const state = readyAll(setup());
     expect(inSync(state)).toBe(true);
     const knowledge = pool(state).knowledge;
-    const result = applyAlphaCommand(state, p1, { type: 'RESEARCH', expectedVersion: state.version, advancementId: 'adv-1-1-1' });
+    const result = urban(state, p1, 'RESEARCH', { advancementId: 'adv-1-1-1' });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.players[0]!.resources.knowledge).toBe(knowledge - 2);

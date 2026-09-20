@@ -12,6 +12,7 @@ import { establishRoute, maintainTrade, resolveInfluence, settleTreaties } from 
 import { exploreRegion, refreshKnowledge } from './alpha-world.js';
 import { resolveBattle, validateMilitaryOrder } from './alpha-military.js';
 import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
+import { applyRecurringEffects } from './alpha-institutions.js';
 
 /**
  * The alpha round is driven only by `state.phase`. The legacy core phase is mirrored (never advanced through the core
@@ -31,8 +32,8 @@ export const INTERACTIVE_PHASES: readonly AlphaRoundPhase[] = ['PLANNING', 'URBA
 
 type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
-  'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'INTEGRATE_CITY', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'HIRE_ADVISOR',
-  'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'RECRUIT', 'BUILD_ROAD', 'RESEARCH',
+  'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'HIRE_ADVISOR',
+  'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'BUILD_ROAD',
   'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'READY',
 ];
 /** Commands legal in each phase. Everything else is rejected with WRONG_PHASE before any rule runs. */
@@ -73,7 +74,7 @@ function drawWorldPulse(state: AlphaState): void {
 
 /**
  * WORLD_PULSE opens a round: ledgers open at the current balances, strategy cards and the world event advance, one Pulse is
- * drawn, and the round enters PLANNING. No city output is credited here.
+ * drawn, ROUND_START effects are credited, and the round enters PLANNING. No city output is credited here.
  */
 export function openRound(state: AlphaState): void {
   if (state.phase !== 'WORLD_PULSE') throw new Error('Uma rodada só abre a partir do Pulso do mundo.');
@@ -81,6 +82,7 @@ export function openRound(state: AlphaState): void {
   for (const player of state.players) { player.ready = false; player.spentCommands = 0; player.orders = []; ledgerOf(state, player.playerId); }
   maintainCards(state);
   drawWorldPulse(state);
+  for (const player of state.players) applyRecurringEffects(state, player.playerId, 'ROUND_START');
   setAlphaPhase(state, 'PLANNING');
   alphaEvent(state, 'ROUND_STARTED', `Rodada ${state.core.round}: Planejamento.`);
 }
@@ -156,6 +158,7 @@ function maintainCivilizations(state: AlphaState): void {
 
 function runMaintenance(state: AlphaState): void {
   maintainTrade(state);
+  for (const player of state.players) applyRecurringEffects(state, player.playerId, 'MAINTENANCE', { enforceStorage: false });
   maintainCivilizations(state);
   for (const player of state.players) enforceStorageRecorded(state, player.playerId);
   state.players.forEach(player => { player.ready = false; });

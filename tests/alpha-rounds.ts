@@ -43,3 +43,9 @@ export function produceAll(state: AlphaState): AlphaState {
   }
   return current;
 }
+
+/** The canonical urban action, applied to `actor`'s first city unless `cityId` is given. State must be in URBAN_ACTIONS. */
+export function urban(state: AlphaState, actor: PlayerId, action: string, extra: Record<string, unknown> = {}, cityId?: string) {
+  const id = cityId ?? state.core.players.find(p => p.id === actor)!.civilization.cities[0]!.id;
+  return applyAlphaCommand(state, actor, { type: 'URBAN_ACTION', expectedVersion: state.version, cityId: id, action, ...extra });
+}

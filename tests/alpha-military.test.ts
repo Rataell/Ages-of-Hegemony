@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { completeRound } from './alpha-rounds.js';
+import { completeRound, readyAll, urban } from './alpha-rounds.js';
 import { AlphaStateSchema, PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createGame, migrateSnapshotV3ToV4, resolveBattle, unitSupply, validateMilitaryOrder } from '@aoh/game-engine';
 const p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');
@@ -13,11 +13,11 @@ function setup():AlphaState {
 }
 describe('alpha military pieces',()=>{
   it('recruits through an owned city, pays real costs, and requires coastal fleet access',()=>{
-    const state=setup();const result=applyAlphaCommand(state,p1,{type:'RECRUIT',expectedVersion:0,cityId:'c1',kind:'INFANTRY'});
+    const state=readyAll(setup());const result=urban(state,p1,'RECRUIT',{unit:'INFANTRY'},'c1');
     expect(result.ok).toBe(true);if(!result.ok)return;expect(result.value.units[0]?.kind).toBe('INFANTRY');
     expect(result.value.core.players[0]?.resources.materials).toBe(28);expect(state.units).toHaveLength(0);
-    result.value.players[0]!.era='EXPANSION';
-    expect(applyAlphaCommand(result.value,p1,{type:'RECRUIT',expectedVersion:1,cityId:'c1',kind:'FLEET'}).ok).toBe(false);
+    result.value.players[0]!.era='EXPANSION';result.value.cities.find(c=>c.cityId==='c1')!.urbanActionsUsed=0;
+    expect(urban(result.value,p1,'RECRUIT',{unit:'FLEET'},'c1').ok).toBe(false);
   });
   it('validates every step of paths and excludes foreign pieces',()=>{
     const state=setup();state.units=[{id:'u1',ownerId:p1,kind:'INFANTRY',hexId:state.core.map[0]!.id,recruitedRound:1}];

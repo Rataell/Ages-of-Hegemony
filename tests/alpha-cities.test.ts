@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { completeRound } from './alpha-rounds.js';
+import { completeRound, readyAll } from './alpha-rounds.js';
 import { AlphaStateSchema, GameStateSchema, type AlphaState } from '@aoh/game-domain';
-import { applyAlphaCommand, beginAlphaPlanning, createGame, integrateCity, migrateSnapshotV3ToV4, occupyCity, refreshKnowledge, serializeAlphaState } from '@aoh/game-engine';
+import { applyAlphaCommand, beginAlphaPlanning, createGame, migrateSnapshotV3ToV4, occupyCity, refreshKnowledge, serializeAlphaState } from '@aoh/game-engine';
 function setup():AlphaState {
   const core=createGame({gameId:'capture-alpha',seed:23,players:[{id:'p1',name:'Um',resources:{food:30,materials:30,wealth:20,knowledge:10,influence:20}},{id:'p2',name:'Dois',resources:{food:30,materials:30,wealth:20,knowledge:10,influence:20}}],
     map:Array.from({length:10},(_,q)=>({id:`${q},0`,q,r:0,terrain:'PLAINS'})),
@@ -26,18 +26,24 @@ describe('alpha city capture and integration',()=>{
     const invalid=structuredClone(state);invalid.core.eventLog.pop();invalid.core.version--;
     expect(GameStateSchema.safeParse(invalid.core).success).toBe(false);
   });
-  it('blocks administration and recruitment until a later-round paid integration',()=>{
+  it('blocks administration and recruitment until a later-round paid integration through the civic action',()=>{
     let state=setup();const actor=state.players[0]!.playerId,cityId=state.core.players[1]!.civilization.capitalCityId!;
     occupyCity(state,actor,cityId);refreshKnowledge(state);
-    expect(applyAlphaCommand(state,actor,{type:'RECRUIT',expectedVersion:state.version,cityId,kind:'INFANTRY'}).ok).toBe(false);
     expect(applyAlphaCommand(state,actor,{type:'MANAGE',expectedVersion:state.version,command:{type:'DEVELOP_CITY',playerId:actor,cityId,expectedVersion:state.core.version}}).ok).toBe(false);
-    expect(()=>integrateCity(state,actor,cityId)).toThrow('rodada seguinte');
-    state=completeRound(state);
-    const before=state.core.players[0]!.resources.influence;
-    const integrated=applyAlphaCommand(state,actor,{type:'INTEGRATE_CITY',expectedVersion:state.version,cityId});
-    if(!integrated.ok)throw new Error(integrated.error.message);
-    expect(integrated.value.occupations).toHaveLength(0);expect(integrated.value.core.players[0]!.resources.influence).toBe(before-state.rules.integrationCost.influence);
-    expect(applyAlphaCommand(integrated.value,actor,{type:'RECRUIT',expectedVersion:integrated.value.version,cityId,kind:'INFANTRY'}).ok).toBe(true);
+    state=readyAll(state);expect(state.phase).toBe('URBAN_ACTIONS');
+    expect(applyAlphaCommand(state,actor,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'RECRUIT',unit:'INFANTRY'}).ok).toBe(false);
+    expect(applyAlphaCommand(state,actor,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'CIVIC_ACTION'})).toMatchObject({ok:false,error:{message:expect.stringContaining('rodada seguinte')}});
+    state=completeRound(state);state=readyAll(state);
+    const before=state.players[0]!.resources.influence,step=state.rules.balance.integrationPerAction,needed=Math.ceil(100/step);
+    for(let i=0;i<needed;i++){
+      expect(state.occupations).toHaveLength(1);
+      const done=applyAlphaCommand(state,actor,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'CIVIC_ACTION'});
+      if(!done.ok)throw new Error(done.error.message);state=done.value;state.cities.find(c=>c.cityId===cityId)!.urbanActionsUsed=0;
+    }
+    expect(state.occupations).toHaveLength(0);
+    expect(state.players[0]!.resources.influence).toBe(before-needed*state.rules.integrationCost.influence);
+    expect(state.cities.find(c=>c.cityId===cityId)).toMatchObject({status:'OWNED',integration:100});
+    expect(applyAlphaCommand(state,actor,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'RECRUIT',unit:'INFANTRY'}).ok).toBe(true);
   });
   it('liberates a previously owned city and accepts history across repeated transfers',()=>{
     const state=setup(),actor=state.players[0]!.playerId,former=state.players[1]!.playerId,cityId=state.core.players[1]!.civilization.capitalCityId!;
@@ -48,7 +54,7 @@ describe('alpha city capture and integration',()=>{
   it('rejects forged historical ownership and leaves rejected player commands unchanged',()=>{
     const state=setup(),actor=state.players[0]!.playerId,cityId=state.core.players[1]!.civilization.capitalCityId!;
     occupyCity(state,actor,cityId);const before=serializeAlphaState(state);
-    expect(applyAlphaCommand(state,state.players[1]!.playerId,{type:'INTEGRATE_CITY',expectedVersion:state.version,cityId}).ok).toBe(false);
+    expect(applyAlphaCommand(state,state.players[1]!.playerId,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'CIVIC_ACTION'}).ok).toBe(false);
     expect(serializeAlphaState(state)).toBe(before);
     const transfer=state.core.eventLog.at(-1)!;if(transfer.type==='CITY_TRANSFERRED')transfer.previousOwnerId=actor;
     expect(GameStateSchema.safeParse(state.core).success).toBe(false);

@@ -68,14 +68,24 @@ describe('phase legality', () => {
     const planning = started();
     expect(legalIn(planning, 'URBAN_ACTION', { cityId: 'capital-1', action: 'PRODUCE' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
     const urban = readyAll(planning);
-    expect(legalIn(urban, 'RESEARCH', { advancementId: 'adv-1-1-1' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
+    expect(legalIn(urban, 'CIVILIZATION_ABILITY')).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
     expect(legalIn(urban, 'QUEUE_ORDER', { order: { id: 'x', type: 'MOVE', unitIds: ['u'], path: ['0,0'] } })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
     expect(legalIn(urban, 'MANAGE', { command: { type: 'DEVELOP_CITY', playerId: p1, cityId: 'capital-1', expectedVersion: urban.core.version } })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
     const diplomacy = readyAll(urban);
     expect(diplomacy.phase).toBe('DIPLOMACY_TRADE');
     expect(legalIn(diplomacy, 'URBAN_ACTION', { cityId: 'capital-1', action: 'PRODUCE' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
-    expect(legalIn(diplomacy, 'RECRUIT', { cityId: 'capital-1', kind: 'INFANTRY' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
+    expect(legalIn(diplomacy, 'BUILD_ROAD', { hexId: '0,0' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
     expect(legalIn(diplomacy, 'PROPOSE_TREATY', { recipientId: p2, treaty: 'TRADE_AGREEMENT', deal: { give: none, receive: none } }).ok).toBe(true);
+  });
+
+  it('has exactly one path for each urban action: the legacy commands no longer exist', () => {
+    const state = started();
+    for (const raw of [{ type: 'RECRUIT', cityId: 'capital-1', kind: 'INFANTRY' }, { type: 'RESEARCH', advancementId: 'adv-1-1-1' }, { type: 'INTEGRATE_CITY', cityId: 'capital-2' }])
+      expect(applyAlphaCommand(state, p1, { ...raw, expectedVersion: state.version })).toMatchObject({ ok: false, error: { code: 'INVALID_INPUT' } });
+    for (const build of [{ type: 'BUILD_DISTRICT', cityId: 'capital-1', district: 'AGRARIAN' }, { type: 'BUILD_BUILDING', cityId: 'capital-1', building: 'GRANARY' }])
+      expect(legalIn(state, 'MANAGE', { command: { ...build, playerId: p1, expectedVersion: state.core.version } })).toMatchObject({ ok: false, error: { code: 'USE_URBAN_ACTION' } });
+    const planning = [...LEGAL_COMMANDS.PLANNING];
+    for (const type of ['URBAN_ACTION', 'RECRUIT', 'RESEARCH', 'INTEGRATE_CITY']) expect(planning).not.toContain(type);
   });
 
   it('lists no command for the automatic phases', () => {
@@ -180,7 +190,7 @@ describe('what each phase does', () => {
       for (const key of ['food', 'materials', 'wealth', 'knowledge', 'influence'] as const) {
         expect(report.production[key]).toBe(0);
         expect(report.mining[key]).toBe(0);
-        expect(report.closing[key]).toBeLessThanOrEqual(report.opening[key] + report.other[key]);
+        expect(report.closing[key]).toBeLessThanOrEqual(report.opening[key] + report.other[key] + report.institutions[key]);
       }
     }
   });

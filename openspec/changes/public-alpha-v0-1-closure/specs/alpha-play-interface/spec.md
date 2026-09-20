@@ -52,3 +52,18 @@ The interface SHALL provide an onboarding flow and a compendium that match imple
 #### Scenario: First match
 - **WHEN** a new participant opens the help
 - **THEN** it explains the round, resources, cities, combat and victory paths as implemented
+
+### Requirement: One urban panel, previewed before confirming
+The interface SHALL offer every urban action through a single panel that shows, before confirmation, the cost, the requirements, the main effect, the actions the city has left and the exact reason an option is blocked, and SHALL NOT offer any second control for the same action.
+
+#### Scenario: Blocked option
+- **WHEN** a player selects an option they cannot take
+- **THEN** the reason is shown and the confirm control stays disabled
+
+#### Scenario: PRODUCE is a choice
+- **WHEN** a player views a city during the urban phase
+- **THEN** the interface states that a city that does not produce yields nothing, works no resources and extracts no metal
+
+#### Scenario: Reconnecting
+- **WHEN** a player reloads during the urban phase
+- **THEN** the panel shows the city's remaining actions as the server holds them
