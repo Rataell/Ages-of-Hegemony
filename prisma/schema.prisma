@@ -13,3 +13,13 @@ model Game {
   version  BigInt
   snapshot Json
 }
+
+model AlphaMatch {
+  id        String   @id
+  joinCode  String   @unique
+  version   BigInt
+  status    String
+  snapshot  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

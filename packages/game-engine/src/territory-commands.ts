@@ -1,8 +1,9 @@
-import { RESOURCE_KEYS, connectedTo, improvementCompatible, productiveTile, unassignedPopulation, type GameEvent, type GameRuleError, type GameState, type HexTile, type PlayerState, type ResourcePool, type TerritoryCommand } from '@aoh/game-domain';
+import { RESOURCE_KEYS, connectedTo, improvementCompatible, productiveTile, type GameEvent, type GameRuleError, type GameState, type HexTile, type PlayerState, type ResourcePool, type TerritoryCommand } from '@aoh/game-domain';
 import { err, ok, type Result } from '@aoh/shared';
 import { hexDistance } from './hex.js';
 import { canAfford } from './resources.js';
 import { refreshAdministration } from './civilization.js';
+import { foundCityAt } from './founding.js';
 
 export function applyTerritoryCommand(state: GameState, command: TerritoryCommand, version: number): Result<{ player: PlayerState; map: HexTile[]; event: GameEvent }, GameRuleError> {
   if (state.phase !== 'PLANNING') return err({ code: 'WRONG_PHASE', message: 'Territory management requires PLANNING' });
@@ -29,21 +30,9 @@ export function applyTerritoryCommand(state: GameState, command: TerritoryComman
       tile.improvement = command.improvement;
       event = { ...base, type: 'HEX_IMPROVED', hexId: tile.id, improvement: command.improvement, cost };
     } else {
-      const cities = state.players.flatMap((player) => player.civilization.cities);
-      if (cities.some((city) => city.id === command.cityId)) return err({ code: 'DUPLICATE_CITY', message: 'City ID already exists' });
-      if (!rules.foundingTerrains.includes(tile.terrain) || cities.some((city) => city.hexId === tile.id || city.workedHexIds.includes(tile.id))) return err({ code: 'INVALID_CITY_SITE', message: 'Site must be valid land, unoccupied and not currently worked' });
-      if (cities.some((city) => {
-        const center = map.find((entry) => entry.id === city.hexId);
-        return center !== undefined && hexDistance(center, tile) < rules.minimumCityDistance;
-      })) return err({ code: 'CITY_TOO_CLOSE', message: 'City is closer than minimumCityDistance' });
-      if (!pay(rules.foundingCost)) return err(funds);
-      player.civilization.cities.push({ id: command.cityId, ownerId: player.id, hexId: tile.id, name: command.name,
-        population: rules.foundingPopulation, workers: unassignedPopulation(rules.foundingPopulation), stability: rules.foundingStability,
-        development: 1, specialization: null, growthProgress: 0, foundedRound: state.round, workedHexIds: [], districts: [], buildings: [],
-      });
-      tile.controllerCityId = command.cityId;
-      // A valid owned target already has a controlling city, so the existing capital is preserved.
-      event = { ...base, cityId: command.cityId, type: 'CITY_FOUNDED', hexId: tile.id, name: command.name, cost: rules.foundingCost };
+      const founded=foundCityAt(state,player,map,command,version);
+      if(!founded.ok)return founded;
+      event=founded.value;
     }
   } else {
     const city = player.civilization.cities.find((city) => city.id === command.cityId);

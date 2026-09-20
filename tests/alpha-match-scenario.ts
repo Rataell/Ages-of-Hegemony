@@ -1,0 +1,84 @@
+import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, CityIdSchema, HexIdSchema, PlayerIdSchema, alphaRules, emptyResourcePool, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { alphaCommandCapacity, applyAlphaCommand, beginAlphaPlanning, createGame, initializeAlphaCards, migrateSnapshotV3ToV4, refreshKnowledge } from '@aoh/game-engine';
+
+/** Authored integration scenario with ample reserves and five settlements per side.
+ * This proves rule composition, not normal-start balance or match duration.
+ * After setup every change goes through applyAlphaCommand.
+ */
+export function scriptedMatchSetup():AlphaState {
+  const centers=[[[0,0],[0,3],[3,3],[6,0],[6,3]],[[10,0],[10,3],[13,0],[13,3],[10,6]]] as const;
+  const initial=createGame({gameId:'alpha-scripted-match',seed:61,
+    players:[{id:'p1',name:'Aurélia',resources:{food:500,materials:500,wealth:500,knowledge:500,influence:500}},{id:'p2',name:'Valgard',resources:{food:500,materials:500,wealth:500,knowledge:500,influence:500}}],
+    map:Array.from({length:16*9},(_,i)=>({id:`${i%16-1},${Math.floor(i/16)-1}`,q:i%16-1,r:Math.floor(i/16)-1,terrain:'PLAINS'})),
+    initialCities:centers.flatMap((cities,p)=>cities.map(([q,r],i)=>({id:`c${p+1}-${i}`,ownerId:`p${p+1}`,hexId:`${q},${r}`,name:`Centro ${p+1}.${i}`,population:2,workers:{producers:1,artisans:1,merchants:0,scholars:0,soldiers:0,unassigned:0}}))),
+  });
+  if(!initial.ok)throw new Error(initial.error.message);const migrated=migrateSnapshotV3ToV4(initial.value);if(!migrated.ok)throw new Error(migrated.error.message);
+  const state=migrated.value,p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');state.rules=alphaRules('EPIC');
+  state.players[0]!.civilization='aurelia';state.players[1]!.civilization='valgard';
+  state.players.forEach(p=>p.knownHexIds=state.core.map.map(t=>t.id));
+  state.regions=[{id:'demonstration-region',templateId:'homeland-1',hexIds:['0,0','1,0','1,-1','0,-1','-1,0','-1,1','0,1'].map(id=>HexIdSchema.parse(id)),rotation:0,revealedBy:[]}];
+  state.units=[{id:'pioneer',ownerId:p1,kind:'PIONEER',hexId:HexIdSchema.parse('2,0'),recruitedRound:1},
+    ...Array.from({length:10},(_,i)=>({id:`army-${i}`,ownerId:p1,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('8,0'),recruitedRound:1})),
+    ...Array.from({length:4},(_,i)=>({id:`defender-${i}`,ownerId:p2,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('9,0'),recruitedRound:1}))];
+  initializeAlphaCards(state);refreshKnowledge(state);return beginAlphaPlanning(AlphaStateSchema.parse(state));
+}
+
+export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRound',state:AlphaState)=>void){
+  let state=scriptedMatchSetup();const p1=state.players[0]!.playerId,p2=state.players[1]!.playerId;
+  const trace:{round:number;actor:PlayerId;command:string;phase:string}[]=[];
+  function submit(actor:PlayerId,command:Record<string,unknown>){
+    const result=applyAlphaCommand(state,actor,{...command,expectedVersion:state.version});
+    if(!result.ok)throw new Error(`Round ${state.core.round} ${String(command.type)}: ${result.error.code} ${result.error.message}`);
+    trace.push({round:state.core.round,actor,command:String(command.type),phase:state.core.phase});state=result.value;
+  }
+  function round(){
+    const initialRound=state.core.round;
+    for(let guard=0;guard<12&&state.core.status==='ACTIVE'&&state.core.round===initialRound;guard++){
+      const player=state.players.find(p=>!p.ready);if(!player)throw new Error('No pending player at decision boundary');
+      submit(player.playerId,{type:'READY'});
+    }
+    if(state.core.status==='ACTIVE'&&state.core.round===initialRound)throw new Error('Round failed to progress');
+  }
+  function perform(command:Record<string,unknown>){
+    const player=state.players[0]!;
+    if(player.spentCommands+player.orders.length>=alphaCommandCapacity(state,p1))round();
+    submit(p1,command);
+  }
+  function manage(command:Record<string,unknown>){perform({type:'MANAGE',command:{...command,playerId:p1,expectedVersion:state.core.version}});}
+  for(const player of [...state.players])submit(player.playerId,{type:'CHOOSE_AMBITIONS',cardIds:player.ambitions.slice(0,2)});
+  const strategy=state.players[0]!.hand.find(id=>ALPHA_CARDS.find(card=>card.id===id)?.timing==='PLANNING');
+  if(!strategy)throw new Error('The authored scenario requires a planning card in its seeded hand');
+  perform({type:'PLAY_CARD',cardId:strategy});
+  submit(p1,{type:'MANAGE',command:{type:'ADOPT_GOVERNMENT',government:'MONARCHY',playerId:p1,expectedVersion:state.core.version}});
+  submit(p2,{type:'MANAGE',command:{type:'ADOPT_GOVERNMENT',government:'MONARCHY',playerId:p2,expectedVersion:state.core.version}});
+  for(const treaty of ['TRADE_AGREEMENT','OPEN_BORDERS']){
+    perform({type:'PROPOSE_TREATY',recipientId:p2,treaty,deal:{give:emptyResourcePool(),receive:emptyResourcePool()}});
+    submit(p2,{type:'RESPOND_TREATY',treatyId:state.treaties.at(-1)!.id,accept:true});
+  }
+  perform({type:'QUEUE_ORDER',order:{id:'explore',type:'EXPLORE',unitId:'pioneer',target:'1,0',rotation:0}});
+  perform({type:'RESEARCH',advancementId:'adv-1-1-1'});round();
+  perform({type:'QUEUE_ORDER',order:{id:'route',type:'TRADE',fromCityId:'c1-0',toCityId:'c2-0'}});
+  perform({type:'QUEUE_ORDER',order:{id:'settler-move',type:'MOVE',unitIds:['pioneer'],path:['3,0']}});
+  perform({type:'RECRUIT',cityId:'c1-0',kind:'INFANTRY'});round();
+  perform({type:'SETTLE',unitId:'pioneer',name:'Travessia'});
+  perform({type:'DECLARE_WAR',targetId:p2});
+  checkpoint?.('beforeAttack',structuredClone(state));
+  perform({type:'QUEUE_ORDER',order:{id:'battle',type:'ATTACK',unitIds:Array.from({length:10},(_,i)=>`army-${i}`),target:'9,0'}});round();
+  const foundation=ADVANCEMENTS.filter(a=>a.era==='FOUNDATION'&&a.id!=='adv-1-1-1');
+  for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length))perform({type:'RESEARCH',advancementId:node.id});
+  for(const cityId of ['c1-0','c1-1','c1-2'])for(let i=0;i<2;i++)manage({type:'DEVELOP_CITY',cityId});
+  for(const [cityId,district] of [['c1-0','ACADEMIC'],['c1-1','AGRARIAN'],['c1-2','COMMERCIAL'],['c1-3','CULTURAL']])manage({type:'BUILD_DISTRICT',cityId,district});
+  for(const cityId of ['c1-0','c1-1','c1-2','c1-4']){
+    manage({type:'BUILD_DISTRICT',cityId,district:'ADMINISTRATIVE'});manage({type:'BUILD_BUILDING',cityId,building:'ARCHIVE'});
+  }
+  const claims:Record<string,string[]>={'c1-0':['1,0','0,1'],'c1-1':['1,3','0,4','0,2'],'c1-2':['4,3','3,4','3,2'],'c1-3':['7,0','6,1'],'c1-4':['7,3','6,4']};
+  for(const [cityId,hexIds] of Object.entries(claims))for(const hexId of hexIds)manage({type:'CLAIM_HEX',cityId,hexId});
+  manage({type:'IMPROVE_HEX',hexId:'1,0',improvement:'FARM'});
+  submit(p1,{type:'MANAGE',command:{type:'ASSIGN_WORKED_HEXES',playerId:p1,cityId:CityIdSchema.parse('c1-0'),hexIds:['1,0'],expectedVersion:state.core.version}});
+  perform({type:'ADVANCE_ERA'});perform({type:'RESEARCH',advancementId:'adv-2-1-2'});perform({type:'ADVANCE_ERA'});
+  perform({type:'BUILD_PROJECT',projectId:'archive-of-horizons',cityId:'c1-0'});
+  perform({type:'ADVANCE_ERA'});perform({type:'ADVANCE_ERA'});perform({type:'ADVANCE_ERA'});
+  submit(p1,{type:'DECLARE_HEGEMONY',path:'TERRITORIAL'});
+  while(state.core.status==='ACTIVE'){checkpoint?.('beforeEndRound',structuredClone(state));round();}
+  return {state,trace};
+}

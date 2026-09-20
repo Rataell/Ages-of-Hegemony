@@ -70,6 +70,7 @@ export const GameEventSchema = z.discriminatedUnion('type', [
   z.strictObject({ ...cityEvent, type: z.literal('WORKED_HEXES_ASSIGNED'), hexIds: z.array(HexIdSchema) }),
   z.strictObject({ ...eventBase, playerId: PlayerIdSchema, type: z.literal('HEX_IMPROVED'), hexId: HexIdSchema, improvement: ImprovementTypeSchema, cost: ResourcePoolSchema }),
   z.strictObject({ ...cityEvent, type: z.literal('CITY_FOUNDED'), hexId: HexIdSchema, name: z.string(), cost: ResourcePoolSchema }),
+  z.strictObject({ ...cityEvent, type: z.literal('CITY_TRANSFERRED'), previousOwnerId: PlayerIdSchema }),
   z.strictObject({ ...cityEvent, type: z.literal('DISTRICT_BUILT'), district: DistrictTypeSchema, cost: ResourcePoolSchema }),
   z.strictObject({ ...cityEvent, type: z.literal('BUILDING_BUILT'), building: BuildingTypeSchema, cost: ResourcePoolSchema }),
 ]);
@@ -135,7 +136,15 @@ export const GameStateSchema = z.strictObject({
     revision = event.version; round = event.round;
     if (event.type === 'ORDER_SUBMITTED' && !players.has(event.order.playerId)) fail('Unknown event player');
     if ('playerId' in event && !players.has(event.playerId)) fail('Unknown event player');
-    if ('cityId' in event && !state.players.find((player) => player.id === event.playerId)?.civilization.cities.some((city) => city.id === event.cityId)) fail('Unknown event city or owner');
+  }
+  // Walk backwards from current ownership; transfers preserve historical attribution.
+  const historicalOwners=new Map(state.players.flatMap(p=>p.civilization.cities.map(c=>[c.id,p.id] as const)));
+  for(const event of [...state.eventLog].reverse())if('cityId' in event){
+    if(historicalOwners.get(event.cityId)!==event.playerId)fail('Unknown event city or owner');
+    if(event.type==='CITY_TRANSFERRED'){
+      if(!players.has(event.previousOwnerId)||event.previousOwnerId===event.playerId)fail('Invalid city ownership transfer');
+      historicalOwners.set(event.cityId,event.previousOwnerId);
+    }
   }
 });
 export type GameState = z.infer<typeof GameStateSchema>;

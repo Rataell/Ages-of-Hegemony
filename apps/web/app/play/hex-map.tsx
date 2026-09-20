@@ -1,10 +1,12 @@
 'use client';
 import { memo, useCallback, useRef, useState } from 'react';
 import type { LocalView } from '@aoh/server/local-play';
+import type { AlphaUnit, HexTile } from '@aoh/game-domain';
 import { label, roman } from './presentation';
 
 type Props = {
-  data: LocalView;
+  data: Pick<LocalView,'players'|'claimable'|'workable'> & {view:Pick<LocalView['view'],'player'|'visibleCities'> & {era:string;visibleTerritory:HexTile[]}};
+  units?: readonly AlphaUnit[];
   selected: string | null;
   focus: string | null;
   working: boolean;
@@ -61,6 +63,7 @@ export const HexMap = memo(function HexMap({
   working,
   worked,
   onSelect,
+  units = [],
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [zoom, setZoom] = useState(1.15);
@@ -279,6 +282,12 @@ export const HexMap = memo(function HexMap({
               {eligible && !working && (
                 <polygon className="frontier-pulse" points={innerPoints} />
               )}
+              {units.some(u=>u.hexId===tile.id)&&<g transform="translate(0 40)" className="alpha-unit-stack">
+                <rect x="-24" y="-9" width="48" height="18" rx="4" fill="var(--surface)" stroke="var(--accent)" />
+                <path d="M-16 5V-2L-12 -6L-8 -2V5ZM-18 5H-6" fill="var(--accent)" />
+                <text x="7" y="4" fill="var(--text-primary)" fontSize="11" textAnchor="middle">{units.filter(u=>u.hexId===tile.id).length}</text>
+                <title>Peças presentes: selecione o território para inspecionar</title>
+              </g>}
             </g>
           );
         })}

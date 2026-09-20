@@ -10,7 +10,8 @@
     }
   },
   "dependencies": {
+    "@aoh/game-domain": "*",
     "@aoh/shared": "*",
-    "@aoh/game-domain": "*"
+    "@noble/hashes": "^2.4.0"
   }
 }

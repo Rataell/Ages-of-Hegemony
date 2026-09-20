@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./alpha": {
+      "types": "./dist/alpha-runtime.d.ts",
+      "default": "./dist/alpha-runtime.js"
+    },
     "./local-play": {
       "types": "./dist/local-play.d.ts",
       "default": "./dist/local-play.js"

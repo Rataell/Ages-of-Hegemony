@@ -1,0 +1,101 @@
+import { expect, test, type Page } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+import type { AlphaState } from '@aoh/game-domain';
+import { AlphaHttp } from '../apps/server/src/alpha-http.js';
+import { AlphaGameService } from '../apps/server/src/alpha-service.js';
+import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
+import { GuestSessions } from '../apps/server/src/guest-session.js';
+import { runScriptedMatch } from '../tests/alpha-match-scenario.js';
+import { connectAlphaContext } from './alpha-fixture.js';
+
+test('authoritative battle dice, retreat and Hegemony finish appear in both browser perspectives',async({browser})=>{
+  test.setTimeout(90000);
+  let beforeAttack:AlphaState|undefined,beforeFinish:AlphaState|undefined;
+  runScriptedMatch((name,state)=>{
+    if(name==='beforeAttack')beforeAttack=state;
+    if(name==='beforeEndRound')beforeFinish=state;
+  });
+  expect(beforeAttack).toBeDefined();expect(beforeFinish).toBeDefined();
+  const origin='http://127.0.0.1:3107',repository=new InMemoryAlphaRepository();
+  const sessions=new GuestSessions('battle-browser-secret-'.repeat(4)),identities=[sessions.issue(Date.now()),sessions.issue(Date.now())];
+  const service=new AlphaGameService(repository),http=new AlphaHttp(service,sessions,origin,false);
+  const room=AlphaRoomSchema.parse({id:beforeAttack!.gameId,version:0,name:'Prova de conflito',joinCode:'abcdefghijklmnopqrstuv',hostGuestId:identities[0]!.principal.guestId,
+    preset:'EPIC',seed:61,seatLimit:2,planningSeconds:0,deadline:null,
+    seats:beforeAttack!.players.map((p,i)=>({guestId:identities[i]!.principal.guestId,playerId:p.playerId,name:i===0?'Aurélia':'Valgard',civilization:p.civilization,ready:true})),game:beforeAttack});
+  await repository.create(room);
+  const contexts=await Promise.all(identities.map(()=>browser.newContext({viewport:{width:1440,height:900}})));
+  const pages:Page[]=[];
+  const evidence='docs/evidence/playable-alpha-v1';await mkdir(evidence,{recursive:true});
+  try{
+    for(const [i,context] of contexts.entries()){
+      await connectAlphaContext(context,http);
+      await context.addCookies([{name:'aoh_alpha_session',value:identities[i]!.token,url:origin,httpOnly:true,sameSite:'Strict'}]);
+      const page=await context.newPage();page.setDefaultTimeout(15000);pages.push(page);
+      await page.goto(`/alpha?game=${room.id}`);
+      await expect(page.getByRole('heading',{name:i===0?'Aurélia':'Valgard',exact:true})).toBeVisible();
+    }
+    const a=pages[0]!,b=pages[1]!;
+    const army=a.locator('.alpha-piece-row').filter({hasText:'8,0'});
+    await expect(army).toHaveCount(10);
+    for(const checkbox of await army.getByRole('checkbox').all())await checkbox.check();
+    await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
+    await a.getByRole('button',{name:'Ordenar ataque',exact:true}).click();
+    await expect(a.locator('.alpha-order')).toContainText('Ataque');
+
+    async function confirmRound(){
+      const round=(await repository.find(room.id))!.game!.core.round;
+      for(let guard=0;guard<6;guard++){
+        const current=(await repository.find(room.id))!;
+        if(current.game!.core.status==='FINISHED'||current.game!.core.round!==round)return;
+        const index=current.game!.players.findIndex(p=>!p.ready);
+        expect(index).toBeGreaterThanOrEqual(0);
+        const page=pages[index]!;await page.reload();
+        const ready=page.getByRole('button',{name:/^(Confirmar planejamento|Passar \/ pronto)$/});
+        await expect(ready).toBeEnabled();await ready.click();
+        await expect.poll(async()=>(await repository.find(room.id))!.version).toBeGreaterThan(current.version);
+      }
+      throw new Error('The browser round failed to reach its next boundary');
+    }
+    await confirmRound();
+    const after=(await repository.find(room.id))!.game!,battle=after.battles[0]!;
+    expect(battle.losses.length).toBeGreaterThan(0);expect(battle.retreat).not.toBeNull();
+    expect(after.units.some(u=>battle.losses.includes(u.id))).toBe(false);
+    expect(after.units.filter(u=>u.id.startsWith('defender-')).every(u=>u.hexId===battle.retreat)).toBe(true);
+    for(const [i,page] of pages.entries()){
+      await page.reload();await page.getByRole('button',{name:'Crônicas',exact:true}).click();
+      const displayed=page.locator('.alpha-battle');await expect(displayed).toHaveCount(1);
+      await expect(displayed.getByLabel(`Dados ${battle.attackDice.join(' e ')}`,{exact:true})).toBeVisible();
+      await expect(displayed.getByLabel(`Dados ${battle.defenseDice.join(' e ')}`,{exact:true})).toBeVisible();
+      await expect(displayed).toContainText(`= ${battle.attackTotal}`);
+      await expect(displayed).toContainText(`= ${battle.defenseTotal}`);
+      await expect(displayed).toContainText(`Retirada para ${battle.retreat}`);
+      const view=await service.read(identities[i]!.principal,room.id,Date.now());
+      expect(view.ok&&view.value.game!.battles[0]).toEqual(battle);
+      if(i===0){await displayed.scrollIntoViewIfNeeded();await page.screenshot({path:`${evidence}/1440-battle.png`});}
+    }
+    await a.getByRole('button',{name:'Mundo',exact:true}).click();
+    await expect(a.locator('.alpha-piece-row')).toHaveCount(after.units.filter(u=>u.ownerId==='p1').length);
+    await b.getByRole('button',{name:'Mundo',exact:true}).click();
+    await expect(b.locator('.alpha-piece-row')).toHaveCount(after.units.filter(u=>u.ownerId==='p2').length);
+
+    // Restore another checkpoint produced by the same legal command scenario.
+    // This is a test-repository fixture; the product exposes no snapshot-injection endpoint.
+    const current=(await repository.find(room.id))!;
+    expect(await repository.save({...current,version:current.version+1,game:beforeFinish!},current.version)).toBe(true);
+    await a.reload();await a.getByRole('button',{name:'Cartas & Projetos',exact:true}).click();
+    const project=a.locator('article').filter({has:a.getByRole('heading',{name:'Arquivo dos Horizontes',exact:true})});
+    await expect(project).toContainText('Concluído por');await project.scrollIntoViewIfNeeded();
+    await a.screenshot({path:`${evidence}/1440-great-project.png`});
+    await a.getByRole('button',{name:'Eras & Hegemonia',exact:true}).click();
+    await a.screenshot({path:`${evidence}/1440-era-progression.png`});
+    await confirmRound();
+    const finished=(await repository.find(room.id))!.game!;
+    expect(finished.winner).toMatchObject({playerId:'p1',reason:'HEGEMONY'});
+    for(const page of pages){
+      await page.reload();await expect(page.getByRole('heading',{name:'Aurélia venceu'})).toBeVisible();
+      await expect(page.getByText('Hegemonia consolidada',{exact:false})).toBeVisible();
+      await expect(page.locator('.alpha-round-bar button')).toBeDisabled();
+    }
+    await a.screenshot({path:`${evidence}/1440-finished.png`});
+  }finally{await Promise.allSettled(contexts.map(context=>context.close()));}
+});

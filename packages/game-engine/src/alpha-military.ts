@@ -1,0 +1,91 @@
+import { AlphaEraSchema, type AlphaState, type AlphaUnit, type HexId, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
+import { hexDistance, hexNeighbors, hexId } from './hex.js';
+import { alphaRandomInteger } from './alpha-random.js';
+import { alphaPay } from './alpha-resources.js';
+import { institutionBonus } from './alpha-institutions.js';
+import { atWar, bordersOpen } from './alpha-diplomacy.js';
+import { occupyCity } from './alpha-cities.js';
+import { infrastructureStats } from './urban.js';
+
+export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):void {
+  const player=state.core.players.find(p=>p.id===actor)!;const progress=state.players.find(p=>p.playerId===actor)!;
+  const city=player.civilization.cities.find(c=>c.id===cityId);
+  if(!city||state.occupations.some(o=>o.cityId===cityId))throw new Error('Recrute em uma cidade própria não ocupada.');
+  const entry=state.rules.units[kind];const tile=state.core.map.find(t=>t.id===city.hexId)!;
+  if(AlphaEraSchema.options.indexOf(progress.era)<AlphaEraSchema.options.indexOf(entry.era))throw new Error('Sua civilização ainda não alcançou a era exigida.');
+  if(entry.militaryInfrastructure&&!city.districts.some(d=>d.type==='MILITARY'))throw new Error('Esta peça requer distrito Militar.');
+  if(kind==='FLEET'&&tile.terrain!=='COAST')throw new Error('Esquadras requerem uma cidade costeira.');
+  if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)throw new Error('Reserva de unidades esgotada.');
+  alphaPay(state,actor,entry.cost);
+  state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId:city.hexId,recruitedRound:state.core.round});
+}
+function canEnter(state:AlphaState,unit:AlphaUnit,target:HexId):boolean {
+  const tile=state.core.map.find(t=>t.id===target);if(!tile)return false;
+  return state.rules.units[unit.kind].domain==='SEA'?['COAST','SEA'].includes(tile.terrain):!['SEA','UNKNOWN'].includes(tile.terrain);
+}
+export function unitSupply(state:AlphaState,unit:AlphaUnit):{supplied:boolean;reason:string} {
+  const player=state.core.players.find(p=>p.id===unit.ownerId)!;
+  const tile=state.core.map.find(t=>t.id===unit.hexId)!;
+  const cities=player.civilization.cities.filter(c=>!state.occupations.some(o=>o.cityId===c.id));
+  if(cities.some(c=>hexDistance(state.core.map.find(t=>t.id===c.hexId)!,tile)<=state.rules.supplyRadius))return {supplied:true,reason:'Dentro do alcance de uma cidade própria.'};
+  const byId=new Map(state.core.map.map(t=>[t.id,t]));const seen=new Set<HexId>();const queue=cities.map(c=>c.hexId);
+  for(let i=0;i<queue.length;i++) {
+    const id=queue[i]!;if(seen.has(id))continue;seen.add(id);if(id===unit.hexId)return {supplied:true,reason:'Conexão por território controlado e estradas.'};
+    const current=byId.get(id)!;
+    for(const point of hexNeighbors(current)){const next=byId.get(hexId(point));if(next&&!seen.has(next.id)&&(next.ownerId===unit.ownerId||(next.ownerId===null&&state.roads.includes(next.id))))queue.push(next.id);}
+  }
+  return {supplied:false,reason:'Sem cidade ao alcance ou conexão territorial de suprimento.'};
+}
+export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:StrategicOrder):void {
+  if(order.type!=='MOVE'&&order.type!=='ATTACK')throw new Error('Este resolvedor aceita movimento e ataque.');
+  if(new Set(order.unitIds).size!==order.unitIds.length)throw new Error('Não repita peças na mesma ordem.');
+  const units=order.unitIds.map(id=>state.units.find(u=>u.id===id&&u.ownerId===actor));
+  if(units.some(u=>!u))throw new Error('A ordem contém uma peça que não pertence a você.');
+  const progress=state.players.find(p=>p.playerId===actor)!;
+  for(const piece of units) {
+    const unit=piece!;let current=state.core.map.find(t=>t.id===unit.hexId)!;let cost=0;
+    const path=order.type==='MOVE'?order.path:[order.target];
+    for(const id of path) {
+      const target=state.core.map.find(t=>t.id===id);
+      if(!target||!progress.knownHexIds.includes(id)||hexDistance(current,target)!==1||!canEnter(state,unit,id))throw new Error('Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.');
+      if(order.type==='MOVE'&&(!bordersOpen(state,actor,target.ownerId)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)))throw new Error('Fronteira fechada ou presença de outra civilização: use uma ordem de conflito.');
+      cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];current=target;
+    }
+    if(cost>state.rules.units[unit.kind].movement+institutionBonus(state,actor,'MOVEMENT'))throw new Error('Caminho excede a mobilidade da peça.');
+    if(order.type==='ATTACK'&&state.rules.units[unit.kind].strength===0)throw new Error('Esta peça não participa de ataques.');
+  }
+  if(order.type==='ATTACK') {
+    const enemies=state.units.filter(u=>u.hexId===order.target&&u.ownerId!==actor);
+    const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target&&c.ownerId!==actor);
+    if(!enemies.length&&!city)throw new Error('Não há adversário conhecido nesse destino.');
+    const defender=enemies[0]?.ownerId??city!.ownerId;if(!atWar(state,actor,defender))throw new Error('Declare guerra antes de ordenar um ataque a outra civilização.');
+    if(new Set(units.map(u=>u?.hexId)).size!==1)throw new Error('Uma força de ataque deve partir do mesmo hex.');
+  }
+}
+export function resolveBattle(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'ATTACK'}>):void {
+  validateMilitaryOrder(state,actor,order);
+  const attackers=state.units.filter(u=>order.unitIds.includes(u.id));const tile=state.core.map.find(t=>t.id===order.target)!;
+  const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target);
+  const defenderId=state.units.find(u=>u.hexId===order.target&&u.ownerId!==actor)?.ownerId??city!.ownerId;
+  const defenders=state.units.filter(u=>u.hexId===order.target&&u.ownerId===defenderId);
+  const strength=(units:AlphaUnit[])=>units.reduce((sum,u)=>sum+state.rules.units[u.kind].strength,0);
+  const modifier=(units:AlphaUnit[],attack:boolean)=>institutionBonus(state,attack?actor:defenderId,'STRENGTH')+units.reduce((sum,u)=>sum+state.rules.units[u.kind].terrainModifiers[tile.terrain]+(attack&&city?state.rules.units[u.kind].cityModifier:0),0)-(units.length&&units.some(u=>!unitSupply(state,u).supplied)?state.rules.combat.unsuppliedPenalty:0);
+  const roll=():[number,number]=>[1+alphaRandomInteger(state,6),1+alphaRandomInteger(state,6)];
+  const attackDice=roll(),defenseDice=roll();const attackStrength=strength(attackers),defenseStrength=strength(defenders)+(city?city.development+infrastructureStats(city,state.core.config).garrisonCapacity:0);
+  const attackModifiers=modifier(attackers,true),defenseModifiers=modifier(defenders,false)+(tile.terrain==='HILLS'?state.rules.combat.hillDefense:tile.terrain==='MOUNTAINS'?state.rules.combat.mountainDefense:0);
+  const attackTotal=attackStrength+attackModifiers+attackDice[0]+attackDice[1],defenseTotal=defenseStrength+defenseModifiers+defenseDice[0]+defenseDice[1];
+  const attackerWins=attackTotal>defenseTotal;const losers=attackerWins?defenders:attackers;const margin=Math.abs(attackTotal-defenseTotal);
+  const casualties=margin>=state.rules.combat.largeMargin?3:margin>=state.rules.combat.mediumMargin?2:1;
+  const losses=[...losers].sort((a,b)=>state.rules.units[a.kind].strength-state.rules.units[b.kind].strength||(a.id<b.id?-1:a.id>b.id?1:0)).slice(0,casualties).map(u=>u.id);
+  const survivors=losers.filter(u=>!losses.includes(u.id));let retreat:HexId|null=attackerWins?null:attackers[0]!.hexId;
+  if(attackerWins&&survivors.length) {
+    retreat=hexNeighbors(tile).map(hexId).sort().find(id=>survivors.every(u=>canEnter(state,u,id))&&!state.units.some(u=>u.hexId===id&&u.ownerId!==defenderId)&&state.core.map.some(t=>t.id===id&&(t.ownerId===null||t.ownerId===defenderId)))??null;
+    if(retreat)survivors.forEach(u=>u.hexId=retreat!);else losses.push(...survivors.map(u=>u.id));
+  }
+  state.units=state.units.filter(u=>!losses.includes(u.id));
+  if(attackerWins) {
+    attackers.forEach(u=>u.hexId=order.target);state.players.find(p=>p.playerId===actor)!.victories++;
+    if(city&&city.ownerId!==actor)occupyCity(state,actor,city.id);
+  }
+  state.battles.push({id:`battle-${state.battles.length+1}`,round:state.core.round,hexId:order.target,attackerId:actor,defenderId,attackerUnits:attackers.map(u=>u.id),defenderUnits:defenders.map(u=>u.id),attackerPosture:order.posture,defenderPosture:'HOLD',attackBreakdown:[],defenseBreakdown:[],attackerTactical:[],defenderTactical:[],attackStrength,defenseStrength,attackModifiers,defenseModifiers,attackDice,defenseDice,attackTotal,defenseTotal,winnerId:attackerWins?actor:defenderId,losses,retreat});
+}

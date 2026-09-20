@@ -1,0 +1,35 @@
+schema: spec-driven
+
+context: |
+  Project: Ages of Hegemony (AoH) - browser strategy board game, PT-BR player-facing text.
+  Brownfield. Branch feature/aoh-playable-alpha-v1 carries uncommitted playable-alpha work; the slice at `/`,
+  `.agents/` and docs/auditoria-2026-09-18.md MUST be preserved. Never reset, revert or clean the working tree.
+  Stack: TypeScript ESM npm workspaces. packages/game-domain (Zod schemas, catalogs), packages/game-engine
+  (deterministic reducers, no I/O), apps/server (HTTP boundary, signed guest cookie, CAS persistence, Prisma/PostgreSQL),
+  apps/web (Next.js; slice at `/`, alpha at `/alpha`, polling client, server-side projections), tests/ (vitest), e2e/ (Playwright).
+  State: AlphaState schemaVersion 5 (seven resources, eight phases, six eras incl. ASCENSION, AlphaCity metadata,
+  world pulse, independents, raid bands). A legacy v3 economic core is still embedded; a transitional bridge
+  (reconcileLegacyPools) keeps the legacy five-resource pool and the authoritative seven-resource pool aligned.
+  Boundaries: browser sends intent only; server identifies the player, loads the aggregate, runs the engine, validates,
+  saves with compare-and-swap. Projections MUST NOT leak hands, ambitions, plans, RNG, decks or tokens.
+  Gates: npm run lint, typecheck, test, build, db:validate, test:e2e, test:db (needs ALPHA_TEST_DATABASE_URL), git diff --check.
+  Shell: prefix commands with `rtk`. No deploy, push, commit or invented credentials without explicit user approval.
+  Specs must describe REAL code state first; the Concept Bible is the target, not the baseline.
+
+rules:
+  proposal:
+    - State plainly what is implemented today versus target; never claim unimplemented behavior as done.
+    - Include a Non-goals section.
+  specs:
+    - Requirements describe observable behavior, testable by vitest, Playwright or a real-PostgreSQL run.
+    - Mark no requirement as satisfied unless a named gate proves it.
+  design:
+    - Include a baseline table of what exists in code versus what is missing.
+  tasks:
+    - Group by workstream letters A-K; every task names its proving gate; keep tasks to roughly 2 hours.
+
+operations:
+  apply:
+    guidance:
+      - Apply one workstream at a time; run typecheck and the touched tests after each task.
+      - Do not commit or deploy while any release gate is red.
