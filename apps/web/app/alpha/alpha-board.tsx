@@ -6,20 +6,28 @@ import { HexMap } from '../play/hex-map';
 import { ResourceDisplay } from '../play/resource-display';
 import { alphaLabel as text } from './alpha-copy';
 import { ArmyList, compositionText } from './alpha-army';
+import { LeaveGame } from './alpha-leave';
 import { AttackPreview, POSTURES, postureText } from './alpha-combat';
 import { AlphaCards, AlphaCity, AlphaDiplomacy, AlphaInstitutions, AlphaReports, AlphaUrban } from './alpha-panels';
 
 export type AlphaSend=(command:Record<string,unknown>)=>Promise<boolean>;
 type Inspector='city'|'territory'|'military';
 const TABS=[['world','Mundo'],['research','Teia Civilizacional'],['cards','Cartas & Projetos'],['diplomacy','Diplomacia'],['era','Eras & Hegemonia'],['reports','Crônicas']] as const;
+/** Desktop only: the council and the inspector can fold away so the atlas gets the room. The choice is a per-browser convenience. */
+const PANELS_KEY='aoh-alpha-panels';
+function loadPanels():{council:boolean;inspector:boolean}{
+  try{const raw=JSON.parse(localStorage.getItem(PANELS_KEY)??'{}') as Record<string,unknown>;return {council:raw.council!==false,inspector:raw.inspector!==false};}catch{return {council:true,inspector:true};}
+}
 const INSPECTORS:[Inspector,string][]=[['city','Cidade'],['territory','Território'],['military','Militar']];
 
 /** Same shell as the local slice: top bar, area navigation, council | atlas | inspector, bottom action bar. */
 const feedbackUrl=process.env.NEXT_PUBLIC_ALPHA_FEEDBACK_URL||'';
-export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoomView;busy:boolean;send:AlphaSend;theme:string;onTheme:(theme:string)=>void}){
+export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:AlphaRoomView;busy:boolean;send:AlphaSend;theme:string;onTheme:(theme:string)=>void;onLeave:()=>void}){
   const game=room.game!,player=game.view.player,civ=player.civilization,identity=CIVILIZATIONS.find(c=>c.id===game.self.civilization);
   const [tab,setTab]=useState('world'),[inspector,setInspector]=useState<Inspector>('city'),[selected,setSelected]=useState<string|null>(civ.cities[0]?.hexId??null),[selectedCity,setSelectedCity]=useState(civ.cities[0]?.id??''),[focus,setFocus]=useState<string|null>(civ.cities[0]?.hexId??null);
   const [units,setUnits]=useState<string[]>([]),[path,setPath]=useState<string[]>([]),[pathMode,setPathMode]=useState(false),[rotation,setRotation]=useState(0),[working,setWorking]=useState(false),[worked,setWorked]=useState<string[]>([]),[name,setName]=useState('Novo Horizonte'),[posture,setPosture]=useState('ASSAULT');
+  const [panels,setPanels]=useState(loadPanels);
+  const togglePanel=(key:'council'|'inspector')=>setPanels(old=>{const next={...old,[key]:!old[key]};try{localStorage.setItem(PANELS_KEY,JSON.stringify(next));}catch{/* private mode: keep the choice for this session only */}return next;});
   const locked=busy||game.self.ready||game.view.status==='FINISHED';
   const over=civ.administrationStatus==='OVEREXTENDED';
   const city=civ.cities.find(c=>c.id===selectedCity)??civ.cities[0];
@@ -47,7 +55,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoo
     const next=on?[...new Set([...units,...ids])]:units.filter(id=>!ids.includes(id));
     setUnits(next);setFocus(hexId);setSelected(hexId);follow(hexId,next.length);
   }
-  const tools=<span className="alpha-nav-tools"><span className="future-system-tag">TEST BUILD · Alpha v0.1</span><label className="alpha-theme">Tema <select value={theme} onChange={e=>onTheme(e.target.value)}><option value="SYSTEM">Sistema</option><option value="DARK">Escuro</option><option value="LIGHT">Claro</option></select></label></span>;
+  const tools=<span className="alpha-nav-tools"><LeaveGame joinCode={room.joinCode} onLeave={onLeave}/><span className="future-system-tag">TEST BUILD · Alpha v0.1</span><label className="alpha-theme">Tema <select value={theme} onChange={e=>onTheme(e.target.value)}><option value="SYSTEM">Sistema</option><option value="DARK">Escuro</option><option value="LIGHT">Claro</option></select></label></span>;
   return <>
     <header className="top-bar alpha-player-board">
       <div className="civ-brand"><span className="seal" aria-hidden="true">AH</span><div><span className="eyebrow">{text(game.self.era)} · {text(civ.government)}</span><h1>{identity?.name??player.name}</h1><small>{player.name}</small></div></div>
@@ -58,8 +66,9 @@ export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoo
     </header>
     <nav className="main-nav" aria-label="Áreas da civilização">{TABS.map(([key,title])=><button key={key} aria-current={tab===key?'page':undefined} onClick={()=>setTab(key)}>{title}</button>)}{tools}</nav>
     {game.winner&&<section className="alpha-finale" role="status"><p className="eyebrow">FIM DA PARTIDA</p><h2>{game.players.find(p=>p.id===game.winner!.playerId)?.name} venceu</h2><p>{game.winner.reason==='HEGEMONY'?'Hegemonia consolidada':'Maior pontuação ao fim do limite de rodadas'} · Rodada {game.winner.round}</p></section>}
-    {tab==='world'?<div className="play-layout alpha-layout">
-      <aside className="civilization-panel alpha-council">
+    {tab==='world'?<div className="play-layout alpha-layout" data-council={panels.council?'open':'closed'} data-inspector={panels.inspector?'open':'closed'}>
+      <aside className="civilization-panel alpha-council" data-collapsed={!panels.council}>
+        <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.council} aria-label={panels.council?'Recolher Conselho':'Expandir Conselho'} title={panels.council?'Recolher Conselho':'Expandir Conselho'} onClick={()=>togglePanel('council')}>{panels.council?'‹':'›'}</button></div>
         <span className="eyebrow">CONSELHO CIVILIZACIONAL</span><h2>Conselho</h2>
         <section><div className="section-head"><h3>Cidades</h3><span className="count-pill">{civ.cities.length}</span></div>
           {civ.cities.map(c=><button className={`city-link ${city?.id===c.id?'active':''}`} key={c.id} aria-pressed={city?.id===c.id} onClick={()=>{setSelectedCity(c.id);setSelected(c.hexId);setFocus(c.hexId);setInspector('city');}}><b>{c.id===civ.capitalCityId?'★ ':''}{c.name}</b><small>{c.population} habitantes · Nível {c.development}</small></button>)}</section>
@@ -68,10 +77,11 @@ export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoo
           <small>Escolha privada; só é revelada quando houver batalha.</small></section>
         <section><div className="section-head"><h3>Peças</h3><span className="count-pill">{ownUnits.length}</span></div>
           <ArmyList units={ownUnits} selected={units} onSelect={pick} stacks={game.stacks} rules={game.rules.units}/></section>
-        <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p>{feedbackUrl&&<a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a>}<p>Ambiente de teste: a partida pode ser reiniciada ou apagada.</p></details>
+        <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><p>Código para voltar: <code>{room.joinCode}</code></p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p>{feedbackUrl&&<a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a>}<p>Ambiente de teste: a partida pode ser reiniciada ou apagada.</p></details>
       </aside>
       <div className="world-column"><HexMap data={mapData} units={game.units} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
-      <aside className="context-inspector alpha-inspector">
+      <aside className="context-inspector alpha-inspector" data-collapsed={!panels.inspector}>
+        <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.inspector} aria-label={panels.inspector?'Recolher Inspector':'Expandir Inspector'} title={panels.inspector?'Recolher Inspector':'Expandir Inspector'} onClick={()=>togglePanel('inspector')}>{panels.inspector?'›':'‹'}</button></div>
         <div className="inspector-tabs" role="group" aria-label="Contexto">{INSPECTORS.map(([key,title])=><button key={key} aria-pressed={inspector===key} onClick={()=>setInspector(key)}>{title}{key==='military'&&game.self.orders.length>0?` · ${game.self.orders.length}`:''}</button>)}</div>
         {inspector==='territory'&&<div className="alpha-inspector-body">
           <h2>{tile?text(tile.terrain):selected?'Fronteira por explorar':'Selecione o mapa'}</h2><p>{selected}</p>{tile?.yield&&<ResourceDisplay values={tile.yield} compact/>}{tile&&<p>{tile.ownerId?`Território de ${game.players.find(p=>p.id===tile.ownerId)?.name}`:'Território livre'} · {tile.improvement?text(tile.improvement):'Sem melhoria'}</p>}

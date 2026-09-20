@@ -160,3 +160,28 @@ button.alpha-card { text-align: left; }
 .alpha-stack-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .alpha-stack-tag { font-size: 11px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .alpha-stack-tag[data-full='true'] { color: var(--warning); font-weight: 600; }
+
+/* Collapsible council and inspector (desktop). Below 901px the slice's stacked layout applies and the toggles are hidden. */
+.alpha-panel-toggle { display: none; }
+@media (min-width: 901px) {
+  .alpha-layout { --cw: 215px; --iw: 330px; grid-template-columns: var(--cw) minmax(0, 1fr) var(--iw); }
+  .alpha-layout[data-council='closed'] { --cw: 44px; }
+  .alpha-layout[data-inspector='closed'] { --iw: 44px; }
+  .alpha-panel-toggle { display: flex; justify-content: flex-end; position: sticky; top: 0; z-index: 6; margin: -8px 0 4px; }
+  .alpha-inspector .alpha-panel-toggle { margin: 8px 0 -4px; }
+  .alpha-panel-toggle button { padding: 2px 9px; font-size: 14px; line-height: 1.2; }
+  .alpha-layout aside[data-collapsed='true'] { padding-inline: 4px; overflow: hidden; }
+  .alpha-layout aside[data-collapsed='true'] > :not(.alpha-panel-toggle) { display: none; }
+  .alpha-layout aside[data-collapsed='true'] .alpha-panel-toggle { justify-content: center; }
+}
+@media (min-width: 901px) and (max-width: 1300px) { .alpha-layout { --cw: 195px; --iw: 310px; } .alpha-layout[data-council='closed'] { --cw: 44px; } .alpha-layout[data-inspector='closed'] { --iw: 44px; } }
+
+/* Invites and leaving */
+.alpha-invite-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.alpha-copied { min-width: 110px; font-size: 12px; color: var(--success); }
+.alpha-leave { padding: 3px 10px; font-size: 11px; white-space: nowrap; }
+.alpha-leave-confirm { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.alpha-leave-confirm small { font-size: 11px; color: var(--warning); }
+.alpha-leave-confirm code { letter-spacing: .04em; }
+.alpha-leave-confirm button { padding: 3px 10px; font-size: 11px; }
+.alpha-lobby-controls .alpha-leave, .alpha-lobby-controls .alpha-leave-confirm { margin-left: auto; }
