@@ -15,7 +15,16 @@ function run(command: string, values: Record<string, string> | string | null, ar
   else if (values) writeFileSync(file, Object.entries(values).map(([key, value]) => `${key}=${value}`).join('\n'));
   // The environment is rebuilt so the caller's own variables cannot satisfy or pollute the check.
   const env: Record<string, string> = { PATH: process.env.PATH ?? '', SystemRoot: process.env.SystemRoot ?? '', ALPHA_ENV_FILE: file, ...shellEnv };
-  const result = spawnSync(process.execPath, [script, command, ...args], { encoding: 'utf8', env });
+  // `dev` is zero-config by default; these tests exercise the advanced PostgreSQL mode of it.
+  const full = command === 'dev' ? ['--postgres', ...args] : args;
+  const result = spawnSync(process.execPath, [script, command, ...full], { encoding: 'utf8', env });
+  return { code: result.status, output: `${result.stdout}${result.stderr}` };
+}
+
+/** The default `dev`: no env file, no database variables. */
+function runZeroConfig(args: string[], extra: Record<string, string> = {}) {
+  const env: Record<string, string> = { PATH: process.env.PATH ?? '', SystemRoot: process.env.SystemRoot ?? '', ALPHA_ENV_FILE: join(tmpdir(), 'aoh-does-not-exist', '.env.local'), ...extra };
+  const result = spawnSync(process.execPath, [script, 'dev', ...args], { encoding: 'utf8', env, timeout: 30000 });
   return { code: result.status, output: `${result.stdout}${result.stderr}` };
 }
 
@@ -165,5 +174,49 @@ describe('scripts/alpha-players.mjs (dev-only harness)', () => {
     for (const forbidden of ['guestId', 'Set-Cookie', 'document.cookie', 'addCookies', 'ALPHA_SESSION_SECRET', 'X-Guest']) expect(source, forbidden).not.toContain(forbidden);
     expect(source).toContain('127.0.0.1');
     for (const file of ['apps/web/app/api/alpha/route.ts', 'apps/web/app/api/alpha/health/route.ts']) expect(readFileSync(file, 'utf8')).not.toMatch(/alpha-players|impersonat|DEV_ONLY/i);
+  });
+});
+
+describe('dev:alpha zero-config (in memory)', () => {
+  it('starts with no env file, no DATABASE_URL, no DIRECT_URL and no secret', () => {
+    const result = runZeroConfig(['--dry-run']);
+    expect(result.code).toBe(0);
+    expect(result.output).toContain('memória'); expect(result.output).not.toContain('.env.local');
+  });
+
+  it('does not even look at database variables or guards in the default mode', () => {
+    const result = runZeroConfig(['--dry-run'], { DATABASE_URL: `postgresql://u:${PASSWORD}@containers.railway.app:5432/x`, DIRECT_URL: 'postgresql://u:p@example.com/x' });
+    expect(result.code).toBe(0); expect(result.output).not.toContain(PASSWORD); expect(result.output).not.toContain('railway');
+  });
+
+  it('keeps --allow-remote for the PostgreSQL mode only', () => {
+    const result = runZeroConfig(['--allow-remote', '--dry-run']);
+    expect(result.code).toBe(2); expect(result.output).toContain('--postgres');
+  });
+
+  it('sets storage, origin and an ephemeral secret for the child and keeps the watcher and clean shutdown', () => {
+    const source = readFileSync('scripts/local-alpha.mjs', 'utf8');
+    expect(source).toContain("ALPHA_STORAGE: 'memory'"); expect(source).toContain('ALPHA_PUBLIC_ORIGIN: ORIGIN'); expect(source).toContain("ALPHA_SESSION_SECRET: randomBytes(48)");
+    expect(source).toContain("'-b', '-w'"); expect(source).toContain('taskkill');
+    const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts as Record<string, string>;
+    expect(scripts['dev:alpha']).toBe('node scripts/local-alpha.mjs dev');
+    expect(scripts['dev:alpha:pg']).toBe('node scripts/local-alpha.mjs dev --postgres');
+  });
+
+  it('refuses to start when the port is taken instead of failing obscurely', async () => {
+    const { createServer } = await import('node:net');
+    const server = createServer();
+    const port = await new Promise<number>(resolve => server.listen(0, '127.0.0.1', () => resolve((server.address() as { port: number }).port)));
+    try {
+      const result = await new Promise<{ code: number | null; output: string }>(resolve => {
+        const env = { PATH: process.env.PATH ?? '', SystemRoot: process.env.SystemRoot ?? '', ALPHA_LOCAL_PORT: String(port) };
+        import('node:child_process').then(({ spawn }) => {
+          const child = spawn(process.execPath, [script, 'dev'], { env });
+          let output = ''; child.stdout.on('data', chunk => { output += chunk; }); child.stderr.on('data', chunk => { output += chunk; });
+          child.on('close', code => resolve({ code, output }));
+        });
+      });
+      expect(result.code).toBe(3); expect(result.output).toContain(String(port));
+    } finally { server.close(); }
   });
 });

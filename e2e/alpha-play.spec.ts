@@ -61,8 +61,8 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     const raw=(await repository.find(gameId))!;expect(raw.game!.core.players[0]!.civilization.cities[0]!.workers.artisans).toBe(1);
     const privateB=raw.game!.players[1]!.ambitions;
     const response=await pa.request.get(`/api/alpha?gameId=${gameId}`);
-    // APIRequestContext bypasses browser interception; runtime correctly has no memory fallback.
-    expect(response.status()).toBe(503);
+    // APIRequestContext bypasses browser interception and reaches the dev server's own runtime, which knows neither this match nor this caller.
+    expect(response.status()).not.toBe(200);expect((await response.json()).ok).toBe(false);
     const projected=await new AlphaGameService(repository).read({guestId:raw.seats[0]!.guestId},gameId,Date.now());
     expect(projected.ok).toBe(true);expect(JSON.stringify(projected)).not.toContain(raw.game!.privateRng.seed);
     if(projected.ok)expect(projected.value.game!.self.ambitions.some(id=>privateB.includes(id))).toBe(false);

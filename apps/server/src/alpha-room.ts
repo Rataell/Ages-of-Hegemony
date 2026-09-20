@@ -32,9 +32,9 @@ export interface AlphaRepository {
   create(room:AlphaRoom):Promise<boolean>;
   save(room:AlphaRoom,expectedVersion:number):Promise<boolean>;
 }
-/** Test adapter only. Public runtime must use PostgreSQL. */
+/** Test and local-development adapter. The runtime refuses it in production (see alpha-storage.ts). The map can be shared so a dev hot reload keeps the matches. */
 export class InMemoryAlphaRepository implements AlphaRepository {
-  private readonly rooms=new Map<string,AlphaRoom>();
+  constructor(private readonly rooms:Map<string,AlphaRoom>=new Map<string,AlphaRoom>()){}
   async find(id:string){const room=this.rooms.get(id);return room?AlphaRoomSchema.parse(room):null;}
   async findByCode(code:string){const room=[...this.rooms.values()].find(r=>r.joinCode===code);return room?AlphaRoomSchema.parse(room):null;}
   async create(room:AlphaRoom){const parsed=AlphaRoomSchema.parse(room);if(this.rooms.has(room.id)||[...this.rooms.values()].some(r=>r.joinCode===room.joinCode))return false;this.rooms.set(room.id,parsed);return true;}

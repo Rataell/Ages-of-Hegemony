@@ -1,18 +1,23 @@
 // Local Closed Alpha helper. No dependencies beyond Node >= 22. Production and Railway do not use this file.
 //
-//   node scripts/local-alpha.mjs check     validate apps/web/.env.local (names only are ever printed, never values)
-//   node scripts/local-alpha.mjs migrate   prisma migrate deploy against the database in that file
-//   node scripts/local-alpha.mjs dev       prepare the workspace and start Next.js with Fast Refresh on http://127.0.0.1:3001/alpha
-//                                          also runs `tsc -b -w`, so edits in packages/* and apps/server show up without a manual compile
-//                                          (--no-watch-packages turns the watcher off)
+//   node scripts/local-alpha.mjs dev       ZERO CONFIG: prepare the workspace and start Next.js with Fast Refresh on http://127.0.0.1:3001/alpha.
+//                                          Matches live in memory (restarting clears them); the session secret is random for this run.
+//                                          Also runs `tsc -b -w`, so edits in packages/* and apps/server apply without a manual compile
+//                                          (--no-watch-packages turns the watcher off).
 //
-// Databases: localhost / 127.0.0.1 always. A remote database is refused unless BOTH the command has --allow-remote (migrate and dev)
+// Advanced, PostgreSQL only (needs apps/web/.env.local):
+//   node scripts/local-alpha.mjs dev --postgres   same server over a development PostgreSQL
+//   node scripts/local-alpha.mjs check            validate apps/web/.env.local (names only are ever printed, never values)
+//   node scripts/local-alpha.mjs migrate          prisma migrate deploy against the database in that file
+//
+// Databases (advanced mode): localhost / 127.0.0.1 always. A remote database is refused unless BOTH the command has --allow-remote (migrate and dev)
 // AND apps/web/.env.local itself contains AOH_LOCAL_DB_ENV=development (check needs only the marker). Production is never inferred
 // from a hostname: development and production can share the same provider and proxy, so the explicit marker is the only signal.
 // No URL, host or secret is ever printed for a remote database.
 //
 // ALPHA_ENV_FILE overrides the env file path (used by tests). ALPHA_LOCAL_PORT (default 3001) moves the server; then ALPHA_PUBLIC_ORIGIN must follow.
 import { spawn, spawnSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { connect, createServer } from 'node:net';
 import { join } from 'node:path';
@@ -98,20 +103,26 @@ if (command === 'check') {
   const code = run(bins.prisma, ['migrate', 'deploy']) || run(bins.prisma, ['migrate', 'status']);
   process.exit(code);
 } else if (command === 'dev') {
-  loadEnv(); requireValid(); requireRemoteGuard({ needsFlag: true });
-  if (flags.includes('--dry-run')) { console.log('Validação ok (--dry-run): nada foi iniciado.'); process.exit(0); }
-  if (!(await portFree(PORT))) stop(`A porta ${PORT} já está em uso (talvez outro servidor de desenvolvimento). Encerre-o ou use outra porta:
-  ALPHA_LOCAL_PORT=<porta> npm run dev:alpha   (e ajuste ALPHA_PUBLIC_ORIGIN para http://127.0.0.1:<porta>)`, 3);
-  const database = new URL(process.env.DATABASE_URL);
-  if (isRemote()) console.log('Usando banco remoto marcado como desenvolvimento (AOH_LOCAL_DB_ENV=development).');
-  if (!(await reachable(database))) console.warn(isRemote() ? '\nAviso: o banco remoto não respondeu na porta configurada. Confira a conexão e a URL no .env.local.\n' : `\nAviso: nada responde em ${database.hostname}:${database.port || 5432}. Suba o PostgreSQL local (npm run db:up) e rode: npm run db:migrate:local\n`);
+  // Default: zero configuration. Matches live in this process (memory) and the session secret is generated for this run only.
+  // --postgres: the advanced mode, which needs apps/web/.env.local and keeps every database guard.
+  const postgres = flags.includes('--postgres');
+  if (postgres) { loadEnv(); requireValid(); requireRemoteGuard({ needsFlag: true }); }
+  else if (flags.includes('--allow-remote')) stop('--allow-remote só vale com --postgres (npm run dev:alpha:pg -- --allow-remote). O modo padrão não usa banco.', 2);
+  if (flags.includes('--dry-run')) { console.log(postgres ? 'Validação ok (--dry-run): nada foi iniciado.' : 'Modo em memória (--dry-run): nada a configurar; nada foi iniciado.'); process.exit(0); }
+  if (!(await portFree(PORT))) stop(`A porta ${PORT} já está em uso (talvez outro servidor de desenvolvimento). Encerre-o ou use outra porta:\n  ALPHA_LOCAL_PORT=<porta> npm run dev:alpha`, 3);
+  if (postgres) {
+    const database = new URL(process.env.DATABASE_URL);
+    if (isRemote()) console.log('Usando banco remoto marcado como desenvolvimento (AOH_LOCAL_DB_ENV=development).');
+    if (!(await reachable(database))) console.warn(isRemote() ? '\nAviso: o banco remoto não respondeu na porta configurada. Confira a conexão e a URL no .env.local.\n' : `\nAviso: nada responde em ${database.hostname}:${database.port || 5432}. Suba o PostgreSQL local e rode: npm run db:migrate:local\n`);
+  }
   console.log('Preparando o workspace (prisma generate, tsc -b)…');
   if (run(bins.prisma, ['generate']) !== 0 || run(bins.tsc, ['-b']) !== 0) stop('Falha ao preparar o workspace. Corrija os erros acima e tente de novo.');
-  console.log(`
-Closed Alpha local: ${ORIGIN}/alpha
-  .tsx/.css: Fast Refresh. packages/* e apps/server: recompilados por tsc -b -w. Ctrl+C encerra tudo.
-`);
-  const children = [{ name: 'next', child: spawn(process.execPath, [bins.next, 'dev', '--hostname', HOST, '--port', String(PORT)], { cwd: WEB, stdio: 'inherit', env: process.env }) }];
+  // Memory mode: the origin follows the port and the secret is random for this run, so a restart also invalidates old sessions.
+  const childEnv = postgres
+    ? { ...process.env, ALPHA_STORAGE: 'postgres' }
+    : { ...process.env, ALPHA_STORAGE: 'memory', ALPHA_PUBLIC_ORIGIN: ORIGIN, ALPHA_SESSION_SECRET: randomBytes(48).toString('base64url') };
+  console.log(`\nClosed Alpha local: ${ORIGIN}/alpha  (${postgres ? 'PostgreSQL de desenvolvimento' : 'em memória: reiniciar este comando apaga as partidas'})\n  .tsx/.css: Fast Refresh. packages/* e apps/server: recompilados por tsc -b -w. Ctrl+C encerra tudo.\n`);
+  const children = [{ name: 'next', child: spawn(process.execPath, [bins.next, 'dev', '--hostname', HOST, '--port', String(PORT)], { cwd: WEB, stdio: 'inherit', env: childEnv }) }];
   if (!flags.includes('--no-watch-packages')) children.push({ name: 'tsc', child: spawn(process.execPath, [bins.tsc, '-b', '-w', '--preserveWatchOutput'], { cwd: ROOT, stdio: 'inherit', env: process.env }) });
   let closing = false;
   /** Ends every child and its own children (Next spawns workers). taskkill /T on Windows, SIGTERM elsewhere. */
@@ -128,5 +139,5 @@ Closed Alpha local: ${ORIGIN}/alpha
   for (const { name, child } of children) child.on('exit', code => { if (!closing) { console.error(`
 ${name} terminou (código ${code ?? '?'}); encerrando o restante.`); shutdown(code ?? 1); } });
 } else {
-  stop('Uso: node scripts/local-alpha.mjs check | migrate [--allow-remote] [--dry-run] | dev [--allow-remote] [--dry-run] [--no-watch-packages]', 2);
+  stop('Uso: node scripts/local-alpha.mjs check | migrate [--allow-remote] [--dry-run] | dev [--postgres [--allow-remote]] [--dry-run] [--no-watch-packages]', 2);
 }

@@ -57,7 +57,10 @@ if (stage === 'health') {
   const response = await fetch(`${BASE}/api/alpha/health`), body = await response.json();
   log(JSON.stringify(body));
   check('health answers 200 with ok=true', response.status === 200 && body.ok === true);
-  check('database and migrations are ready', body.database === true && body.migration === true);
+  if (body.storage === 'memory') {
+    // The zero-config development server. A public server must never report it.
+    check('memory storage is only acceptable on a local address', ['127.0.0.1', 'localhost'].includes(new URL(BASE).hostname));
+  } else check('database and migrations are ready', body.database === true && body.migration === true);
   check('release is labelled', typeof body.release === 'string' && body.release.startsWith('alpha-'));
 } else if (stage === 'play') {
   const a = await call({ operation: 'create', payload: { name: 'Smoke', displayName: 'Ana', preset: 'QUICK', seatLimit: 2, seed: 7, planningSeconds: 0 } });
