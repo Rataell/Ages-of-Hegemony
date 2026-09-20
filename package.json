@@ -12,6 +12,9 @@
   },
   "scripts": {
     "dev:web": "npm run compile && npm run dev -w @aoh/web",
+    "dev:alpha": "node scripts/local-alpha.mjs dev",
+    "alpha:env:check": "node scripts/local-alpha.mjs check",
+    "db:migrate:local": "node scripts/local-alpha.mjs migrate",
     "dev:server": "npm run compile && node apps/server/dist/main.js",
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
