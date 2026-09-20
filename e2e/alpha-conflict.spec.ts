@@ -39,15 +39,24 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     await expect(a.locator('.alpha-piece-row').filter({hasText:'8,0'})).toHaveCount(10);
     const stack=a.locator('.alpha-army').filter({hasText:'8,0'});
     await expect(stack).toHaveCount(1);await expect(stack).toContainText('Exército · 10 peças');await expect(stack).toContainText('×');
+    // The scripted army starts above the limit; the counter says so and only new arrivals are refused.
+    await expect(stack.locator('.alpha-stack-tag')).toContainText('Exército 10/6');
     await stack.getByRole('button',{name:'Selecionar todas',exact:true}).click();
     await expect(a.getByRole('heading',{name:'Planejar com 10 peça(s)'})).toBeVisible();
     await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
+    // Stack limits are explained before any command: ten pieces cannot end a voluntary move on one hex.
+    await a.getByRole('button',{name:'Selecionar caminho no mapa',exact:true}).click();
+    await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
+    await expect(a.getByRole('alert').filter({hasText:'Limite de pilha atingido em 9,0'})).toBeVisible();
+    await expect(a.getByRole('button',{name:'Reservar movimento',exact:true})).toBeDisabled();
+    await a.getByRole('button',{name:'Sair da seleção de caminho',exact:true}).click();
     await a.getByLabel('Postura do ataque',{exact:false}).selectOption('MANEUVER');
     await b.getByLabel('Se for atacado, sua civilização adota',{exact:false}).selectOption('HOLD');
     await a.getByRole('button',{name:'Ordenar ataque',exact:true}).click();
     await expect(a.locator('.alpha-order')).toContainText('Ataque');
     // The preview explains the static modifiers by origin and reveals neither dice nor the defender's posture.
     const preview=a.locator('.alpha-attack-preview');
+    await expect(preview).toContainText('Limite de pilha atingido em 9,0: se vencer, 6 de 10 peças avançam e 4 permanecem em 8,0.');
     await expect(preview.locator('.alpha-preview-summary')).toContainText(/Manobra · Ataque [0-9]+ × Defesa/);
     await preview.locator('summary').click();
     await expect(preview.getByRole('heading',{name:'Seu ataque'})).toBeVisible();
@@ -82,6 +91,8 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     expect(battle.losses.length).toBeGreaterThan(0);expect(battle.retreat).not.toBeNull();
     expect(after.units.some(u=>battle.losses.includes(u.id))).toBe(false);
     expect(after.units.filter(u=>u.id.startsWith('defender-')).every(u=>u.hexId===battle.retreat)).toBe(true);
+    // Only as many victors as the stack limit allows moved in; the rest stayed where they attacked from.
+    if(battle.winnerId==='p1'){expect(after.units.filter(u=>u.ownerId==='p1'&&u.hexId===battle.hexId)).toHaveLength(6);expect(after.events.some(e=>e.type==='STACK_LIMIT')).toBe(true);}
     for(const [i,page] of pages.entries()){
       await page.reload();await page.getByRole('button',{name:'Crônicas',exact:true}).click();
       const displayed=page.locator('.alpha-battle');await expect(displayed).toHaveCount(1);

@@ -24,6 +24,7 @@ export function AttackPreview({ preview }: { preview: Preview }) {
   const defenseTotal = defender?.visible ? defender.strength + defender.breakdown.reduce((n, m) => n + m.amount, 0) : null;
   return <section className="alpha-attack-preview" aria-label="Prévia do ataque">
     <p className="alpha-preview-summary"><b>{postureText(preview.attacker.posture)}</b> · Ataque <b>{preview.attacker.total}</b> × Defesa <b>{defenseTotal ?? '?'}</b>{defenseTotal === null && ' (fora da visão)'}</p>
+    {preview.advance.note&&<p className="alpha-warning" role="status">{preview.advance.note}</p>}
     <details><summary>Prévia · {preview.target} · {text(preview.terrain)}</summary>
       <p>Postura escolhida: <b>{postureText(preview.attacker.posture)}</b></p>
       <div className="alpha-form-row">

@@ -3,6 +3,7 @@ import { err, ok, type Result } from '@aoh/shared';
 import { applyCommand } from './engine.js';
 import { commandPoints } from './civilization.js';
 import { validateMilitaryOrder } from './alpha-military.js';
+import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, commitLegacyReducer } from './alpha-resources.js';
 import { advanceEra, civilizationAbility, institutionBonus } from './alpha-institutions.js';
 import { manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
@@ -87,6 +88,10 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
         else if(command.order.type==='TRADE')tradePath(state,actor,command.order.fromCityId,command.order.toCityId);
         else if(command.order.type==='INFLUENCE')validateInfluence(state,actor,command.order);
         else validateMilitaryOrder(state,actor,command.order);
+        if(command.order.type==='MOVE'&&command.order.path.length){
+          const target=command.order.path.at(-1)!,moving=state.units.filter(u=>u.ownerId===actor&&(command.order as {unitIds:string[]}).unitIds.includes(u.id));
+          const crowded=stackBlock(state,actor,moving,target,pendingArrivals(state,actor,target,command.order.id));if(crowded)throw new Error(crowded);
+        }
         const remaining=player.orders.filter(o=>o.id!==command.order.id);
         if(player.spentCommands+remaining.length>=alphaCommandCapacity(state,actor))throw new Error('Sem pontos de comando disponíveis.');
         const units='unitIds' in command.order?command.order.unitIds:'unitId' in command.order?[command.order.unitId]:[];

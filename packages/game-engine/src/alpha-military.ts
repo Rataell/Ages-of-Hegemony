@@ -4,6 +4,7 @@ import { alphaCanAfford, alphaCostWithMetal, alphaPay } from './alpha-resources.
 import { institutionBonus } from './alpha-institutions.js';
 import { atWar, bordersOpen } from './alpha-diplomacy.js';
 import { leaderSupplyBonus } from './alpha-leaders.js';
+import { pendingArrivals, stackBlock } from './alpha-stack.js';
 
 /** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
 export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):string|null {
@@ -15,6 +16,8 @@ export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:
   if(entry.militaryInfrastructure&&!city.districts.some(d=>d.type==='MILITARY'))return 'Esta peça requer distrito Militar.';
   if(kind==='FLEET'&&tile.terrain!=='COAST')return 'Esquadras requerem uma cidade costeira.';
   if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)return 'Reserva de unidades esgotada.';
+  const arriving:AlphaUnit={id:`recruit-${cityId}`,ownerId:actor,kind,hexId:city.hexId,recruitedRound:state.core.round};
+  const crowded=stackBlock(state,actor,[arriving],city.hexId,pendingArrivals(state,actor,city.hexId,''));if(crowded)return crowded;
   if(!alphaCanAfford(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal)))return 'Recursos insuficientes para esta ação.';
   return null;
 }
@@ -59,6 +62,7 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
     if(cost>state.rules.units[unit.kind].movement+institutionBonus(state,actor,'MOVEMENT'))throw new Error('Caminho excede a mobilidade da peça.');
     if(order.type==='ATTACK'&&state.rules.units[unit.kind].strength===0)throw new Error('Esta peça não participa de ataques.');
   }
+  if(order.type==='MOVE'&&order.path.length){const crowded=stackBlock(state,actor,units as AlphaUnit[],order.path.at(-1)!);if(crowded)throw new Error(crowded);}
   if(order.type==='ATTACK') {
     const enemies=state.units.filter(u=>u.hexId===order.target&&u.ownerId!==actor);
     const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target&&c.ownerId!==actor);

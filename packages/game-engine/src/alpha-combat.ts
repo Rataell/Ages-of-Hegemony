@@ -8,6 +8,8 @@ import { infrastructureStats } from './urban.js';
 import { strengthSources } from './alpha-institutions.js';
 import { canEnter, unitSupply, validateMilitaryOrder } from './alpha-military.js';
 import { visibleHexIds } from './alpha-world.js';
+import { stackBlock, stackRoom } from './alpha-stack.js';
+import { alphaEvent } from './alpha-events.js';
 
 type Order = Extract<StrategicOrder, { type: 'ATTACK' }>;
 export interface Modifier { source: string; amount: number }
@@ -141,6 +143,8 @@ export interface CombatPreview {
   ok: boolean; blocked: string | null; target: string; terrain: string; dieFaces: readonly TacticalFace[];
   attacker: { strength: number; posture: BattlePosture; units: { id: string; kind: string; strength: number }[]; breakdown: Modifier[]; total: number };
   defender: { visible: boolean; strength: number; units: { kind: string; strength: number }[]; breakdown: Modifier[]; fortification: Fort | null; posture: 'UNKNOWN' } | null;
+  /** What happens to the attacking pieces after a victory: only as many as the target hex's stack limits allow advance. */
+  advance: { total: number; stays: number; note: string | null };
   note: string;
 }
 
@@ -154,13 +158,15 @@ export function combatPreview(state: AlphaState, actor: PlayerId, order: Order):
   try { validateMilitaryOrder(state, actor, order); } catch (error: unknown) { blocked = error instanceof Error ? error.message : 'Ordem inválida.'; }
   const base = { dieFaces: config.dieFaces, note: 'Cada peça de combate rola 1 dado tático na resolução; o resultado só existe depois da batalha.' };
   const terrain = state.core.map.find(tile => tile.id === order.target)?.terrain ?? 'UNKNOWN';
-  if (blocked !== null) return { ok: false, blocked, target: order.target, terrain, ...base, attacker: { strength: 0, posture: order.posture, units: [], breakdown: [], total: 0 }, defender: null };
+  if (blocked !== null) return { ok: false, blocked, target: order.target, terrain, ...base, attacker: { strength: 0, posture: order.posture, units: [], breakdown: [], total: 0 }, defender: null, advance: { total: 0, stays: 0, note: null } };
   const sides = sidesOf(state, actor, order);
   const attack = staticSide(state, sides, true);
   const seen = visibleHexIds(state, actor).has(order.target);
+  const room = stackRoom(state, actor, sides.attackers, order.target);
+  const advance = { total: sides.attackers.length, stays: room.stays.length, note: room.stays.length ? `Limite de pilha atingido em ${order.target}: se vencer, ${room.fits.length} de ${sides.attackers.length} peças avançam e ${room.stays.length} permanecem em ${sides.attackers[0]!.hexId}.` : null };
   const defend = staticSide(state, sides, false);
   return {
-    ok: true, blocked: null, target: order.target, terrain, ...base,
+    ok: true, blocked: null, target: order.target, terrain, ...base, advance,
     attacker: { strength: attack.strength, posture: order.posture, units: sides.attackers.map(unit => ({ id: unit.id, kind: unit.kind, strength: state.rules.units[unit.kind].strength })), breakdown: attack.modifiers, total: attack.strength + sumOf(attack.modifiers) },
     defender: seen
       ? { visible: true, strength: defend.strength, units: sides.defenders.map(unit => ({ kind: unit.kind, strength: state.rules.units[unit.kind].strength })), breakdown: defend.modifiers, fortification: defend.fortification, posture: 'UNKNOWN' }
@@ -215,12 +221,15 @@ export function resolveBattleWithFaces(state: AlphaState, actor: PlayerId, order
   const survivors = losers.filter(unit => !losses.includes(unit.id));
   let retreat: HexId | null = attackerWins ? null : attackers[0]!.hexId;
   if (attackerWins && survivors.length) {
-    retreat = hexNeighbors(tile).map(hexId).sort().find(id => survivors.every(unit => canEnter(state, unit, id)) && !state.units.some(unit => unit.hexId === id && unit.ownerId !== defenderId) && state.core.map.some(candidate => candidate.id === id && (candidate.ownerId === null || candidate.ownerId === defenderId))) ?? null;
+    retreat = hexNeighbors(tile).map(hexId).sort().find(id => survivors.every(unit => canEnter(state, unit, id)) && stackBlock(state, defenderId, survivors, id) === null && !state.units.some(unit => unit.hexId === id && unit.ownerId !== defenderId) && state.core.map.some(candidate => candidate.id === id && (candidate.ownerId === null || candidate.ownerId === defenderId))) ?? null;
     if (retreat) survivors.forEach(unit => { unit.hexId = retreat!; }); else losses.push(...survivors.map(unit => unit.id));
   }
   state.units = state.units.filter(unit => !losses.includes(unit.id));
   if (attackerWins) {
-    attackers.forEach(unit => { unit.hexId = order.target; });
+    // Stack limits: only as many pieces as fit advance, in id order; the rest keep their hex.
+    const { fits, stays } = stackRoom(state, actor, attackers, order.target);
+    fits.forEach(unit => { unit.hexId = order.target; });
+    if (stays.length) alphaEvent(state, 'STACK_LIMIT', `Limite de pilha em ${order.target}: ${fits.length} peças avançaram e ${stays.length} permaneceram em ${stays[0]!.hexId}.`, [actor]);
     state.players.find(player => player.playerId === actor)!.victories++;
     if (city && city.ownerId !== actor) occupyCity(state, actor, city.id);
   }

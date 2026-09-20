@@ -1,4 +1,5 @@
 'use client';
+import { stackCategory, stackLabel, type StackCategory, type StackView } from '@aoh/game-domain';
 import { alphaLabel as text } from './alpha-copy';
 
 type Unit = { id: string; kind: string; hexId: string; supply?: { supplied: boolean } | null };
@@ -12,8 +13,19 @@ export function composition(units: Unit[]) {
 }
 export const compositionText = (units: Unit[]) => composition(units).map(entry => entry.label).join(' · ');
 
+type Rules = Record<string, { domain: 'LAND' | 'SEA'; strength: number }>;
+/** Compact stack counters for one hex: "Exército 5/6 · Civis 1/2". A full stack is flagged. */
+function StackTags({ hexId, members, stacks, rules }: { hexId: string; members: Unit[]; stacks: StackView; rules: Rules }) {
+  const hex = stacks.hexes[hexId], present = new Set<StackCategory>(members.map(unit => stackCategory(rules[unit.kind]!)));
+  if (!hex) return null;
+  return <span className="alpha-stack-tags">{(['military', 'civilians', 'fleets'] as const).filter(category => present.has(category)).map(category => {
+    const usage = hex[category];
+    return <span key={category} className="alpha-stack-tag" data-full={usage.used >= usage.limit} title="Limite de pilha por civilização e hex">{stackLabel(category, hex.city)} {usage.used}/{usage.limit}</span>;
+  })}</span>;
+}
+
 /** Own pieces grouped by hex and class: one card per stack instead of one row per piece. */
-export function ArmyList({ units, selected, onSelect }: { units: Unit[]; selected: string[]; onSelect: (ids: string[], on: boolean, hexId: string) => void }) {
+export function ArmyList({ units, selected, onSelect, stacks, rules }: { units: Unit[]; selected: string[]; onSelect: (ids: string[], on: boolean, hexId: string) => void; stacks: StackView; rules: Rules }) {
   const groups = new Map<string, Unit[]>();
   for (const unit of units) groups.set(unit.hexId, [...(groups.get(unit.hexId) ?? []), unit]);
   if (!groups.size) return <p className="muted">Nenhuma peça em campo.</p>;
@@ -22,7 +34,7 @@ export function ArmyList({ units, selected, onSelect }: { units: Unit[]; selecte
     const military = members.some(unit => !CIVILIAN.has(unit.kind));
     const title = members.length === 1 ? text(members[0]!.kind) : `${military ? 'Exército' : 'Civis'} · ${members.length} peças`;
     return <article className="alpha-army" data-selected={chosen > 0} key={hexId}>
-      <div className="alpha-army-head"><b>{title}</b><small>{hexId}{unsupplied ? ` · ${unsupplied} sem suprimento` : ' · abastecido'}</small></div>
+      <div className="alpha-army-head"><b>{title}</b><small>{hexId}{unsupplied ? ` · ${unsupplied} sem suprimento` : ' · abastecido'}</small><StackTags hexId={hexId} members={members} stacks={stacks} rules={rules} /></div>
       <div className="alpha-army-classes">{composition(members).map(entry => {
         const kindIds = members.filter(unit => unit.kind === entry.kind).map(unit => unit.id), all = kindIds.every(id => selected.includes(id));
         return <button type="button" key={entry.kind} aria-pressed={all} title={`Selecionar ${text(entry.kind)} deste hex`} onClick={() => onSelect(kindIds, !all, hexId)}>{entry.label}</button>;

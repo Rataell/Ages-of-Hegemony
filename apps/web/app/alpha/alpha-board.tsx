@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { CIVILIZATIONS } from '@aoh/game-domain';
+import { CIVILIZATIONS, stackCategory, stackViewVerdict } from '@aoh/game-domain';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import { HexMap } from '../play/hex-map';
 import { ResourceDisplay } from '../play/resource-display';
@@ -25,6 +25,8 @@ export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoo
   const tile=game.view.visibleTerritory.find(t=>t.id===selected);
   const ownUnits=game.units.filter(u=>u.ownerId===room.selfPlayerId);
   const chosen=ownUnits.filter(u=>units.includes(u.id));
+  /** Same arithmetic as the server, computed from the projected stack view before any command is sent. */
+  const moveEnd=path.at(-1)??null,moveBlock=moveEnd?stackViewVerdict(game.stacks,chosen.map(u=>stackCategory(game.rules.units[u.kind]!)),moveEnd):null;
   const manage=(command:Record<string,unknown>)=>send({type:'MANAGE',command:{...command,playerId:room.selfPlayerId,expectedVersion:game.view.version}});
   const queue=(order:Record<string,unknown>)=>send({type:'QUEUE_ORDER',order:{...order,id:`order-${game.version}-${game.self.orders.length}`}});
   const known=game.knownTerritory.map(t=>({...t,ownerId:null,controllerCityId:null,improvement:null,yield:null,yieldError:null}));
@@ -64,7 +66,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoo
           <label>Se for atacado, sua civilização adota<select value={game.self.defensePosture} disabled={locked} onChange={e=>void send({type:'SET_DEFENSE_POSTURE',posture:e.target.value})}>{POSTURES.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
           <small>Escolha privada; só é revelada quando houver batalha.</small></section>
         <section><div className="section-head"><h3>Peças</h3><span className="count-pill">{ownUnits.length}</span></div>
-          <ArmyList units={ownUnits} selected={units} onSelect={pick}/></section>
+          <ArmyList units={ownUnits} selected={units} onSelect={pick} stacks={game.stacks} rules={game.rules.units}/></section>
         <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p></details>
       </aside>
       <div className="world-column"><HexMap data={mapData} units={game.units} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
@@ -89,7 +91,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme}:{room:AlphaRoo
               <button className="primary" disabled={locked||!selected} onClick={()=>void queue({type:'ATTACK',unitIds:units,target:selected,posture})}>Ordenar ataque</button>
             </div>
             <button aria-pressed={pathMode} disabled={locked} onClick={()=>{setPathMode(!pathMode);setPath([]);}}>{pathMode?'Sair da seleção de caminho':'Selecionar caminho no mapa'}</button>
-            {pathMode&&<><p>{path.length?path.join(' · '):'Clique em cada hex do caminho, em ordem.'}</p><button disabled={locked||!path.length} onClick={()=>void queue({type:'MOVE',unitIds:units,path}).then(ok=>{if(ok){setPathMode(false);setPath([]);}})}>Reservar movimento</button></>}
+            {pathMode&&<><p>{path.length?path.join(' · '):'Clique em cada hex do caminho, em ordem.'}</p>{moveBlock&&<p className="alpha-warning" role="alert">{moveBlock}</p>}<button disabled={locked||!path.length||moveBlock!==null} onClick={()=>void queue({type:'MOVE',unitIds:units,path}).then(ok=>{if(ok){setPathMode(false);setPath([]);}})}>Reservar movimento</button></>}
             <details><summary>Outras ordens · missão, exploração, fundação</summary>
               <button disabled={locked||units.length!==1||!selected} onClick={()=>void queue({type:'INFLUENCE',unitId:units[0],target:selected})}>Missão de influência</button>
               <label>Orientação da região<select value={rotation} onChange={e=>setRotation(Number(e.target.value))}>{[0,1,2,3,4,5].map(n=><option key={n} value={n}>{n*60}°</option>)}</select></label>

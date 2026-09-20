@@ -44,11 +44,24 @@ The system SHALL penalise unsupplied attackers, grant defenders terrain bonuses 
 - **THEN** the configured penalty applies and appears in the breakdown
 
 ### Requirement: Stack limits
-The system SHALL enforce per-hex limits for military units, civilians, fleets and cities.
+The system SHALL enforce per-civilization, per-hex limits taken from the central balance: land military 6 (7 with Command I, 8 with Command II); civilians 2 extra; city garrison 6 raised by a military district, fortification level and protection doctrine, capped at 10; fleets 4 (5 with the naval upgrade). Civilians, army and fleets are separate stacks. Existing stacks above a limit are never altered; only new arrivals are refused.
 
 #### Scenario: Over the limit
-- **WHEN** a move would exceed a stack limit
-- **THEN** the move is rejected
+- **WHEN** a move would end above a stack limit
+- **THEN** the move is rejected with "limite de pilha atingido", both when queued (counting other queued arrivals) and when it resolves
+
+#### Scenario: Recruit
+- **WHEN** a city's garrison, civilian or fleet stack is full
+- **THEN** recruiting that class is blocked with the same reason
+
+#### Scenario: Retreat and victory advance
+- **WHEN** a defeated force retreats
+- **THEN** only a hex with room for every survivor is legal, otherwise the existing loss rule applies
+- **AND** a victorious force advances only as many pieces as the target hex allows, in id order, the rest staying where they attacked from
+
+#### Scenario: Preview parity
+- **WHEN** the client warns about a move or attack
+- **THEN** it uses the same verdict as the server, computed from the projected stack view
 
 ### Requirement: Casualties, retreat and occupation
 The system SHALL remove losses in proportion to victory margin, retreat the loser when a legal hex exists, and occupy a captured city with the winner while transferring its controlled hexes.

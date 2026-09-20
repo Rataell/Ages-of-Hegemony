@@ -157,3 +157,6 @@ button.alpha-card { text-align: left; }
 .alpha-inspector-body .section-head button, .alpha-army-actions button { padding: 3px 9px; font-size: 11px; white-space: nowrap; margin: 0; }
 .alpha-inspector-body .section-head h3 { margin: 0; }
 @media(max-width:500px) { .alpha-game .top-bar .civ-brand { flex-basis: 100%; } .alpha-game .top-bar .admin { min-width: 0; flex: 1; } }
+.alpha-stack-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.alpha-stack-tag { font-size: 11px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.alpha-stack-tag[data-full='true'] { color: var(--warning); font-weight: 600; }

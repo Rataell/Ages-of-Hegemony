@@ -12,3 +12,4 @@ export * from './alpha-regions.js';
 export * from './alpha-institutions.js';
 export * from './alpha-cards.js';
 export * from './alpha-leaders.js';
+export * from './alpha-stack.js';
