@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { AlphaStateSchema, alphaRules } from '@aoh/game-domain';
-import { createGame, deserializeAlphaState, migrateSnapshotV3ToV4, serializeAlphaState } from '@aoh/game-engine';
+import { AlphaStateSchema, alphaRules, alphaToLegacyResources } from '@aoh/game-domain';
+import { beginAlphaPlanning, createAlphaGame, createGame, deserializeAlphaState, migrateSnapshotV3ToV4, migrateSnapshotV4ToV5, occupyCity, serializeAlphaState } from '@aoh/game-engine';
+import { toV4Snapshot } from './alpha-v4-fixture.js';
 
 function legacy() {
   const result = createGame({ gameId: 'migration-alpha', seed: 42,
@@ -35,5 +36,104 @@ describe('explicit alpha aggregate migration', () => {
   it('provides configurable game length presets without changing the legacy economy', () => {
     expect(['QUICK','STANDARD','EPIC'].map(p => alphaRules(p as 'QUICK'|'STANDARD'|'EPIC').roundLimit)).toEqual([9,15,20]);
     expect(alphaRules().baseCommandPoints).toBe(4);
+  });
+});
+
+describe('v4 to v5 migration', () => {
+  const made = () => beginAlphaPlanning(createAlphaGame({ gameId: 'v4-to-v5', seed: 71, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] }));
+  const ok = (input: unknown) => { const result = migrateSnapshotV4ToV5(input); if (!result.ok) throw new Error(result.error.message); return result.value; };
+
+  it('converts a v4 snapshot to a valid v5 state without touching the input', () => {
+    const v4 = toV4Snapshot(made()); const before = JSON.stringify(v4);
+    const migrated = ok(v4);
+    expect(JSON.stringify(v4)).toBe(before);
+    expect(migrated.schemaVersion).toBe(5);
+    expect(AlphaStateSchema.safeParse(migrated).success).toBe(true);
+    expect(migrated.core).toEqual((v4 as { core: unknown }).core);
+    expect(migrated.cities).toHaveLength(migrated.core.players.flatMap(p => p.civilization.cities).length);
+  });
+
+  it('is idempotent and accepts v5 unchanged', () => {
+    const once = ok(toV4Snapshot(made()));
+    expect(ok(once)).toEqual(once);
+    expect(ok(JSON.parse(JSON.stringify(once)))).toEqual(once);
+    expect(migrateSnapshotV4ToV5(toV4Snapshot(made()))).toEqual(migrateSnapshotV4ToV5(toV4Snapshot(made())));
+  });
+
+  it('maps seven-resource pools from the legacy pool without changing totals', () => {
+    const v4 = toV4Snapshot(made());
+    const migrated = ok(v4);
+    migrated.players.forEach((player, index) => {
+      expect(alphaToLegacyResources(player.resources)).toEqual(migrated.core.players[index]!.resources);
+      expect(player.resources.metal).toBe(0);
+    });
+  });
+
+  it('renames Settler to Pioneer and keeps every unit', () => {
+    const source = made(); const v4 = toV4Snapshot(source) as { units: { kind: string }[] };
+    expect(v4.units.some(u => u.kind === 'SETTLER')).toBe(true);
+    const migrated = ok(v4);
+    expect(migrated.units).toHaveLength(source.units.length);
+    expect(migrated.units.some(u => (u.kind as string) === 'SETTLER')).toBe(false);
+    expect(migrated.units.filter(u => u.kind === 'PIONEER')).toHaveLength(source.units.filter(u => u.kind === 'PIONEER').length);
+  });
+
+  it('keeps a declared Hegemony era and lifts an undeclared one to Ascension', () => {
+    const declared = toV4Snapshot(made()) as { players: { era: string; hegemony: unknown }[] };
+    declared.players[0]!.era = 'HEGEMONY'; declared.players[0]!.hegemony = { path: 'TERRITORIAL', declaredRound: 1, qualifiedSince: null };
+    declared.players[1]!.era = 'HEGEMONY'; declared.players[1]!.hegemony = null;
+    const migrated = ok(declared);
+    expect(migrated.players[0]!.era).toBe('HEGEMONY');
+    expect(migrated.players[0]!.hegemony).toEqual({ path: 'TERRITORIAL', declaredRound: 1, qualifiedSince: null });
+    expect(migrated.players[1]!.era).toBe('ASCENSION');
+  });
+
+  it('carries occupations into city metadata', () => {
+    const source = made(); const [a, b] = [source.players[0]!.playerId, source.players[1]!.playerId];
+    const cityId = source.core.players[0]!.civilization.cities[0]!.id;
+    occupyCity(source, b, cityId);
+    const migrated = ok(toV4Snapshot(source));
+    const meta = migrated.cities.find(c => c.cityId === cityId)!;
+    expect(meta).toMatchObject({ status: 'OCCUPIED', integration: 0, originalOwnerId: a, currentOwnerId: b });
+    expect(migrated.occupations).toEqual(source.occupations);
+  });
+
+  it('maps legacy planning timers and core phases', () => {
+    const v4 = toV4Snapshot(made()) as { rules: { planningSeconds: number }; core: { phase: string } };
+    v4.rules.planningSeconds = 600;
+    expect(ok(v4).rules.planningSeconds).toBe(480);
+    v4.rules.planningSeconds = 5000;
+    expect(ok(v4).rules.planningSeconds).toBe(28800);
+    v4.rules.planningSeconds = 300;
+    expect(ok(v4).rules.planningSeconds).toBe(300);
+  });
+
+  it('refuses corrupt, incomplete and unknown input and leaves it untouched', () => {
+    const good = toV4Snapshot(made());
+    const cases: unknown[] = [null, 'text', 42, {}, { schemaVersion: 4 }, { ...good, core: { broken: true } }, { ...good, rules: { preset: 'HUGE' } }, { ...good, schemaVersion: 99 }, { ...good, schemaVersion: 2 }];
+    for (const input of cases) {
+      const before = JSON.stringify(input);
+      expect(migrateSnapshotV4ToV5(input)).toMatchObject({ ok: false, error: { code: 'INVALID_STATE' } });
+      expect(JSON.stringify(input)).toBe(before);
+    }
+  });
+
+  it('never yields a v5 state that fails validation for an inconsistent v4 payload', () => {
+    const bad = toV4Snapshot(made()) as { initiative: string[] };
+    bad.initiative = ['p1', 'p1'];
+    expect(migrateSnapshotV4ToV5(bad).ok).toBe(false);
+  });
+
+  it('asks callers to migrate explicitly instead of decoding v4 or v3 silently', () => {
+    const v4 = JSON.stringify(toV4Snapshot(made()));
+    expect(deserializeAlphaState(v4)).toMatchObject({ ok: false, error: { code: 'SNAPSHOT_MIGRATION_REQUIRED' } });
+    expect(deserializeAlphaState(JSON.stringify({ schemaVersion: 3 }))).toMatchObject({ ok: false, error: { code: 'SNAPSHOT_MIGRATION_REQUIRED' } });
+    expect(deserializeAlphaState(JSON.stringify({ schemaVersion: 99 })).ok).toBe(false);
+    expect(deserializeAlphaState('not json').ok).toBe(false);
+  });
+
+  it('round-trips a migrated state through the v5 serializer', () => {
+    const migrated = ok(toV4Snapshot(made()));
+    expect(deserializeAlphaState(serializeAlphaState(migrated))).toEqual({ ok: true, value: migrated });
   });
 });

@@ -1,6 +1,6 @@
 import { CityIdSchema, connectedTo, type AlphaState, type CityId, type PlayerId } from '@aoh/game-domain';
 import { refreshAdministration } from './civilization.js';
-import { alphaPay } from './alpha-resources.js';
+import { alphaPay, commitLegacyReducer } from './alpha-resources.js';
 import { foundCityAt } from './founding.js';
 
 export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,name:string):void {
@@ -10,8 +10,10 @@ export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,
   const tile=state.core.map.find(t=>t.id===pioneer.hexId)!;
   if(tile.ownerId!==null&&tile.ownerId!==actor||state.units.some(u=>u.hexId===tile.id&&u.ownerId!==actor))throw new Error('Não é possível fundar em território ou presença estrangeira.');
   const player=state.core.players.find(p=>p.id===actor)!;
+  const legacyBefore={...player.resources};
   const founded=foundCityAt(state.core,player,state.core.map,{type:'FOUND_CITY',playerId:actor,cityId:CityIdSchema.parse(`city-${actor}-${state.version}`),hexId:tile.id,name,expectedVersion:state.core.version},state.core.version+1);
   if(!founded.ok)throw new Error(founded.error.message);
+  commitLegacyReducer(state,actor,legacyBefore);
   state.units=state.units.filter(u=>u.id!==unitId);
   const newCity=player.civilization.cities.find(c=>c.hexId===tile.id)!;
   state.cities.push({cityId:newCity.id,originalOwnerId:actor,currentOwnerId:actor,nativeIdentity:state.players.find(p=>p.playerId===actor)!.civilization??`native-${actor}`,status:'OWNED',integration:100,mood:3,level:'OUTPOST',capital:player.civilization.capitalCityId===newCity.id,districts:newCity.districts.map(d=>d.type),buildings:[],fortification:{level:'NONE',state:'INTACT'},foreignPresence:[],localCohesion:50,culturalAnchor:null,urbanActionsUsed:0});

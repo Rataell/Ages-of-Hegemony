@@ -33,9 +33,13 @@ The system SHALL convert v3 and v4 snapshots to v5 only through an explicit migr
 ### Requirement: Rollback safety
 The system SHALL keep the original snapshot recoverable whenever it migrates persisted data, and SHALL NOT perform any destructive schema contraction in this release.
 
-#### Scenario: Migration on load
-- **WHEN** a persisted v4 room is loaded and migrated
-- **THEN** the original v4 payload remains retrievable until a v5 save succeeds under compare-and-swap
+#### Scenario: Read does not write
+- **WHEN** a persisted v4 room is loaded and migrated in memory
+- **THEN** the stored row is unchanged and no archive is created
+
+#### Scenario: First v5 save archives the original
+- **WHEN** the first successful compare-and-swap save rewrites a legacy row
+- **THEN** the exact original snapshot is stored in an archive in the same transaction and later saves add no archive
 
 ### Requirement: Legacy slice compatibility
 The system SHALL keep the local slice at `/` and v3 snapshots readable and playable.

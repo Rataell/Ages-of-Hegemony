@@ -12,7 +12,7 @@ Rollback da aplicação deve preservar as tabelas e snapshots. Não execute `mig
 
 ## Gate automatizado de persistência
 
-`npm run test:db` exige `ALPHA_TEST_DATABASE_URL`, apontando para um banco dedicado de testes com as migrations aplicadas. A variável é separada de `DATABASE_URL` para impedir o uso acidental do runtime público. Sem essa configuração, o comando falha explicitamente; não marca o teste como aprovado ou ignorado.
+`npm run test:db` exige `ALPHA_TEST_DATABASE_URL`, apontando para o banco de testes **local** em Docker (ver [database-local.md](database-local.md)) com as migrations aplicadas; hosts remotos, incluindo o Supabase, são recusados. A variável é separada de `DATABASE_URL` para impedir o uso acidental do runtime público. Sem essa configuração, o comando falha explicitamente; não marca o teste como aprovado ou ignorado.
 
 O cenário cria dois convidados, inicia uma partida, fecha a conexão Prisma, abre outra, compara o snapshot persistido, reconecta o mesmo assento e disputa duas gravações CAS. Ao terminar, remove somente a partida com o ID criado pelo próprio teste. Não executa migrations, reset nem truncate. Essa prova cobre recriação de conexões e serviços; reiniciar o processo implantado continua sendo uma verificação adicional de deploy.
 

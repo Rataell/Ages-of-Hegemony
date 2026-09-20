@@ -1,7 +1,6 @@
 import { ALPHA_CARDS, GREAT_PROJECTS, AlphaEraSchema, type AlphaState, type PlayerId, type AlphaCommand, type AlphaEffect } from '@aoh/game-domain';
-import { alphaPay } from './alpha-resources.js';
+import { alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { alphaRandomInteger } from './alpha-random.js';
-import { sum } from './arithmetic.js';
 function shuffled(state:AlphaState,ids:string[]):string[]{
   const deck=[...ids];for(let i=deck.length-1;i>0;i--){const j=alphaRandomInteger(state,i+1);[deck[i],deck[j]]=[deck[j]!,deck[i]!];}return deck;
 }
@@ -31,7 +30,7 @@ export function manageCard(state:AlphaState,actor:PlayerId,command:Extract<Alpha
   if(command.type==='WORLD_CHOICE') {
     if(!state.cards.worldEvent||state.cards.worldResponded.includes(actor))throw new Error('Não há decisão de evento pendente.');
     const card=ALPHA_CARDS.find(c=>c.id===state.cards.worldEvent)!;
-    if(command.choice==='PRESTIGE')player.prestige++;else if(card.effect?.kind==='PRODUCTION')core.resources[card.effect.resource]=sum([core.resources[card.effect.resource],card.effect.amount]);
+    if(command.choice==='PRESTIGE')player.prestige++;else if(card.effect?.kind==='PRODUCTION')alphaGainLegacy(state,actor,{[card.effect.resource]:card.effect.amount});
     state.cards.worldResponded.push(actor);return;
   }
   if(command.type==='BUILD_PROJECT') {
@@ -50,7 +49,7 @@ export function manageCard(state:AlphaState,actor:PlayerId,command:Extract<Alpha
   }
   if(!player.hand.includes(card.id)||card.timing!==state.core.phase||player.cardsPlayed>=state.rules.cardsPerRound)throw new Error('Carta fora da mão, do momento permitido ou do limite por rodada.');
   player.hand=player.hand.filter(id=>id!==card.id);state.cards.discarded.push(card.id);player.cardsPlayed++;
-  if(card.effect?.kind==='PRODUCTION')core.resources[card.effect.resource]=sum([core.resources[card.effect.resource],card.effect.amount]);
+  if(card.effect?.kind==='PRODUCTION')alphaGainLegacy(state,actor,{[card.effect.resource]:card.effect.amount});
   else if(card.effect)player.temporaryEffects.push({source:card.id,effect:card.effect,round:state.core.round});
 }
 export function scoreAmbitions(state:AlphaState):void {

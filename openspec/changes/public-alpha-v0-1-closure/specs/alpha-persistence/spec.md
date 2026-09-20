@@ -36,8 +36,12 @@ The system SHALL migrate an older stored snapshot when it is read, persist the v
 The system SHALL provide an integration suite that runs against a dedicated PostgreSQL database and SHALL NOT claim durability from in-memory tests.
 
 #### Scenario: Integration run
-- **WHEN** the suite is run with a dedicated database URL
-- **THEN** create, read, migrate, concurrent-save and restart scenarios pass
+- **WHEN** the suite is run against the disposable local Docker PostgreSQL
+- **THEN** create, read, migrate, archive, concurrent-save and restart scenarios pass
+
+#### Scenario: Remote host refused
+- **WHEN** the test database URL names a non-local host such as the Public Alpha database
+- **THEN** the suite and its runner refuse to start
 
 ### Requirement: Missing configuration fails visibly
 The system SHALL respond with a service-unavailable error, never an in-memory fallback, when the database or the signing secret is missing.
@@ -45,3 +49,10 @@ The system SHALL respond with a service-unavailable error, never an in-memory fa
 #### Scenario: No database
 - **WHEN** the alpha API is called without a configured database
 - **THEN** it responds 503 and stores nothing
+
+### Requirement: Local Docker databases
+The project SHALL provide a persistent development PostgreSQL and a disposable, in-memory test PostgreSQL in Docker, each with a healthcheck, bound to the loopback interface only, without containerizing the web or server processes.
+
+#### Scenario: Test database lifecycle
+- **WHEN** the Docker test runner starts
+- **THEN** it waits for health, applies migrations, runs the suite and removes the container unless told to keep it

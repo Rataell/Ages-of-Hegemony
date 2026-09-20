@@ -1,7 +1,5 @@
-import { RESOURCE_KEYS, type AlphaCommand, type AlphaState, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
-import { alphaPay } from './alpha-resources.js';
-import { canAfford } from './resources.js';
-import { sum } from './arithmetic.js';
+import { type AlphaCommand, type AlphaState, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
+import { alphaCanAfford, alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
 function enterWar(state:AlphaState,actor:PlayerId,target:PlayerId):void {
   if(atWar(state,actor,target))return;
@@ -48,9 +46,9 @@ export function settleTreaties(state:AlphaState):void {
   const pending=state.treaties.filter(t=>t.status==='ACCEPTED').sort((a,b)=>state.initiative.indexOf(a.proposerId)-state.initiative.indexOf(b.proposerId)||(a.id<b.id?-1:1));
   for(const treaty of pending) {
     const a=state.core.players.find(p=>p.id===treaty.proposerId)!,b=state.core.players.find(p=>p.id===treaty.recipientId)!;
-    if(!canAfford(a.resources,treaty.deal.give)||!canAfford(b.resources,treaty.deal.receive)){treaty.status='DECLINED';continue;}
+    if(!alphaCanAfford(state,a.id,treaty.deal.give)||!alphaCanAfford(state,b.id,treaty.deal.receive)){treaty.status='DECLINED';continue;}
     alphaPay(state,a.id,treaty.deal.give);alphaPay(state,b.id,treaty.deal.receive);
-    for(const key of RESOURCE_KEYS){a.resources[key]=sum([a.resources[key],treaty.deal.receive[key]]);b.resources[key]=sum([b.resources[key],treaty.deal.give[key]]);}
+    alphaGainLegacy(state,a.id,treaty.deal.receive,{category:'trade'});alphaGainLegacy(state,b.id,treaty.deal.give,{category:'trade'});
     treaty.status='ACTIVE';
     if(['NON_AGGRESSION_PACT','ALLIANCE'].includes(treaty.type))state.wars=state.wars.filter(pair=>!pair.includes(a.id)||!pair.includes(b.id));
   }
@@ -75,9 +73,7 @@ export function maintainTrade(state:AlphaState):void {
   state.treaties.forEach(t=>{if(t.expiresRound<state.core.round&&['ACTIVE','PROPOSED','ACCEPTED'].includes(t.status))t.status='ENDED';});
   for(const route of state.routes) {
     try{route.path=tradePath(state,route.ownerId,route.fromCityId,route.toCityId);route.suspended=false;}catch{route.suspended=true;continue;}
-    const owner=state.core.players.find(p=>p.id===route.ownerId)!;owner.resources.wealth=sum([owner.resources.wealth,state.rules.routeIncome]);
-    const receiver=state.core.players.find(p=>p.civilization.cities.some(c=>c.id===route.toCityId))!;
-    if(receiver.id!==owner.id)receiver.resources.wealth=sum([receiver.resources.wealth,state.rules.foreignRouteIncome]);
+
   }
 }
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { completeRound, must, readyAll } from './alpha-rounds.js';
 import { AlphaStateSchema, emptyResourcePool, type AlphaCommand, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, atWar, beginAlphaPlanning, createGame, maintainTrade, migrateSnapshotV3ToV4, settleTreaties } from '@aoh/game-engine';
 
@@ -46,14 +47,21 @@ describe('alpha diplomatic commitments',()=>{
     expect(state.treaties[1]!.status).toBe('ENDED');expect(state.treaties[0]!.status).toBe('ACTIVE');
     expect(AlphaStateSchema.safeParse(state).success).toBe(true);
   });
-  it('credits configured income and suspends routes when access or peace ends',()=>{
-    const state=setup();treaty(state);treaty(state,0,1,'OPEN_BORDERS');
-    state.rules.routeIncome=7;state.rules.foreignRouteIncome=3;
-    state.routes.push({id:'route1',ownerId:state.players[0]!.playerId,fromCityId:state.core.players[0]!.civilization.cities[0]!.id,toCityId:state.core.players[1]!.civilization.cities[0]!.id,path:state.core.map.slice(0,5).map(t=>t.id),suspended:false});
+  it('pays route income only when the origin city supports trade, and suspends routes when access or peace ends',()=>{
+    let state=setup();treaty(state);treaty(state,0,1,'OPEN_BORDERS');
+    state.rules.routeIncome=4;state.rules.foreignRouteIncome=3;
+    const [a,b]=[state.players[0]!.playerId,state.players[1]!.playerId];const origin=state.core.players[0]!.civilization.cities[0]!.id;
+    state.routes.push({id:'route1',ownerId:a,fromCityId:origin,toCityId:state.core.players[1]!.civilization.cities[0]!.id,path:state.core.map.slice(0,5).map(t=>t.id),suspended:false});
     const before=state.core.players.map(p=>p.resources.wealth);maintainTrade(state);
-    expect(state.core.players[0]!.resources.wealth).toBe(before[0]!+7);expect(state.core.players[1]!.resources.wealth).toBe(before[1]!+3);
-    state.wars=[[state.players[0]!.playerId,state.players[1]!.playerId]];maintainTrade(state);
-    expect(state.routes[0]!.suspended).toBe(true);expect(state.core.players[0]!.resources.wealth).toBe(before[0]!+7);
+    expect(state.core.players.map(p=>p.resources.wealth)).toEqual(before);
+    state=readyAll(state);expect(state.phase).toBe('URBAN_ACTIONS');
+    state=must(state,a,{type:'URBAN_ACTION',cityId:origin,action:'SUPPORT_TRADE'});
+    expect(state.core.players[0]!.resources.wealth).toBe(before[0]!+4);expect(state.core.players[1]!.resources.wealth).toBe(before[1]!+3);
+    expect(state.roundLedgers.find(l=>l.playerId===a)!.trade.wealth).toBe(4);
+    state.wars=[[a,b]];maintainTrade(state);
+    expect(state.routes[0]!.suspended).toBe(true);
+    state.cities.find(c=>c.cityId===origin)!.urbanActionsUsed=0;
+    expect(applyAlphaCommand(state,a,{type:'URBAN_ACTION',expectedVersion:state.version,cityId:origin,action:'SUPPORT_TRADE'})).toMatchObject({ok:false,error:{code:'RULE_FAILURE'}});
   });
   it('resolves envoy influence only after ready and prevents repeated farming of one city',()=>{
     let state=setup();const actor=state.players[0]!.playerId;
@@ -61,7 +69,7 @@ describe('alpha diplomatic commitments',()=>{
     const command={type:'QUEUE_ORDER',expectedVersion:0,order:{id:'influence',type:'INFLUENCE',unitId:'envoy',target:'4,0'}};
     const result=applyAlphaCommand(state,actor,command);if(!result.ok)throw new Error(result.error.message);state=result.value;
     expect(state.players[0]!.foreignInfluence).toBe(0);
-    for(let i=0;i<3;i++)state=run(state,i,{type:'READY'});
+    state=completeRound(state);
     expect(state.players[0]!.foreignInfluence).toBe(1);expect(state.players[0]!.influencedCities).toEqual(['c2']);
     expect(applyAlphaCommand(state,actor,{...command,expectedVersion:state.version}).ok).toBe(false);
     expect(applyAlphaCommand(state,state.players[1]!.playerId,{...command,expectedVersion:state.version}).ok).toBe(false);

@@ -1,28 +1,28 @@
 ## 1. A. v5 and migrations
 
-- [ ] 1.1 Decide the era-milestone table after the Ascension insertion (resolves the design open question), then make `tests/alpha-match.test.ts` pass by fixing the table or the scripted scenario; gate: `npm test` 356/356.
-- [ ] 1.2 Change the client projection to report the v5 envelope instead of `schemaVersion: 4` and update its consumers; gate: `npm run typecheck`, projection test.
-- [ ] 1.3 Add migration tests: v4 to v5 twice is idempotent, declared Hegemony era survives, corrupt and unknown-version input is refused and untouched; gate: `tests/alpha-migration.test.ts`.
-- [ ] 1.4 Preserve the original snapshot on migrate-on-load in the repository decode path and test rollback; gate: repository unit test.
-- [ ] 1.5 Add a state invariant test that seven-resource and legacy pools never diverge after any command in the scripted match (temporary, removed in 2.3); gate: `npm test`.
+- [x] 1.1 Decide the era-milestone table after the Ascension insertion (resolves the design open question), then make `tests/alpha-match.test.ts` pass by fixing the table or the scripted scenario; gate: `npm test` green (373/373, including `tests/alpha-milestones.test.ts`).
+- [x] 1.2 Change the client projection to report the v5 envelope instead of `schemaVersion: 4` and update its consumers; gate: `npm run typecheck`, projection test.
+- [x] 1.3 Add migration tests: v4 to v5 twice is idempotent, declared Hegemony era survives, corrupt and unknown-version input is refused and untouched; gate: `tests/alpha-migration.test.ts` (16 tests, v4 fixture in `tests/alpha-v4-fixture.ts`).
+- [x] 1.4 Preserve the original snapshot when a legacy row is rewritten: the first v5 save copies the stored original to `AlphaMatchArchive` in the same transaction; reads never write; gate: `tests/alpha-postgres-migration.db.integration.ts` on real PostgreSQL (verified on an embedded PostgreSQL 18 binary; re-run on the Docker `db-test` container is still pending, see 9.1).
+- [x] 1.5 Add a state invariant test that seven-resource and legacy pools never diverge after any command in the scripted match (temporary, removed in 2.3); gate: `npm test`.
 
 ## 2. B. Economy and cities
 
-- [ ] 2.1 Route every producer and spender (institutions, cards, treaties, routes, founding, civilization ability, upkeep) through `alphaGain` and `alphaPay`; gate: tests for purchase-after-production and unaffordable-rejection.
-- [ ] 2.2 Enforce storage capacity and overflow discard; add metal sourcing decision and implementation; gate: storage tests.
-- [ ] 2.3 Delete `reconcileLegacyPools` and the legacy-derived reads in alpha reducers; keep legacy fields only for the slice; gate: `npm test`, slice E2E.
-- [ ] 2.4 Implement the `URBAN_ACTION` handler with one action per city per round and per-round reset; gate: urban-action tests.
+- [x] 2.1 Route every producer and spender (institutions, cards, treaties, routes, founding, civilization ability, upkeep) through `alphaGain` and `alphaPay`; gate: tests for purchase-after-production and unaffordable-rejection. Done for every alpha-owned path; core-reducer paths (claims, districts, founding cost, maintenance production) go through the transitional `commitLegacyReducer` adapter, removed in 2.3.
+- [x] 2.2 Enforce storage capacity and overflow discard, reporting discards in the round report; implement metal sourcing (Producer + metal deposit + Mine, no new population role); gate: `tests/alpha-storage-metal.test.ts` (18 tests).
+- [ ] 2.3 Delete `commitLegacyReducer` (make the core reducer v5-aware) and the legacy-derived reads in alpha reducers; keep legacy fields only for the slice; gate: `npm test`, slice E2E.
+- [x] 2.4 Implement the `URBAN_ACTION` handler with one action per city per round and per-round reset; gate: `tests/alpha-urban.test.ts` (30 tests). PRODUCE (with mining and first-PRODUCE institutional production), BUILD (district, building, fortification), RECRUIT, RESEARCH, PROMOTE_MOOD, SUPPORT_TRADE, CIVIC_ACTION. Legacy top-level RECRUIT and RESEARCH commands still exist in PLANNING for compatibility; converge them in workstream H.
 - [ ] 2.5 Implement mood effects, level growth, buildings and integration progress on `AlphaCity`; gate: city tests.
 - [ ] 2.6 Add city-record consistency tests for founding, capture, liberation and last-city loss (fixes already in place; lock them in); gate: `tests/alpha-cities.test.ts`.
 
 ## 3. C. Turn loop
 
-- [ ] 3.1 Make `state.phase` the single loop driver for the eight phases and adapt the legacy core phase; gate: phase-order tests.
-- [ ] 3.2 Draw and apply the world pulse in the first phase and report it; gate: pulse determinism test (belongs to F.1, wired here).
-- [ ] 3.3 Move urban actions, orders, diplomacy, conflicts and integration into their own phases with per-phase readiness and command limits; gate: phase tests.
-- [ ] 3.4 Fix round-report arithmetic for seven resources and storage discards; gate: report tests.
+- [x] 3.1 Make `state.phase` the single loop driver for the eight phases and adapt the legacy core phase; gate: `tests/alpha-phases.test.ts` (24 tests). The core phase is mirrored, never advanced through the core reducer.
+- [x] 3.2 Draw and apply the world pulse in the first phase and report it; gate: pulse draw, application, ledger and report tests in `tests/alpha-phases.test.ts`.
+- [ ] 3.3 Move the remaining planning commands (legacy RECRUIT, RESEARCH, INTEGRATE_CITY, treaties proposed in PLANNING) into their intended phases and add per-phase command limits; urban actions, orders, diplomacy, conflicts and maintenance already have their own phases; gate: phase tests.
+- [x] 3.4 Fix round-report arithmetic for seven resources and storage discards; gate: `tests/alpha-report.test.ts` (7 tests). Reports are built at END_ROUND from a per-round ledger (production, mining, trade, institutions, other, losses, expenses, upkeep, discarded); old reports still parse. The report keeps the legacy five-resource vocabulary (materials = wood + stone + metal); a per-resource seven-column report is left to the interface work in H.
 - [ ] 3.5 Correct Hegemony copy and error text to the six-era structure; keep the Scientific path metric aligned with the Ascension tier; gate: hegemony tests, copy grep.
-- [ ] 3.6 Extend the scripted full-match scenario to run through all eight phases and finish; gate: `tests/alpha-match.test.ts` twice deterministic.
+- [x] 3.6 Extend the scripted full-match scenario to run through all eight phases and finish; gate: `tests/alpha-match.test.ts` twice deterministic (the scenario now takes PRODUCE and SUPPORT_TRADE urban actions every round).
 
 ## 4. D. Combat
 
@@ -41,7 +41,7 @@
 
 ## 6. F. World systems
 
-- [ ] 6.1 Implement the world pulse draw, apply, discard and deterministic reshuffle; gate: determinism test.
+- [x] 6.1 Implement the world pulse draw, apply, discard and deterministic reshuffle; gate: determinism and exhaustion tests in `tests/alpha-phases.test.ts`. Catalog unchanged: 24 single-module cards.
 - [ ] 6.2 Implement `INDEPENDENT_ACTION` for trade, negotiate, influence, protect, integrate, conquer with fog-safe results; gate: independent-people tests.
 - [ ] 6.3 Implement raid-band movement and attacks; gate: deterministic raid test.
 - [ ] 6.4 Implement `PROPOSE_TRADE` and `RESPOND_TRADE` for the four offer types, with settle and default; gate: trade tests.
@@ -66,8 +66,8 @@
 
 ## 9. I. PostgreSQL
 
-- [ ] 9.1 Obtain a dedicated database URL from the owner; do not invent one; gate: `ALPHA_TEST_DATABASE_URL` present.
-- [ ] 9.2 Deploy the additive migration to that database and run `npm run test:db`; gate: suite green.
+- [ ] 9.1 Run the integration suite on the Docker `db-test` container (`npm run test:db:docker`). Infra is written (`docker-compose.yml`, `scripts/test-db.mjs`, `.env.example`, `docs/database-local.md`) but Docker is not installed on this machine, so it is unexecuted; the suite has passed only on an embedded PostgreSQL 18 binary. Supabase is never used for tests; gate: `npm run test:db:docker` green.
+- [ ] 9.2 Apply the additive migrations to the Docker dev database (`npm run db:up`, `npm run db:deploy`) and to a fresh `db-test`; gate: `prisma migrate status` up to date on both. (Verified so far on the embedded binary: 3 migrations apply and status is up to date.)
 - [ ] 9.3 Add a v4-row read, migrate and save test on real PostgreSQL; gate: `tests/alpha-postgres.db.integration.ts`.
 - [ ] 9.4 Add concurrent-save and restart-durability tests; gate: same suite.
 - [ ] 9.5 Verify 503 when database or secret is missing; gate: HTTP test.

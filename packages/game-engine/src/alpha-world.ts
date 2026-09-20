@@ -1,4 +1,4 @@
-import { REGION_TEMPLATES, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainType } from '@aoh/game-domain';
+import { REGION_TEMPLATES, templateMetalDeposit, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
@@ -11,18 +11,19 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   const frontier=REGION_TEMPLATES.filter(r=>r.kind==='FRONTIER');
   for(let i=frontier.length-1;i>0;i--){const j=alphaRandomInteger(random,i+1);[frontier[i],frontier[j]]=[frontier[j]!,frontier[i]!];}
   const homes=[[0,0],[5,4],[0,4],[5,0],[2,0],[3,4]] as const;
-  const regions:AlphaState['regions']=[];const map:{id:string;q:number;r:number;terrain:TerrainType}[]=[];let index=0;
+  const regions:AlphaState['regions']=[];const map:{id:string;q:number;r:number;terrain:TerrainType;features:string[]}[]=[];let index=0;
   for(let r=0;r<5;r++)for(let q=0;q<6;q++) {
     const home=homes.findIndex(([hq,hr])=>hq===q&&hr===r);
     const template=home>=0?REGION_TEMPLATES[home]!:frontier[index++]!;
     const center={q:q*3,r:r*3};const points=[center,...hexNeighbors(center)];
     regions.push({id:`region-${q}-${r}`,templateId:template.id,hexIds:points.map(hexId),rotation:0,revealedBy:home>=0&&home<input.players.length?[PlayerIdSchema.parse(input.players[home]!.id)]:[]});
+    const deposit=templateMetalDeposit(template);
     points.forEach((p,i)=>{
       let terrain=template.terrain[i]!;const preset=input.worldPreset??'MIXED';
       if(preset==='CONTINENTAL'&&terrain==='SEA')terrain=(p.q+p.r+input.seed)%2===0?'PLAINS':'COAST';
-      if(preset==='ARCHIPELAGO'&&terrain!=='MOUNTAINS'&&(Math.abs(p.q*17+p.r*31+input.seed)%5)<2)terrain='SEA';
+      if(preset==='ARCHIPELAGO'&&!(home>=0&&i===0)&&terrain!=='MOUNTAINS'&&(Math.abs(p.q*17+p.r*31+input.seed)%5)<2)terrain='SEA';
       if(preset==='INLAND_SEA'&&q>=2&&q<=3&&r>=1&&r<=3)terrain=i===0?'SEA':'COAST';
-      map.push({...p,id:hexId(p),terrain});
+      map.push({...p,id:hexId(p),terrain,features:i===deposit&&(terrain==='HILLS'||terrain==='MOUNTAINS')?['METAL']:[]});
     });
   }
   const created=createGame({gameId:input.gameId,seed:input.seed,map,

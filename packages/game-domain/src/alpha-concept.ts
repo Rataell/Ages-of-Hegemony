@@ -58,6 +58,8 @@ export const AlphaBuildingSchema = z.enum([
   'PORT', 'SHIPYARD', 'LIGHTHOUSE',
 ]);
 export const FortificationLevelSchema = z.enum(['NONE', 'PALISADE', 'STONE_WALL', 'FORTRESS', 'BASTION', 'CITADEL']);
+export const FORTIFICATION_UPGRADES = ['PALISADE', 'STONE_WALL', 'FORTRESS', 'BASTION', 'CITADEL'] as const;
+export const FortificationUpgradeSchema = z.enum(FORTIFICATION_UPGRADES);
 export const FortificationStateSchema = z.enum(['INTACT', 'DAMAGED', 'BREACHED']);
 export const CulturalPresenceLevelSchema = z.enum(['CONTACT', 'ROOTED', 'PREDOMINANT']);
 export const CulturalPresenceSchema = z.strictObject({ civilizationId: IdentifierSchema, level: CulturalPresenceLevelSchema });
@@ -170,6 +172,17 @@ export const AlphaBalanceSchema = z.strictObject({
   cultureSlots: z.literal(3),
   cultureDice: z.literal(2),
   integrationPerAction: P,
+  /** Metal produced by each PRODUCE action for every worked hex that has both a metal deposit and a Mine. */
+  metalPerMine: P,
+  /** CIVIC_ACTION in an owned city: influence gained and local cohesion added. */
+  civicInfluence: P,
+  civicCohesion: P,
+  /** PROMOTE_MOOD (public investment) raises mood by one and can never carry a city above this mood on its own. */
+  promoteMoodCeiling: z.number().int().min(1).max(6),
+  /** Maximum hex distance from a starting city within which a metal deposit must exist on generated maps. */
+  metalAccessDistance: P,
+  /** Fortification upgrades a BUILD action can add, in order. Advanced levels demand metal. */
+  fortification: z.record(FortificationUpgradeSchema, z.strictObject({ cost: ResourcePoolSchema, metal: N, era: AlphaEraSchema, militaryDistrict: z.boolean() })),
 });
 export type AlphaBalance = z.infer<typeof AlphaBalanceSchema>;
 
@@ -201,6 +214,18 @@ export function alphaBalance(): AlphaBalance {
     cultureSlots: 3,
     cultureDice: 2,
     integrationPerAction: 25,
+    metalPerMine: 1,
+    civicInfluence: 1,
+    civicCohesion: 10,
+    promoteMoodCeiling: 5,
+    metalAccessDistance: 6,
+    fortification: {
+      PALISADE: { cost: { food: 0, materials: 2, wealth: 0, knowledge: 0, influence: 0 }, metal: 0, era: 'FOUNDATION', militaryDistrict: false },
+      STONE_WALL: { cost: { food: 0, materials: 4, wealth: 0, knowledge: 0, influence: 0 }, metal: 0, era: 'EXPANSION', militaryDistrict: false },
+      FORTRESS: { cost: { food: 0, materials: 5, wealth: 1, knowledge: 0, influence: 0 }, metal: 1, era: 'CIVILIZATION', militaryDistrict: true },
+      BASTION: { cost: { food: 0, materials: 6, wealth: 2, knowledge: 0, influence: 0 }, metal: 2, era: 'EMPIRES', militaryDistrict: true },
+      CITADEL: { cost: { food: 0, materials: 8, wealth: 3, knowledge: 0, influence: 0 }, metal: 3, era: 'ASCENSION', militaryDistrict: true },
+    },
   });
 }
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { completeRound } from './alpha-rounds.js';
 import { AlphaStateSchema, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, hegemonyProgress, hegemonyWinner, refreshHegemony } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
@@ -18,9 +19,7 @@ function declare(state:AlphaState,index=0):AlphaState {
   if(!result.ok)throw new Error(result.error.message);return result.value;
 }
 function readyRound(input:AlphaState):AlphaState {
-  let state=input;
-  for(const actor of input.initiative){const result=applyAlphaCommand(state,actor,{type:'READY',expectedVersion:state.version});if(!result.ok)throw new Error(result.error.message);state=result.value;}
-  return state;
+  return completeRound(input,{order:input.initiative});
 }
 describe('hegemony declaration and uninterrupted consolidation',()=>{
   it('requires era V and permits one public path only',()=>{

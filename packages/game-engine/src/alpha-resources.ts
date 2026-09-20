@@ -1,23 +1,52 @@
 import {
-  ALPHA_RESOURCE_KEYS, alphaToLegacyResources, emptyAlphaResourcePool, legacyToAlphaResources,
-  type AlphaResourcePool, type AlphaState, type PlayerId, type ResourcePool,
+  ALPHA_RESOURCE_KEYS, RESOURCE_KEYS, alphaToLegacyResources, emptyAlphaResourcePool, legacyToAlphaResources,
+  type AlphaResourcePool, type AlphaState, type PlayerId, type ResourcePool, type RoundLedger,
 } from '@aoh/game-domain';
 import { sum } from './arithmetic.js';
 
-export function alphaCost(cost: ResourcePool | AlphaResourcePool): AlphaResourcePool {
-  if ('materials' in cost) {
-    return {
-      food: cost.food,
-      wood: Math.ceil(cost.materials / 2),
-      stone: Math.floor(cost.materials / 2),
-      metal: cost.materials >= 4 ? 1 : 0,
-      wealth: cost.wealth,
-      knowledge: cost.knowledge,
-      influence: cost.influence,
-    };
+/**
+ * Converts a cost to the seven-resource shape. A generic legacy `materials` cost never invents a metal requirement:
+ * it is split evenly, or, when the payer's pool is known, taken from wood, then stone, then metal, with any shortfall
+ * left on wood so the wealth-substitution rule prices it.
+ */
+export function alphaCost(cost: ResourcePool | AlphaResourcePool, available?: AlphaResourcePool): AlphaResourcePool {
+  if (!('materials' in cost)) return { ...cost };
+  let wood = Math.ceil(cost.materials / 2), stone = Math.floor(cost.materials / 2), metal = 0;
+  if (available) {
+    wood = Math.min(cost.materials, available.wood);
+    stone = Math.min(cost.materials - wood, available.stone);
+    metal = Math.min(cost.materials - wood - stone, available.metal);
+    wood += cost.materials - wood - stone - metal;
   }
-  return { ...cost };
+  return { food: cost.food, wood, stone, metal, wealth: cost.wealth, knowledge: cost.knowledge, influence: cost.influence };
 }
+
+const zeroPool = (): ResourcePool => ({ food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 });
+const toLegacy = (pool: Partial<AlphaResourcePool>): ResourcePool => ({
+  food: pool.food ?? 0, materials: (pool.wood ?? 0) + (pool.stone ?? 0) + (pool.metal ?? 0), wealth: pool.wealth ?? 0, knowledge: pool.knowledge ?? 0, influence: pool.influence ?? 0,
+});
+export type LedgerGain = 'production' | 'mining' | 'trade' | 'institutions' | 'other';
+export type LedgerLoss = 'losses' | 'expenses' | 'upkeepPaid' | 'discarded';
+
+/**
+ * The player's ledger for the current round. It is created before the first mutation of the round (so its opening balance is
+ * the balance before that change) and every gain, spend, loss, upkeep payment and storage discard is added to it. The round
+ * report is built from it, so the report equation holds by construction.
+ */
+export function ledgerOf(state: AlphaState, actor: PlayerId): RoundLedger {
+  const round = state.core.round;
+  const existing = state.roundLedgers.find(entry => entry.playerId === actor && entry.round === round);
+  if (existing) return existing;
+  const pool = state.players.find(player => player.playerId === actor)?.resources ?? emptyAlphaResourcePool();
+  const ledger: RoundLedger = {
+    playerId: actor, round, opening: toLegacy(pool), production: zeroPool(), mining: zeroPool(), trade: zeroPool(), institutions: zeroPool(), other: zeroPool(),
+    losses: zeroPool(), expenses: zeroPool(), upkeepRequired: zeroPool(), upkeepPaid: zeroPool(), discarded: zeroPool(), institutionsCollected: false,
+    cities: (state.core.players.find(player => player.id === actor)?.civilization.cities ?? []).map(city => ({ cityId: city.id, population: city.population, stability: city.stability })),
+  };
+  state.roundLedgers.push(ledger);
+  return ledger;
+}
+function addLedger(target: ResourcePool, amount: ResourcePool): void { for (const key of RESOURCE_KEYS) target[key] += amount[key]; }
 
 export function syncLegacyResources(state: AlphaState, actor: PlayerId): void {
   const strategic = state.players.find(player => player.playerId === actor);
@@ -28,7 +57,7 @@ export function syncLegacyResources(state: AlphaState, actor: PlayerId): void {
 export function alphaCanAfford(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool): boolean {
   const pool = state.players.find(player => player.playerId === actor)?.resources;
   if (!pool) return false;
-  const cost = alphaCost(rawCost);
+  const cost = alphaCost(rawCost, pool);
   if (pool.food < cost.food || pool.knowledge < cost.knowledge || pool.influence < cost.influence) return false;
   const shortages = (['wood', 'stone', 'metal'] as const).reduce((total, key) => total + Math.max(0, cost[key] - pool[key]), 0);
   const materialCost = cost.wood + cost.stone + cost.metal;
@@ -39,7 +68,9 @@ export function alphaCanAfford(state: AlphaState, actor: PlayerId, rawCost: Reso
 export function alphaPay(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool): void {
   const player = state.players.find(candidate => candidate.playerId === actor);
   if (!player || !alphaCanAfford(state, actor, rawCost)) throw new Error('Recursos insuficientes para esta ação.');
-  const cost = alphaCost(rawCost);
+  const ledger = ledgerOf(state, actor);
+  const before = toLegacy(player.resources);
+  const cost = alphaCost(rawCost, player.resources);
   player.resources.food -= cost.food;
   player.resources.knowledge -= cost.knowledge;
   player.resources.influence -= cost.influence;
@@ -50,15 +81,22 @@ export function alphaPay(state: AlphaState, actor: PlayerId, rawCost: ResourcePo
     wealth += (cost[key] - paid) * state.rules.balance.wealthConversionRate;
   }
   player.resources.wealth -= wealth;
+  const after = toLegacy(player.resources);
+  addLedger(ledger.expenses, { food: before.food - after.food, materials: before.materials - after.materials, wealth: before.wealth - after.wealth, knowledge: before.knowledge - after.knowledge, influence: before.influence - after.influence });
   syncLegacyResources(state, actor);
 }
 
-export function alphaGain(state: AlphaState, actor: PlayerId, gain: Partial<AlphaResourcePool>): void {
+/**
+ * Adds resources. Storage caps apply immediately (overflow is discarded and recorded as an event) unless the caller is a
+ * round-maintenance step that defers enforcement to one recorded pass at the end of maintenance.
+ */
+export function alphaGain(state: AlphaState, actor: PlayerId, gain: Partial<AlphaResourcePool>, options: { enforceStorage?: boolean; category?: LedgerGain } = {}): void {
   const player = state.players.find(candidate => candidate.playerId === actor);
   if (!player) throw new Error('Civilização desconhecida.');
+  addLedger(ledgerOf(state, actor)[options.category ?? 'other'], toLegacy(gain));
   for (const key of ALPHA_RESOURCE_KEYS) player.resources[key] = sum([player.resources[key], gain[key] ?? 0]);
-  enforceStorage(state, actor);
   syncLegacyResources(state, actor);
+  if (options.enforceStorage ?? true) enforceStorageRecorded(state, actor);
 }
 
 export function alphaStorageCapacity(state: AlphaState, actor: PlayerId) {
@@ -93,6 +131,49 @@ export function enforceStorage(state: AlphaState, actor: PlayerId): AlphaResourc
   return discarded;
 }
 
+/** Discarded amounts in the legacy five-resource vocabulary used by round reports (materials = wood + stone + metal). */
+export function discardedToLegacy(discarded: AlphaResourcePool): ResourcePool {
+  return { food: discarded.food, materials: discarded.wood + discarded.stone + discarded.metal, wealth: discarded.wealth, knowledge: discarded.knowledge, influence: discarded.influence };
+}
+
+/** Applies storage caps, keeps the legacy view in sync and records any discard in the event log. */
+export function enforceStorageRecorded(state: AlphaState, actor: PlayerId): AlphaResourcePool {
+  const discarded = enforceStorage(state, actor);
+  const lost = ALPHA_RESOURCE_KEYS.filter(key => discarded[key] > 0);
+  if (lost.length === 0) return discarded;
+  addLedger(ledgerOf(state, actor).discarded, discardedToLegacy(discarded));
+  syncLegacyResources(state, actor);
+  const labels: Record<string, string> = { food: 'Alimentos', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência' };
+  state.events.push({
+    id: `event-${state.events.length + 1}`, round: state.core.round, type: 'STORAGE_DISCARD', audience: [actor],
+    message: `Armazenamento cheio; descartado: ${lost.map(key => `${discarded[key]} ${labels[key]}`).join(', ')}.`,
+  });
+  return discarded;
+}
+
+export interface MetalSite { cityId: string; hexId: string }
+
+/**
+ * Metal needs three things together: a Producer assigned to work the hex, a metal deposit on it and a Mine on it.
+ * A generic producer, a deposit without a Mine or a Mine without a deposit yields no metal. Occupied cities extract nothing
+ * until integrated.
+ */
+export function metalSites(state: AlphaState, actor: PlayerId): MetalSite[] {
+  const owner = state.core.players.find(player => player.id === actor);
+  if (!owner) return [];
+  const sites: MetalSite[] = [];
+  for (const city of owner.civilization.cities) {
+    if (state.occupations.some(occupation => occupation.cityId === city.id)) continue;
+    let producers = city.workers.producers;
+    for (const hexId of city.workedHexIds) {
+      const tile = state.core.map.find(candidate => candidate.id === hexId);
+      if (producers <= 0 || !tile || tile.ownerId !== actor || tile.controllerCityId !== city.id) continue;
+      if (tile.features.includes('METAL') && tile.improvement === 'MINE') { sites.push({ cityId: city.id, hexId }); producers--; }
+    }
+  }
+  return sites;
+}
+
 export function initializeAlphaResources(state: AlphaState): void {
   for (const player of state.players) {
     if (ALPHA_RESOURCE_KEYS.every(key => player.resources[key] === 0)) {
@@ -103,25 +184,73 @@ export function initializeAlphaResources(state: AlphaState): void {
   }
 }
 
-/**
- * Transitional bridge: economy code that still mutates the legacy five-resource pool leaves it ahead of or behind the
- * authoritative seven-resource pool. Because every alpha spend re-syncs the legacy view, the remaining difference is
- * exactly the unabsorbed legacy change; fold it into the seven-resource pool so no production or income is lost.
- */
-export function reconcileLegacyPools(state: AlphaState): void {
-  for (const player of state.players) {
-    const legacy = state.core.players.find(candidate => candidate.id === player.playerId);
-    if (!legacy) continue;
-    const derived = alphaToLegacyResources(player.resources);
-    for (const key of ['food', 'wealth', 'knowledge', 'influence'] as const) player.resources[key] = Math.max(0, player.resources[key] + legacy.resources[key] - derived[key]);
-    let materials = legacy.resources.materials - derived.materials;
-    if (materials > 0) { player.resources.wood += Math.ceil(materials / 2); player.resources.stone += Math.floor(materials / 2); }
-    for (const key of ['wood', 'stone', 'metal'] as const) {
-      if (materials >= 0) break;
-      const taken = Math.min(player.resources[key], -materials);
-      player.resources[key] -= taken;
-      materials += taken;
-    }
-    syncLegacyResources(state, player.playerId);
+const legacyPool = (pool: Partial<ResourcePool>): ResourcePool => ({ food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0, ...pool });
+
+/** Gain expressed in the legacy five-resource vocabulary that authored content still uses (for example `materials`). */
+export function alphaGainLegacy(state: AlphaState, actor: PlayerId, gain: Partial<ResourcePool>, options: { enforceStorage?: boolean; category?: LedgerGain } = {}): void {
+  alphaGain(state, actor, legacyToAlphaResources(legacyPool(gain)), options);
+}
+
+/** Pays as much of a legacy-shaped charge as the player holds and returns what was paid (upkeep never fails outright). */
+export function alphaDrain(state: AlphaState, actor: PlayerId, charge: ResourcePool, category: 'expenses' | 'upkeepPaid' = 'expenses'): ResourcePool {
+  const player = state.players.find(candidate => candidate.playerId === actor);
+  if (!player) throw new Error('Civilização desconhecida.');
+  const ledger = ledgerOf(state, actor);
+  const paid: ResourcePool = { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 };
+  for (const key of ['food', 'wealth', 'knowledge', 'influence'] as const) {
+    paid[key] = Math.min(player.resources[key], charge[key]);
+    player.resources[key] -= paid[key];
   }
+  let materials = charge.materials;
+  for (const key of ['wood', 'stone', 'metal'] as const) {
+    const taken = Math.min(player.resources[key], materials);
+    player.resources[key] -= taken;
+    materials -= taken;
+    paid.materials += taken;
+  }
+  addLedger(ledger[category], paid);
+  syncLegacyResources(state, actor);
+  return paid;
+}
+
+/** Involuntary loss (for example a world event): takes what is there, never below zero, and records it as a loss. */
+export function alphaLose(state: AlphaState, actor: PlayerId, loss: Partial<AlphaResourcePool>): void {
+  const player = state.players.find(candidate => candidate.playerId === actor);
+  if (!player) throw new Error('Civilização desconhecida.');
+  const ledger = ledgerOf(state, actor);
+  const taken: Partial<AlphaResourcePool> = {};
+  for (const key of ALPHA_RESOURCE_KEYS) {
+    const amount = Math.min(player.resources[key], loss[key] ?? 0);
+    player.resources[key] -= amount;
+    taken[key] = amount;
+  }
+  addLedger(ledger.losses, toLegacy(taken));
+  syncLegacyResources(state, actor);
+}
+
+/** A legacy-shaped cost plus metal, resolved against the payer's pool so wood and stone are spent before metal. */
+export function alphaCostWithMetal(state: AlphaState, actor: PlayerId, cost: ResourcePool, metal: number): AlphaResourcePool {
+  const pool = state.players.find(candidate => candidate.playerId === actor)?.resources ?? emptyAlphaResourcePool();
+  const base = alphaCost(cost, pool);
+  return { ...base, metal: base.metal + metal };
+}
+
+/**
+ * TRANSITIONAL ADAPTER for the legacy economic core, which the local slice still shares and which mutates its own
+ * five-resource pool (claims, improvements, districts, founding, maintenance production). Call it immediately after such a
+ * reducer with the pool captured just before: the net change is routed through alphaGain/alphaDrain so the seven-resource
+ * pool stays the single authority. Alpha-owned producers and spenders must NOT use it; they call alphaGain/alphaPay.
+ * Remove once the core reducer is v5-aware (task 2.3).
+ */
+export function commitLegacyReducer(state: AlphaState, actor: PlayerId, before: ResourcePool): void {
+  const legacy = state.core.players.find(candidate => candidate.id === actor);
+  if (!legacy) return;
+  const after = { ...legacy.resources };
+  const gain: Partial<ResourcePool> = {}, loss = legacyPool({});
+  for (const key of RESOURCE_KEYS) {
+    if (after[key] > before[key]) gain[key] = after[key] - before[key];
+    else loss[key] = before[key] - after[key];
+  }
+  alphaDrain(state, actor, loss);
+  alphaGainLegacy(state, actor, gain, { enforceStorage: false });
 }

@@ -23,6 +23,15 @@ export function AlphaCity({game,city,locked,send,manage}:Panel&{city:CityState;m
   </section>;
 }
 
+/** Compact urban-action controls, shown only while cities can act. Cost and availability are enforced by the server. */
+export function AlphaUrban({game,locked,send,cityId}:Panel&{cityId:string}){
+  if(game.phase!=='URBAN_ACTIONS')return null;
+  const state=game.cityStates.find(c=>c.cityId===cityId);
+  if(!state)return null;
+  const used=state.urbanActionsUsed>=game.rules.balance.cityActions,occupied=state.status==='OCCUPIED';
+  const actions=occupied?['CIVIC_ACTION']:['PRODUCE','PROMOTE_MOOD','SUPPORT_TRADE','CIVIC_ACTION'];
+  return <section className="alpha-panel" aria-label="Ação urbana"><h3>Ação urbana</h3><p>{used?'Esta cidade já agiu nesta rodada.':occupied?`Cidade ocupada · integração ${state.integration}%`:'Escolha uma ação para a cidade. Sem ação, ela não produz.'}</p><div className="alpha-option">{actions.map(action=><button key={action} disabled={locked||used} onClick={()=>void send({type:'URBAN_ACTION',cityId,action})}>{text(action)}</button>)}</div></section>;
+}
 export function AlphaInstitutions({game,locked,send,section}:Panel&{section:'research'|'era'}){
   const [search,setSearch]=useState(''),[domain,setDomain]=useState('all');
   const identity=CIVILIZATIONS.find(c=>c.id===game.self.civilization);

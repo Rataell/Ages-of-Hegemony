@@ -1,0 +1,44 @@
+# Local PostgreSQL for development and integration tests only. Web and server are NOT containerized here.
+# The credentials below are throwaway local values, not secrets. Never point these services at a public network.
+name: aoh
+
+services:
+  db-dev:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aoh
+      POSTGRES_PASSWORD: aoh
+      POSTGRES_DB: aoh
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - aoh-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aoh -d aoh"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 3s
+
+  # Disposable test database: data lives in RAM (tmpfs) and disappears when the container is removed.
+  db-test:
+    image: postgres:17-alpine
+    profiles: ["test"]
+    environment:
+      POSTGRES_USER: aoh
+      POSTGRES_PASSWORD: aoh
+      POSTGRES_DB: aoh_test
+    ports:
+      - "127.0.0.1:5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aoh -d aoh_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+
+volumes:
+  aoh-dev-data:

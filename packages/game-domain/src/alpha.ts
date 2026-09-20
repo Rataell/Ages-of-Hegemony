@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { CityIdSchema, GameIdSchema, HexIdSchema, IdentifierSchema, NonNegativeIntegerSchema as N, PlayerIdSchema, PositiveIntegerSchema as P, ResourcePoolSchema } from './core.js';
+import { CityIdSchema, GameIdSchema, HexIdSchema, IdentifierSchema, NonNegativeIntegerSchema as N, PlayerIdSchema, PositiveIntegerSchema as P, ResourcePoolSchema, emptyResourcePool } from './core.js';
 import { GameCommandSchema, GameStateSchema } from './model.js';
 import { AlphaUnitClassSchema, UnitCatalogEntrySchema, alphaUnitCatalog } from './alpha-catalog.js';
 import { ADVANCEMENTS, CIVILIZATIONS, AlphaEffectSchema } from './alpha-institutions.js';
 import { ALPHA_CARDS, GREAT_PROJECTS } from './alpha-cards.js';
-import { EconomyBreakdownSchema } from './territory.js';
+import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
   ALPHA_ERA_MILESTONES, AlphaBalanceSchema, AlphaCitySchema, AlphaEraMilestoneSchema, AlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
   BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, RaidBandSchema, TacticalFaceSchema,
@@ -51,6 +51,21 @@ export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD
     worldPreset,balance:alphaBalance(),milestones:structuredClone(ALPHA_ERA_MILESTONES),
     combat: { dice: 2, sides: 6, mediumMargin: 3, largeMargin: 6, unsuppliedPenalty: 2, hillDefense: 1, mountainDefense: 2, postureAdvantage:1 } });
 }
+export const UrbanBuildTargetSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('DISTRICT'), district: DistrictTypeSchema }),
+  z.strictObject({ kind: z.literal('BUILDING'), building: BuildingTypeSchema }),
+  z.strictObject({ kind: z.literal('FORTIFICATION') }),
+]);
+/** Resources a player gained or lost during one round, by cause. Report arithmetic is verified against this. */
+export const RoundLedgerSchema = z.strictObject({
+  playerId: PlayerIdSchema, round: P, opening: ResourcePoolSchema,
+  production: ResourcePoolSchema, mining: ResourcePoolSchema, trade: ResourcePoolSchema, institutions: ResourcePoolSchema, other: ResourcePoolSchema,
+  losses: ResourcePoolSchema, expenses: ResourcePoolSchema, upkeepRequired: ResourcePoolSchema, upkeepPaid: ResourcePoolSchema, discarded: ResourcePoolSchema,
+  /** Persistent institutional production (civilization passives, advancements, projects, advisors) is credited once per round, on the player's first PRODUCE. */
+  institutionsCollected: z.boolean().default(false),
+  cities: z.array(z.strictObject({ cityId: CityIdSchema, population: N, stability: N })),
+});
+export type RoundLedger = z.infer<typeof RoundLedgerSchema>;
 export const UnitClassSchema = AlphaUnitClassSchema;
 export const UnitSchema = z.strictObject({ id: IdentifierSchema, ownerId: PlayerIdSchema, kind: UnitClassSchema, hexId: HexIdSchema, recruitedRound: P });
 export type AlphaUnit = z.infer<typeof UnitSchema>;
@@ -99,8 +114,9 @@ export const AlphaStateSchema = z.strictObject({
   independents:z.array(IndependentPeopleSchema).default([]),
   raidBands:z.array(RaidBandSchema).default([]),
   worldPulse:z.strictObject({deck:z.array(IdentifierSchema),discard:z.array(IdentifierSchema),current:WorldPulseCardSchema.nullable(),resolvedRound:N}).default({deck:[],discard:[],current:null,resolvedRound:0}),
+  roundLedgers:z.array(RoundLedgerSchema).default([]),
   telemetry:AlphaTelemetrySchema,
-  roundReports:z.array(z.strictObject({playerId:PlayerIdSchema,round:P,opening:ResourcePoolSchema,institutions:ResourcePoolSchema,trade:ResourcePoolSchema,economy:EconomyBreakdownSchema.nullable(),upkeepRequired:ResourcePoolSchema,upkeepPaid:ResourcePoolSchema,closing:ResourcePoolSchema,
+  roundReports:z.array(z.strictObject({playerId:PlayerIdSchema,round:P,opening:ResourcePoolSchema,institutions:ResourcePoolSchema,trade:ResourcePoolSchema,mining:ResourcePoolSchema.default(emptyResourcePool),production:ResourcePoolSchema.default(emptyResourcePool),other:ResourcePoolSchema.default(emptyResourcePool),losses:ResourcePoolSchema.default(emptyResourcePool),expenses:ResourcePoolSchema.default(emptyResourcePool),discarded:ResourcePoolSchema.default(emptyResourcePool),economy:EconomyBreakdownSchema.nullable(),upkeepRequired:ResourcePoolSchema,upkeepPaid:ResourcePoolSchema,closing:ResourcePoolSchema,
     cities:z.array(z.strictObject({cityId:CityIdSchema,populationBefore:N,populationAfter:N,stabilityBefore:N,stabilityAfter:N})),administrativeLoad:N,administrativeCapacity:N})),
   battles:z.array(z.strictObject({id:IdentifierSchema,round:P,hexId:HexIdSchema,attackerId:PlayerIdSchema,defenderId:PlayerIdSchema,
     attackerUnits:z.array(IdentifierSchema),defenderUnits:z.array(IdentifierSchema),
@@ -120,7 +136,7 @@ export const AlphaStateSchema = z.strictObject({
   for(const report of state.roundReports){
     if(!owners.has(report.playerId)||report.round>state.core.round)fail('Invalid round report');
     for(const key of ['food','materials','wealth','knowledge','influence'] as const){
-      const expected=report.opening[key]+report.institutions[key]+report.trade[key]+(report.economy?.netChange[key]??0)-report.upkeepPaid[key];
+      const expected=report.opening[key]+report.institutions[key]+report.trade[key]+report.mining[key]+report.production[key]+report.other[key]+(report.economy?.netChange[key]??0)-report.losses[key]-report.expenses[key]-report.upkeepPaid[key]-report.discarded[key];
       if(expected!==report.closing[key]||report.upkeepPaid[key]>report.upkeepRequired[key])fail('Round report arithmetic mismatch');
     }
   }
@@ -177,7 +193,7 @@ export const AlphaStateSchema = z.strictObject({
 });
 export type AlphaState = z.infer<typeof AlphaStateSchema>;
 export const AlphaCommandSchema = z.discriminatedUnion('type', [
-  z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,cityId:CityIdSchema,action:UrbanActionTypeSchema}),
+  z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),advancementId:IdentifierSchema.optional()}),
   z.strictObject({type:z.literal('PROPOSE_TRADE'),expectedVersion:N,recipientId:PlayerIdSchema,offerType:z.enum(['TRADE_INSTANT','GIFT','FUTURE_PROMISE','LOAN']),offer:AlphaResourcePoolSchema,request:AlphaResourcePoolSchema,treatyTerms:z.array(IdentifierSchema).max(4),dueRound:P.nullable()}),
   z.strictObject({type:z.literal('RESPOND_TRADE'),expectedVersion:N,offerId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('CONTEST_PRESENCE'),expectedVersion:N,cityId:CityIdSchema,defenderCivilizationId:IdentifierSchema}),

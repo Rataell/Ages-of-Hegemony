@@ -8,7 +8,7 @@ Use npm. `npm run dev:web` compila os pacotes e inicia Next. A slice de desenvol
 
 - `npm test`: regressão da engine, migração, catálogos, projeções, HTTP, serviço, cidades, guerra, diplomacia, Hegemonia e cenário completo.
 - `npm run test:e2e`: slice local e dois contextos alpha independentes. Usa porta 3107 e diretório `.next-e2e`, preservando o servidor de desenvolvimento na porta 3000.
-- `npm run test:db`: integração PostgreSQL explícita. Exige `ALPHA_TEST_DATABASE_URL` de banco dedicado já migrado. Consulte [supabase.md](supabase.md).
+- `npm run test:db:docker`: sobe um PostgreSQL efêmero em Docker (porta 5433), aplica as migrations e roda a integração. `npm run test:db` usa um `ALPHA_TEST_DATABASE_URL` local já migrado. Ambos recusam hosts não locais; o Supabase da alpha nunca é usado. Consulte [database-local.md](database-local.md) e [supabase.md](supabase.md).
 - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:validate` e `git diff --check`: gates adicionais.
 - `npm run db:deploy`: aplicar migrations no destino alpha identificado. Não executar `migrate dev` nem `migrate reset` em ambiente público.
 

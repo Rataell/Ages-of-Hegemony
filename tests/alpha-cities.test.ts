@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { completeRound } from './alpha-rounds.js';
 import { AlphaStateSchema, GameStateSchema, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createGame, integrateCity, migrateSnapshotV3ToV4, occupyCity, refreshKnowledge, serializeAlphaState } from '@aoh/game-engine';
 function setup():AlphaState {
@@ -31,7 +32,7 @@ describe('alpha city capture and integration',()=>{
     expect(applyAlphaCommand(state,actor,{type:'RECRUIT',expectedVersion:state.version,cityId,kind:'INFANTRY'}).ok).toBe(false);
     expect(applyAlphaCommand(state,actor,{type:'MANAGE',expectedVersion:state.version,command:{type:'DEVELOP_CITY',playerId:actor,cityId,expectedVersion:state.core.version}}).ok).toBe(false);
     expect(()=>integrateCity(state,actor,cityId)).toThrow('rodada seguinte');
-    for(const id of state.initiative){const result=applyAlphaCommand(state,id,{type:'READY',expectedVersion:state.version});if(!result.ok)throw new Error(result.error.message);state=result.value;}
+    state=completeRound(state);
     const before=state.core.players[0]!.resources.influence;
     const integrated=applyAlphaCommand(state,actor,{type:'INTEGRATE_CITY',expectedVersion:state.version,cityId});
     if(!integrated.ok)throw new Error(integrated.error.message);

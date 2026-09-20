@@ -34,7 +34,7 @@ The system SHALL cap stored resources by base capacity plus building bonuses and
 - **THEN** stored food equals capacity and the excess is discarded
 
 ### Requirement: Urban actions
-The system SHALL let each city take at most one urban action per round from produce, build, recruit, research, promote mood, support trade and civic action, and SHALL reset the counter each round.
+The system SHALL let each city take at most one urban action per round from produce, build, recruit, research, promote mood, support trade and civic action, validating actor, ownership, phase, remaining actions, resources, infrastructure and prerequisites on the server, and SHALL reset the counter when the urban phase opens. Occupied cities SHALL be limited to the civic action, which advances integration. Public investment SHALL raise mood by one and SHALL NOT lift a city above the configured ceiling by itself. Fortification upgrades and advanced pieces SHALL cost metal, all from one central Alpha table.
 
 #### Scenario: Second action in a round
 - **WHEN** a city that already acted submits another urban action
@@ -65,3 +65,32 @@ The system SHALL create city metadata when a pioneer founds a city and SHALL upd
 #### Scenario: Losing the last city
 - **WHEN** a player loses their final city but keeps a pioneer
 - **THEN** the player stays in the match and can found a new city
+
+### Requirement: Metal requires a deposit, a mine and a producer
+The system SHALL produce metal only when a worked hex of a non-occupied city has a metal deposit, a Mine and an assigned Producer, at the configured rate per hex per round, and SHALL NOT give a generic Producer, an unmined deposit or a deposit-less Mine any metal. No separate mining population role SHALL exist.
+
+#### Scenario: All three present
+- **WHEN** a Producer works a hex with a metal deposit and a Mine
+- **THEN** the owner gains the configured metal at round maintenance and the round report shows it as mining
+
+#### Scenario: Missing element
+- **WHEN** the hex lacks the deposit, the Mine or an assigned Producer
+- **THEN** no metal is produced
+
+#### Scenario: Occupied city
+- **WHEN** the city is occupied and not integrated
+- **THEN** it produces no metal
+
+### Requirement: Generic material costs never demand metal
+The system SHALL pay a generic material cost from wood, then stone, then metal, and SHALL NOT add a metal requirement of its own.
+
+#### Scenario: Wood exhausted
+- **WHEN** a player without wood pays a generic material cost
+- **THEN** stone is spent first and metal only if stone is also short
+
+### Requirement: Storage discards are recorded
+The system SHALL record every storage discard, in an event for action-time gains and in the round report for maintenance gains, so reports still balance.
+
+#### Scenario: Maintenance overflow
+- **WHEN** maintenance production exceeds capacity
+- **THEN** the excess is discarded, the report's discarded amounts equal it and closing plus discarded reconciles with opening plus income minus upkeep

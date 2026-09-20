@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { completeRound } from './alpha-rounds.js';
 import { AlphaStateSchema, PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createGame, migrateSnapshotV3ToV4, resolveBattle, unitSupply, validateMilitaryOrder } from '@aoh/game-engine';
 const p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');
@@ -46,7 +47,7 @@ describe('alpha military pieces',()=>{
     let state=setup();state.units=[{id:'u1',ownerId:p1,kind:'INFANTRY',hexId:state.core.map[0]!.id,recruitedRound:1}];
     const queue=applyAlphaCommand(state,p1,{type:'QUEUE_ORDER',expectedVersion:0,order:{id:'move1',type:'MOVE',unitIds:['u1'],path:['1,0']}});
     if(!queue.ok)throw new Error(queue.error.message);state=queue.value;expect(state.units[0]?.hexId).toBe('0,0');
-    for(const actor of [p1,p2]){const result=applyAlphaCommand(state,actor,{type:'READY',expectedVersion:state.version});if(!result.ok)throw new Error(result.error.message);state=result.value;}
+    state=completeRound(state);
     expect(state.units[0]?.hexId).toBe('1,0');expect(state.core.round).toBe(2);
   });
 });

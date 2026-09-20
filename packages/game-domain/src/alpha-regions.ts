@@ -23,3 +23,14 @@ export const REGION_TEMPLATES:readonly RegionTemplate[]=[
   ...homeNames.map((name,i)=>({id:`homeland-${i+1}`,name,kind:'HOMELAND' as const,terrain:patterns[i]!})),
   ...frontierNames.map((name,i)=>({id:`frontier-${i+1}`,name,kind:'FRONTIER' as const,terrain:[...frontierPatterns[i]!].map(c=>terrainCode[c]!)})),
 ];
+
+/**
+ * Every region holds at most one metal deposit: its first mountain, otherwise its first hill. Regions with neither
+ * (for example the sixth homeland) have none, so those players must find metal elsewhere.
+ */
+export function templateMetalDeposit(template: RegionTemplate): number | null {
+  const mountain = template.terrain.indexOf('MOUNTAINS');
+  if (mountain >= 0) return mountain;
+  const hill = template.terrain.indexOf('HILLS');
+  return hill >= 0 ? hill : null;
+}

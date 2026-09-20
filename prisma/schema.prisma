@@ -23,3 +23,16 @@ model AlphaMatch {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+/// Original snapshots preserved before an in-place migration rewrites a match. Additive; never updated or deleted by the app.
+model AlphaMatchArchive {
+  id         String   @id @default(uuid())
+  matchId    String
+  version    BigInt
+  reason     String
+  snapshot   Json
+  archivedAt DateTime @default(now())
+
+  @@unique([matchId, version])
+  @@index([matchId])
+}

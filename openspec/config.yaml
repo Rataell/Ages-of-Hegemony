@@ -8,11 +8,13 @@ context: |
   (deterministic reducers, no I/O), apps/server (HTTP boundary, signed guest cookie, CAS persistence, Prisma/PostgreSQL),
   apps/web (Next.js; slice at `/`, alpha at `/alpha`, polling client, server-side projections), tests/ (vitest), e2e/ (Playwright).
   State: AlphaState schemaVersion 5 (seven resources, eight phases, six eras incl. ASCENSION, AlphaCity metadata,
-  world pulse, independents, raid bands). A legacy v3 economic core is still embedded; a transitional bridge
-  (reconcileLegacyPools) keeps the legacy five-resource pool and the authoritative seven-resource pool aligned.
+  world pulse, independents, raid bands). A legacy v3 economic core is still embedded; the seven-resource pool is authoritative;
+  alpha producers and spenders use alphaGain/alphaPay/alphaDrain, and commitLegacyReducer is a narrow transitional adapter
+  for the legacy core reducer (claims, districts, founding, maintenance) until the core is v5-aware.
   Boundaries: browser sends intent only; server identifies the player, loads the aggregate, runs the engine, validates,
   saves with compare-and-swap. Projections MUST NOT leak hands, ambitions, plans, RNG, decks or tokens.
-  Gates: npm run lint, typecheck, test, build, db:validate, test:e2e, test:db (needs ALPHA_TEST_DATABASE_URL), git diff --check.
+  Gates: npm run lint, typecheck, test, build, db:validate, test:e2e, test:db:docker (disposable local Docker PostgreSQL on port 5433;
+  test:db refuses non-local hosts), git diff --check. Supabase is only the Public Alpha database, never a test database.
   Shell: prefix commands with `rtk`. No deploy, push, commit or invented credentials without explicit user approval.
   Specs must describe REAL code state first; the Concept Bible is the target, not the baseline.
 

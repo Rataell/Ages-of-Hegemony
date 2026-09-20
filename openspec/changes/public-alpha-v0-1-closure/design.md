@@ -2,21 +2,21 @@
 
 Baseline verified on 2026-09-19 against the working tree (branch `feature/aoh-playable-alpha-v1`, HEAD `193bf87`, alpha work uncommitted).
 
-Recovery result of this session: `npm run typecheck` and `npm run lint` are green; `npm test` is 355/356. The single failure is the scripted full-match test, which cannot satisfy the final era milestone (population 11 of 12) after the era table grew from five to six. Fixes applied while recovering: era comparisons in cards, institutions and military now use the six-value alpha era list; `SETTLER` became `PIONEER` everywhere; battle records carry posture, breakdown and tactical fields; `state.cities` metadata is created on founding and updated on capture and integration; migration preserves a declared Hegemony era; the Scientific path metric counts Ascension-tier research; `reconcileLegacyPools` folds legacy-pool changes into the seven-resource pool; the web map accepts a six-value era.
+Recovery result: `npm run typecheck`, `npm run lint` and `npm test` (373 tests) are green. A checkpoint commit holds the recovered v5 domain foundation. Fixes applied while recovering: era comparisons use the six-value alpha era list; `SETTLER` became `PIONEER` everywhere; battle records carry posture, breakdown and tactical fields; `state.cities` metadata is created on founding and updated on capture and integration; migration preserves a declared Hegemony era; the Scientific path metric counts Ascension-tier research; the web map accepts a six-value era. Era progression now uses a centralized criteria-count table (`ALPHA_ERA_MILESTONES`). Alpha producers and spenders (institutions, cards, treaties, routes, civilization ability, upkeep) go through `alphaGain`/`alphaPay`/`alphaDrain`; the legacy core reducer is wrapped by `commitLegacyReducer`, a narrow transitional adapter.
 
 ### Baseline: implemented versus missing
 
 | Area | In code today | Missing or wrong |
 |---|---|---|
 | State envelope | `AlphaStateSchema` v5 with seven resources, eight phase names, six eras, `AlphaCity`, trade offers, independents, raid bands, world pulse, telemetry. v3/v4 to v5 migrations exist and are tested. | `alpha-projection.ts` still emits `schemaVersion: 4` in the client view. No test proves a v5 round trip through PostgreSQL. |
-| Resources | Seven-resource pool is stored per player. Pay, storage caps and wealth conversion helpers exist. | Only `alphaPay` is called. `alphaGain`, `enforceStorage`, `initializeAlphaResources` are unused. Production, cards, treaties, routes, founding and ability still mutate the legacy five-resource pool and rely on `reconcileLegacyPools`. Metal has no producer. Storage caps are never enforced. |
-| Turn loop | Legacy five-phase loop (`MAINTENANCE`, `PLANNING`, `RESOLUTION`, `REACTION`, `END_ROUND`) drives play. | The eight v5 phases (`WORLD_PULSE`, `URBAN_ACTIONS`, `ORDERS_MOVEMENT`, `DIPLOMACY_TRADE`, `CONFLICTS`, `INTEGRATION_MAINTENANCE`) are schema-only. `state.phase` is initialised and never advanced. |
-| Cities | Founding, capture, integration, occupation work on the economic model. Metadata is now kept in sync. | `URBAN_ACTION` command has no handler. Mood, level, buildings, fortification, localCohesion, urbanActionsUsed are never changed. |
+| Resources | Seven-resource pool is stored per player. Pay, storage caps and wealth conversion helpers exist. | No production is automatic: cities produce only through PRODUCE (metal is mined in the same action). Persistent institutional production is credited on the player's first PRODUCE each round. Alpha producers and spenders use `alphaGain`/`alphaPay`/`alphaDrain`. The legacy core reducer (claims, improvements, districts, founding, maintenance production) still mutates the five-resource pool and is bridged by `commitLegacyReducer`. Metal comes only from a worked hex with a metal deposit and a Mine (regions carry at most one deposit: first mountain, else first hill). Storage caps are enforced: overflow from action-time gains is discarded with an event, and maintenance discards are recorded in the round report (`discarded`, plus `mining` for metal). |
+| Turn loop | `state.phase` drives the eight-phase round: WORLD_PULSE (ledgers, cards, one pulse), PLANNING, URBAN_ACTIONS, ORDERS_MOVEMENT (explore, move, route), DIPLOMACY_TRADE (treaties settle at close), CONFLICTS (reaction cards, then attacks and influence), INTEGRATION_MAINTENANCE (upkeep, population food and growth, stability, storage), END_ROUND (reports, victory, initiative, next round). The legacy core phase is mirrored, never advanced through the core reducer. | Legacy `RECRUIT`, `RESEARCH`, `INTEGRATE_CITY` and treaty proposals still live in PLANNING. `PROPOSE_TRADE`, `RESPOND_TRADE`, `CONTEST_PRESENCE`, `INDEPENDENT_ACTION` answer NOT_IMPLEMENTED. |
+| Cities | Founding, capture, integration, occupation work on the economic model. Metadata is kept in sync. `URBAN_ACTION` is real: one action per city per round (PRODUCE, BUILD, RECRUIT, RESEARCH, PROMOTE_MOOD, SUPPORT_TRADE, CIVIC_ACTION). Mood scales production; fortification upgrades and CIVIC_ACTION integration change city records. | City level never grows. Alpha-only buildings (for example Foundry) are not buildable. Fortification has no combat effect yet (workstream D). |
 | Combat | Strength plus 2d6 with terrain, supply, city bonus, retreat. Deterministic. | Postures, tactical faces, modifier breakdowns, stack limits, fortification damage and a preview are not implemented; battle records store placeholders. |
 | Culture | Foreign influence by envoys on cities. | `CONTEST_PRESENCE`, presence levels, anchors, culture dice are schema-only. |
 | World | Regions, exploration, pioneers, independents and raid bands are generated at creation. | Independents and raid bands never act. World pulse deck is never drawn. `INDEPENDENT_ACTION`, `PROPOSE_TRADE`, `RESPOND_TRADE` have no handler. |
 | Hegemony | Six paths, hold rounds, winner. | UI copy and error text still say "quinta era". |
-| Server | Guest cookie, seats, CAS service, HTTP boundary, Prisma repository with decode-time v4 to v5 migration. | Never run against real PostgreSQL. `alpha-conflict.spec.ts` failed once opening its fixture ("Identificador de partida inválido"). |
+| Server | Guest cookie, seats, CAS service, HTTP boundary, Prisma repository with decode-time v4 to v5 migration. | Migration and CAS integration now pass on real PostgreSQL (embedded 18 binary); Docker itself is unexecuted (not installed). Original snapshots are archived on first v5 save. `alpha-conflict.spec.ts` failed once opening its fixture ("Identificador de partida inválido"). |
 | UI | `/alpha` lobby, board, cards, diplomacy, research, reports, hegemony. | None of the v5-only mechanics has a control. Seven resources are displayed through the legacy shape. |
 | Release | No remote, no database, no Railway/Supabase access. | Everything in workstream K depends on the user supplying these. |
 
@@ -35,7 +35,7 @@ Recovery result of this session: `npm run typecheck` and `npm run lint` are gree
 ## Decisions
 
 1. **Expand-only migration, no contraction.** v5 is a superset. Decoders accept v3, v4, v5; unknown versions fail without writing. The original snapshot bytes are preserved on migration. Alternative (in-place rewrite) rejected: cannot roll back.
-2. **Seven-resource pool is the only authority.** The legacy five-resource pool becomes a derived view and finally disappears from alpha reducers. Order: (a) route every producer and spender through `alphaGain`/`alphaPay`; (b) delete `reconcileLegacyPools`; (c) keep legacy fields only where the v3 slice needs them. Alternative (keep the bridge) rejected: hides desync bugs, already produced the "production lost after a purchase" defect during this recovery.
+2. **Seven-resource pool is the only authority.** The legacy five-resource pool becomes a derived view and finally disappears from alpha reducers. Order: (a) route every producer and spender through `alphaGain`/`alphaPay`; (b) shrink `commitLegacyReducer` to zero by making the core reducer v5-aware; (c) keep legacy fields only where the v3 slice needs them. Alternative (keep a global reconcile bridge) rejected and removed: it hid desync bugs and already produced a "production lost after a purchase" defect. A scripted-match invariant now asserts both pools stay equal after every command.
 3. **Phases advance through one reducer.** `state.phase` becomes the only loop driver; the legacy core phase is adapted, not consulted. Reactions and timers follow the same reducer. Alternative (dual phases) rejected for the same reason as decision 2.
 4. **Determinism first.** All randomness (world pulse, dice, raids, decks) uses the private HMAC counter RNG; the client never sees seed or counter. Every new system ships with a replay test.
 5. **Projection is an allow-list.** New v5 fields reach the client only through an explicit projection function with a leak test per field. Default deny.
@@ -44,7 +44,10 @@ Recovery result of this session: `npm run typecheck` and `npm run lint` are gree
 
 ## Risks / Trade-offs
 
-- **Milestone table shifted by the new era.** The final milestone (12 population, 12 research on STANDARD) may make a normal match unfinishable; the scripted scenario currently fails on it. Mitigation: decide the intended table in A before C, then fix scenario or table.
+- **Milestone table is a first ALPHA guess.** Criteria-count progression (4 or 5 of 7 to 8 criteria) is implemented and tested; whether normal players can finish within the round limit is only proven by the scripted scenario, not by real play. Mitigation: playtest in K, retune only `ALPHA_ERA_MILESTONES`.
+- **Institutional production is tied to PRODUCE.** A player who never produces loses it too. This is deliberate (no automatic production) but is a design call to confirm in playtest.
+- **The interface can only send a subset of urban actions.** The city panel offers PRODUCE, PROMOTE_MOOD, SUPPORT_TRADE and CIVIC_ACTION. BUILD, RECRUIT and RESEARCH still go through the legacy planning controls until workstream H.
+- **E2E scenarios were not re-run.** They were written for one confirmation per round; the loop now needs one per interactive phase.
 - **Legacy bridge hides defects until removed.** Mitigation: B removes it early.
 - **Large surface, few end-to-end proofs.** E2E runs against an in-memory repository behind Playwright interception; real network and PostgreSQL are unproven. Mitigation: I and K are explicit gates.
 - **Timers are lazy.** A table that nobody touches never advances. Acceptable for alpha; disclose to testers.
@@ -54,7 +57,7 @@ Recovery result of this session: `npm run typecheck` and `npm run lint` are gree
 
 ## Open Questions
 
-- Intended era-milestone table after the ASCENSION insertion: keep five rows (last row gates Hegemony) or rebalance?
-- Should metal have a producer in this alpha, or stay a purchasable-by-wealth resource only?
-- Is one hosted database enough for playtest, or is a separate migration target needed?
-- Which host is the target (Railway plus Supabase are documented but unconfirmed)?
+- Resolved: era milestones use a centralized criteria-count table (Decision 2026-09-20). Metal is produced only by a Producer working an eligible hex with a metal deposit and a Mine or equivalent improvement; no new Miner role. Host: Railway for web/server, Supabase for PostgreSQL.
+- Resolved: metal uses the existing METAL terrain feature and MINE improvement; the alpha adds the rule `deposit + Mine + assigned Producer` without changing the shared core catalog.
+- Resolved: development and integration tests use Docker PostgreSQL (`db-dev` persistent, `db-test` ephemeral). Supabase holds only the Public Alpha database and is never used by `test:db`.
+- Open: Docker is not installed on the development machine; the Docker path is written but unexecuted.

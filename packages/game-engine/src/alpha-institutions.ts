@@ -1,5 +1,5 @@
 import { ADVANCEMENTS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { alphaPay } from './alpha-resources.js';
+import { alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { sum } from './arithmetic.js';
 import { cardEffects } from './alpha-cards.js';
 export function institutionEffects(state:AlphaState,actor:PlayerId):AlphaEffect[] {
@@ -9,8 +9,9 @@ export function institutionEffects(state:AlphaState,actor:PlayerId):AlphaEffect[
 export function institutionBonus(state:AlphaState,actor:PlayerId,kind:AlphaEffect['kind']):number {
   return sum(institutionEffects(state,actor).filter(e=>e.kind===kind).map(e=>e.amount));
 }
-export function produceInstitutions(state:AlphaState):void {
-  for(const player of state.core.players)for(const effect of institutionEffects(state,player.id))if(effect.kind==='PRODUCTION')player.resources[effect.resource]=sum([player.resources[effect.resource],effect.amount]);
+/** Persistent institutional production for one player. It is not automatic: PRODUCE calls it once per round. */
+export function produceInstitutions(state:AlphaState,actor:PlayerId):void {
+  for(const effect of institutionEffects(state,actor))if(effect.kind==='PRODUCTION')alphaGainLegacy(state,actor,{[effect.resource]:effect.amount},{category:'institutions'});
 }
 export function researchAdvancement(state:AlphaState,actor:PlayerId,id:string):void {
   const player=state.players.find(p=>p.playerId===actor)!;const node=ADVANCEMENTS.find(a=>a.id===id);
@@ -44,6 +45,5 @@ export function civilizationAbility(state:AlphaState,actor:PlayerId):void {
   const player=state.players.find(p=>p.playerId===actor)!;const civ=CIVILIZATIONS.find(c=>c.id===player.civilization);
   if(!civ)throw new Error('Escolha uma civilização no lobby.');
   if(player.abilityRound===state.core.round)throw new Error('Habilidade já utilizada nesta rodada.');
-  const core=state.core.players.find(p=>p.id===actor)!;
-  for(const effect of civ.ability.effects)core.resources[effect.resource]=sum([core.resources[effect.resource],effect.amount]);player.abilityRound=state.core.round;
+  for(const effect of civ.ability.effects)alphaGainLegacy(state,actor,{[effect.resource]:effect.amount});player.abilityRound=state.core.round;
 }

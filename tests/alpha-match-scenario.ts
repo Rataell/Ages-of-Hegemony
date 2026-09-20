@@ -1,4 +1,5 @@
-import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, CityIdSchema, HexIdSchema, PlayerIdSchema, alphaRules, emptyResourcePool, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, CityIdSchema, HexIdSchema, PlayerIdSchema, alphaRules, alphaToLegacyResources, emptyResourcePool, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { produceAll } from './alpha-rounds.js';
 import { alphaCommandCapacity, applyAlphaCommand, beginAlphaPlanning, createGame, initializeAlphaCards, migrateSnapshotV3ToV4, refreshKnowledge } from '@aoh/game-engine';
 
 /** Authored integration scenario with ample reserves and five settlements per side.
@@ -30,10 +31,16 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
     const result=applyAlphaCommand(state,actor,{...command,expectedVersion:state.version});
     if(!result.ok)throw new Error(`Round ${state.core.round} ${String(command.type)}: ${result.error.code} ${result.error.message}`);
     trace.push({round:state.core.round,actor,command:String(command.type),phase:state.core.phase});state=result.value;
+    state.players.forEach((p,i)=>{if(JSON.stringify(alphaToLegacyResources(p.resources))!==JSON.stringify(state.core.players[i]!.resources))throw new Error(`Resource pools diverged after round ${state.core.round} ${String(command.type)}`);});
   }
   function round(){
     const initialRound=state.core.round;
-    for(let guard=0;guard<12&&state.core.status==='ACTIVE'&&state.core.round===initialRound;guard++){
+    for(let guard=0;guard<40&&state.core.status==='ACTIVE'&&state.core.round===initialRound;guard++){
+      if(state.phase==='URBAN_ACTIONS'){
+        const route=state.routes.find(r=>r.ownerId===p1&&!r.suspended);
+        if(route&&state.cities.find(c=>c.cityId===route.fromCityId)!.urbanActionsUsed===0)submit(p1,{type:'URBAN_ACTION',cityId:route.fromCityId,action:'SUPPORT_TRADE'});
+        state=produceAll(state);
+      }
       const player=state.players.find(p=>!p.ready);if(!player)throw new Error('No pending player at decision boundary');
       submit(player.playerId,{type:'READY'});
     }

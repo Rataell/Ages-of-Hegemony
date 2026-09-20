@@ -17,3 +17,5 @@ export * from './alpha-cards.js';
 export * from './alpha-hegemony.js';
 export * from './alpha-cities.js';
 export * from './alpha-resources.js';
+export * from './alpha-urban.js';
+export { CORE_PHASE_MIRROR, INTERACTIVE_PHASES, LEGAL_COMMANDS, advanceAfterReady, openRound, prestigeRanking, setAlphaPhase } from './alpha-phases.js';

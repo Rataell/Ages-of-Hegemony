@@ -1,7 +1,7 @@
 import { AlphaEraSchema, type AlphaState, type AlphaUnit, type HexId, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { alphaRandomInteger } from './alpha-random.js';
-import { alphaPay } from './alpha-resources.js';
+import { alphaCostWithMetal, alphaPay } from './alpha-resources.js';
 import { institutionBonus } from './alpha-institutions.js';
 import { atWar, bordersOpen } from './alpha-diplomacy.js';
 import { occupyCity } from './alpha-cities.js';
@@ -16,7 +16,7 @@ export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:A
   if(entry.militaryInfrastructure&&!city.districts.some(d=>d.type==='MILITARY'))throw new Error('Esta peça requer distrito Militar.');
   if(kind==='FLEET'&&tile.terrain!=='COAST')throw new Error('Esquadras requerem uma cidade costeira.');
   if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)throw new Error('Reserva de unidades esgotada.');
-  alphaPay(state,actor,entry.cost);
+  alphaPay(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal));
   state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId:city.hexId,recruitedRound:state.core.round});
 }
 function canEnter(state:AlphaState,unit:AlphaUnit,target:HexId):boolean {

@@ -19,6 +19,10 @@ function decode(row:{id:string;joinCode:string;version:bigint;status:string;snap
   if(room.id!==row.id||room.joinCode!==row.joinCode||BigInt(room.version)!==row.version||status(room)!==row.status)throw new Error('Corrupt alpha match metadata');
   return room;
 }
+class StaleWrite extends Error {}
+/** A stored payload that no longer parses as the current room is a legacy snapshot that this save is about to migrate. */
+const needsMigration=(snapshot:unknown)=>!AlphaRoomSchema.safeParse(snapshot).success;
+export const ARCHIVE_REASON_MIGRATED_TO_V5='MIGRATED_TO_V5';
 export class PrismaAlphaRepository implements AlphaRepository {
   constructor(private readonly client:PrismaClient){}
   async find(id:string){return decode(await this.client.alphaMatch.findUnique({where:{id}}));}
@@ -28,9 +32,31 @@ export class PrismaAlphaRepository implements AlphaRepository {
     try{await this.client.alphaMatch.create({data:{id:room.id,joinCode:room.joinCode,version:BigInt(room.version),status:status(room),snapshot}});return true;}
     catch(error:unknown){if(error instanceof Prisma.PrismaClientKnownRequestError&&error.code==='P2002')return false;throw error;}
   }
+  /**
+   * Compare-and-swap save. When the stored row is a legacy snapshot, its original JSON is copied to AlphaMatchArchive in the
+   * same transaction, so the v5 rewrite can never destroy the only copy. Reads never write.
+   */
   async save(room:AlphaRoom,expectedVersion:number){
     const snapshot=AlphaRoomSchema.parse(room);if(room.version!==expectedVersion+1)return false;
-    const updated=await this.client.alphaMatch.updateMany({where:{id:room.id,version:BigInt(expectedVersion)},data:{version:BigInt(room.version),status:status(room),snapshot}});
-    return updated.count===1;
+    try{
+      return await this.client.$transaction(async tx=>{
+        const current=await tx.alphaMatch.findUnique({where:{id:room.id}});
+        if(!current||current.version!==BigInt(expectedVersion))return false;
+        if(needsMigration(current.snapshot))await tx.alphaMatchArchive.create({data:{matchId:room.id,version:current.version,reason:ARCHIVE_REASON_MIGRATED_TO_V5,snapshot:current.snapshot as Prisma.InputJsonValue}});
+        const updated=await tx.alphaMatch.updateMany({where:{id:room.id,version:BigInt(expectedVersion)},data:{version:BigInt(room.version),status:status(room),snapshot}});
+        if(updated.count!==1)throw new StaleWrite();
+        return true;
+      });
+    }catch(error:unknown){
+      if(error instanceof StaleWrite)return false;
+      // A competing writer archived the same legacy version first: this write lost the race.
+      if(error instanceof Prisma.PrismaClientKnownRequestError&&error.code==='P2002')return false;
+      throw error;
+    }
+  }
+  /** Original snapshots kept for a match, oldest first. */
+  async archived(matchId:string){
+    const rows=await this.client.alphaMatchArchive.findMany({where:{matchId},orderBy:{version:'asc'}});
+    return rows.map(row=>({version:Number(row.version),reason:row.reason,snapshot:row.snapshot as unknown}));
   }
 }

@@ -7,7 +7,9 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 
 it('persists a running match across connections and rejects competing PostgreSQL writes', async () => {
   const connectionString = process.env.ALPHA_TEST_DATABASE_URL;
-  if (!connectionString) throw new Error('Set ALPHA_TEST_DATABASE_URL to a migrated, dedicated alpha test database.');
+  if (!connectionString) throw new Error('Set ALPHA_TEST_DATABASE_URL to a migrated, dedicated LOCAL alpha test database (npm run test:db:docker).');
+  const host = new URL(connectionString).hostname;
+  if (!['localhost', '127.0.0.1', '::1', '[::1]'].includes(host) && process.env.ALPHA_TEST_ALLOW_REMOTE !== '1') throw new Error(`Refusing to run against non-local host "${host}"; integration tests use the disposable Docker database.`);
   const connect = () => new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
   const first = connect();
   let second: PrismaClient | undefined;

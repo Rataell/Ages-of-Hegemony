@@ -67,7 +67,8 @@ describe('alpha lobby and authoritative service',()=>{
     const early=await f.service.read(f.a,started.id,300999);expect(early.ok&&early.value.game!.view.round).toBe(1);
     const results=await Promise.all([f.service.read(f.a,started.id,301000),f.service.read(f.b,started.id,301000)]);
     expect(results.filter(r=>r.ok)).toHaveLength(1);
-    const room=(await f.repository.find(started.id))!;expect(room.game!.core.round).toBe(2);expect(room.deadline).toBe(601000);
+    const room=(await f.repository.find(started.id))!;expect(room.game!.core.round).toBe(1);expect(room.game!.phase).toBe('URBAN_ACTIONS');expect(room.deadline).toBe(601000);
+    const later=await f.service.read(f.a,started.id,601000);expect(later.ok).toBe(true);expect((await f.repository.find(started.id))!.game!.phase).toBe('DIPLOMACY_TRADE');
     expect(room.game!.players.every(p=>p.ambitionsChosen&&p.ambitions.length===2)).toBe(true);
   });
   it('keeps no-timer matches unchanged regardless of polling time',async()=>{

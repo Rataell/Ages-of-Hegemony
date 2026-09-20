@@ -12,7 +12,10 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
   const known=state.core.map.filter(t=>progress.knownHexIds.includes(t.id)&&!visible.has(t.id));
   const explored=state.core.map.filter(t=>progress.knownHexIds.includes(t.id)||visible.has(t.id));
   return structuredClone({
-    gameId:state.gameId,version:state.version,schemaVersion:4,view:economic,
+    gameId:state.gameId,version:state.version,schemaVersion:state.schemaVersion,view:economic,
+    phase:state.phase,
+    worldPulse:state.worldPulse.current?{id:state.worldPulse.current.id,name:state.worldPulse.current.name,type:state.worldPulse.current.type}:null,
+    cityStates:state.cities.filter(c=>c.currentOwnerId===actor).map(c=>({cityId:c.cityId,status:c.status,integration:c.integration,mood:c.mood,level:c.level,localCohesion:c.localCohesion,urbanActionsUsed:c.urbanActionsUsed,fortification:c.fortification.level})),
     self:progress,commandCapacity:alphaCommandCapacity(state,actor),rules:state.rules,
     milestones:eraMilestones(state,actor),
     cityDetails:economic.player.civilization.cities.map(c=>({id:c.id,category:stabilityCategory(c.stability,state.core.config),production:deriveCityProductionBreakdown(c,economic.player.civilization,state.core.config,state.core.map)})),
