@@ -14,6 +14,10 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
   const a=await browser.newContext({viewport:{width:1440,height:900}}),b=await browser.newContext({viewport:{width:1440,height:900}});
   await connectAlphaContext(a,http);await connectAlphaContext(b,http);const pa=await a.newPage(),pb=await b.newPage();
   pa.setDefaultTimeout(15000);pb.setDefaultTimeout(15000);
+  for(const context of [a,b])await context.addInitScript(()=>{
+    const w=window as unknown as {__alphaErrors:string[]};w.__alphaErrors=[];
+    new MutationObserver(()=>{document.querySelectorAll('.alpha-error').forEach(node=>{const text=node.textContent??'';if(text&&!w.__alphaErrors.includes(text))w.__alphaErrors.push(text);});}).observe(document,{childList:true,subtree:true,characterData:true});
+  });
   const errors:string[]=[];pa.on('pageerror',e=>errors.push(e.message));pb.on('pageerror',e=>errors.push(e.message));
   const evidence='docs/evidence/playable-alpha-v1';await mkdir(evidence,{recursive:true});
   try{
@@ -68,9 +72,9 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     const game=async()=>(await repository.find(gameId))!.game!;
     const confirm=async(page:typeof pa,label:string)=>page.getByRole('button',{name:label,exact:true}).click();
     async function bothConfirm(label:string,next:string){
-      // Each confirmation carries the aggregate version, so a page that is behind reloads first (this also exercises reconnecting).
-      await pa.reload();await confirm(pa,label);await expect(pb.locator('.alpha-round-bar')).toContainText('1 / 2 prontos');
-      await pb.reload();await confirm(pb,label);await phase(pa,next);await phase(pb,next);
+      // No reload: a page that is behind recovers by itself (VERSION_CONFLICT -> refresh -> one retry).
+      await confirm(pa,label);await expect(pb.locator('.alpha-round-bar')).toContainText('1 / 2 prontos');
+      await confirm(pb,label);await phase(pa,next);await phase(pb,next);
     }
     // Round 1 - PLANNING closes only when both confirm, then the urban phase opens for each city.
     await pa.reload();await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');
@@ -109,8 +113,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(pa.locator('.alpha-urban-detail')).toContainText('Custo:');await expect(pa.locator('.alpha-urban-detail')).toContainText('Efeito:');
     await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Confirmar ação urbana'}).click();
     await expect(urbanA).toContainText('Ações restantes da cidade: 0 / 1');
-    // Commands carry the aggregate version, so a player who acts right after the other reloads to the current version first.
-    await pb.reload();await expect(pb.locator('.alpha-urban')).toContainText('Ações restantes da cidade: 1 / 1');
+    // Valgard's page is still on the old version here: the recruit recovers on its own and must not show a conflict.
     await pb.locator('.alpha-urban summary').filter({hasText:'Recrutar'}).click();
     await pb.getByRole('button',{name:/^Recrutar Explor/i}).click();
     await expect(pb.locator('.alpha-urban-detail')).toContainText('Custo:');
@@ -136,7 +139,6 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     // Reconnecting in the middle of a phase keeps the city's spent action and the confirmation state.
     await pa.reload();await expect(pa.locator('.alpha-urban')).toContainText('Ações restantes da cidade: 0 / 1');
     await confirm(pa,'Concluir fase');await pa.reload();await expect(pa.getByRole('button',{name:'Aguardando outras pessoas',exact:true})).toBeVisible();
-    await pb.reload();await expect(pb.locator('.alpha-urban')).toContainText('Ações restantes da cidade: 1 / 1');
     await pb.getByRole('button',{name:/Escolher produzir/}).click();
     await pb.locator('.alpha-urban-detail').getByRole('button',{name:'Confirmar ação urbana'}).click();
     await confirm(pb,'Concluir fase');await phase(pa,'Diplomacia e comércio');
@@ -146,5 +148,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     for(const [width,height] of [[1440,900],[1280,800],[390,844]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${evidence}/${width}-world-dark.png`});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.getByRole('combobox',{name:'Tema',exact:true}).selectOption('LIGHT');await pa.screenshot({path:`${evidence}/390-world-light.png`});
     expect(errors).toEqual([]);
+    // Nothing the players did ever surfaced an error banner: stale commands recovered silently.
+    for(const page of [pa,pb])expect(await page.evaluate(()=>(window as unknown as {__alphaErrors:string[]}).__alphaErrors)).toEqual([]);
   }finally{await Promise.allSettled([a.close(),b.close()]);}
 });

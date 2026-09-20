@@ -54,6 +54,7 @@
 - [ ] 7.3 Investigate and fix the `alpha-conflict.spec.ts` "Identificador de partida inválido" failure; gate: that spec green.
 - [ ] 7.4 Test concurrent submission, forged cookie, impersonation and seat-limit rejection; gate: service tests.
 - [ ] 7.5 Test reconnection after reload and after server restart; gate: E2E plus service test.
+- [x] 7.6 Recover stale commands in the client: on an explicit VERSION_CONFLICT the client refreshes the projection, replaces only `expectedVersion`, and resends the same command exactly once; no retry for any other error, network failure or failed refresh; the server keeps compare-and-swap; gate: `tests/alpha-conflict-recovery.test.ts` (14 tests, real HTTP boundary) and E2E `alpha-play` without reload workarounds and with no error banner.
 
 ## 8. H. UI and playability
 

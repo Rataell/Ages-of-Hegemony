@@ -4,8 +4,8 @@ import { CIVILIZATIONS } from '@aoh/game-domain';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import AlphaBoard from './alpha-board';
 import { ruleMessage } from '../play/presentation';
+import { sendWithRecovery, type Reply } from './send-command';
 
-type Reply={ok:true;value:AlphaRoomView}|{ok:false;error:{code:string;message:string}};
 export default function AlphaShell(){
   const [room,setRoom]=useState<AlphaRoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [name,setName]=useState(''),[title,setTitle]=useState('Mesa dos Horizontes'),[code,setCode]=useState(''),[preset,setPreset]=useState('QUICK'),[count,setCount]=useState(2),[timer,setTimer]=useState(0),[seed,setSeed]=useState(42);
@@ -32,10 +32,15 @@ export default function AlphaShell(){
   async function request(payload:Record<string,unknown>){
     if(busy)return false;setBusy(true);setError('');
     try{
-      const response=await fetch('/api/alpha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),reply=await response.json() as Reply;
+      // A VERSION_CONFLICT (another player acted first) refreshes the projection and repeats the same command once, never more.
+      const outcome=await sendWithRecovery({
+        post:async body=>(await(await fetch('/api/alpha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json()) as Reply,
+        fetchRoom:async id=>(await(await fetch(`/api/alpha?gameId=${encodeURIComponent(id)}`,{cache:'no-store'})).json()) as Reply,
+      },payload as {operation:string;gameId?:string;payload?:Record<string,unknown>});
+      const reply=outcome.reply;
+      if(outcome.latest){const latest=outcome.latest;setRoom(old=>!old||old.id!==latest.id||latest.version>=old.version?latest:old);}
       if(!reply.ok){
         const raw=`${reply.error.code}: ${reply.error.message}`,translated=ruleMessage(raw);setError(translated===raw?reply.error.message:translated);
-        if(reply.error.code==='VERSION_CONFLICT'&&room){const refresh=await fetch(`/api/alpha?gameId=${room.id}`,{cache:'no-store'});const latest=await refresh.json() as Reply;if(latest.ok)setRoom(old=>!old||latest.value.version>=old.version?latest.value:old);}
         return false;
       }
       setRoom(old=>!old||old.id!==reply.value.id||reply.value.version>=old.version?reply.value:old);

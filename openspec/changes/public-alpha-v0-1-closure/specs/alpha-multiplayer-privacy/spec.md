@@ -53,3 +53,22 @@ The system SHALL let a returning participant resume their seat from the same coo
 #### Scenario: Reload
 - **WHEN** a participant reloads mid-round
 - **THEN** they see their current state and unfinished planning
+
+### Requirement: Stale commands recover once, safely
+The client SHALL answer an explicit version-conflict rejection by refreshing its projection and resending the same command exactly once with the fresh version, SHALL NOT retry on any other error, timeout or network failure, SHALL NOT retry when the refresh fails, and SHALL NOT send a third time. The server SHALL keep compare-and-swap and remain authoritative over the retried command.
+
+#### Scenario: Old version, still valid
+- **WHEN** a player sends a command from an outdated version and it is still legal after the refresh
+- **THEN** it succeeds on the single retry and is applied exactly once
+
+#### Scenario: Became illegal
+- **WHEN** the refreshed state makes the command illegal
+- **THEN** the player sees the real rule error, not a version message, and state is unchanged
+
+#### Scenario: Persistent conflict
+- **WHEN** the retry also conflicts
+- **THEN** no further attempt is made, the screen is refreshed and the player is told the table changed again
+
+#### Scenario: Concurrent browsers
+- **WHEN** two browsers send commands from the same old version at the same time
+- **THEN** both commands are applied exactly once, one after a recovery
