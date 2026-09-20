@@ -1,14 +1,19 @@
 // Local Closed Alpha helper. No dependencies beyond Node >= 22. Production and Railway do not use this file.
 //
 //   node scripts/local-alpha.mjs check     validate apps/web/.env.local (names only are ever printed, never values)
-//   node scripts/local-alpha.mjs migrate   prisma migrate deploy against the database in that file (local hosts only unless --allow-remote)
+//   node scripts/local-alpha.mjs migrate   prisma migrate deploy against the database in that file
 //   node scripts/local-alpha.mjs dev       prepare the workspace and start Next.js with Fast Refresh on http://127.0.0.1:3001/alpha
 //                                          also runs `tsc -b -w`, so edits in packages/* and apps/server show up without a manual compile
 //                                          (--no-watch-packages turns the watcher off)
 //
+// Databases: localhost / 127.0.0.1 always. A remote database is refused unless BOTH the command has --allow-remote (migrate and dev)
+// AND apps/web/.env.local itself contains AOH_LOCAL_DB_ENV=development (check needs only the marker). Production is never inferred
+// from a hostname: development and production can share the same provider and proxy, so the explicit marker is the only signal.
+// No URL, host or secret is ever printed for a remote database.
+//
 // ALPHA_ENV_FILE overrides the env file path (used by tests). ALPHA_LOCAL_PORT (default 3001) moves the server; then ALPHA_PUBLIC_ORIGIN must follow.
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { connect, createServer } from 'node:net';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,11 +34,22 @@ function loadEnv() {
   try { process.loadEnvFile(ENV_FILE); } catch { stop('Não consegui ler apps/web/.env.local. Confira se cada linha é NOME=valor.'); }
 }
 const urlOf = value => { try { return new URL(value); } catch { return null; } };
-/** Production runs on Railway. A development script must never be pointed at it. */
-const PRODUCTION_HOSTS = /(^|.)(railway.app|rlwy.net|railway.internal)$/i;
 const isPostgres = url => url !== null && ['postgres:', 'postgresql:'].includes(url.protocol);
-/** host:port/database, without user or password. */
+/** host:port/database for a loopback address only. A remote database is never named in the output. */
 const target = url => `${url.hostname}${url.port ? `:${url.port}` : ''}${url.pathname}`;
+const databaseUrls = () => ['DATABASE_URL', 'DIRECT_URL'].map(name => urlOf(process.env[name] ?? '')).filter(url => url !== null);
+const isRemote = () => databaseUrls().some(url => !LOCAL_HOSTS.includes(url.hostname));
+/** The marker must be written in apps/web/.env.local itself; a variable that merely exists in the shell does not count. */
+const markedDevelopment = () => existsSync(ENV_FILE) && /^\s*AOH_LOCAL_DB_ENV\s*=\s*["']?development["']?\s*(#.*)?$/m.test(readFileSync(ENV_FILE, 'utf8'));
+/** Refuses a remote database unless it is marked as development and, for commands that touch it, --allow-remote was given. */
+function requireRemoteGuard({ needsFlag }) {
+  if (!isRemote()) return;
+  const reasons = [];
+  if (!markedDevelopment()) reasons.push('Falta AOH_LOCAL_DB_ENV=development em apps/web/.env.local (o valor precisa ser exatamente development, escrito no próprio arquivo).');
+  if (needsFlag && !flags.includes('--allow-remote')) reasons.push('Falta --allow-remote no comando (por exemplo: npm run dev:alpha -- --allow-remote ou npm run db:migrate:local -- --allow-remote).');
+  if (reasons.length) stop(`Banco remoto recusado. Um banco remoto só é usado quando ele é de DESENVOLVIMENTO e isso foi declarado duas vezes:\n${reasons.map(item => `  - ${item}`).join('\n')}\n\nNunca aponte estes scripts para o banco de produção. Nenhuma URL foi exibida.`, 2);
+}
+const describeDatabase = () => (isRemote() ? 'banco remoto de desenvolvimento (AOH_LOCAL_DB_ENV=development)' : `DATABASE_URL (${target(new URL(process.env.DATABASE_URL))})`);
 
 /** Problems in the environment, by variable name. Values are never included. */
 function problems({ forDatabaseOnly = false } = {}) {
@@ -42,7 +58,6 @@ function problems({ forDatabaseOnly = false } = {}) {
   if (!database) list.push('DATABASE_URL está ausente. Use a URL do seu PostgreSQL local (veja o exemplo).');
   else if (!isPostgres(urlOf(database))) list.push('DATABASE_URL não parece uma URL postgresql://usuario:senha@host:porta/banco.');
   if (env.DIRECT_URL && !isPostgres(urlOf(env.DIRECT_URL))) list.push('DIRECT_URL, quando definida, precisa ser uma URL postgresql://…');
-  for (const name of ['DATABASE_URL', 'DIRECT_URL']) if (PRODUCTION_HOSTS.test(urlOf(env[name] ?? '')?.hostname ?? '')) list.push(`${name} aponta para um host do Railway (produção). O desenvolvimento local usa um banco separado e nunca o de produção.`);
   if (forDatabaseOnly) return list;
   const secret = env.ALPHA_SESSION_SECRET ?? '';
   if (!secret) list.push('ALPHA_SESSION_SECRET está ausente. Gere um: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'base64url\'))"');
@@ -73,22 +88,23 @@ const reachable = url => new Promise(resolve => {
 });
 
 if (command === 'check') {
-  loadEnv(); requireValid();
-  console.log(`Ambiente local ok: DATABASE_URL (${target(new URL(process.env.DATABASE_URL))}), ALPHA_SESSION_SECRET, ALPHA_PUBLIC_ORIGIN=${ORIGIN}${process.env.DIRECT_URL ? ', DIRECT_URL' : ''}.`);
+  loadEnv(); requireValid(); requireRemoteGuard({ needsFlag: false });
+  console.log(`Ambiente local ok: ${describeDatabase()}, ALPHA_SESSION_SECRET, ALPHA_PUBLIC_ORIGIN=${ORIGIN}${process.env.DIRECT_URL ? ', DIRECT_URL' : ''}.`);
 } else if (command === 'migrate') {
   loadEnv(); requireValid({ forDatabaseOnly: true });
-  const url = new URL(process.env.DIRECT_URL || process.env.DATABASE_URL);
-  if (!LOCAL_HOSTS.includes(url.hostname) && !flags.includes('--allow-remote')) stop(`Recusado: o banco em apps/web/.env.local não é local (${url.hostname}).\nEste comando é para o banco de desenvolvimento. Para migrar um banco remoto de propósito, repita com --allow-remote.`, 2);
-  console.log(`Aplicando migrations (prisma migrate deploy) em ${target(url)}`);
+  requireRemoteGuard({ needsFlag: true });
+  if (flags.includes('--dry-run')) { console.log('Validação ok (--dry-run): nenhuma migration foi aplicada.'); process.exit(0); }
+  console.log(`Aplicando migrations (prisma migrate deploy) no ${isRemote() ? 'banco remoto de desenvolvimento' : `banco ${target(new URL(process.env.DIRECT_URL || process.env.DATABASE_URL))}`}`);
   const code = run(bins.prisma, ['migrate', 'deploy']) || run(bins.prisma, ['migrate', 'status']);
   process.exit(code);
 } else if (command === 'dev') {
-  loadEnv(); requireValid();
+  loadEnv(); requireValid(); requireRemoteGuard({ needsFlag: true });
+  if (flags.includes('--dry-run')) { console.log('Validação ok (--dry-run): nada foi iniciado.'); process.exit(0); }
   if (!(await portFree(PORT))) stop(`A porta ${PORT} já está em uso (talvez outro servidor de desenvolvimento). Encerre-o ou use outra porta:
   ALPHA_LOCAL_PORT=<porta> npm run dev:alpha   (e ajuste ALPHA_PUBLIC_ORIGIN para http://127.0.0.1:<porta>)`, 3);
   const database = new URL(process.env.DATABASE_URL);
-  if (!LOCAL_HOSTS.includes(database.hostname)) console.log(`Banco externo de desenvolvimento: ${target(database)}. Confirme que NÃO é o banco de produção.`);
-  if (!(await reachable(database))) console.warn(`\nAviso: nada responde em ${database.hostname}:${database.port || 5432}. Suba o PostgreSQL local (npm run db:up) e rode: npm run db:migrate:local\n`);
+  if (isRemote()) console.log('Usando banco remoto marcado como desenvolvimento (AOH_LOCAL_DB_ENV=development).');
+  if (!(await reachable(database))) console.warn(isRemote() ? '\nAviso: o banco remoto não respondeu na porta configurada. Confira a conexão e a URL no .env.local.\n' : `\nAviso: nada responde em ${database.hostname}:${database.port || 5432}. Suba o PostgreSQL local (npm run db:up) e rode: npm run db:migrate:local\n`);
   console.log('Preparando o workspace (prisma generate, tsc -b)…');
   if (run(bins.prisma, ['generate']) !== 0 || run(bins.tsc, ['-b']) !== 0) stop('Falha ao preparar o workspace. Corrija os erros acima e tente de novo.');
   console.log(`
@@ -112,5 +128,5 @@ Closed Alpha local: ${ORIGIN}/alpha
   for (const { name, child } of children) child.on('exit', code => { if (!closing) { console.error(`
 ${name} terminou (código ${code ?? '?'}); encerrando o restante.`); shutdown(code ?? 1); } });
 } else {
-  stop('Uso: node scripts/local-alpha.mjs check | migrate [--allow-remote] | dev [--no-watch-packages]', 2);
+  stop('Uso: node scripts/local-alpha.mjs check | migrate [--allow-remote] [--dry-run] | dev [--allow-remote] [--dry-run] [--no-watch-packages]', 2);
 }

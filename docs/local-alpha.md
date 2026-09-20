@@ -14,14 +14,14 @@ cp apps/web/.env.local.example apps/web/.env.local
 
 Edite `apps/web/.env.local` (ignorado pelo Git; só o `.env.local.example` é versionado):
 
-- `DATABASE_URL`: o banco de **desenvolvimento**. Hosts do Railway são recusados pelos scripts.
+- `DATABASE_URL`: o banco de **desenvolvimento** (local ou remoto; veja "Banco remoto de desenvolvimento").
 - `ALPHA_SESSION_SECRET`: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`.
 - `ALPHA_PUBLIC_ORIGIN`: exatamente `http://127.0.0.1:3001`.
 - `DIRECT_URL`: opcional, só com banco hospedado por pooler.
 
 ```sh
 npm run alpha:env:check      # confere o arquivo; imprime só nomes, nunca valores
-npm run db:migrate:local     # prisma migrate deploy (recusa banco remoto sem --allow-remote)
+npm run db:migrate:local     # prisma migrate deploy (banco remoto: veja a seção abaixo)
 ```
 
 ## Trabalhar em tempo real
@@ -40,7 +40,23 @@ Sobe o Next em `127.0.0.1:3001` **e** `tsc -b -w` para `packages/shared`, `game-
 - Se a porta 3001 estiver ocupada, o script avisa. Outra porta: `ALPHA_LOCAL_PORT=3002` e `ALPHA_PUBLIC_ORIGIN=http://127.0.0.1:3002`.
 - Health: `http://127.0.0.1:3001/api/alpha/health`.
 
-Se faltar algo, ele para com uma mensagem por variável, sem mostrar valores: `.env.local` ausente, `DATABASE_URL` inválida ou apontando para o Railway, `ALPHA_SESSION_SECRET` com menos de 32 caracteres, `ALPHA_PUBLIC_ORIGIN` diferente do local. Com banco externo, ele mostra `host:porta/banco` (sem credenciais) para você conferir que não é o de produção.
+Se faltar algo, ele para com uma mensagem por variável, sem mostrar valores: `.env.local` ausente, `DATABASE_URL` inválida, `ALPHA_SESSION_SECRET` com menos de 32 caracteres, `ALPHA_PUBLIC_ORIGIN` diferente do local. Nenhuma URL, senha ou segredo é impresso; para um banco remoto o script não cita nem o host.
+
+## Banco remoto de desenvolvimento (ex.: Railway, ambiente `development`)
+
+Banco em `localhost`/`127.0.0.1`: usado normalmente. Banco **remoto** é recusado por padrão e só é aceito quando **as duas** condições valem:
+
+1. `apps/web/.env.local` contém a linha `AOH_LOCAL_DB_ENV=development` (escrita no próprio arquivo; uma variável só no shell não vale);
+2. o comando leva `--allow-remote` (`dev:alpha` e `db:migrate:local`).
+
+```sh
+npm run alpha:env:check                        # basta o marcador
+npm run db:migrate:local -- --allow-remote
+npm run dev:alpha -- --allow-remote
+npm run db:migrate:local -- --allow-remote --dry-run   # só valida, não aplica nada
+```
+
+O script **não tenta descobrir se um host é produção**: desenvolvimento e produção podem usar a mesma infraestrutura e o mesmo proxy, então o hostname não distingue nada. O marcador é uma declaração sua; só o use com o banco do ambiente de desenvolvimento e nunca com o de produção. `ALPHA_PUBLIC_ORIGIN` continua precisando ser `http://127.0.0.1:3001`, o que já barra um `.env` de produção copiado por engano.
 
 ## Vários jogadores sozinho (só desenvolvimento)
 
