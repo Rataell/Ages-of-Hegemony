@@ -8,15 +8,19 @@ export type { AlphaRoomView } from './alpha-service.js';
 export type { AlphaPlayerView } from './alpha-projection.js';
 const expectedMigrations=['20260919000100_alpha_match','20260920000100_alpha_match_archive'];
 const release='alpha-v0.1';
-type Runtime={http:AlphaHttp;client:PrismaClient};
+type Runtime={http:AlphaHttp;client:PrismaClient;module:symbol};
+/** Identifies this evaluation of the module. In development a hot reload evaluates it again, which rebuilds the HTTP layer over the same database client. */
+const moduleToken=Symbol('alpha-runtime');
 const processState=globalThis as typeof globalThis&{aohAlphaRuntime?:Runtime};
 function runtime():Runtime {
-  if(processState.aohAlphaRuntime)return processState.aohAlphaRuntime;
+  const cached=processState.aohAlphaRuntime;
+  // Production keeps one runtime for the life of the process. In development it is rebuilt when this module is reloaded, so recompiled engine and server code takes effect without restarting.
+  if(cached&&(process.env.NODE_ENV==='production'||cached.module===moduleToken))return cached;
   const connectionString=process.env.DATABASE_URL,secret=process.env.ALPHA_SESSION_SECRET,origin=process.env.ALPHA_PUBLIC_ORIGIN;
   if(!connectionString||!secret||!origin)throw new Error('Alpha environment is not configured');
-  const sessions=new GuestSessions(secret),client=new PrismaClient({adapter:new PrismaPg({connectionString})});
+  const sessions=new GuestSessions(secret),client=cached?.client??new PrismaClient({adapter:new PrismaPg({connectionString})});
   const http=new AlphaHttp(new AlphaGameService(new PrismaAlphaRepository(client)),sessions,origin,process.env.NODE_ENV==='production');
-  return processState.aohAlphaRuntime={client,http};
+  return processState.aohAlphaRuntime={client,http,module:moduleToken};
 }
 export async function handleAlphaRequest(request:Request):Promise<Response>{
   try{return await runtime().http.handle(request);}

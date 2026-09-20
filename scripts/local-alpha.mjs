@@ -3,7 +3,8 @@
 //   node scripts/local-alpha.mjs check     validate apps/web/.env.local (names only are ever printed, never values)
 //   node scripts/local-alpha.mjs migrate   prisma migrate deploy against the database in that file (local hosts only unless --allow-remote)
 //   node scripts/local-alpha.mjs dev       prepare the workspace and start Next.js with Fast Refresh on http://127.0.0.1:3001/alpha
-//                                          add --watch-packages to also recompile packages/ and apps/server on change
+//                                          also runs `tsc -b -w`, so edits in packages/* and apps/server show up without a manual compile
+//                                          (--no-watch-packages turns the watcher off)
 //
 // ALPHA_ENV_FILE overrides the env file path (used by tests). ALPHA_LOCAL_PORT (default 3001) moves the server; then ALPHA_PUBLIC_ORIGIN must follow.
 import { spawn, spawnSync } from 'node:child_process';
@@ -28,6 +29,8 @@ function loadEnv() {
   try { process.loadEnvFile(ENV_FILE); } catch { stop('Não consegui ler apps/web/.env.local. Confira se cada linha é NOME=valor.'); }
 }
 const urlOf = value => { try { return new URL(value); } catch { return null; } };
+/** Production runs on Railway. A development script must never be pointed at it. */
+const PRODUCTION_HOSTS = /(^|.)(railway.app|rlwy.net|railway.internal)$/i;
 const isPostgres = url => url !== null && ['postgres:', 'postgresql:'].includes(url.protocol);
 /** host:port/database, without user or password. */
 const target = url => `${url.hostname}${url.port ? `:${url.port}` : ''}${url.pathname}`;
@@ -39,6 +42,7 @@ function problems({ forDatabaseOnly = false } = {}) {
   if (!database) list.push('DATABASE_URL está ausente. Use a URL do seu PostgreSQL local (veja o exemplo).');
   else if (!isPostgres(urlOf(database))) list.push('DATABASE_URL não parece uma URL postgresql://usuario:senha@host:porta/banco.');
   if (env.DIRECT_URL && !isPostgres(urlOf(env.DIRECT_URL))) list.push('DIRECT_URL, quando definida, precisa ser uma URL postgresql://…');
+  for (const name of ['DATABASE_URL', 'DIRECT_URL']) if (PRODUCTION_HOSTS.test(urlOf(env[name] ?? '')?.hostname ?? '')) list.push(`${name} aponta para um host do Railway (produção). O desenvolvimento local usa um banco separado e nunca o de produção.`);
   if (forDatabaseOnly) return list;
   const secret = env.ALPHA_SESSION_SECRET ?? '';
   if (!secret) list.push('ALPHA_SESSION_SECRET está ausente. Gere um: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'base64url\'))"');
@@ -83,15 +87,30 @@ if (command === 'check') {
   if (!(await portFree(PORT))) stop(`A porta ${PORT} já está em uso (talvez outro servidor de desenvolvimento). Encerre-o ou use outra porta:
   ALPHA_LOCAL_PORT=<porta> npm run dev:alpha   (e ajuste ALPHA_PUBLIC_ORIGIN para http://127.0.0.1:<porta>)`, 3);
   const database = new URL(process.env.DATABASE_URL);
+  if (!LOCAL_HOSTS.includes(database.hostname)) console.log(`Banco externo de desenvolvimento: ${target(database)}. Confirme que NÃO é o banco de produção.`);
   if (!(await reachable(database))) console.warn(`\nAviso: nada responde em ${database.hostname}:${database.port || 5432}. Suba o PostgreSQL local (npm run db:up) e rode: npm run db:migrate:local\n`);
   console.log('Preparando o workspace (prisma generate, tsc -b)…');
   if (run(bins.prisma, ['generate']) !== 0 || run(bins.tsc, ['-b']) !== 0) stop('Falha ao preparar o workspace. Corrija os erros acima e tente de novo.');
-  console.log(`\nClosed Alpha local: ${ORIGIN}/alpha  (Fast Refresh ativo; Ctrl+C encerra)\n`);
-  const children = [spawn(process.execPath, [bins.next, 'dev', '--hostname', HOST, '--port', String(PORT)], { cwd: WEB, stdio: 'inherit', env: process.env })];
-  if (flags.includes('--watch-packages')) children.push(spawn(process.execPath, [bins.tsc, '-b', '--watch', '--preserveWatchOutput'], { cwd: ROOT, stdio: 'inherit', env: process.env }));
-  const shutdown = () => children.forEach(child => child.kill());
-  process.on('SIGINT', shutdown); process.on('SIGTERM', shutdown);
-  children[0].on('exit', code => { shutdown(); process.exit(code ?? 0); });
+  console.log(`
+Closed Alpha local: ${ORIGIN}/alpha
+  .tsx/.css: Fast Refresh. packages/* e apps/server: recompilados por tsc -b -w. Ctrl+C encerra tudo.
+`);
+  const children = [{ name: 'next', child: spawn(process.execPath, [bins.next, 'dev', '--hostname', HOST, '--port', String(PORT)], { cwd: WEB, stdio: 'inherit', env: process.env }) }];
+  if (!flags.includes('--no-watch-packages')) children.push({ name: 'tsc', child: spawn(process.execPath, [bins.tsc, '-b', '-w', '--preserveWatchOutput'], { cwd: ROOT, stdio: 'inherit', env: process.env }) });
+  let closing = false;
+  /** Ends every child and its own children (Next spawns workers). taskkill /T on Windows, SIGTERM elsewhere. */
+  const shutdown = code => {
+    if (closing) return; closing = true;
+    for (const { child } of children) {
+      if (child.exitCode !== null || child.pid === undefined) continue;
+      if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+      else child.kill('SIGTERM');
+    }
+    process.exit(code);
+  };
+  process.on('SIGINT', () => shutdown(0)); process.on('SIGTERM', () => shutdown(0));
+  for (const { name, child } of children) child.on('exit', code => { if (!closing) { console.error(`
+${name} terminou (código ${code ?? '?'}); encerrando o restante.`); shutdown(code ?? 1); } });
 } else {
-  stop('Uso: node scripts/local-alpha.mjs check | migrate [--allow-remote] | dev [--watch-packages]', 2);
+  stop('Uso: node scripts/local-alpha.mjs check | migrate [--allow-remote] | dev [--no-watch-packages]', 2);
 }

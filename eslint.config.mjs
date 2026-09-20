@@ -6,7 +6,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { files: ['**/*.ts', '**/*.tsx'], rules: { '@typescript-eslint/no-explicit-any': 'error' } },
-  { files: ['scripts/**/*.mjs'], languageOptions: { globals: { process: 'readonly', console: 'readonly', URL: 'readonly', fetch: 'readonly' } } },
+  { files: ['scripts/**/*.mjs'], languageOptions: { globals: { process: 'readonly', console: 'readonly', URL: 'readonly', fetch: 'readonly', AbortSignal: 'readonly' } } },
   {
     files: ['apps/web/app/play/**/*.ts', 'apps/web/app/play/**/*.tsx', 'apps/web/app/alpha/**/*.ts', 'apps/web/app/alpha/**/*.tsx'],
     rules: { 'no-restricted-imports': ['error', { patterns: ['@aoh/game-engine', '@aoh/game-engine/*', '@prisma/*', 'node:*'] }] }
