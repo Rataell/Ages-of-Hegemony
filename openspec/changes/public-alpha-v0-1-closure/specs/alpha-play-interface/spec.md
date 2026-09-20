@@ -67,3 +67,14 @@ The interface SHALL offer every urban action through a single panel that shows, 
 #### Scenario: Reconnecting
 - **WHEN** a player reloads during the urban phase
 - **THEN** the panel shows the city's remaining actions as the server holds them
+
+### Requirement: One visual language with the local slice
+The gameplay screen SHALL reuse the local slice's shell (top bar with resources, area navigation, council on the left, atlas in the centre, context inspector on the right, bottom action bar) so the atlas stays the largest element, and SHALL NOT introduce a second design system for the same structure.
+
+#### Scenario: Large army
+- **WHEN** a player owns many pieces on one hex
+- **THEN** they appear as one stack with class counts and a select-all control, and individual pieces are shown only on request
+
+#### Scenario: Attack controls
+- **WHEN** a player has pieces selected
+- **THEN** the attack posture, target and order button appear in the military context of the inspector, the defence posture is a separate council control, and a queued attack shows a one-line summary with the full modifier breakdown expandable

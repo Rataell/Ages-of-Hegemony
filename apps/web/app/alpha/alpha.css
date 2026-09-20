@@ -56,24 +56,6 @@ button.alpha-card { text-align: left; }
 .alpha-card.is-selected { border-color: var(--accent); box-shadow: inset 0 3px var(--accent); }
 .alpha-card button { margin: 6px 5px 0 0; }
 .alpha-lobby-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 20px 0; }
-.alpha-player-board { display: flex; gap: 22px; justify-content: space-between; align-items: center; padding: 20px 28px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface); }
-.alpha-player-board h1 { margin: 3px 0; font-size: 28px; }
-.alpha-player-board > div:not(.resources) { display: flex; flex-direction: column; }
-.alpha-player-board strong { font-size: 24px; }
-.alpha-tabs { display: flex; gap: 8px; padding: 14px 24px; overflow-x: auto; }
-.alpha-tabs button { white-space: nowrap; }
-.alpha-tabs [aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
-.alpha-world-layout { display: grid; grid-template-columns: 210px minmax(350px,1fr) 310px; gap: 12px; padding: 0 16px; align-items: stretch; }
-.alpha-council, .alpha-inspector { background: var(--surface); border: 1px solid var(--border); padding: 18px; max-height: 70vh; overflow-y: auto; min-width: 0; }
-.alpha-council > button { width: 100%; text-align: left; margin-bottom: 8px; }
-.alpha-council small { display: block; }
-.alpha-council .alpha-piece-row { flex-direction: row; align-items: center; gap: 10px; padding: 8px 0; }
-.alpha-world-layout .map-stage { height: 70vh; min-height: 460px; width: 100%; min-width: 0; }
-.alpha-world-layout .world-map { touch-action: none; }
-.alpha-world-layout .map-heading, .alpha-world-layout .map-legend { color: var(--map-ink); }
-.alpha-world-layout .map-heading .eyebrow { color: var(--accent-bright); }
-.alpha-inspector button { margin: 5px 3px 5px 0; }
-.alpha-inspector .resources { flex-wrap: wrap; }
 .alpha-shell details { margin: 12px 0; padding: 12px; border: 1px solid var(--border); background: var(--surface); }
 .alpha-shell summary { cursor: pointer; color: var(--accent); font-weight: 600; }
 .alpha-option { padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
@@ -89,10 +71,6 @@ button.alpha-card { text-align: left; }
 .alpha-era-track li { min-width: 130px; border-top: 2px solid var(--border); padding: 12px; }
 .alpha-era-track [aria-current] { border-color: var(--accent); color: var(--accent); }
 .alpha-era-track b { display: block; font-size: 28px; font-family: var(--serif); }
-.alpha-round-bar { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; padding: 16px 28px; margin-top: 14px; border-top: 1px solid var(--border); background: var(--surface-elevated); }
-.alpha-round-bar > div { display: flex; gap: 12px; align-items: center; }
-.alpha-round-bar ol { display: flex; gap: 28px; }
-.alpha-round-bar strong { font-size: 23px; }
 .alpha-dice { display: flex; gap: 10px; }
 .alpha-dice span { display: grid; place-items: center; width: 44px; height: 44px; background: var(--text-primary); color: var(--background); border-radius: 8px; font: bold 24px var(--serif); box-shadow: var(--shadow-sm); }
 .alpha-panel table { width: 100%; text-align: left; border-collapse: collapse; }
@@ -100,9 +78,8 @@ button.alpha-card { text-align: left; }
 .alpha-feed { padding-left: 20px; }
 .alpha-feed li { padding: 8px; }
 .alpha-finale { padding: 25px; text-align: center; border: 1px solid var(--accent); background: var(--surface-elevated); }
-.alpha-about { margin: 20px!important; }
-@media(max-width:1100px) { .alpha-world-layout { grid-template-columns: 170px minmax(300px,1fr); } .alpha-inspector { grid-column: 1 / -1; max-height: none; } .alpha-entry { gap: 30px; } }
-@media(max-width:650px) { .alpha-entry { display: block; padding: 24px 18px; } .alpha-entry-forms { margin-top: 28px; padding: 18px; } .alpha-masthead { padding: 14px; gap: 8px; } .alpha-wordmark { font-size: 11px; letter-spacing: .08em; } .alpha-masthead > small { font-size: 10px; } .alpha-world-layout { display: flex; flex-direction: column; padding: 0 8px; } .alpha-council { max-height: 190px; order: 2; } .alpha-world-layout .map-stage { height: 52vh; min-height: 340px; order: 1; } .alpha-inspector { order: 3; } .alpha-player-board { padding: 16px; gap: 16px; } .alpha-player-board .resources { flex-wrap: wrap; gap: 14px; } .alpha-lobby,.alpha-panel { padding: 18px 12px; } .alpha-round-bar { padding: 16px; } .alpha-round-bar ol { flex-wrap: wrap; } .alpha-round-bar button { width: 100%; } .alpha-intro h1 { font-size: 48px; } }
+@media(max-width:1100px) { .alpha-entry { gap: 30px; } }
+@media(max-width:650px) { .alpha-entry { display: block; padding: 24px 18px; } .alpha-entry-forms { margin-top: 28px; padding: 18px; } .alpha-masthead { padding: 14px; gap: 8px; } .alpha-wordmark { font-size: 11px; letter-spacing: .08em; } .alpha-masthead > small { font-size: 10px; } .alpha-lobby,.alpha-panel { padding: 18px 12px; } .alpha-intro h1 { font-size: 48px; } }
 
 .alpha-urban { display: grid; gap: 10px; padding: 14px 0; }
 .alpha-produce { padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-raised, transparent); }
@@ -118,3 +95,65 @@ button.alpha-card { text-align: left; }
 .alpha-breakdown li { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
 .alpha-attack-preview { margin-top: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
 .alpha-roll-notes { font-size: 0.85em; padding-left: 16px; }
+
+/* Gameplay shell: reuses the slice's .game-shell / .top-bar / .main-nav / .play-layout / .civilization-panel / .world-column / .context-inspector / .action-bar (style.css). Only Alpha-specific pieces live here. */
+.alpha-game h1, .alpha-game h2, .alpha-game h3 { font-family: var(--serif); font-weight: 500; }
+.alpha-game .top-bar .admin small { color: var(--text-secondary); }
+.alpha-game .main-nav { overflow-x: auto; white-space: nowrap; }
+.alpha-game .main-nav button { flex: none; }
+.alpha-nav-tools { display: flex; align-items: center; gap: 14px; margin-left: auto; padding-left: 16px; }
+.alpha-nav-tools .future-system-tag { margin-left: 0; }
+.alpha-theme { flex-direction: row !important; align-items: center; gap: 8px !important; font-size: 11px; color: var(--text-secondary); }
+.alpha-theme select { width: auto !important; padding: 4px 8px !important; font-size: 12px; }
+.alpha-game .civilization-panel h3, .alpha-game .context-inspector h3 { font-size: 14px; margin: 0 0 8px; }
+.alpha-game .civilization-panel label { font-size: 12px; gap: 4px; }
+.alpha-game .civilization-panel select { padding: 6px 8px; font-size: 12px; }
+.alpha-game .city-link { margin-bottom: 6px; }
+.alpha-game .world-column .map-stage { min-height: 0; }
+.alpha-game .world-map { touch-action: none; }
+.alpha-game .map-heading, .alpha-game .map-legend { color: var(--map-ink); }
+.alpha-game .map-heading .eyebrow { color: var(--accent-bright); }
+.alpha-inspector-body { padding: 14px 0 6px; }
+.alpha-inspector-body button { margin: 4px 4px 4px 0; }
+.alpha-inspector-body .resources { flex-wrap: wrap; }
+.alpha-inspector-body > h2 { font-size: 20px; margin: 0 0 4px; }
+.alpha-inspector-body details, .alpha-game .civilization-panel details { margin: 8px 0; padding: 8px 10px; }
+.alpha-tab-body { flex: 1; min-height: 0; overflow-y: auto; }
+.alpha-game > .alpha-finale { padding: 8px 16px; }
+.alpha-game > .alpha-finale h2 { margin: 2px 0; font-size: 18px; }
+.alpha-game > .alpha-finale p { margin: 0; }
+.alpha-round-bar .feedback { line-height: 1.4; }
+.alpha-round-bar ol { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--text-secondary); }
+.alpha-round-bar li + li::before { content: '›'; margin-right: 14px; color: var(--text-muted); }
+
+/* Army list: one card per stack, class chips, individual pieces on demand. */
+.alpha-armies { display: grid; gap: 8px; }
+.alpha-army { padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--surface-elevated); }
+.alpha-army[data-selected='true'] { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.alpha-army-head { display: grid; gap: 1px; }
+.alpha-army-head b { font-size: 13px; color: var(--text-primary); }
+.alpha-army-classes { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.alpha-army-classes button { padding: 2px 8px; font-size: 11px; border-radius: 10px; }
+.alpha-army-classes [aria-pressed='true'] { border-color: var(--accent); color: var(--accent); background: var(--surface-highest); }
+.alpha-army-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.alpha-army-actions button { padding: 3px 9px; font-size: 11px; }
+.alpha-army details { margin: 6px 0 0; padding: 4px 8px; }
+.alpha-army summary { font-size: 11px; }
+.alpha-army .alpha-piece-row { flex-direction: row; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; }
+.alpha-army-summary { margin: 0 0 4px; color: var(--text-primary); }
+.alpha-target { margin: 4px 0 8px; font-size: 12px; }
+.alpha-hint { color: var(--text-muted); }
+
+/* Orders and combat preview */
+.alpha-order { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; border-left: 2px solid var(--accent); padding: 6px 8px; margin: 8px 0; }
+.alpha-order > button { padding: 2px 8px; margin: 0; }
+.alpha-order > .alpha-attack-preview { flex-basis: 100%; }
+.alpha-preview-summary { margin: 4px 0; font-size: 12px; }
+.alpha-attack-preview details { margin: 4px 0 0; padding: 6px 8px; }
+.alpha-attack-preview .alpha-form-row { flex-direction: column; gap: 8px; margin: 8px 0; }
+.alpha-breakdown h5 { margin: 0; font-size: 12px; }
+@media(max-width:900px) { .alpha-nav-tools .future-system-tag { display: none; } .alpha-round-bar ol { display: none; } }
+@media(max-width:500px) { .alpha-nav-tools { padding-left: 8px; } }
+.alpha-inspector-body .section-head button, .alpha-army-actions button { padding: 3px 9px; font-size: 11px; white-space: nowrap; margin: 0; }
+.alpha-inspector-body .section-head h3 { margin: 0; }
+@media(max-width:500px) { .alpha-game .top-bar .civ-brand { flex-basis: 100%; } .alpha-game .top-bar .admin { min-width: 0; flex: 1; } }

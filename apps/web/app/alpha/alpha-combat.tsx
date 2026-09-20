@@ -17,22 +17,25 @@ function Breakdown({ label, strength, items, total }: { label: string; strength:
     <p>Total <b>{total}</b></p></div>;
 }
 
-/** Attack order preview: every static modifier by origin. No dice, no defender posture, nothing on hexes the player cannot see. */
+/** Attack order preview. One summary line up front; the full breakdown by origin is one click away. No dice, no defender posture, nothing on hexes the player cannot see. */
 export function AttackPreview({ preview }: { preview: Preview }) {
   if (!preview.ok) return <p className="alpha-warning" role="alert">Ataque bloqueado: {preview.blocked}</p>;
   const defender = preview.defender;
+  const defenseTotal = defender?.visible ? defender.strength + defender.breakdown.reduce((n, m) => n + m.amount, 0) : null;
   return <section className="alpha-attack-preview" aria-label="Prévia do ataque">
-    <h4>Prévia · {preview.target} · {text(preview.terrain)}</h4>
-    <p>Postura escolhida: <b>{postureText(preview.attacker.posture)}</b></p>
-    <div className="alpha-form-row">
-      <Breakdown label="Seu ataque" strength={preview.attacker.strength} items={preview.attacker.breakdown} total={preview.attacker.total} />
-      {defender?.visible
-        ? <Breakdown label="Defesa visível" strength={defender.strength} items={defender.breakdown} total={defender.strength + defender.breakdown.reduce((n, m) => n + m.amount, 0)} />
-        : <p>Defesa fora da sua visão: força desconhecida.</p>}
-    </div>
-    {defender?.visible && defender.fortification && defender.fortification.level !== 'NONE' && <p>Fortificação: {text(defender.fortification.level)} · {defender.fortification.state === 'INTACT' ? 'intacta' : defender.fortification.state === 'DAMAGED' ? 'danificada' : 'rompida'}.</p>}
-    <p>Postura defensiva do adversário: desconhecida.</p>
-    <p>{preview.note} Faces do dado: {preview.dieFaces.map(face => FACE[face]).join(', ')}.</p>
+    <p className="alpha-preview-summary"><b>{postureText(preview.attacker.posture)}</b> · Ataque <b>{preview.attacker.total}</b> × Defesa <b>{defenseTotal ?? '?'}</b>{defenseTotal === null && ' (fora da visão)'}</p>
+    <details><summary>Prévia · {preview.target} · {text(preview.terrain)}</summary>
+      <p>Postura escolhida: <b>{postureText(preview.attacker.posture)}</b></p>
+      <div className="alpha-form-row">
+        <Breakdown label="Seu ataque" strength={preview.attacker.strength} items={preview.attacker.breakdown} total={preview.attacker.total} />
+        {defender?.visible && defenseTotal !== null
+          ? <Breakdown label="Defesa visível" strength={defender.strength} items={defender.breakdown} total={defenseTotal} />
+          : <p>Defesa fora da sua visão: força desconhecida.</p>}
+      </div>
+      {defender?.visible && defender.fortification && defender.fortification.level !== 'NONE' && <p>Fortificação: {text(defender.fortification.level)} · {defender.fortification.state === 'INTACT' ? 'intacta' : defender.fortification.state === 'DAMAGED' ? 'danificada' : 'rompida'}.</p>}
+      <p>Postura defensiva do adversário: desconhecida.</p>
+      <p>{preview.note} Faces do dado: {preview.dieFaces.map(face => FACE[face]).join(', ')}.</p>
+    </details>
   </section>;
 }
 

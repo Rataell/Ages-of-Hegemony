@@ -35,9 +35,12 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
       await expect(page.getByRole('heading',{name:i===0?'Aurélia':'Valgard',exact:true})).toBeVisible();
     }
     const a=pages[0]!,b=pages[1]!;
-    const army=a.locator('.alpha-piece-row').filter({hasText:'8,0'});
-    await expect(army).toHaveCount(10);
-    for(const checkbox of await army.getByRole('checkbox').all())await checkbox.check();
+    // Ten pieces on one hex collapse into a single stack card; individual pieces stay reachable under 'ver composição'.
+    await expect(a.locator('.alpha-piece-row').filter({hasText:'8,0'})).toHaveCount(10);
+    const stack=a.locator('.alpha-army').filter({hasText:'8,0'});
+    await expect(stack).toHaveCount(1);await expect(stack).toContainText('Exército · 10 peças');await expect(stack).toContainText('×');
+    await stack.getByRole('button',{name:'Selecionar todas',exact:true}).click();
+    await expect(a.getByRole('heading',{name:'Planejar com 10 peça(s)'})).toBeVisible();
     await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
     await a.getByLabel('Postura do ataque',{exact:false}).selectOption('MANEUVER');
     await b.getByLabel('Se for atacado, sua civilização adota',{exact:false}).selectOption('HOLD');
@@ -45,10 +48,20 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     await expect(a.locator('.alpha-order')).toContainText('Ataque');
     // The preview explains the static modifiers by origin and reveals neither dice nor the defender's posture.
     const preview=a.locator('.alpha-attack-preview');
+    await expect(preview.locator('.alpha-preview-summary')).toContainText(/Manobra · Ataque [0-9]+ × Defesa/);
+    await preview.locator('summary').click();
+    await expect(preview.getByRole('heading',{name:'Seu ataque'})).toBeVisible();
     await expect(preview).toContainText('Seu ataque');await expect(preview).toContainText('Postura escolhida: Manobra');
     await expect(preview).toContainText('Postura defensiva do adversário: desconhecida');
     await expect(preview).toContainText('Faces do dado: Vazio, Impacto, Impacto, Guarda, Manobra, Comando');
     await expect(preview).not.toContainText('Faces do ataque');
+
+    const shots='docs/evidence/alpha-convergence';await mkdir(shots,{recursive:true});
+    for(const [width,height] of [[1440,900],[1280,800],[390,844]] as const){
+      await a.setViewportSize({width,height});await a.screenshot({path:`${shots}/alpha-${width}-army-attack.png`});
+      expect(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    }
+    await a.setViewportSize({width:1440,height:900});
 
     async function confirmRound(){
       const round=(await repository.find(room.id))!.game!.core.round;
