@@ -1,0 +1,110 @@
+{
+ "results": [
+  {
+   "label": "empty nickname disables Criar and Entrar",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "whitespace-only nickname keeps them disabled",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "the nickname field stops at 80 characters",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "empty invite code keeps Entrar disabled",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "a malformed code shows a readable error",
+   "ok": true,
+   "detail": "Informe um código de convite válido e seu nome. ×"
+  },
+  {
+   "label": "an unknown code shows \"Convite não encontrado\"",
+   "ok": true,
+   "detail": "Convite não encontrado. ×"
+  },
+  {
+   "label": "all 19 visible options create a table",
+   "ok": true,
+   "detail": "19 created"
+  },
+  {
+   "label": "no world-size selector is offered (engine has a fixed 30-region board)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "Copiar código copies only the code",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "…and shows a confirmation",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "Copiar link copies /alpha?join=<code>",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "a failing clipboard shows a readable message",
+   "ok": true,
+   "detail": "Não foi possível copiar. Selecione e copie o código manualmente. ×"
+  },
+  {
+   "label": "the invite link pre-fills the code",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "12 civilization cards are offered",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "the other player sees the taken civilization disabled (no duplicates in the UI)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "Iniciar partida is hidden from guests",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "host cannot start with fewer than 2 ready players",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "a ready player cannot change civilization (cards disabled)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "\"Voltar à preparação\" re-enables the choice",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "a fourth person at a 3-seat table gets a readable refusal",
+   "ok": true,
+   "detail": "A partida já começou ou não possui vagas. ×"
+  }
+ ],
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 409 (Conflict)",
+  "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+ ]
+}

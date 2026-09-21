@@ -1,0 +1,106 @@
+{
+ "players": [
+  {
+   "label": "npm run alpha:players -- --players=2",
+   "ok": true,
+   "detail": "exit 0, 2s, 2 janelas abertas em http://127.0.0.1:3002/alpha, cada uma com sessão própria. Feche todas ou pressione Ctrl+C para encerrar. Nomes preenchidos. Crie "
+  },
+  {
+   "label": "npm run alpha:players -- --players=2 --auto-join",
+   "ok": true,
+   "detail": "exit 0, 3s, 2 janelas abertas em http://127.0.0.1:3002/alpha, cada uma com sessão própria. Feche todas ou pressione Ctrl+C para encerrar. Mesa criada; 1 entraram "
+  },
+  {
+   "label": "npm run alpha:players -- --players=2 --auto-join --start",
+   "ok": true,
+   "detail": "exit 0, 5s, 2 janelas abertas em http://127.0.0.1:3002/alpha, cada uma com sessão própria. Feche todas ou pressione Ctrl+C para encerrar. Mesa criada; 1 entraram "
+  },
+  {
+   "label": "npm run alpha:players -- --players=3 --auto-join --start",
+   "ok": true,
+   "detail": "exit 0, 6s, 3 janelas abertas em http://127.0.0.1:3002/alpha, cada uma com sessão própria. Feche todas ou pressione Ctrl+C para encerrar. Mesa criada; 2 entraram "
+  },
+  {
+   "label": "npm run alpha:players -- --players=4 --auto-join --start",
+   "ok": true,
+   "detail": "exit 0, 6s, 4 janelas abertas em http://127.0.0.1:3002/alpha, cada uma com sessão própria. Feche todas ou pressione Ctrl+C para encerrar. Mesa criada; 3 entraram "
+  },
+  {
+   "label": "npm run alpha:players -- --players=6 --auto-join --start",
+   "ok": true,
+   "detail": "exit 0, 9s, 6 janelas abertas em http://127.0.0.1:3002/alpha, cada uma com sessão própria. Feche todas ou pressione Ctrl+C para encerrar. Mesa criada; 5 entraram "
+  },
+  {
+   "label": "npm run alpha:players -- --players=7",
+   "ok": true,
+   "detail": "exit 2, 0s,  --players precisa ser um número inteiro de 2 a 6. Exemplo: npm run alpha:players -- --players=3 "
+  },
+  {
+   "label": "npm run alpha:players -- --players=1",
+   "ok": true,
+   "detail": "exit 2, 0s,  --players precisa ser um número inteiro de 2 a 6. Exemplo: npm run alpha:players -- --players=3 "
+  },
+  {
+   "label": "npm run alpha:players -- --players=2 --layout=grid",
+   "ok": true,
+   "detail": "exit 2, 0s,  --layout precisa ser tile ou none. "
+  }
+ ],
+ "reload": [
+  {
+   "label": "F5 keeps the identity and the match",
+   "ok": true,
+   "detail": "Aurélia"
+  },
+  {
+   "label": "a second tab in the same browser is the same person",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "closing and reopening the page keeps the session",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "KNOWN LIMIT: opening /alpha after only READING the match through ?game= shows the entry screen (no resume yet)",
+   "ok": true,
+   "detail": "entry screen shown, as documented (P3)"
+  },
+  {
+   "label": "entering the code with the same session returns to the same seat mid-match",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "after a request from the page, /alpha with no ?game= resumes the last match (localStorage)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "leaving returns to the entry screen and clears ?game=",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "after leaving, a reload stays on the entry screen",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "leaving is client-only: the seat still exists on the server (documented behaviour)",
+   "ok": true,
+   "detail": "200"
+  },
+  {
+   "label": "entering the code again after leaving returns to the same seat mid-match",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "label": "a browser without the session sees the entry screen, not the match",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

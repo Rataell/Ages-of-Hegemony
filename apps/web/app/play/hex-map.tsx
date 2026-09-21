@@ -3,7 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LocalView } from '@aoh/server/local-play';
 import type { AlphaUnit, HexTile } from '@aoh/game-domain';
 import { label, roman } from './presentation';
-import { clampCentre, clampZoom, mapFrame, position, viewBoxOf } from './map-frame';
+import { clampCentre, clampZoom, mapFrame, position, tileSummary, viewBoxOf } from './map-frame';
 
 type Props = {
   data: Pick<LocalView,'players'|'claimable'|'workable'> & {view:Pick<LocalView['view'],'player'|'visibleCities'> & {era:string;visibleTerritory:HexTile[]}};
@@ -188,7 +188,7 @@ export const HexMap = memo(function HexMap({
               }}
             >
               <title>
-                {label(tile.terrain)} · {tile.id} · {tile.ownerId ? data.players.find(pl => pl.id === tile.ownerId)?.name : 'Livre'} · Controle: {tile.controllerCityId ?? 'nenhum'}
+                {tileSummary({ terrain: tile.terrain, id: tile.id, ownerName: tile.ownerId ? data.players.find(pl => pl.id === tile.ownerId)?.name : undefined, controllerCityId: tile.controllerCityId ?? null }, label(tile.terrain))}
                 {eligible ? (working ? ' · Elegível para trabalho' : ' · Reivindicável') : ''}
                 {isWorked ? ' · Trabalhado' : ''}
               </title>

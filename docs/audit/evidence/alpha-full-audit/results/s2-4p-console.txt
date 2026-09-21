@@ -1,0 +1,13 @@
+match 815d1bf7-aa6b-4247-96f0-a0fc8366ffbe started with 4 players
+  round 1 reached (PLANNING)
+  round 2 reached (PLANNING)
+  round 3 reached (PLANNING)
+  round 4 reached (PLANNING)
+  round 5 reached (PLANNING)
+  round 6 reached (PLANNING)
+  round 7 reached (PLANNING)
+  round 8 reached (PLANNING)
+  round 9 reached (PLANNING)
+result {"finished":true,"winner":{"playerId":"player-3","reason":"ROUND_LIMIT","round":9},"round":9,"seconds":484,"attempts":833,"anomalies":0}
+conflicts {"attempts":833,"byConflictsBeforeOutcome":{"0":652,"1":150,"2":28,"3":2,"4":1},"needMoreThanOneRetry":31,"pctNeedMoreThanOneRetry":3.72}
+anomalies []

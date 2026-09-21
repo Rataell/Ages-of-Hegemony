@@ -1,0 +1,13 @@
+match 722fc88e-79e4-46bc-a02e-075f2175405f started with 6 players
+  round 1 reached (URBAN_ACTIONS)
+  round 2 reached (PLANNING)
+  round 3 reached (PLANNING)
+  round 4 reached (PLANNING)
+  round 5 reached (PLANNING)
+  round 6 reached (PLANNING)
+  round 7 reached (PLANNING)
+  round 8 reached (PLANNING)
+  round 9 reached (PLANNING)
+result {"finished":true,"winner":{"playerId":"player-4","reason":"ROUND_LIMIT","round":9},"round":9,"seconds":500,"attempts":1203,"anomalies":0}
+conflicts {"attempts":1203,"byConflictsBeforeOutcome":{"0":831,"1":274,"2":70,"3":17,"4":9,"5":1,"6":1},"needMoreThanOneRetry":98,"pctNeedMoreThanOneRetry":8.15}
+anomalies []

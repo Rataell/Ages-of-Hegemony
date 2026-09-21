@@ -78,7 +78,8 @@ describe('scripts/local-alpha.mjs', () => {
   });
 });
 
-describe('remote database guard', () => {
+// Each case spawns the script (up to 12 node processes per test); under load that exceeds vitest's 5 s default.
+describe('remote database guard', { timeout: 30_000 }, () => {
   const HOSTS = ['containers-us-west-1.railway.app', 'roundhouse.proxy.rlwy.net', 'aws-0.pooler.supabase.com', 'db.example.com'];
   const remote = (host: string, extra: Record<string, string> = {}) => ({ ...good, DATABASE_URL: `postgresql://postgres:${PASSWORD}@${host}:5432/railway?sslmode=require`, ...extra });
   const marked = { AOH_LOCAL_DB_ENV: 'development' };

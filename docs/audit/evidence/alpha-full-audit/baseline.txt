@@ -1,0 +1,21 @@
+branch: feature/aoh-alpha-full-audit-v1
+commit: f0a99a3
+node: v26.4.0  npm: 12.0.1
+next 16.3.5 prisma 7.10.0 playwright 1.63.0 typescript 5.9.3
+os: Microsoft Windows [vers�o 10.0.26100.9457]
+== npm install  exit=0  15s
+added 1 package, changed 8 packages, and audited 313 packages in 14s
+found 0 vulnerabilities
+== npm run lint  exit=0  21s
+== npm run typecheck  exit=0  37s
+== npm test  exit=1  23s
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ Test Files  1 failed | 42 passed (43)
+      Tests  1 failed | 628 passed (629)
+== npm run build  exit=0  20s
+✓ Compiled successfully in 1147ms
+== git diff --check  offending lines=0
+✓ change/alpha-v0-1-ux-round-1
+✓ change/public-alpha-v0-1-closure
+Totals: 2 passed, 0 failed (2 items)
+(npm run check = lint+typecheck+test+build: not re-run, redundant)

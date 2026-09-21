@@ -1,0 +1,6429 @@
+{
+ "generatedAt": "2026-09-21T10:02:23.788Z",
+ "base": "http://127.0.0.1:3002",
+ "findings": [],
+ "requests": 610,
+ "seed": 1,
+ "capitals": [
+  "0,0",
+  "15,12"
+ ],
+ "distance": 27,
+ "timeline": [
+  {
+   "round": 1,
+   "nearestUnitPair": 27,
+   "nearestToEnemyCapital": [
+    27,
+    27
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    7,
+    7
+   ],
+   "units": [
+    "PIONEER",
+    "PIONEER"
+   ]
+  },
+  {
+   "round": 2,
+   "nearestUnitPair": 25,
+   "nearestToEnemyCapital": [
+    26,
+    26
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    8,
+    8
+   ],
+   "units": [
+    "PIONEER/EXPLORER",
+    "PIONEER/EXPLORER"
+   ]
+  },
+  {
+   "round": 3,
+   "nearestUnitPair": 23,
+   "nearestToEnemyCapital": [
+    25,
+    25
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    11,
+    11
+   ],
+   "units": [
+    "PIONEER/EXPLORER/INFANTRY",
+    "PIONEER/EXPLORER/INFANTRY"
+   ]
+  },
+  {
+   "round": 4,
+   "nearestUnitPair": 21,
+   "nearestToEnemyCapital": [
+    24,
+    24
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    15,
+    13
+   ],
+   "units": [
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY",
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY"
+   ]
+  },
+  {
+   "round": 5,
+   "nearestUnitPair": 19,
+   "nearestToEnemyCapital": [
+    23,
+    23
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    17,
+    16
+   ],
+   "units": [
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY",
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"
+   ]
+  },
+  {
+   "round": 6,
+   "nearestUnitPair": 17,
+   "nearestToEnemyCapital": [
+    22,
+    22
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    20,
+    19
+   ],
+   "units": [
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY",
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"
+   ]
+  },
+  {
+   "round": 7,
+   "nearestUnitPair": 16,
+   "nearestToEnemyCapital": [
+    22,
+    21
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    21,
+    22
+   ],
+   "units": [
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY",
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"
+   ]
+  },
+  {
+   "round": 8,
+   "nearestUnitPair": 14,
+   "nearestToEnemyCapital": [
+    21,
+    20
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    22,
+    23
+   ],
+   "units": [
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY",
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"
+   ]
+  },
+  {
+   "round": 9,
+   "nearestUnitPair": 12,
+   "nearestToEnemyCapital": [
+    20,
+    19
+   ],
+   "contacts": [
+    0,
+    0
+   ],
+   "wars": 0,
+   "battles": 0,
+   "known": [
+    24,
+    26
+   ],
+   "units": [
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY",
+    "PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"
+   ]
+  }
+ ],
+ "table": {
+  "WORLD_CHOICE:world": {
+   "ok": 10,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "CHOOSE_AMBITIONS:ambitions": {
+   "ok": 2,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "SET_DEFENSE_POSTURE:posture": {
+   "ok": 18,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "QUEUE_ORDER:rush:PIONEER": {
+   "ok": 10,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "READY:ready:PLANNING": {
+   "ok": 18,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "URBAN_ACTION:urban:RECRUIT:EXPLORER": {
+   "ok": 2,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "READY:ready:URBAN_ACTIONS": {
+   "ok": 18,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "READY:ready:DIPLOMACY_TRADE": {
+   "ok": 18,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "QUEUE_ORDER:rush:EXPLORER": {
+   "ok": 16,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "URBAN_ACTION:urban:RECRUIT:INFANTRY": {
+   "ok": 6,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  },
+  "QUEUE_ORDER:rush:INFANTRY": {
+   "ok": 21,
+   "refused": 2,
+   "codes": {
+    "RULE_FAILURE": 2
+   },
+   "sample": {
+    "RULE_FAILURE": "Sem pontos de comando disponíveis."
+   }
+  },
+  "URBAN_ACTION:urban:PRODUCE": {
+   "ok": 10,
+   "refused": 0,
+   "codes": {},
+   "sample": {}
+  }
+ },
+ "final": [
+  {
+   "contacts": 0,
+   "battles": 0,
+   "wars": 0,
+   "treaties": 0,
+   "prestige": 0,
+   "known": 27,
+   "explored": 0,
+   "units": "PIONEER,EXPLORER,INFANTRY,INFANTRY,INFANTRY"
+  },
+  {
+   "contacts": 0,
+   "battles": 0,
+   "wars": 0,
+   "treaties": 0,
+   "prestige": 0,
+   "known": 28,
+   "explored": 0,
+   "units": "PIONEER,EXPLORER,INFANTRY,INFANTRY,INFANTRY"
+  }
+ ],
+ "anomalies": [],
+ "summary": {
+  "200": {
+   "total": 578,
+   "unexpected": 0
+  },
+  "409 VERSION_CONFLICT": {
+   "total": 30,
+   "unexpected": 0
+  },
+  "400 RULE_FAILURE": {
+   "total": 2,
+   "unexpected": 0
+  }
+ },
+ "log": [
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 400,
+   "code": "RULE_FAILURE",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 400,
+   "code": "RULE_FAILURE",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  }
+ ]
+}

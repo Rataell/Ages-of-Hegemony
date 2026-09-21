@@ -1,0 +1,42 @@
+npm notice run ages-of-hegemony@0.4.0 build
+npm notice run npm run compile && npm run build -w @aoh/web
+npm notice run ages-of-hegemony@0.4.0 compile
+npm notice run npm run db:generate && tsc -b
+npm notice run ages-of-hegemony@0.4.0 db:generate
+npm notice run prisma generate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+
+✔ Generated Prisma Client (7.10.0) to .\apps\server\src\generated\prisma in 87ms
+
+npm notice run @aoh/web@0.4.0 build
+npm notice run next build
+▲ Next.js 16.3.5 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.ts took 75ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.0s
+  Running TypeScript ...
+  Finished TypeScript in 5.8s ...
+  Collecting page data using 8 workers ...
+  Generating static pages using 8 workers (0/5) ...
+  Generating static pages using 8 workers (1/5) 
+  Generating static pages using 8 workers (2/5) 
+  Generating static pages using 8 workers (3/5) 
+✓ Generating static pages using 8 workers (5/5) in 1570ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /alpha
+├ ƒ /api/alpha
+├ ƒ /api/alpha/health
+└ ƒ /api/local
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -1,0 +1,573 @@
+{
+ "viewports": [
+  {
+   "size": "1366x768",
+   "label": "desktop",
+   "vw": 1366,
+   "vh": 768,
+   "docH": 768,
+   "docW": 1366,
+   "scrollTop": 0,
+   "top": {
+    "top": 0,
+    "bottom": 64,
+    "w": 1366,
+    "h": 64
+   },
+   "nav": {
+    "top": 64,
+    "bottom": 100,
+    "w": 1366,
+    "h": 36
+   },
+   "navOverflowX": false,
+   "bar": {
+    "top": 712,
+    "bottom": 768,
+    "w": 1366,
+    "h": 56
+   },
+   "map": {
+    "top": 100,
+    "bottom": 712,
+    "w": 821,
+    "h": 612
+   },
+   "council": {
+    "top": 100,
+    "bottom": 712,
+    "w": 215,
+    "h": 612
+   },
+   "inspector": {
+    "top": 100,
+    "bottom": 712,
+    "w": 330,
+    "h": 612
+   },
+   "phaseBtn": {
+    "top": 720,
+    "bottom": 761,
+    "w": 190,
+    "h": 42
+   },
+   "globalScroll": false,
+   "horizontalOverflow": false
+  },
+  {
+   "size": "1440x900",
+   "label": "desktop",
+   "vw": 1440,
+   "vh": 900,
+   "docH": 900,
+   "docW": 1440,
+   "scrollTop": 0,
+   "top": {
+    "top": 0,
+    "bottom": 64,
+    "w": 1440,
+    "h": 64
+   },
+   "nav": {
+    "top": 64,
+    "bottom": 100,
+    "w": 1440,
+    "h": 36
+   },
+   "navOverflowX": false,
+   "bar": {
+    "top": 844,
+    "bottom": 900,
+    "w": 1440,
+    "h": 56
+   },
+   "map": {
+    "top": 100,
+    "bottom": 844,
+    "w": 895,
+    "h": 744
+   },
+   "council": {
+    "top": 100,
+    "bottom": 844,
+    "w": 215,
+    "h": 744
+   },
+   "inspector": {
+    "top": 100,
+    "bottom": 844,
+    "w": 330,
+    "h": 744
+   },
+   "phaseBtn": {
+    "top": 852,
+    "bottom": 893,
+    "w": 190,
+    "h": 42
+   },
+   "globalScroll": false,
+   "horizontalOverflow": false
+  },
+  {
+   "size": "1920x1080",
+   "label": "desktop",
+   "vw": 1920,
+   "vh": 1080,
+   "docH": 1080,
+   "docW": 1920,
+   "scrollTop": 0,
+   "top": {
+    "top": 0,
+    "bottom": 64,
+    "w": 1920,
+    "h": 64
+   },
+   "nav": {
+    "top": 64,
+    "bottom": 100,
+    "w": 1920,
+    "h": 36
+   },
+   "navOverflowX": false,
+   "bar": {
+    "top": 1024,
+    "bottom": 1080,
+    "w": 1920,
+    "h": 56
+   },
+   "map": {
+    "top": 100,
+    "bottom": 1024,
+    "w": 1375,
+    "h": 924
+   },
+   "council": {
+    "top": 100,
+    "bottom": 1024,
+    "w": 215,
+    "h": 924
+   },
+   "inspector": {
+    "top": 100,
+    "bottom": 1024,
+    "w": 330,
+    "h": 924
+   },
+   "phaseBtn": {
+    "top": 1032,
+    "bottom": 1073,
+    "w": 190,
+    "h": 42
+   },
+   "globalScroll": false,
+   "horizontalOverflow": false
+  },
+  {
+   "size": "1152x720",
+   "label": "zoom125%-of-1440x900",
+   "vw": 1152,
+   "vh": 720,
+   "docH": 720,
+   "docW": 1152,
+   "scrollTop": 0,
+   "top": {
+    "top": 0,
+    "bottom": 64,
+    "w": 1152,
+    "h": 64
+   },
+   "nav": {
+    "top": 64,
+    "bottom": 100,
+    "w": 1152,
+    "h": 36
+   },
+   "navOverflowX": false,
+   "bar": {
+    "top": 664,
+    "bottom": 720,
+    "w": 1152,
+    "h": 56
+   },
+   "map": {
+    "top": 100,
+    "bottom": 664,
+    "w": 647,
+    "h": 564
+   },
+   "council": {
+    "top": 100,
+    "bottom": 664,
+    "w": 195,
+    "h": 564
+   },
+   "inspector": {
+    "top": 100,
+    "bottom": 664,
+    "w": 310,
+    "h": 564
+   },
+   "phaseBtn": {
+    "top": 672,
+    "bottom": 713,
+    "w": 190,
+    "h": 42
+   },
+   "globalScroll": false,
+   "horizontalOverflow": false
+  },
+  {
+   "size": "960x600",
+   "label": "zoom150%-of-1440x900",
+   "vw": 960,
+   "vh": 600,
+   "docH": 600,
+   "docW": 960,
+   "scrollTop": 0,
+   "top": {
+    "top": 0,
+    "bottom": 64,
+    "w": 960,
+    "h": 64
+   },
+   "nav": {
+    "top": 64,
+    "bottom": 100,
+    "w": 960,
+    "h": 36
+   },
+   "navOverflowX": true,
+   "bar": {
+    "top": 544,
+    "bottom": 600,
+    "w": 960,
+    "h": 56
+   },
+   "map": {
+    "top": 100,
+    "bottom": 544,
+    "w": 455,
+    "h": 444
+   },
+   "council": {
+    "top": 100,
+    "bottom": 544,
+    "w": 195,
+    "h": 444
+   },
+   "inspector": {
+    "top": 100,
+    "bottom": 544,
+    "w": 310,
+    "h": 444
+   },
+   "phaseBtn": {
+    "top": 552,
+    "bottom": 593,
+    "w": 190,
+    "h": 42
+   },
+   "globalScroll": false,
+   "horizontalOverflow": false
+  },
+  {
+   "size": "1024x768",
+   "label": "tablet-landscape",
+   "vw": 1024,
+   "vh": 768,
+   "docH": 768,
+   "docW": 1024,
+   "scrollTop": 0,
+   "top": {
+    "top": 0,
+    "bottom": 64,
+    "w": 1024,
+    "h": 64
+   },
+   "nav": {
+    "top": 64,
+    "bottom": 100,
+    "w": 1024,
+    "h": 36
+   },
+   "navOverflowX": true,
+   "bar": {
+    "top": 712,
+    "bottom": 768,
+    "w": 1024,
+    "h": 56
+   },
+   "map": {
+    "top": 100,
+    "bottom": 712,
+    "w": 519,
+    "h": 612
+   },
+   "council": {
+    "top": 100,
+    "bottom": 712,
+    "w": 195,
+    "h": 612
+   },
+   "inspector": {
+    "top": 100,
+    "bottom": 712,
+    "w": 310,
+    "h": 612
+   },
+   "phaseBtn": {
+    "top": 720,
+    "bottom": 761,
+    "w": 190,
+    "h": 42
+   },
+   "globalScroll": false,
+   "horizontalOverflow": false
+  },
+  {
+   "size": "768x1024",
+   "label": "tablet-portrait",
+   "vw": 768,
+   "vh": 1024,
+   "docH": 1653,
+   "docW": 768,
+   "scrollTop": 0,
+   "top": {
+    "top": 0,
+    "bottom": 151,
+    "w": 768,
+    "h": 151
+   },
+   "nav": {
+    "top": 151,
+    "bottom": 192,
+    "w": 768,
+    "h": 41
+   },
+   "navOverflowX": true,
+   "bar": {
+    "top": 1518,
+    "bottom": 1653,
+    "w": 768,
+    "h": 135
+   },
+   "map": {
+    "top": 192,
+    "bottom": 968,
+    "w": 598,
+    "h": 777
+   },
+   "council": {
+    "top": 192,
+    "bottom": 968,
+    "w": 170,
+    "h": 777
+   },
+   "inspector": {
+    "top": 968,
+    "bottom": 1518,
+    "w": 768,
+    "h": 550
+   },
+   "phaseBtn": {
+    "top": 1602,
+    "bottom": 1643,
+    "w": 190,
+    "h": 42
+   },
+   "globalScroll": true,
+   "horizontalOverflow": false
+  },
+  {
+   "size": "390x844",
+   "label": "phone",
+   "vw": 390,
+   "vh": 844,
+   "docH": 1789,
+   "docW": 390,
+   "scrollTop": 0,
+   "top": {
+    "top": 0,
+    "bottom": 274,
+    "w": 390,
+    "h": 274
+   },
+   "nav": {
+    "top": 274,
+    "bottom": 315,
+    "w": 390,
+    "h": 41
+   },
+   "navOverflowX": true,
+   "bar": {
+    "top": 1655,
+    "bottom": 1789,
+    "w": 390,
+    "h": 133
+   },
+   "map": {
+    "top": 315,
+    "bottom": 755,
+    "w": 390,
+    "h": 440
+   },
+   "council": {
+    "top": 755,
+    "bottom": 1055,
+    "w": 390,
+    "h": 300
+   },
+   "inspector": {
+    "top": 1055,
+    "bottom": 1655,
+    "w": 390,
+    "h": 600
+   },
+   "phaseBtn": {
+    "top": 1739,
+    "bottom": 1779,
+    "w": 362,
+    "h": 40
+   },
+   "globalScroll": true,
+   "horizontalOverflow": false
+  }
+ ],
+ "map": {
+  "samples": [
+   {
+    "step": "initial",
+    "viewBox": "-85.99484522385711 -80 428.98453567157134 404"
+   },
+   {
+    "step": "12x zoom in (max)",
+    "viewBox": "74.87435565298213 71.5 107.24613391789283 101"
+   },
+   {
+    "step": "13th zoom in (must not change)",
+    "viewBox": "74.87435565298213 71.5 107.24613391789283 101"
+   },
+   {
+    "step": "25x zoom out (min)",
+    "viewBox": "-300.48711305964275 -282 857.9690713431427 808"
+   },
+   {
+    "step": "extra zoom out (must not change)",
+    "viewBox": "-300.48711305964275 -282 857.9690713431427 808"
+   },
+   {
+    "step": "Centralizar",
+    "viewBox": "-85.99484522385711 -80 428.98453567157134 404"
+   },
+   {
+    "step": "pan after zoom",
+    "viewBox": "-71.33246751265165 -38.557419354838686 274.55010282980567 258.56"
+   },
+   {
+    "step": "extreme pan (clamped?)",
+    "viewBox": "-71.33246751265165 -38.557419354838686 274.55010282980567 258.56"
+   },
+   {
+    "step": "Centralizar again",
+    "viewBox": "-85.99484522385711 -80 428.98453567157134 404"
+   }
+  ],
+  "allValid": true,
+  "zoomLimitsHold": true,
+  "fitRestores": true,
+  "selection": {
+   "hexCount": 9,
+   "oneSelectedAfterEnter": true,
+   "oneSelectedAfterSpace": true,
+   "inspectorChanged": true
+  }
+ },
+ "privacy": {
+  "secretsChecked": 17,
+  "hits": [],
+  "unknownTilesSample": [
+   {
+    "cls": "hex terrain-UNKNOWN owner-0",
+    "aria": "Desconhecido 2,0",
+    "title": "Desconhecido · 2,0 · Livre · Controle: nenhum",
+    "text": "Desconhecido · 2,0 · Livre · Controle: nenhum?"
+   },
+   {
+    "cls": "hex terrain-UNKNOWN owner-0",
+    "aria": "Desconhecido 0,2",
+    "title": "Desconhecido · 0,2 · Livre · Controle: nenhum",
+    "text": "Desconhecido · 0,2 · Livre · Controle: nenhum?"
+   }
+  ],
+  "unknownTilesCount": 2,
+  "unknownWithOwnerOrControl": 0
+ },
+ "a11y": {
+  "buttonsNoName": 0,
+  "inputsWithoutLabel": [],
+  "hexNoLabel": 0,
+  "hexNoTab": 0,
+  "svgNoLabel": 0,
+  "headings": "H1H2H3H3H3H3H2H3H3",
+  "h1": 1,
+  "lang": "pt-BR",
+  "nav": true,
+  "main": true,
+  "lowContrast": [],
+  "contrastSampled": 41,
+  "tabOrder": [
+   "button:Mundo",
+   "button:Teia Civilizacional",
+   "button:Cartas & Projetos",
+   "button:Diplomacia",
+   "button:Eras & Hegemonia",
+   "button:Crônicas",
+   "button:Sair da partida",
+   "select:SistemaEscuroClaro",
+   "button:Recolher Conselho",
+   "button:★ Jogador A2 habitantes · Ní",
+   "select:AssaltoDefesaManobra",
+   "button:Pioneiro ×1",
+   "button:Selecionar",
+   "summary:ver composição",
+   "summary:Sobre o teste · Feedback",
+   "g:Jogador A 0,0",
+   "g:Planície 1,0",
+   "g:Floresta 1,-1",
+   "g:Colinas 0,-1",
+   "g:Planície -1,0",
+   "g:Costa -1,1",
+   "g:Costa 0,1",
+   "g:Desconhecido 2,0",
+   "g:Desconhecido 0,2",
+   "button:Diminuir zoom",
+   "button:Centralizar"
+  ],
+  "noFocusRing": 0
+ },
+ "perf": {
+  "firstOpenMs": 1158,
+  "mapZoom21ClicksMs": 1042,
+  "2p": {
+   "pollingRequestsPer15s": 6,
+   "polls": "24.0/min",
+   "jsHeapMB": 17,
+   "domNodes": 510,
+   "layoutCount": 0,
+   "recalcStyleCount": 6,
+   "taskDurationS": 0.22
+  },
+  "6p": {
+   "pollingRequestsPer15s": 6,
+   "polls": "24.0/min",
+   "jsHeapMB": 20.7,
+   "domNodes": 514,
+   "layoutCount": 0,
+   "recalcStyleCount": 6,
+   "taskDurationS": 0.21
+  }
+ },
+ "console": [],
+ "pageErrors": [],
+ "requests4xx": []
+}

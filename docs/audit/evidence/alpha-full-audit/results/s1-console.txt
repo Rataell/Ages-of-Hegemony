@@ -1,0 +1,109 @@
+
+## C · 6 seats, isolation, 7th refused
+  ok   6 seats occupied with the players' names — Jogador A,Jogador B,Jogador C,Jogador D,Jogador E,Jogador F
+  ok   each cookie resolves to its own seat — player-1,player-2,player-3,player-4,player-5,player-6
+  ok   cookies are distinct per browser
+  ok   7th player refused (LOBBY_CLOSED) — {"code":"LOBBY_CLOSED","message":"A partida já começou ou não possui vagas."}
+  ok   refused join did not issue a session cookie
+  ok   same session joining again keeps its seat (idempotent)
+  ok   re-join with another display name does not rename or duplicate the seat — Jogador C
+  ok   no session reads nothing (401)
+  ok   a session from another table cannot read this room (403) — {"code":"FORBIDDEN","message":"Esta sessão não ocupa um lugar na partida."}
+
+## F · lobby rules with 3 players
+  ok   duplicate civilization refused — {"code":"INVALID_CHOICE","message":"Escolha uma civilização disponível antes de confirmar Pronto."}
+  ok   unknown civilization refused — {"code":"INVALID_CHOICE","message":"Escolha uma civilização disponível antes de confirmar Pronto."}
+  ok   cannot be ready without a civilization — {"code":"INVALID_CHOICE","message":"Escolha uma civilização disponível antes de confirmar Pronto."}
+  ok   changing civilization before ready works and frees the old one
+  ok   a ready player cannot change civilization — {"code":"ALREADY_READY","message":"Desmarque Pronto antes de trocar de civilização."}
+  ok   host cannot start before everyone is ready — {"code":"NOT_READY","message":"Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto."}
+  ok   a guest cannot start the match — {"code":"FORBIDDEN","message":"Esta sessão não ocupa um lugar na partida."}
+  ok   "Voltar à preparação" works
+  ok   stale expectedVersion is a VERSION_CONFLICT (409) — {"code":"VERSION_CONFLICT","message":"A partida mudou. Atualize antes de confirmar novamente."}
+  ok   two lobby writes at the same version: exactly one wins, one conflicts — 200,409
+  ok   after the race the room is consistent (version increased exactly once) — v=10 final=11
+
+## E · invites: join by code, invalid and unknown codes
+  ok   invalid code "" refused with 400 — 400 INVALID_INPUT
+  ok   invalid code "abc" refused with 400 — 400 INVALID_INPUT
+  ok   invalid code "xxxxxxxxxxxx" refused with 400 — 400 INVALID_INPUT
+  ok   invalid code "xxxxxxxxxxxx" refused with 400 — 400 INVALID_INPUT
+  ok   invalid code "!!!!!!!!!!!!" refused with 400 — 400 INVALID_INPUT
+  ok   invalid code "../../etc/pa" refused with 400 — 400 INVALID_INPUT
+  ok   well-formed but unknown code is 404 NOT_FOUND — 404 NOT_FOUND
+  ok   blank display name refused
+  ok   display name over 80 chars refused
+  ok   display name of exactly 80 chars accepted — 400 LOBBY_CLOSED
+  ok   special characters are stored verbatim (escaping is the UI's job) — Zé <b>Ação</b> ✓ & "q"
+  ok   whitespace around names is trimmed — Ana|Mesa
+
+## D · creation options: every advertised option is accepted, every invalid one refused
+  ok   worldPreset CONTINENTAL
+  ok   worldPreset ARCHIPELAGO
+  ok   worldPreset INLAND_SEA
+  ok   worldPreset MIXED
+  ok   preset QUICK
+  ok   preset STANDARD
+  ok   preset EPIC
+  ok   seatLimit 2
+  ok   seatLimit 3
+  ok   seatLimit 4
+  ok   seatLimit 5
+  ok   seatLimit 6
+  ok   planningSeconds 0
+  ok   planningSeconds 180
+  ok   planningSeconds 300
+  ok   planningSeconds 480
+  ok   planningSeconds 3600
+  ok   planningSeconds 14400
+  ok   planningSeconds 28800
+  ok   seed 0
+  ok   seed 1
+  ok   seed 4294967295
+  ok   name of 80 chars
+  ok   refused: seatLimit 1 — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: seatLimit 7 — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: planningSeconds 900 (removed option) — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: planningSeconds 43200 (removed option) — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: seed -1 — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: seed 4294967296 — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: seed 1.5 — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: unknown worldPreset — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: unknown preset — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: empty name — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: name of 81 chars — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: extra field (strict) — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   refused: mapSize 37 is not a supported option — 400 {"code":"INVALID_INPUT","message":"Revise nome, jogadores, duração e semente da partida."}
+  ok   worldPreset is optional and defaults to MIXED — MIXED
+
+## X · request hardening and forged identity
+  ok   match started with two different seats
+  ok   GET without cookie → 401
+  ok   GET with an invalid cookie → 401
+  ok   GET with a tampered signature → 401
+  ok   A's signature with B's guest id → 401
+  ok   gameId that is not a uuid → 400
+  ok   unknown gameId → 404
+  ok   POST without Origin → 403
+  ok   POST with a foreign Origin → 403
+  ok   POST with Sec-Fetch-Site cross-site → 403
+  ok   GET with Sec-Fetch-Site cross-site → 403
+  ok   PUT → 405
+  ok   DELETE → 405
+  ok   PATCH → 405
+  ok   Content-Type text/plain → 400
+  ok   body over 16 KiB → 400
+  ok   invalid JSON → 400
+  ok   unknown envelope field (playerId at top level) → 400
+  ok   unknown operation → 400
+  ok   unknown command type → 400
+  ok   A cannot manage B's city by forging playerId — 403 {"code":"FORBIDDEN","message":"Você só pode comandar sua própria civilização."}
+  ok   B's state unchanged by the forged command
+  ok   MANAGE with B's playerId does not act as B (result never applied to B) — 403 {"code":"FORBIDDEN","message":"Você só pode comandar sua própria civilização."}
+  ok   A cannot play a card from B's hand — {"code":"RULE_FAILURE","message":"Carta fora da mão, do momento permitido ou do limite por rodada."}
+  ok   A cannot choose B's ambition cards — {"code":"RULE_FAILURE","message":"Escolha exatamente duas das três ambições recebidas."}
+  ok   B's private hand/ambition ids never appear in A's projection
+  ok   projection never contains the private RNG seed, counter or core state
+  ok   the other player is never given hand/orders/research in the public list
+
+requests 127 {"200":{"total":70,"unexpected":0},"405":{"total":3,"unexpected":0},"400 LOBBY_CLOSED":{"total":2,"unexpected":1},"401 UNAUTHENTICATED":{"total":5,"unexpected":0},"403 FORBIDDEN":{"total":8,"unexpected":0},"400 INVALID_CHOICE":{"total":3,"unexpected":0},"400 ALREADY_READY":{"total":1,"unexpected":0},"400 NOT_READY":{"total":1,"unexpected":0},"409 VERSION_CONFLICT":{"total":2,"unexpected":0},"400 INVALID_INPUT":{"total":28,"unexpected":13},"404 NOT_FOUND":{"total":2,"unexpected":0},"400 RULE_FAILURE":{"total":2,"unexpected":0}}

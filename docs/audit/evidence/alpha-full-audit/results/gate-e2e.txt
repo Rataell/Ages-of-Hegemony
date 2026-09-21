@@ -1,0 +1,22 @@
+npm notice run ages-of-hegemony@0.4.0 test:e2e
+npm notice run playwright test
+[WebServer] npm notice run ages-of-hegemony@0.4.0 compile
+[WebServer] npm notice run npm run db:generate && tsc -b
+[WebServer] npm notice run ages-of-hegemony@0.4.0 db:generate
+[WebServer] npm notice run prisma generate
+[WebServer] Loaded Prisma config from prisma.config.ts.
+[WebServer] 
+[WebServer] Prisma schema loaded from prisma\schema.prisma.
+[WebServer] npm notice run @aoh/web@0.4.0 dev
+[WebServer] npm notice run next dev --hostname 127.0.0.1 --port 3107
+
+Running 6 tests using 1 worker
+
+  ✓  1 e2e\alpha-conflict.spec.ts:11:1 › authoritative battle dice, retreat and Hegemony finish appear in both browser perspectives (21.0s)
+  ✓  2 e2e\alpha-play.spec.ts:11:1 › alpha: two browser identities, lobby, management, privacy, round and reconnect (55.4s)
+  ✓  3 e2e\alpha-shell-fullscreen.spec.ts:54:1 › game shell fills the screen: no page scroll, fixed chrome, panels scroll inside (13.3s)
+  ✓  4 e2e\alpha-ux-round-1.spec.ts:12:1 › lobby invites, creation options, leaving and returning, and the atlas at the start of a match (8.0s)
+  ✓  5 e2e\local-play.spec.ts:4:1 › local visual loop, authoritative feedback, map crash regression and visual evidence (17.5s)
+  ✓  6 e2e\local-play.spec.ts:203:1 › HTTP boundary rejects foreign origins and scheduler command injection (115ms)
+
+  6 passed (2.1m)

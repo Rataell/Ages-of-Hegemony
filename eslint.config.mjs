@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/.next/**', '**/.next-e2e/**', '**/node_modules/**', '**/generated/**', '**/next-env.d.ts'] },
+  { ignores: ['**/dist/**', '**/.next/**', '**/.next-e2e/**', '**/node_modules/**', '**/generated/**', '**/next-env.d.ts', 'docs/audit/evidence/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { files: ['**/*.ts', '**/*.tsx'], rules: { '@typescript-eslint/no-explicit-any': 'error' } },

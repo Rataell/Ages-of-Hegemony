@@ -41,3 +41,9 @@ export function viewBoxOf(frame: MapFrame, view: { cx: number; cy: number; zoom:
 export const clampCentre = (frame: MapFrame, cx: number, cy: number) => ({
   cx: Math.min(frame.x + frame.width, Math.max(frame.x, cx)), cy: Math.min(frame.y + frame.height, Math.max(frame.y, cy)),
 });
+
+/** Tooltip / accessible text of a tile. Unexplored tiles say nothing about owner or control: "Livre" would claim knowledge the player does not have. */
+export function tileSummary(tile: { terrain: string; id: string; ownerName: string | undefined; controllerCityId: string | null }, terrainLabel: string): string {
+  if (tile.terrain === 'UNKNOWN') return `${terrainLabel} · ${tile.id}`;
+  return `${terrainLabel} · ${tile.id} · ${tile.ownerName ?? 'Livre'} · Controle: ${tile.controllerCityId ?? 'nenhum'}`;
+}
