@@ -60,7 +60,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
     <header className="top-bar alpha-player-board">
       <div className="civ-brand"><span className="seal" aria-hidden="true">AH</span><div><span className="eyebrow">{text(game.self.era)} · {text(civ.government)}</span><h1>{identity?.name??player.name}</h1><small>{player.name}</small></div></div>
       <ResourceDisplay values={player.resources}/>
-      <div className={`admin ${over?'warning':''}`}><small>Administração</small><b>{civ.administrativeLoad} / {civ.administrativeCapacity}</b><meter min={0} max={Math.max(civ.administrativeCapacity,civ.administrativeLoad,1)} value={civ.administrativeLoad}/>{over&&<strong>Sobre-extensão</strong>}</div>
+      <div className={`admin ${over?'warning':''}`}><small>Administração</small><b>{civ.administrativeLoad} / {civ.administrativeCapacity}{over&&<strong className="alpha-admin-flag">Sobre-extensão</strong>}</b><meter min={0} max={Math.max(civ.administrativeCapacity,civ.administrativeLoad,1)} value={civ.administrativeLoad}/></div>
       <div className="admin"><small>Comandos</small><b>{game.self.spentCommands+game.self.orders.length} / {game.commandCapacity}</b><small>{game.self.prestige} Prestígio</small></div>
       <div className="round-label"><small>{text(game.self.era)}</small><b>Rodada {game.view.round} / {game.rules.roundLimit}</b><span>{text(game.phase)}</span></div>
     </header>
@@ -69,6 +69,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
     {tab==='world'?<div className="play-layout alpha-layout" data-council={panels.council?'open':'closed'} data-inspector={panels.inspector?'open':'closed'}>
       <aside className="civilization-panel alpha-council" data-collapsed={!panels.council}>
         <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.council} aria-label={panels.council?'Recolher Conselho':'Expandir Conselho'} title={panels.council?'Recolher Conselho':'Expandir Conselho'} onClick={()=>togglePanel('council')}>{panels.council?'‹':'›'}</button></div>
+      <div className="alpha-panel-body">
         <span className="eyebrow">CONSELHO CIVILIZACIONAL</span><h2>Conselho</h2>
         <section><div className="section-head"><h3>Cidades</h3><span className="count-pill">{civ.cities.length}</span></div>
           {civ.cities.map(c=><button className={`city-link ${city?.id===c.id?'active':''}`} key={c.id} aria-pressed={city?.id===c.id} onClick={()=>{setSelectedCity(c.id);setSelected(c.hexId);setFocus(c.hexId);setInspector('city');}}><b>{c.id===civ.capitalCityId?'★ ':''}{c.name}</b><small>{c.population} habitantes · Nível {c.development}</small></button>)}</section>
@@ -78,11 +79,13 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
         <section><div className="section-head"><h3>Peças</h3><span className="count-pill">{ownUnits.length}</span></div>
           <ArmyList units={ownUnits} selected={units} onSelect={pick} stacks={game.stacks} rules={game.rules.units}/></section>
         <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><p>Código para voltar: <code>{room.joinCode}</code></p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p>{feedbackUrl&&<a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a>}<p>Ambiente de teste: a partida pode ser reiniciada ou apagada.</p></details>
+      </div>
       </aside>
       <div className="world-column"><HexMap data={mapData} units={game.units} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
       <aside className="context-inspector alpha-inspector" data-collapsed={!panels.inspector}>
         <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.inspector} aria-label={panels.inspector?'Recolher Inspector':'Expandir Inspector'} title={panels.inspector?'Recolher Inspector':'Expandir Inspector'} onClick={()=>togglePanel('inspector')}>{panels.inspector?'›':'‹'}</button></div>
         <div className="inspector-tabs" role="group" aria-label="Contexto">{INSPECTORS.map(([key,title])=><button key={key} aria-pressed={inspector===key} onClick={()=>setInspector(key)}>{title}{key==='military'&&game.self.orders.length>0?` · ${game.self.orders.length}`:''}</button>)}</div>
+      <div className="alpha-panel-body">
         {inspector==='territory'&&<div className="alpha-inspector-body">
           <h2>{tile?text(tile.terrain):selected?'Fronteira por explorar':'Selecione o mapa'}</h2><p>{selected}</p>{tile?.yield&&<ResourceDisplay values={tile.yield} compact/>}{tile&&<p>{tile.ownerId?`Território de ${game.players.find(p=>p.id===tile.ownerId)?.name}`:'Território livre'} · {tile.improvement?text(tile.improvement):'Sem melhoria'}</p>}
           {city&&<><button disabled={locked||!tile} onClick={()=>void manage({type:'CLAIM_HEX',cityId:city.id,hexId:selected})}>Reivindicar para {city.name}</button><ResourceDisplay values={game.view.config.territory.claimCost} compact/>
@@ -112,6 +115,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
           </section>:<p className="alpha-hint">Selecione peças no Conselho para planejar movimento ou ataque.</p>}
           <h3>Ordens reservadas</h3>{game.self.orders.map(o=><div className="alpha-order" key={o.id}><span>{text(o.type)}{o.type==='ATTACK'?` · ${postureText(o.posture)}`:''}</span><button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:o.id})}>Cancelar</button>{o.type==='ATTACK'&&game.orderPreviews[o.id]&&<AttackPreview preview={game.orderPreviews[o.id]!}/>}</div>)}{game.self.orders.length===0&&<p>Nenhuma ordem reservada.</p>}
         </div>}
+      </div>
       </aside>
     </div>
       :<div className="alpha-tab-body">{tab==='cards'?<AlphaCards game={game} locked={locked} send={send} cityId={city?.id??null}/>

@@ -31,3 +31,14 @@ The atlas SHALL frame exactly the tiles the server projected to the player, fit 
 #### Scenario: Start of a match
 - **WHEN** a match starts with a few known hexes
 - **THEN** those hexes fill the atlas instead of a fixed minimum area
+
+### Requirement: Full-screen game shell
+During a match on a desktop screen (901px and wider) the interface SHALL behave as one application: the page itself SHALL NOT scroll, the top bar, navigation and phase bar SHALL stay in place with the phase button always visible, the atlas SHALL take the whole central region, and the council, the inspector and each area other than the atlas SHALL scroll inside their own region without moving the page. Up to 900px the natural page scroll applies.
+
+#### Scenario: 1366 x 768, 1440 x 900 and 1920 x 1080
+- **WHEN** a player with a large army opens the world and every other area
+- **THEN** the document does not scroll, the phase button is in view, and only the council body, the inspector body or the area's own region scrolls
+
+#### Scenario: Collapsing panels
+- **WHEN** the council and the inspector are collapsed
+- **THEN** the atlas becomes wider by at least the room they gave up and every control stays reachable

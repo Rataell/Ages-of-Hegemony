@@ -17,3 +17,6 @@
 ## 5. Gates
 - [x] 5.1 Tests: copy code vs link, leave, worldPreset sent, planning options, 2-player lobby regression, fog of war.
 - [x] 5.2 lint, typecheck, tests, build, `openspec validate --strict`; before/after screenshots.
+
+## 6. Phase 1 · game shell foundation
+- [x] 6.1 Desktop shell fills 100dvh with no page scroll; chrome 64 + 36 + 56 px; council and inspector keep a fixed header and scroll their own body with contained overscroll; other areas scroll only their region; gate: `e2e/alpha-shell-fullscreen.spec.ts` at 1366x768, 1440x900 and 1920x1080 with before/after screenshots.
