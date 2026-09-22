@@ -1,0 +1,2 @@
+npm notice run ages-of-hegemony@0.4.0 lint
+npm notice run eslint . --max-warnings 0

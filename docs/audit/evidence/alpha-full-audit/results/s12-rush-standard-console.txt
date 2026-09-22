@@ -1,0 +1,32 @@
+capitals 0,0 15,12 distance 27
+  round 1 {"round":1,"nearestUnitPair":27,"nearestToEnemyCapital":[27,27],"contacts":[0,0],"wars":0,"battles":0,"known":[7,7],"units":["PIONEER","PIONEER"]}
+  round 2 {"round":2,"nearestUnitPair":25,"nearestToEnemyCapital":[26,26],"contacts":[0,0],"wars":0,"battles":0,"known":[8,8],"units":["PIONEER/EXPLORER","PIONEER/EXPLORER"]}
+  round 3 {"round":3,"nearestUnitPair":23,"nearestToEnemyCapital":[25,25],"contacts":[0,0],"wars":0,"battles":0,"known":[11,11],"units":["PIONEER/EXPLORER/INFANTRY","PIONEER/EXPLORER/INFANTRY"]}
+  round 4 {"round":4,"nearestUnitPair":21,"nearestToEnemyCapital":[24,24],"contacts":[0,0],"wars":0,"battles":0,"known":[14,14],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY"]}
+  round 5 {"round":5,"nearestUnitPair":19,"nearestToEnemyCapital":[23,23],"contacts":[0,0],"wars":0,"battles":0,"known":[15,15],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 6 {"round":6,"nearestUnitPair":17,"nearestToEnemyCapital":[22,22],"contacts":[0,0],"wars":0,"battles":0,"known":[18,18],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 7 {"round":7,"nearestUnitPair":15,"nearestToEnemyCapital":[21,21],"contacts":[0,0],"wars":0,"battles":0,"known":[21,21],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 8 {"round":8,"nearestUnitPair":14,"nearestToEnemyCapital":[20,20],"contacts":[0,0],"wars":0,"battles":0,"known":[22,22],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 9 {"round":9,"nearestUnitPair":12,"nearestToEnemyCapital":[20,19],"contacts":[0,0],"wars":0,"battles":0,"known":[29,28],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 10 {"round":10,"nearestUnitPair":10,"nearestToEnemyCapital":[19,18],"contacts":[0,0],"wars":0,"battles":0,"known":[32,29],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 11 {"round":11,"nearestUnitPair":9,"nearestToEnemyCapital":[18,18],"contacts":[0,0],"wars":0,"battles":0,"known":[35,31],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 12 {"round":12,"nearestUnitPair":8,"nearestToEnemyCapital":[17,18],"contacts":[0,0],"wars":0,"battles":0,"known":[36,37],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 13 {"round":13,"nearestUnitPair":9,"nearestToEnemyCapital":[17,19],"contacts":[0,0],"wars":0,"battles":0,"known":[36,39],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 14 {"round":14,"nearestUnitPair":8,"nearestToEnemyCapital":[17,18],"contacts":[0,0],"wars":0,"battles":0,"known":[36,42],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+  round 15 {"round":15,"nearestUnitPair":7,"nearestToEnemyCapital":[17,17],"contacts":[0,0],"wars":0,"battles":0,"known":[36,43],"units":["PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY","PIONEER/EXPLORER/INFANTRY/INFANTRY/INFANTRY"]}
+result {"finished":true,"round":15,"seconds":422,"anomalies":0}
+final [{"contacts":0,"battles":0,"wars":0,"treaties":0,"prestige":3,"known":36,"explored":3,"units":"PIONEER,EXPLORER,INFANTRY,INFANTRY,INFANTRY"},{"contacts":0,"battles":0,"wars":0,"treaties":0,"prestige":5,"known":49,"explored":5,"units":"PIONEER,EXPLORER,INFANTRY,INFANTRY,INFANTRY"}]
+  WORLD_CHOICE:world 16 0 {} {}
+  CHOOSE_AMBITIONS:ambitions 2 0 {} {}
+  SET_DEFENSE_POSTURE:posture 30 0 {} {}
+  QUEUE_ORDER:rush:PIONEER 26 0 {} {}
+  READY:ready:PLANNING 30 0 {} {}
+  URBAN_ACTION:urban:RECRUIT:EXPLORER 2 0 {} {}
+  READY:ready:URBAN_ACTIONS 30 0 {} {}
+  READY:ready:DIPLOMACY_TRADE 30 0 {} {}
+  QUEUE_ORDER:explore 8 116 {"RULE_FAILURE":116} {"RULE_FAILURE":"A região não está na fronteira desta peça."}
+  QUEUE_ORDER:rush:EXPLORER 14 0 {} {}
+  URBAN_ACTION:urban:RECRUIT:INFANTRY 6 0 {} {}
+  QUEUE_ORDER:rush:INFANTRY 39 7 {"RULE_FAILURE":7} {"RULE_FAILURE":"Sem pontos de comando disponíveis."}
+  URBAN_ACTION:urban:PRODUCE 22 0 {} {}
+anomalies []

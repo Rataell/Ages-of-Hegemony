@@ -1,0 +1,17 @@
+{
+ "N": 1200,
+ "stats": {
+  "runs": 1200,
+  "resolved": 1200,
+  "blockedPreview": 0,
+  "attackerWins": 609,
+  "defenderWins": 591,
+  "ties": 43,
+  "cityBattles": 534,
+  "retreats": 827,
+  "retreatLost": 373,
+  "partialAdvance": 158
+ },
+ "byKind": {},
+ "problems": []
+}

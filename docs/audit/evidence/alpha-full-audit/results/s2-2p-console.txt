@@ -1,0 +1,26 @@
+match d2c48f41-f9ff-432f-a42c-bf04b64739c7 started with 2 players
+  round 1 reached (PLANNING)
+  round 2 reached (PLANNING)
+  round 3 reached (PLANNING)
+  round 4 reached (PLANNING)
+  round 5 reached (PLANNING)
+  round 6 reached (PLANNING)
+  round 7 reached (PLANNING)
+  round 8 reached (PLANNING)
+  round 9 reached (PLANNING)
+result {"finished":true,"winner":{"playerId":"player-1","reason":"ROUND_LIMIT","round":9},"round":9,"seconds":427,"attempts":442,"anomalies":1}
+anomalies [
+ {
+  "round": 6,
+  "phase": "URBAN_ACTIONS",
+  "player": 1,
+  "type": "URBAN_ACTION",
+  "sub": "urban-second-in-same-city",
+  "ok": true,
+  "status": 200,
+  "code": null,
+  "message": null,
+  "retried": false,
+  "kind": "SHOULD_HAVE_BEEN_REFUSED"
+ }
+]

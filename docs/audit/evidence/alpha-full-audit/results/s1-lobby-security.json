@@ -1,0 +1,1516 @@
+{
+ "generatedAt": "2026-09-21T01:12:06.866Z",
+ "base": "http://127.0.0.1:3002",
+ "findings": [],
+ "requests": 127,
+ "out": {
+  "sixSeats": {
+   "roomId": "6d1cf6bf-92a7-4df4-a76b-c0fb9b5b860e"
+  },
+  "lobby3": {
+   "roomId": "04a336a3-6797-4fc5-b851-1991ae876f13",
+   "version": 11
+  },
+  "creation": [
+   {
+    "label": "worldPreset CONTINENTAL",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "worldPreset ARCHIPELAGO",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "worldPreset INLAND_SEA",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "worldPreset MIXED",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "preset QUICK",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "preset STANDARD",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "preset EPIC",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "seatLimit 2",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "seatLimit 3",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "seatLimit 4",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "seatLimit 5",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "seatLimit 6",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "planningSeconds 0",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "planningSeconds 180",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "planningSeconds 300",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "planningSeconds 480",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "planningSeconds 3600",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "planningSeconds 14400",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "planningSeconds 28800",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "seed 0",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "seed 1",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "seed 4294967295",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "name of 80 chars",
+    "status": 200,
+    "ok": true
+   },
+   {
+    "label": "refused: seatLimit 1",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: seatLimit 7",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: planningSeconds 900 (removed option)",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: planningSeconds 43200 (removed option)",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: seed -1",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: seed 4294967296",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: seed 1.5",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: unknown worldPreset",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: unknown preset",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: empty name",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: name of 81 chars",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: extra field (strict)",
+    "status": 400,
+    "ok": false
+   },
+   {
+    "label": "refused: mapSize 37 is not a supported option",
+    "status": 400,
+    "ok": false
+   }
+  ],
+  "security": {
+   "roomId": "e6b28388-9a4b-44f7-a57c-105b05c68f82"
+  }
+ },
+ "summary": {
+  "200": {
+   "total": 70,
+   "unexpected": 0
+  },
+  "405": {
+   "total": 3,
+   "unexpected": 0
+  },
+  "400 LOBBY_CLOSED": {
+   "total": 2,
+   "unexpected": 1
+  },
+  "401 UNAUTHENTICATED": {
+   "total": 5,
+   "unexpected": 0
+  },
+  "403 FORBIDDEN": {
+   "total": 8,
+   "unexpected": 0
+  },
+  "400 INVALID_CHOICE": {
+   "total": 3,
+   "unexpected": 0
+  },
+  "400 ALREADY_READY": {
+   "total": 1,
+   "unexpected": 0
+  },
+  "400 NOT_READY": {
+   "total": 1,
+   "unexpected": 0
+  },
+  "409 VERSION_CONFLICT": {
+   "total": 2,
+   "unexpected": 0
+  },
+  "400 INVALID_INPUT": {
+   "total": 28,
+   "unexpected": 13
+  },
+  "404 NOT_FOUND": {
+   "total": 2,
+   "unexpected": 0
+  },
+  "400 RULE_FAILURE": {
+   "total": 2,
+   "unexpected": 0
+  }
+ },
+ "log": [
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador D",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador E",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador F",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador D",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador E",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador F",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador G",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "LOBBY_CLOSED",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador G",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 401,
+   "code": "UNAUTHENTICATED",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Estranho",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Estranho",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 403,
+   "code": "FORBIDDEN",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_CHOICE",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_CHOICE",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_CHOICE",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 400,
+   "code": "ALREADY_READY",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 400,
+   "code": "NOT_READY",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 403,
+   "code": "FORBIDDEN",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador C",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 409,
+   "code": "VERSION_CONFLICT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 404,
+   "code": "NOT_FOUND",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Convidado",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 400,
+   "code": "LOBBY_CLOSED",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "Especial",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Trim",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "c",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": false,
+   "retryAfter": null
+  },
+  {
+   "who": "d",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "lobby",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "x",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 401,
+   "code": "UNAUTHENTICATED",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "x",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 401,
+   "code": "UNAUTHENTICATED",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "x",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 401,
+   "code": "UNAUTHENTICATED",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "x",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 401,
+   "code": "UNAUTHENTICATED",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 404,
+   "code": "NOT_FOUND",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 403,
+   "code": "FORBIDDEN",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 403,
+   "code": "FORBIDDEN",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 403,
+   "code": "FORBIDDEN",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 403,
+   "code": "FORBIDDEN",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "x",
+   "method": "PUT",
+   "op": "raw",
+   "status": 405,
+   "code": null,
+   "expected": true
+  },
+  {
+   "who": "x",
+   "method": "DELETE",
+   "op": "raw",
+   "status": 405,
+   "code": null,
+   "expected": true
+  },
+  {
+   "who": "x",
+   "method": "PATCH",
+   "op": "raw",
+   "status": 405,
+   "code": null,
+   "expected": true
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "raw",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "raw",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "raw",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "admin",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 400,
+   "code": "INVALID_INPUT",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 403,
+   "code": "FORBIDDEN",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 403,
+   "code": "FORBIDDEN",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador B",
+   "method": "GET",
+   "op": "read",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 400,
+   "code": "RULE_FAILURE",
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Jogador A",
+   "method": "POST",
+   "op": "command",
+   "tag": "",
+   "status": 400,
+   "code": "RULE_FAILURE",
+   "expected": true,
+   "retryAfter": null
+  }
+ ]
+}

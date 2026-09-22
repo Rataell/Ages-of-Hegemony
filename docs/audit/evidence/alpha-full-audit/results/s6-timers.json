@@ -1,0 +1,92 @@
+[
+ {
+  "label": "planningSeconds 0: deadline none",
+  "ok": true,
+  "detail": "null"
+ },
+ {
+  "label": "planningSeconds 180: deadline now + 180s",
+  "ok": true,
+  "detail": "1180000"
+ },
+ {
+  "label": "planningSeconds 300: deadline now + 300s",
+  "ok": true,
+  "detail": "1300000"
+ },
+ {
+  "label": "planningSeconds 480: deadline now + 480s",
+  "ok": true,
+  "detail": "1480000"
+ },
+ {
+  "label": "planningSeconds 3600: deadline now + 3600s",
+  "ok": true,
+  "detail": "4600000"
+ },
+ {
+  "label": "planningSeconds 14400: deadline now + 14400s",
+  "ok": true,
+  "detail": "15400000"
+ },
+ {
+  "label": "planningSeconds 28800: deadline now + 28800s",
+  "ok": true,
+  "detail": "29800000"
+ },
+ {
+  "label": "1 ms before the deadline nothing happens",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "label": "match finished by deadlines alone",
+  "ok": true,
+  "detail": "round 9, 27 expiries, winner {\"playerId\":\"player-1\",\"reason\":\"ROUND_LIMIT\",\"round\":9}"
+ },
+ {
+  "label": "no expiry ever threw or returned an error",
+  "ok": true,
+  "detail": "27 distinct round:phase states"
+ },
+ {
+  "label": "PLANNING, URBAN_ACTIONS and DIPLOMACY_TRADE were each crossed by timeout (CONFLICTS is only interactive when an attack meets a reaction card, so it is skipped here by design)",
+  "ok": true,
+  "detail": "URBAN_ACTIONS,DIPLOMACY_TRADE,PLANNING,END_ROUND"
+ },
+ {
+  "label": "player 0 confirmed the planning on time",
+  "ok": true,
+  "detail": "\"\""
+ },
+ {
+  "label": "a command sent after the deadline is answered with a conflict and dropped (client must refresh)",
+  "ok": true,
+  "detail": "{\"code\":\"VERSION_CONFLICT\",\"message\":\"A partida mudou. Atualize antes de confirmar novamente.\"}"
+ },
+ {
+  "label": "the late command's author was closed by the deadline instead (all four ready → phase advanced)",
+  "ok": true,
+  "detail": "1:URBAN_ACTIONS"
+ },
+ {
+  "label": "ambitions were auto-chosen for the unready (first two dealt), not left empty",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "label": "players who never chose a world event decision still did not block the round",
+  "ok": true,
+  "detail": "worldDecisionPending was true"
+ },
+ {
+  "label": "a read with an earlier clock is harmless",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "label": "a 30-day jump advances one phase per read, never skips rounds silently",
+  "ok": true,
+  "detail": "1:URBAN_ACTIONS"
+ }
+]

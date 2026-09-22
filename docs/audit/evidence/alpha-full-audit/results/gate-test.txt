@@ -1,0 +1,21 @@
+npm notice run ages-of-hegemony@0.4.0 test
+npm notice run npm run compile && vitest run
+npm notice run ages-of-hegemony@0.4.0 compile
+npm notice run npm run db:generate && tsc -b
+npm notice run ages-of-hegemony@0.4.0 db:generate
+npm notice run prisma generate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+
+✔ Generated Prisma Client (7.10.0) to .\apps\server\src\generated\prisma in 82ms
+
+
+ RUN  v4.1.11 C:/Users/Rafael/Desktop/DEV/Ages of Hegemony
+
+
+ Test Files  44 passed (44)
+      Tests  631 passed (631)
+   Start at  07:27:52
+   Duration  14.06s (transform 14.35s, setup 0ms, import 45.20s, tests 83.72s, environment 12ms)
+

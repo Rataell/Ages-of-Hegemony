@@ -160,3 +160,77 @@ button.alpha-card { text-align: left; }
 .alpha-stack-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .alpha-stack-tag { font-size: 11px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .alpha-stack-tag[data-full='true'] { color: var(--warning); font-weight: 600; }
+
+/* Collapsible council and inspector (desktop). Below 901px the slice's stacked layout applies and the toggles are hidden. */
+.alpha-panel-toggle { display: none; }
+@media (min-width: 901px) {
+  .alpha-layout { --cw: 215px; --iw: 330px; grid-template-columns: var(--cw) minmax(0, 1fr) var(--iw); }
+  .alpha-layout[data-council='closed'] { --cw: 44px; }
+  .alpha-layout[data-inspector='closed'] { --iw: 44px; }
+  .alpha-panel-toggle { display: flex; justify-content: flex-end; position: sticky; top: 0; z-index: 6; margin: -8px 0 4px; }
+  .alpha-inspector .alpha-panel-toggle { margin: 8px 0 -4px; }
+  .alpha-panel-toggle button { padding: 2px 9px; font-size: 14px; line-height: 1.2; }
+  .alpha-layout aside[data-collapsed='true'] { padding-inline: 4px; overflow: hidden; }
+  .alpha-layout aside[data-collapsed='true'] > :not(.alpha-panel-toggle) { display: none; }
+  .alpha-layout aside[data-collapsed='true'] .alpha-panel-toggle { justify-content: center; }
+}
+@media (min-width: 901px) and (max-width: 1300px) { .alpha-layout { --cw: 195px; --iw: 310px; } .alpha-layout[data-council='closed'] { --cw: 44px; } .alpha-layout[data-inspector='closed'] { --iw: 44px; } }
+
+/* Invites and leaving */
+.alpha-invite-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.alpha-copied { min-width: 110px; font-size: 12px; color: var(--success); }
+.alpha-leave { padding: 3px 10px; font-size: 11px; white-space: nowrap; }
+.alpha-leave-confirm { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.alpha-leave-confirm small { font-size: 11px; color: var(--warning); }
+.alpha-leave-confirm code { letter-spacing: .04em; }
+.alpha-leave-confirm button { padding: 3px 10px; font-size: 11px; }
+.alpha-lobby-controls .alpha-leave, .alpha-lobby-controls .alpha-leave-confirm { margin-left: auto; }
+
+/* ==========================================================================
+   Phase 1 · game shell foundation (desktop >= 901px)
+   The screen is one application: top bar, navigation, [council | atlas | inspector], phase bar. Nothing scrolls globally.
+   Chrome heights follow the concept: 64 + 36 + 56. Council and inspector keep a fixed header and scroll their own body.
+   Up to 900px the slice's stacked layout and natural page scroll apply, unchanged.
+   ========================================================================== */
+.alpha-panel-body { scrollbar-width: thin; scrollbar-color: #3d545d transparent; }
+.alpha-tab-body { overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #3d545d transparent; }
+@media (min-width: 901px) {
+  html:has(.alpha-game), body:has(.alpha-game) { height: 100dvh; overflow: hidden; }
+  .alpha-game { height: 100dvh; min-height: 0; overflow: hidden; }
+  .alpha-game .top-bar { height: 64px; min-height: 0; padding: 0 20px; gap: 18px; flex: none; }
+  .alpha-game .civ-brand h1 { font-size: 20px; margin: 0; line-height: 1.1; }
+  .alpha-game .main-nav { height: 36px; min-height: 36px; flex: none; }
+  .alpha-game .main-nav button { height: 36px; }
+  .alpha-game .action-bar { height: 56px; min-height: 0; padding: 0 20px; flex: none; }
+  .alpha-game .alpha-error, .alpha-game > .alpha-finale { flex: none; }
+  .alpha-layout { min-height: 0; overflow: hidden; }
+  .alpha-layout > * { min-height: 0; min-width: 0; }
+  .alpha-council, .alpha-inspector { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+  .alpha-council > .alpha-panel-toggle, .alpha-inspector > .alpha-panel-toggle { position: static; margin: 0; padding: 8px 12px 4px; flex: none; }
+  .alpha-inspector > .inspector-tabs { position: static; flex: none; padding: 4px 16px 10px; }
+  .alpha-council > .alpha-panel-body, .alpha-inspector > .alpha-panel-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .alpha-council > .alpha-panel-body { padding: 0 14px 20px; }
+  .alpha-inspector > .alpha-panel-body { padding: 0 16px 20px; }
+  .alpha-layout aside[data-collapsed='true'] > .alpha-panel-toggle { padding: 8px 4px; }
+  .alpha-tab-body { min-height: 0; }
+}
+/* Short screens (1366 x 768): tighter council so less of it needs scrolling. */
+@media (min-width: 901px) and (max-height: 820px) {
+  .alpha-game .civilization-panel h2 { font-size: 17px; margin: 0 0 6px; }
+  .alpha-game .city-link { padding: 5px 9px; margin-bottom: 4px; }
+  .alpha-game .civilization-panel section { padding: 6px 0 8px; }
+  .alpha-army { padding: 6px 8px; }
+  .alpha-inspector-body { padding-top: 8px; }
+}
+/* The 64 px top bar and 56 px phase bar keep every line inside their box. */
+@media (min-width: 901px) {
+  .alpha-game .top-bar .admin { padding: 0 10px; }
+  .alpha-game .top-bar .admin small, .alpha-game .top-bar .admin strong, .alpha-game .round-label small, .alpha-game .round-label span { line-height: 1.2; }
+  .alpha-game .top-bar .admin b, .alpha-game .round-label b { line-height: 1.15; margin: 1px 0; }
+  .alpha-game .top-bar .admin meter, .alpha-game .top-bar .admin .meter { height: 5px; margin-top: 1px; }
+  .alpha-game .round-label { gap: 0; }
+  .alpha-game .action-bar .feedback { line-height: 1.25; }
+}
+
+.alpha-admin-flag { margin-left: 8px; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; color: var(--warning); white-space: nowrap; }
+@media (min-width: 901px) { .alpha-game .top-bar .admin { min-width: 128px; } }

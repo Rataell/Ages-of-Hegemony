@@ -1,0 +1,16 @@
+npm notice run ages-of-hegemony@0.4.0 typecheck
+npm notice run npm run compile && tsc -p tests/tsconfig.json && tsc -p e2e/tsconfig.json && npm run typecheck -w @aoh/web
+npm notice run ages-of-hegemony@0.4.0 compile
+npm notice run npm run db:generate && tsc -b
+npm notice run ages-of-hegemony@0.4.0 db:generate
+npm notice run prisma generate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+
+✔ Generated Prisma Client (7.10.0) to .\apps\server\src\generated\prisma in 81ms
+
+npm notice run @aoh/web@0.4.0 typecheck
+npm notice run next typegen && tsc --noEmit
+Generating route types...
+✓ Types generated successfully

@@ -1,8 +1,9 @@
 'use client';
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LocalView } from '@aoh/server/local-play';
 import type { AlphaUnit, HexTile } from '@aoh/game-domain';
 import { label, roman } from './presentation';
+import { clampCentre, clampZoom, mapFrame, position, tileSummary, viewBoxOf } from './map-frame';
 
 type Props = {
   data: Pick<LocalView,'players'|'claimable'|'workable'> & {view:Pick<LocalView['view'],'player'|'visibleCities'> & {era:string;visibleTerritory:HexTile[]}};
@@ -13,11 +14,6 @@ type Props = {
   worked: string[];
   onSelect: (id: string) => void;
 };
-
-export const position = (q: number, r: number) => ({
-  x: 80 + 56 * Math.sqrt(3) * (q + r / 2),
-  y: 80 + 84 * r,
-});
 
 export const points = Array.from({ length: 6 }, (_, i) => {
   const angle = ((60 * i - 30) * Math.PI) / 180;
@@ -66,16 +62,21 @@ export const HexMap = memo(function HexMap({
   units = [],
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const [zoom, setZoom] = useState(1.15);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  // null = fitted to the projected tiles; otherwise an explicit centre and zoom (1 shows the whole fitted frame).
+  const [view, setView] = useState<{ cx: number; cy: number; zoom: number } | null>(null);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [moved, setMoved] = useState(false);
 
   const tiles = data.view.visibleTerritory;
-  const width = Math.max(...tiles.map(t => position(t.q, t.r).x), 600) + 100;
-  const height = Math.max(...tiles.map(t => position(t.q, t.r).y), 500) + 100;
-  const center = tiles.find(t => t.id === focus);
-  const at = center ? position(center.q, center.r) : { x: width / 2, y: height / 2 };
+  const frame = useMemo(() => mapFrame(tiles), [tiles]);
+  const current = view ?? { cx: frame.cx, cy: frame.cy, zoom: 1 };
+  const focusTile = tiles.find(t => t.id === focus);
+  // Once the player has zoomed in, selecting a piece or city brings it to the centre; a fitted atlas already shows everything.
+  useEffect(() => {
+    if (!focusTile) return;
+    const at = position(focusTile.q, focusTile.r);
+    setView(old => (old ? { ...old, ...clampCentre(frame, at.x, at.y) } : old));
+  }, [focus]);
 
   const cities = [...data.view.player.civilization.cities, ...data.view.visibleCities];
   const capitalId = data.view.player.civilization.capitalCityId;
@@ -92,16 +93,13 @@ export const HexMap = memo(function HexMap({
     const dy = e.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) {
       setMoved(true);
-      // BUGFIX: Safely sample dimensions from svgRef with non-zero fallbacks before calling setPan
+      // The svg scales the frame uniformly to fit, so one pixel is 1 / scale units. Sample the size with non-zero fallbacks.
       const svg = svgRef.current;
       const clientW = svg?.clientWidth || svg?.getBoundingClientRect().width || 800;
       const clientH = svg?.clientHeight || svg?.getBoundingClientRect().height || 600;
-      const safeW = clientW > 0 ? clientW : 800;
-      const safeH = clientH > 0 ? clientH : 600;
-      const deltaX = (dx * width) / (safeW * zoom);
-      const deltaY = (dy * height) / (safeH * zoom);
-
-      setPan(p => ({ x: p.x + deltaX, y: p.y + deltaY }));
+      const w = clientW > 0 ? clientW : 800, h = clientH > 0 ? clientH : 600;
+      const unitsPerPixel = 1 / Math.min(w / (frame.width / current.zoom), h / (frame.height / current.zoom));
+      setView({ ...current, ...clampCentre(frame, current.cx - dx * unitsPerPixel, current.cy - dy * unitsPerPixel) });
       setDrag({ x: e.clientX, y: e.clientY });
     }
   };
@@ -120,7 +118,7 @@ export const HexMap = memo(function HexMap({
       <svg
         ref={svgRef}
         className="world-map"
-        viewBox={`${at.x - width / (2 * zoom) - pan.x} ${at.y - height / (2 * zoom) - pan.y} ${width / zoom} ${height / zoom}`}
+        viewBox={viewBoxOf(frame, view)}
         aria-label="Mapa hexagonal interativo"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -190,7 +188,7 @@ export const HexMap = memo(function HexMap({
               }}
             >
               <title>
-                {label(tile.terrain)} · {tile.id} · {tile.ownerId ? data.players.find(pl => pl.id === tile.ownerId)?.name : 'Livre'} · Controle: {tile.controllerCityId ?? 'nenhum'}
+                {tileSummary({ terrain: tile.terrain, id: tile.id, ownerName: tile.ownerId ? data.players.find(pl => pl.id === tile.ownerId)?.name : undefined, controllerCityId: tile.controllerCityId ?? null }, label(tile.terrain))}
                 {eligible ? (working ? ' · Elegível para trabalho' : ' · Reivindicável') : ''}
                 {isWorked ? ' · Trabalhado' : ''}
               </title>
@@ -294,9 +292,9 @@ export const HexMap = memo(function HexMap({
       </svg>
 
       <div className="map-tools">
-        <button aria-label="Diminuir zoom" onClick={() => setZoom(z => Math.max(0.6, z - 0.25))}>−</button>
-        <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>Centralizar</button>
-        <button aria-label="Aumentar zoom" onClick={() => setZoom(z => Math.min(3, z + 0.25))}>+</button>
+        <button aria-label="Diminuir zoom" onClick={() => setView({ ...current, zoom: clampZoom(current.zoom / 1.25) })}>−</button>
+        <button title="Enquadrar todo o território conhecido" onClick={() => setView(null)}>Centralizar</button>
+        <button aria-label="Aumentar zoom" onClick={() => setView({ ...current, zoom: clampZoom(current.zoom * 1.25) })}>+</button>
       </div>
 
       <div className="map-legend">

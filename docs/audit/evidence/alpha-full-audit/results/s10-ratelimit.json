@@ -1,0 +1,69 @@
+{
+ "generatedAt": "2026-09-21T09:49:49.207Z",
+ "base": "http://127.0.0.1:3002",
+ "findings": [
+  {
+   "id": "RL-1",
+   "severity": "P2",
+   "area": "Segurança/Disponibilidade",
+   "text": "O balde anônimo (30/min) e o balde global de criar/entrar (20/min) são compartilhados por TODOS os visitantes: um único cliente sem cookie pode impedir que qualquer pessoa nova crie ou entre em uma mesa por até 60 s. Aceitável para uma Alpha fechada; risco real se o link for público.",
+   "anonymousFirst429": 29
+  }
+ ],
+ "requests": 2,
+ "out": {
+  "anonymous": {
+   "counts": {
+    "401": 28,
+    "429": 12
+   },
+   "first429": 29,
+   "retryAfter": "60",
+   "code": "RATE_LIMIT",
+   "message": "Muitas solicitações. Aguarde um minuto.",
+   "cacheControl": "no-store",
+   "body": "{\"ok\":false,\"error\":{\"code\":\"RATE_LIMIT\",\"message\":\"Muitas solicitações. Aguarde um minuto.\"}}"
+  },
+  "createWhileFlooded": 429,
+  "anonymousRecoverySeconds": 60,
+  "guestBurst": {
+   "counts": {
+    "200": 120,
+    "429": 10
+   },
+   "first429": 121,
+   "retryAfter": "60",
+   "code": "RATE_LIMIT"
+  },
+  "writeWhileLimited": 429,
+  "createBurst": {
+   "counts": {
+    "200": 20,
+    "429": 6
+   },
+   "accepted": 20
+  }
+ },
+ "log": [
+  {
+   "who": "Guest A",
+   "method": "POST",
+   "op": "create",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  },
+  {
+   "who": "Guest B",
+   "method": "POST",
+   "op": "join",
+   "tag": "",
+   "status": 200,
+   "code": null,
+   "expected": true,
+   "retryAfter": null
+  }
+ ]
+}

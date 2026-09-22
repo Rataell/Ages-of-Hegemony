@@ -1,0 +1,29 @@
+match 81baaf44-1fe8-4f59-b7f3-35c3f0333254 started with 6 players
+  round 1 reached (PLANNING)
+  round 2 reached (PLANNING)
+  round 3 reached (PLANNING)
+  round 4 reached (PLANNING)
+  round 5 reached (PLANNING)
+  round 6 reached (PLANNING)
+  round 7 reached (PLANNING)
+  round 8 reached (PLANNING)
+  round 9 reached (PLANNING)
+result {"finished":true,"winner":{"playerId":"player-5","reason":"ROUND_LIMIT","round":9},"round":9,"seconds":493,"attempts":1222,"anomalies":0}
+conflicts {"attempts":1222,"byConflictsBeforeOutcome":{"0":853,"1":273,"2":72,"3":18,"4":6},"needMoreThanOneRetry":96,"pctNeedMoreThanOneRetry":7.86}
+anomalies []
+node:fs:2914
+    return binding.writeFileUtf8(
+                   ^
+
+Error: ENOENT: no such file or directory, open 'C:\Users\Rafael\Desktop\DEV\Ages of Hegemony\docs\audit\evidence\alpha-full-audit\harness\docs\audit\evidence\alpha-full-audit\results\s2-match-6p-seed3.json'
+    at writeFileSync (node:fs:2914:20)
+    at save (file:///C:/Users/Rafael/Desktop/DEV/Ages%20of%20Hegemony/docs/audit/evidence/alpha-full-audit/harness/lib.mjs:79:3)
+    at file:///C:/Users/Rafael/Desktop/DEV/Ages%20of%20Hegemony/docs/audit/evidence/alpha-full-audit/harness/s2-match.mjs:21:1
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Rafael\\Desktop\\DEV\\Ages of Hegemony\\docs\\audit\\evidence\\alpha-full-audit\\harness\\docs\\audit\\evidence\\alpha-full-audit\\results\\s2-match-6p-seed3.json'
+}
+
+Node.js v26.4.0
