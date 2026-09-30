@@ -78,7 +78,7 @@ function requireValid(options) {
 }
 const run = (bin, args, cwd = ROOT) => {
   if (!existsSync(bin)) stop('Dependências não instaladas. Rode: npm install');
-  return spawnSync(process.execPath, [bin, ...args], { cwd, stdio: 'inherit', env: process.env }).status ?? 1;
+  return spawnSync(process.execPath, [bin, ...args], { cwd, stdio: 'inherit', windowsHide: true, env: process.env }).status ?? 1;
 };
 const portFree = port => new Promise(resolve => {
   const probe = createServer();
@@ -122,15 +122,15 @@ if (command === 'check') {
     ? { ...process.env, ALPHA_STORAGE: 'postgres' }
     : { ...process.env, ALPHA_STORAGE: 'memory', ALPHA_PUBLIC_ORIGIN: ORIGIN, ALPHA_SESSION_SECRET: randomBytes(48).toString('base64url') };
   console.log(`\nClosed Alpha local: ${ORIGIN}/alpha  (${postgres ? 'PostgreSQL de desenvolvimento' : 'em memória: reiniciar este comando apaga as partidas'})\n  .tsx/.css: Fast Refresh. packages/* e apps/server: recompilados por tsc -b -w. Ctrl+C encerra tudo.\n`);
-  const children = [{ name: 'next', child: spawn(process.execPath, [bins.next, 'dev', '--hostname', HOST, '--port', String(PORT)], { cwd: WEB, stdio: 'inherit', env: childEnv }) }];
-  if (!flags.includes('--no-watch-packages')) children.push({ name: 'tsc', child: spawn(process.execPath, [bins.tsc, '-b', '-w', '--preserveWatchOutput'], { cwd: ROOT, stdio: 'inherit', env: process.env }) });
+  const children = [{ name: 'next', child: spawn(process.execPath, [bins.next, 'dev', '--hostname', HOST, '--port', String(PORT)], { cwd: WEB, stdio: 'inherit', windowsHide: true, env: childEnv }) }];
+  if (!flags.includes('--no-watch-packages')) children.push({ name: 'tsc', child: spawn(process.execPath, [bins.tsc, '-b', '-w', '--preserveWatchOutput'], { cwd: ROOT, stdio: 'inherit', windowsHide: true, env: process.env }) });
   let closing = false;
   /** Ends every child and its own children (Next spawns workers). taskkill /T on Windows, SIGTERM elsewhere. */
   const shutdown = code => {
     if (closing) return; closing = true;
     for (const { child } of children) {
       if (child.exitCode !== null || child.pid === undefined) continue;
-      if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+      if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
       else child.kill('SIGTERM');
     }
     process.exit(code);

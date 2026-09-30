@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit"
+    "dev": "node ../../scripts/project-task.mjs web:dev",
+    "build": "node ../../scripts/project-task.mjs web:build",
+    "start": "node ../../scripts/project-task.mjs web:start",
+    "typecheck": "node ../../scripts/project-task.mjs web:typecheck"
   },
   "dependencies": {
     "@aoh/server": "*",

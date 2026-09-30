@@ -17,21 +17,21 @@ function run(command: string, values: Record<string, string> | string | null, ar
   const env: Record<string, string> = { PATH: process.env.PATH ?? '', SystemRoot: process.env.SystemRoot ?? '', ALPHA_ENV_FILE: file, ...shellEnv };
   // `dev` is zero-config by default; these tests exercise the advanced PostgreSQL mode of it.
   const full = command === 'dev' ? ['--postgres', ...args] : args;
-  const result = spawnSync(process.execPath, [script, command, ...full], { encoding: 'utf8', env });
+  const result = spawnSync(process.execPath, [script, command, ...full], { encoding: 'utf8', env, windowsHide: true });
   return { code: result.status, output: `${result.stdout}${result.stderr}` };
 }
 
 /** The default `dev`: no env file, no database variables. */
 function runZeroConfig(args: string[], extra: Record<string, string> = {}) {
   const env: Record<string, string> = { PATH: process.env.PATH ?? '', SystemRoot: process.env.SystemRoot ?? '', ALPHA_ENV_FILE: join(tmpdir(), 'aoh-does-not-exist', '.env.local'), ...extra };
-  const result = spawnSync(process.execPath, [script, 'dev', ...args], { encoding: 'utf8', env, timeout: 30000 });
+  const result = spawnSync(process.execPath, [script, 'dev', ...args], { encoding: 'utf8', env, timeout: 30000, windowsHide: true });
   return { code: result.status, output: `${result.stdout}${result.stderr}` };
 }
 
 const players = join(process.cwd(), 'scripts/alpha-players.mjs');
 function runPlayers(args: string[], extra: Record<string, string> = {}) {
   const env: Record<string, string> = { PATH: process.env.PATH ?? '', SystemRoot: process.env.SystemRoot ?? '', ...extra };
-  const result = spawnSync(process.execPath, [players, ...args], { encoding: 'utf8', env, timeout: 30000 });
+  const result = spawnSync(process.execPath, [players, ...args], { encoding: 'utf8', env, timeout: 30000, windowsHide: true });
   return { code: result.status, output: `${result.stdout}${result.stderr}` };
 }
 
@@ -69,7 +69,7 @@ describe('scripts/local-alpha.mjs', () => {
     const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts as Record<string, string>;
     expect(scripts['dev:alpha']).toBe('node scripts/local-alpha.mjs dev');
     expect(scripts['db:migrate:local']).toBe('node scripts/local-alpha.mjs migrate');
-    expect(scripts['build']).toBe('npm run compile && npm run build -w @aoh/web');
+    expect(scripts['build']).toBe('node scripts/project-task.mjs build');
     const example = readFileSync('apps/web/.env.local.example', 'utf8');
     expect(example).toMatch(/^ALPHA_SESSION_SECRET=$/m);
     expect(example).toMatch(/^ALPHA_PUBLIC_ORIGIN=http:\/\/127\.0\.0\.1:3001$/m);
@@ -148,6 +148,33 @@ describe('development scripts', () => {
     const source = readFileSync('scripts/local-alpha.mjs', 'utf8');
     expect(source).toContain("'-b', '-w'"); expect(source).toContain('--no-watch-packages'); expect(source).toContain('taskkill');
     expect(source).toContain("'--hostname', HOST, '--port'");
+    expect(source.match(/windowsHide: true/g)).toHaveLength(4);
+  });
+
+  it('runs gates through Node without nested cmd shells and keeps output inherited', () => {
+    const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts as Record<string, string>;
+    for (const name of ['compile', 'lint', 'typecheck', 'test', 'test:e2e', 'test:db', 'test:db:docker', 'build', 'check']) {
+      expect(scripts[name], name).toMatch(/^node scripts\/project-task\.mjs /);
+      expect(scripts[name], name).not.toMatch(/\bnpm (?:run|test)\b/);
+    }
+    const runner = readFileSync('scripts/project-task.mjs', 'utf8');
+    expect(runner).toContain("stdio: 'inherit'");
+    expect(runner).toContain('windowsHide: true');
+    expect(runner).toContain('shell: false');
+    expect(runner).toContain('spawnSync(process.execPath');
+    expect(runner).not.toMatch(/cmd\.exe|detached:\s*true|shell:\s*true/i);
+  });
+
+  it('starts the Playwright web server without its shell-based webServer command', () => {
+    const config = readFileSync('playwright.config.ts', 'utf8');
+    const setup = readFileSync('e2e/global-setup.ts', 'utf8');
+    expect(config).toContain("headless: true");
+    expect(config).toContain("globalSetup: './e2e/global-setup.ts'");
+    expect(config).not.toContain('webServer:');
+    expect(setup).toContain('spawn(process.execPath');
+    expect(setup).toContain("stdio: 'inherit'");
+    expect(setup.match(/windowsHide: true/g)).toHaveLength(2);
+    expect(setup).not.toMatch(/shell:\s*true|detached:\s*true|cmd\.exe/i);
   });
 });
 
@@ -212,7 +239,7 @@ describe('dev:alpha zero-config (in memory)', () => {
       const result = await new Promise<{ code: number | null; output: string }>(resolve => {
         const env = { PATH: process.env.PATH ?? '', SystemRoot: process.env.SystemRoot ?? '', ALPHA_LOCAL_PORT: String(port) };
         import('node:child_process').then(({ spawn }) => {
-          const child = spawn(process.execPath, [script, 'dev'], { env });
+          const child = spawn(process.execPath, [script, 'dev'], { env, windowsHide: true });
           let output = ''; child.stdout.on('data', chunk => { output += chunk; }); child.stderr.on('data', chunk => { output += chunk; });
           child.on('close', code => resolve({ code, output }));
         });
