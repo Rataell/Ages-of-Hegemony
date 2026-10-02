@@ -96,22 +96,23 @@ describe('stale multiplayer commands recover once', () => {
     expect(outcome.retried).toBe(true);
     expect(outcome.reply.ok).toBe(true);
     const after = await game();
-    expect(after.phase).toBe('URBAN_ACTIONS');
+    expect(after.phase).toBe('PLANNING');
+    expect(after.core.round).toBe(2);
     expect(readyCount(after)).toBe(0);
   });
 
-  it('recovers URBAN_ACTION without acting twice', async () => {
+  it('recovers a planned urban action without acting twice', async () => {
     const { a, b, game } = await table();
-    await a.send({ type: 'READY' }); await b.refresh(); await b.send({ type: 'READY' });
-    await a.refresh();
-    expect((await game()).phase).toBe('URBAN_ACTIONS');
     const cityA = a.room.game!.cityStates[0]!.cityId, cityB = b.room.game!.cityStates[0]!.cityId;
     expect((await a.send({ type: 'URBAN_ACTION', cityId: cityA, action: 'PRODUCE' })).reply.ok).toBe(true);
     const outcome = await b.send({ type: 'URBAN_ACTION', cityId: cityB, action: 'PRODUCE' });
     expect(outcome.retried).toBe(true);
     expect(outcome.reply.ok).toBe(true);
+    expect((await game()).players.map(player => player.plannedActions.length)).toEqual([1, 1]);
+    await a.refresh(); await a.send({ type: 'READY' });
+    await b.refresh(); await b.send({ type: 'READY' });
     const after = await game();
-    expect(after.cities.map(c => c.urbanActionsUsed)).toEqual([1, 1]);
+    expect(after.players.map(player => player.plannedActions.length)).toEqual([0, 0]);
     expect(after.telemetry.actionsByType.PRODUCE).toBe(2);
     expect(after.events.filter(e => e.type === 'URBAN_ACTION')).toHaveLength(2);
   });
@@ -145,16 +146,15 @@ describe('stale multiplayer commands recover once', () => {
   });
 
   it('shows the real domain error when the retried command became illegal', async () => {
-    const { a, b, game } = await table();
-    await a.send({ type: 'READY' });
-    await b.send({ type: 'READY' });
-    expect((await game()).phase).toBe('URBAN_ACTIONS');
-    expect(a.room.game!.phase).toBe('PLANNING');
+    const { a, game } = await table();
+    const stale = new Browser((a as unknown as { http: AlphaHttp }).http, a.cookie);
+    stale.room = structuredClone(a.room);
+    expect((await a.send({ type: 'LEADER_ABILITY' })).reply.ok).toBe(true);
     const before = await game();
-    const outcome = await a.send({ type: 'QUEUE_ORDER', order: { id: 'late', type: 'MOVE', unitIds: ['none'], path: ['0,0'] } });
+    const outcome = await stale.send({ type: 'LEADER_ABILITY' });
     expect(outcome.retried).toBe(true);
-    expect(outcome.reply).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
-    expect(outcome.reply.ok === false && outcome.reply.error.message).toContain('Ações urbanas');
+    expect(outcome.reply).toMatchObject({ ok: false, error: { code: 'RULE_FAILURE' } });
+    expect(outcome.reply.ok === false && outcome.reply.error.message).toContain('já foi usada');
     expect(await game()).toEqual(before);
   });
 
@@ -167,7 +167,8 @@ describe('stale multiplayer commands recover once', () => {
     expect([x.retried, y.retried].filter(Boolean)).toHaveLength(1);
     const after = await game();
     expect(after.version).toBe(base + 2);
-    expect(after.phase).toBe('URBAN_ACTIONS');
+    expect(after.phase).toBe('PLANNING');
+    expect(after.core.round).toBe(2);
     const readyPosts = [...posts(a), ...posts(b)].filter(post => (post.payload as { type: string }).type === 'READY');
     expect(readyPosts).toHaveLength(3);
   });
@@ -189,7 +190,8 @@ describe('stale multiplayer commands recover once', () => {
     await fresh.refresh();
     expect(fresh.room.game!.version).toBeGreaterThan(b.room.game!.version);
     expect((await fresh.send({ type: 'READY' })).reply.ok).toBe(true);
-    expect((await game()).phase).toBe('URBAN_ACTIONS');
+    expect((await game()).phase).toBe('PLANNING');
+    expect((await game()).core.round).toBe(2);
   });
 });
 

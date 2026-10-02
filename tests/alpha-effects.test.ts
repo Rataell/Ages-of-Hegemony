@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, CIVILIZATIONS, GREAT_PROJECTS, PlayerIdSchema, emptyResourcePool, type AlphaState } from '@aoh/game-domain';
 import { applyRecurringEffects, beginAlphaPlanning, createAlphaGame, effectTiming, occupyCity } from '@aoh/game-engine';
-import { completeRound, must, produceAll, readyAll } from './alpha-rounds.js';
+import { completeRound, must, produceAll } from './alpha-rounds.js';
 
 const p1 = PlayerIdSchema.parse('p1');
 const fresh = (seed = 91): AlphaState => beginAlphaPlanning(createAlphaGame({ gameId: `effects-${seed}`, seed, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] }));
@@ -70,7 +70,6 @@ describe('recurring effects do not depend on PRODUCE', () => {
     expect(node.effect.kind).toBe('PRODUCTION');
     const before = total(passives(state).reduce((acc, e) => e.kind === 'PRODUCTION' ? { ...acc, [e.resource]: (acc[e.resource] ?? 0) + e.amount } : acc, {} as Record<string, number>));
     state = must(state, p1, { type: 'CHOOSE_AMBITIONS', cardIds: state.players[0]!.ambitions.slice(0, 2) });
-    state = readyAll(state);
     state = must(state, p1, { type: 'URBAN_ACTION', cityId: 'capital-1', action: 'RESEARCH', advancementId: 'adv-1-1-1' });
     expect(total(ledger(state).institutions)).toBe(0);
     state = completeRound(state);
@@ -111,20 +110,19 @@ describe('ON_PRODUCE effects belong to production', () => {
     const idle = completeRound(structuredClone(state));
     expect(total(report(idle).institutions)).toBe(total(passives(idle).reduce((acc, e) => e.kind === 'PRODUCTION' ? { ...acc, [e.resource]: (acc[e.resource as string] ?? 0) + e.amount } : acc, {} as Record<string, number>)));
 
-    let urban = readyAll(structuredClone(state));
-    const before = total(ledger(urban).institutions);
-    urban = must(urban, p1, { type: 'URBAN_ACTION', cityId: 'capital-1', action: 'PRODUCE' });
-    expect(total(ledger(urban).institutions) - before).toBe(project.effect.kind === 'PRODUCTION' ? project.effect.amount : -1);
+    let planned = must(structuredClone(state), p1, { type: 'URBAN_ACTION', cityId: 'capital-1', action: 'PRODUCE' });
+    planned=completeRound(planned);
+    const passive=total(passives(planned).reduce((acc,e)=>e.kind==='PRODUCTION'?{...acc,[e.resource]:(acc[e.resource]??0)+e.amount}:acc,{} as Record<string,number>));
+    expect(total(report(planned).institutions)-passive).toBe(project.effect.kind === 'PRODUCTION' ? project.effect.amount : -1);
   });
 
   it('does not credit it for another city\'s PRODUCE', () => {
     const state = fresh(97);
     occupyCity(state, p1, 'capital-2' as never);
     withProject(state, 'INDUSTRIAL', 'capital-2');
-    let urban = readyAll(state);
-    const before = total(ledger(urban).institutions);
-    urban = must(urban, p1, { type: 'URBAN_ACTION', cityId: 'capital-1', action: 'PRODUCE' });
-    expect(total(ledger(urban).institutions)).toBe(before);
+    const idle=completeRound(structuredClone(state));
+    let planned=must(state,p1,{type:'URBAN_ACTION',cityId:'capital-1',action:'PRODUCE'});planned=completeRound(planned);
+    expect(total(report(planned).institutions)).toBe(total(report(idle).institutions));
   });
 
   it('never credits a city output twice for one PRODUCE and never on the idle path', () => {
@@ -156,6 +154,6 @@ describe('ONCE effects', () => {
   it('has no leftover flag on the ledger', () => {
     expect(Object.keys(ledger(fresh(100)))).not.toContain('institutionsCollected');
     expect(emptyResourcePool().food).toBe(0);
-    expect(produceAll(readyAll(fresh(100))).phase).toBe('URBAN_ACTIONS');
+    const planned=produceAll(fresh(100));expect(planned.phase).toBe('PLANNING');expect(planned.players.every(player=>player.plannedActions.length>0)).toBe(true);
   });
 });

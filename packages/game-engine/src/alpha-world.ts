@@ -4,34 +4,59 @@ import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { initializeAlphaCards } from './alpha-cards.js';
 import { alphaRandomInteger, combineAlphaSeed, deterministicAlphaSeed } from './alpha-random.js';
+import { alphaEvent } from './alpha-events.js';
 
-export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset}):AlphaState {
+export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;actionsPerRound?:number}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
   const random:Pick<AlphaState,'privateRng'>={privateRng:{algorithm:'hmac-sha256-counter-v1',seed:input.privateSeed?combineAlphaSeed(input.seed,input.privateSeed):deterministicAlphaSeed(input.seed,input.gameId),counter:0}};
   const frontier=REGION_TEMPLATES.filter(r=>r.kind==='FRONTIER');
   for(let i=frontier.length-1;i>0;i--){const j=alphaRandomInteger(random,i+1);[frontier[i],frontier[j]]=[frontier[j]!,frontier[i]!];}
-  const homes=[[0,0],[5,4],[0,4],[5,0],[2,0],[3,4]] as const;
+  // Six authored homeland regions always remain on the board. Active seats take the compact positions first so
+  // diplomacy and conflict become reachable during QUICK games; unused homelands stay dormant map variety.
+  const homeLayouts={
+    2:[[1,2],[4,2],[0,0],[5,0],[0,4],[5,4]],
+    3:[[1,1],[4,1],[2,3],[0,0],[5,4],[0,4]],
+    4:[[1,1],[4,1],[1,3],[4,3],[0,0],[5,4]],
+    5:[[1,1],[3,1],[5,1],[1,3],[4,3],[0,0]],
+    6:[[1,1],[3,1],[5,1],[1,3],[3,3],[5,3]],
+  } as const;
+  const homes=homeLayouts[input.players.length as keyof typeof homeLayouts];
   const regions:AlphaState['regions']=[];const map:{id:string;q:number;r:number;terrain:TerrainType;features:string[]}[]=[];let index=0;
   for(let r=0;r<5;r++)for(let q=0;q<6;q++) {
     const home=homes.findIndex(([hq,hr])=>hq===q&&hr===r);
     const template=home>=0?REGION_TEMPLATES[home]!:frontier[index++]!;
+    const activeHome=home>=0&&home<input.players.length;
     const center={q:q*3,r:r*3};const points=[center,...hexNeighbors(center)];
     regions.push({id:`region-${q}-${r}`,templateId:template.id,hexIds:points.map(hexId),rotation:0,revealedBy:home>=0&&home<input.players.length?[PlayerIdSchema.parse(input.players[home]!.id)]:[]});
     const deposit=templateMetalDeposit(template);
     points.forEach((p,i)=>{
       let terrain=template.terrain[i]!;const preset=input.worldPreset??'MIXED';
       if(preset==='CONTINENTAL'&&terrain==='SEA')terrain=(p.q+p.r+input.seed)%2===0?'PLAINS':'COAST';
-      if(preset==='ARCHIPELAGO'&&!(home>=0&&i===0)&&terrain!=='MOUNTAINS'&&(Math.abs(p.q*17+p.r*31+input.seed)%5)<2)terrain='SEA';
-      if(preset==='INLAND_SEA'&&q>=2&&q<=3&&r>=1&&r<=3)terrain=i===0?'SEA':'COAST';
+      if(preset==='ARCHIPELAGO'&&!activeHome&&terrain!=='MOUNTAINS'&&(Math.abs(p.q*17+p.r*31+input.seed)%5)<2)terrain='SEA';
+      if(preset==='INLAND_SEA'&&!activeHome&&q>=2&&q<=3&&r>=1&&r<=3)terrain=i===0?'SEA':'COAST';
       map.push({...p,id:hexId(p),terrain,features:i===deposit&&(terrain==='HILLS'||terrain==='MOUNTAINS')?['METAL']:[]});
     });
+  }
+  // Region centres are three hexes apart and touch through a two-hex neck. One SEA neck can otherwise split the
+  // whole land graph. Open only the shortest tree that joins active homelands; the rest of the authored seas remain.
+  const activeHomes:{q:number;r:number}[]=homes.slice(0,input.players.length).map(([q,r])=>({q,r}));
+  for(let i=1;i<activeHomes.length;i++){
+    let current=activeHomes[i]!;
+    const target=activeHomes.slice(0,i).sort((a,b)=>hexDistance(current,a)-hexDistance(current,b)||a.q-b.q||a.r-b.r)[0]!;
+    while(current.q!==target.q||current.r!==target.r){
+      const next=hexNeighbors(current).filter(point=>point.q>=0&&point.q<6&&point.r>=0&&point.r<5&&hexDistance(point,target)<hexDistance(current,target)).sort((a,b)=>a.q-b.q||a.r-b.r)[0]!;
+      const dq=next.q-current.q,dr=next.r-current.r;
+      const bridge=[hexId({q:current.q*3,r:current.r*3}),hexId({q:current.q*3+dq,r:current.r*3+dr}),hexId({q:next.q*3-dq,r:next.r*3-dr}),hexId({q:next.q*3,r:next.r*3})];
+      for(const id of bridge){const tile=map.find(candidate=>candidate.id===id);if(tile?.terrain==='SEA')tile.terrain='COAST';}
+      current=next;
+    }
   }
   const created=createGame({gameId:input.gameId,seed:input.seed,map,
     players:input.players.map(p=>({id:p.id,name:p.name,resources:{food:16,materials:14,wealth:10,knowledge:8,influence:8}})),
     initialCities:input.players.map((p,i)=>({id:`capital-${i+1}`,ownerId:p.id,name:p.name,hexId:`${homes[i]![0]*3},${homes[i]![1]*3}`,workers:{producers:1,artisans:0,merchants:0,scholars:1,soldiers:0,unassigned:0}}))});
   if(!created.ok)throw new Error(created.error.message);
   const migrated=migrateSnapshotV3ToV4(created.value);if(!migrated.ok)throw new Error(migrated.error.message);
-  const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED');state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
+  const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED',input.actionsPerRound??7);state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
   state.players.forEach((p,i)=>{p.civilization=input.players[i]!.civilization??CIVILIZATIONS[i]!.id;p.leader=leaderStateFor(p.civilization);const center=state.core.players[i]!.civilization.cities[0]!.hexId;state.units.push({id:`pioneer-${i+1}`,ownerId:p.playerId,kind:'PIONEER',hexId:center,recruitedRound:1});const city=state.cities.find(city=>city.currentOwnerId===p.playerId)!;city.nativeIdentity=p.civilization;});
   const occupied=new Set(state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)));
   const neutral=state.core.map.filter(tile=>!occupied.has(tile.id)&&!['SEA','UNKNOWN'].includes(tile.terrain)).sort((a,b)=>a.id.localeCompare(b.id));
@@ -71,7 +96,55 @@ export function validateExploration(state:AlphaState,actor:PlayerId,order:Extrac
 export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
   validateExploration(state,actor,order);const region=state.regions.find(r=>r.hexIds.includes(order.target))!;
   const template=REGION_TEMPLATES.find(r=>r.id===region.templateId)!;
-  region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;tile.terrain=template.terrain[i===0?0:1+(i-1+order.rotation)%6]!;});
+  region.hexIds.forEach((id,i)=>{
+    const tile=state.core.map.find(t=>t.id===id)!,authored=template.terrain[i]!;
+    // World-preset and contact-corridor overrides are generated before fog reveal and remain authoritative.
+    // Rotate only untouched authored terrain; otherwise revealing a region would silently rewrite the world.
+    if(tile.terrain===authored)tile.terrain=template.terrain[i===0?0:1+(i-1+order.rotation)%6]!;
+  });
   region.rotation=order.rotation;region.revealedBy.push(actor);
   const player=state.players.find(p=>p.playerId===actor)!;player.knownHexIds=[...new Set([...player.knownHexIds,...region.hexIds])].sort();player.exploredRegions++;player.prestige++;
+}
+
+function raidDefense(state:AlphaState,hexIdValue:string):number {
+  const units=state.units.filter(unit=>unit.hexId===hexIdValue);
+  const pieces=units.reduce((total,unit)=>total+state.rules.units[unit.kind].strength,0);
+  const city=state.core.players.flatMap(player=>player.civilization.cities).find(candidate=>candidate.hexId===hexIdValue);
+  return pieces+(city?.development??0);
+}
+
+/** One deterministic step per band at round end. Weak occupied targets are preferred and attacked on contact. */
+export function resolveRaidBands(state:AlphaState):void {
+  const byId=new Map(state.core.map.map(tile=>[tile.id,tile]));
+  const assets=[...new Set([
+    ...state.units.map(unit=>unit.hexId),
+    ...state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)),
+  ])].filter(id=>byId.has(id));
+  for(const band of [...state.raidBands].sort((a,b)=>a.id.localeCompare(b.id))){
+    if(band.lastMovedRound>=state.core.round)continue;
+    const current=byId.get(band.hexId);if(!current){band.lastMovedRound=state.core.round;continue;}
+    const targets=[...assets].sort((a,b)=>{
+      const weakA=Number(raidDefense(state,a)>=band.strength),weakB=Number(raidDefense(state,b)>=band.strength);
+      return weakA-weakB||hexDistance(current,byId.get(a)!)-hexDistance(current,byId.get(b)!)||a.localeCompare(b);
+    });
+    const target=targets[0];
+    if(target&&target!==band.hexId){
+      const step=hexNeighbors(current).map(point=>byId.get(hexId(point))).filter(tile=>tile&&!['SEA','UNKNOWN'].includes(tile.terrain))
+        .sort((a,b)=>hexDistance(a!,byId.get(target)!)-hexDistance(b!,byId.get(target)!)||a!.id.localeCompare(b!.id))[0];
+      if(step)band.hexId=step.id;
+    }
+    band.lastMovedRound=state.core.round;
+    if(!target||band.hexId!==target||raidDefense(state,target)>=band.strength)continue;
+    const victims=state.units.filter(unit=>unit.hexId===target).sort((a,b)=>state.rules.units[a.kind].strength-state.rules.units[b.kind].strength||a.id.localeCompare(b.id));
+    const lost=victims[0];if(lost)state.units=state.units.filter(unit=>unit.id!==lost.id);
+    const city=state.core.players.flatMap(player=>player.civilization.cities).find(candidate=>candidate.hexId===target);
+    if(city)city.stability=Math.max(0,city.stability-band.strength);
+    const owner=city?.ownerId??lost?.ownerId;
+    alphaEvent(state,'RAID_ATTACK',`${band.id} atacou ${target}${lost?` e eliminou ${lost.id}`:''}.`,owner?[owner]:null);
+  }
+}
+
+export function raidBandView(state:AlphaState,actor:PlayerId){
+  const known=new Set(state.players.find(player=>player.playerId===actor)?.knownHexIds??[]);
+  return state.raidBands.filter(band=>known.has(band.hexId)).map(band=>({id:band.id,hexId:band.hexId,strength:band.strength,lastMovedRound:band.lastMovedRound}));
 }

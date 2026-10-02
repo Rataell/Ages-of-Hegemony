@@ -35,12 +35,12 @@ Capacity = `alphaCommandCapacity(state, actor)` = `rules.baseCommandPoints` (4) 
 
 Inconsistencies found while classifying (all recorded in the audit report): `MANAGE` refuses with `COMMAND_LIMIT`, the others with `RULE_FAILURE` and a different sentence; urban actions ignore the budget; the same territory decision costs a point while the same amount of effort spent through an urban action costs nothing.
 
-## Decisions to take with the owner before any code
+## Decisions confirmed for the playable Alpha
 
-1. Default value of `actionsPerRound` and whether government / institution modifiers keep adding to it.
-2. Which of the "to be confirmed" rows above are MAIN.
-3. Whether treaty proposals reserved during planning are delivered at resolution and answered in the next round (asynchronous), or keep the current same-round answer.
-4. Resource validation for reserved actions: conservative at reservation time (current resources minus already reserved costs) and re-validated at resolution, with an explicit "could not be carried out" event, versus an escrow that locks resources when reserving. Recommended: conservative validation, no escrow.
+1. `actionsPerRound` defaults to 7. New matches use that fixed configured limit; government and institution command modifiers remain only for legacy matches whose rules lack `actionsPerRound`.
+2. `ADOPT_GOVERNMENT` and `ADVANCE_ERA` are MAIN. `LEADER_ABILITY` and planning `PLAY_CARD` are FREE; conflict `PLAY_CARD` is REACTION.
+3. Treaty proposals reserved during planning resolve asynchronously and can be answered in the next planning window.
+4. Reserved actions use conservative validation without escrow and are re-validated during resolution.
 
 ## Design
 

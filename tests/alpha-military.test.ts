@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { completeRound, readyAll, urban } from './alpha-rounds.js';
+import { completeRound, urban } from './alpha-rounds.js';
 import { AlphaStateSchema, PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
-import { applyAlphaCommand, beginAlphaPlanning, createGame, migrateSnapshotV3ToV4, resolveBattle, unitSupply, validateMilitaryOrder } from '@aoh/game-engine';
+import { applyAlphaCommand, beginAlphaPlanning, createGame, migrateSnapshotV3ToV4, resolveBattle, setAlphaPhase, unitSupply, validateMilitaryOrder } from '@aoh/game-engine';
 const p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');
 function setup():AlphaState {
   const core=createGame({gameId:'military-alpha',seed:41,players:[{id:p1,name:'Primeiro',resources:{food:30,materials:30,wealth:30,knowledge:0,influence:10}},{id:p2,name:'Segundo'}],
@@ -13,7 +13,7 @@ function setup():AlphaState {
 }
 describe('alpha military pieces',()=>{
   it('recruits through an owned city, pays real costs, and requires coastal fleet access',()=>{
-    const state=readyAll(setup());const result=urban(state,p1,'RECRUIT',{unit:'INFANTRY'},'c1');
+    const state=setup();setAlphaPhase(state,'URBAN_ACTIONS');const result=urban(state,p1,'RECRUIT',{unit:'INFANTRY'},'c1');
     expect(result.ok).toBe(true);if(!result.ok)return;expect(result.value.units[0]?.kind).toBe('INFANTRY');
     expect(result.value.core.players[0]?.resources.materials).toBe(28);expect(state.units).toHaveLength(0);
     result.value.players[0]!.era='EXPANSION';result.value.cities.find(c=>c.cityId==='c1')!.urbanActionsUsed=0;
@@ -22,6 +22,7 @@ describe('alpha military pieces',()=>{
   it('validates every step of paths and excludes foreign pieces',()=>{
     const state=setup();state.units=[{id:'u1',ownerId:p1,kind:'INFANTRY',hexId:state.core.map[0]!.id,recruitedRound:1}];
     expect(()=>validateMilitaryOrder(state,p1,{id:'move1',type:'MOVE',unitIds:['u1'],path:[state.core.map[1]!.id,state.core.map[2]!.id]})).not.toThrow();
+    expect(()=>validateMilitaryOrder(state,p1,{id:'move-home',type:'MOVE',unitIds:['u1'],path:[state.core.map[1]!.id,state.core.map[0]!.id]})).toThrow('O movimento deve terminar em outro hex.');
     expect(()=>validateMilitaryOrder(state,p1,{id:'move1',type:'MOVE',unitIds:['u1'],path:[state.core.map[2]!.id]})).toThrow();
     expect(()=>validateMilitaryOrder(state,p2,{id:'move1',type:'MOVE',unitIds:['u1'],path:[state.core.map[1]!.id]})).toThrow();
   });

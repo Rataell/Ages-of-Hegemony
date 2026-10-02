@@ -7,6 +7,7 @@ import { refreshAdministration } from './civilization.js';
 import { maintainPlayer } from './maintenance.js';
 import { manageCivilization } from './management.js';
 import { applyTerritoryCommand } from './territory-commands.js';
+import { payLegacyResources, type ResourcePayment } from './resources.js';
 
 const nextPhases: Readonly<Record<RoundPhase, RoundPhase>> = {
   MAINTENANCE: 'PLANNING', PLANNING: 'RESOLUTION', RESOLUTION: 'REACTION', REACTION: 'END_ROUND', END_ROUND: 'MAINTENANCE',
@@ -54,7 +55,7 @@ export function createGame(input: unknown): Result<GameState, GameRuleError> {
   }
 }
 
-export function applyCommand(state: GameState, input: unknown): Result<GameState, GameRuleError> {
+export function applyCommand(state: GameState, input: unknown, pay: ResourcePayment = payLegacyResources): Result<GameState, GameRuleError> {
   const validated = GameStateSchema.safeParse(state);
   if (!validated.success) return err({ code: 'INVALID_STATE', message: validated.error.message });
   const parsed = GameCommandSchema.safeParse(input);
@@ -94,13 +95,13 @@ export function applyCommand(state: GameState, input: unknown): Result<GameState
       current.phase = command.nextPhase;
       event = { type: 'PHASE_ADVANCED', version, round: current.round, from, to: command.nextPhase };
     } else if (command.type === 'CLAIM_HEX' || command.type === 'ASSIGN_WORKED_HEXES' || command.type === 'IMPROVE_HEX' || command.type === 'FOUND_CITY' || command.type === 'BUILD_DISTRICT' || command.type === 'BUILD_BUILDING') {
-      const result = applyTerritoryCommand(current, command, version);
+      const result = applyTerritoryCommand(current, command, version, pay);
       if (!result.ok) return result;
       current.map = result.value.map;
       current.players = current.players.map((player) => player.id === result.value.player.id ? result.value.player : player);
       event = result.value.event;
     } else {
-      const result = manageCivilization(current, command, version);
+      const result = manageCivilization(current, command, version, pay);
       if (!result.ok) return result;
       current.players = current.players.map((player) => player.id === result.value.player.id ? result.value.player : player);
       event = result.value.event;

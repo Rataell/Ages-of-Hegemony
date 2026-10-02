@@ -1,5 +1,5 @@
-import type { AlphaState, PlayerId } from '@aoh/game-domain';
-import { alphaCommandCapacity, combatPreview, stackView, leaderAbilityBlock, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { ACTION_CLASS, ADVANCEMENTS, GREAT_PROJECTS, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { alphaActionUsage, alphaCommandCapacity, alphaCost, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -11,15 +11,27 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
   if(!economic)return null;
   const known=state.core.map.filter(t=>progress.knownHexIds.includes(t.id)&&!visible.has(t.id));
   const explored=state.core.map.filter(t=>progress.knownHexIds.includes(t.id)||visible.has(t.id));
+  const territory=state.core.config.territory;
+  const displayCost=(cost:Parameters<typeof alphaCost>[0])=>alphaCost(cost,progress.resources);
   return structuredClone({
     gameId:state.gameId,version:state.version,schemaVersion:state.schemaVersion,view:economic,
     phase:state.phase,urban:urbanOptions(state,actor),
     worldPulse:state.worldPulse.current?{id:state.worldPulse.current.id,name:state.worldPulse.current.name,type:state.worldPulse.current.type}:null,
-    cityStates:state.cities.filter(c=>c.currentOwnerId===actor).map(c=>({cityId:c.cityId,status:c.status,integration:c.integration,mood:c.mood,level:c.level,localCohesion:c.localCohesion,urbanActionsUsed:c.urbanActionsUsed,fortification:c.fortification.level})),
+    cityStates:state.cities.filter(c=>c.currentOwnerId===actor).map(c=>({cityId:c.cityId,status:c.status,integration:c.integration,mood:c.mood,level:c.level,localCohesion:c.localCohesion,urbanActionsUsed:c.urbanActionsUsed,plannedUrbanActions:progress.plannedActions.filter(action=>action.type==='URBAN_ACTION'&&action.cityId===c.cityId).length,fortification:c.fortification.level})),
+    culture:culturalPresenceView(state,actor),
+    independents:independentPeopleView(state,actor),
+    raidBands:raidBandView(state,actor),
     leaderBlock:leaderAbilityBlock(state,actor),
     stacks:stackView(state,actor),
     orderPreviews:Object.fromEntries(progress.orders.flatMap(order=>order.type==='ATTACK'?[[order.id,combatPreview(state,actor,order)] as const]:[])),
-    self:progress,commandCapacity:alphaCommandCapacity(state,actor),rules:state.rules,
+    self:progress,actions:alphaActionUsage(state,actor),actionClasses:ACTION_CLASS,commandCapacity:alphaCommandCapacity(state,actor),rules:state.rules,
+    costs:{
+      claim:displayCost(territory.claimCost),founding:displayCost(territory.foundingCost),road:displayCost(state.rules.roadCost),advisor:displayCost(state.rules.advisorCost),
+      development:state.core.config.developmentCosts.map(displayCost),
+      improvements:Object.fromEntries(Object.entries(territory.improvementCatalog).map(([kind,entry])=>[kind,displayCost(entry.cost)])),
+      advancements:Object.fromEntries(ADVANCEMENTS.map(advancement=>[advancement.id,displayCost(advancement.cost)])),
+      projects:Object.fromEntries(GREAT_PROJECTS.map(project=>[project.id,displayCost(project.cost)])),
+    },
     milestones:eraMilestones(state,actor),
     cityDetails:economic.player.civilization.cities.map(c=>({id:c.id,category:stabilityCategory(c.stability,state.core.config),production:deriveCityProductionBreakdown(c,economic.player.civilization,state.core.config,state.core.map)})),
     roundReports:state.roundReports.filter(r=>r.playerId===actor),

@@ -49,6 +49,7 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
   if(new Set(order.unitIds).size!==order.unitIds.length)throw new Error('Não repita peças na mesma ordem.');
   const units=order.unitIds.map(id=>state.units.find(u=>u.id===id&&u.ownerId===actor));
   if(units.some(u=>!u))throw new Error('A ordem contém uma peça que não pertence a você.');
+  if(order.type==='MOVE'&&order.path.length>0&&units.some(unit=>unit!.hexId===order.path.at(-1)))throw new Error('O movimento deve terminar em outro hex.');
   const progress=state.players.find(p=>p.playerId===actor)!;
   for(const piece of units) {
     const unit=piece!;let current=state.core.map.find(t=>t.id===unit.hexId)!;let cost=0;

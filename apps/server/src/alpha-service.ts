@@ -8,7 +8,7 @@ import type { GuestPrincipal } from './guest-session.js';
 
 export function roomView(room:AlphaRoom,principal:GuestPrincipal){
   const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return null;
-  return {id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,seed:room.seed,seatLimit:room.seatLimit,planningSeconds:room.planningSeconds,deadline:room.deadline,
+  return {id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,seed:room.seed,seatLimit:room.seatLimit,actionsPerRound:room.actionsPerRound,planningSeconds:room.planningSeconds,deadline:room.deadline,
     selfPlayerId:seat.playerId,isHost:room.hostGuestId===principal.guestId,
     seats:room.seats.map(s=>({playerId:s.playerId,name:s.name,civilization:s.civilization,ready:s.ready,isHost:s.guestId===room.hostGuestId})),
     game:room.game?alphaPlayerView(room.game,seat.playerId):null};
@@ -70,7 +70,7 @@ export class AlphaGameService {
     else {
       if(room.hostGuestId!==principal.guestId)return forbidden();
       if(room.seats.length<2||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
-      room.game=beginAlphaPlanning(createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))}));
+      room.game=beginAlphaPlanning(createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,actionsPerRound:room.actionsPerRound,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))}));
       room.game.rules.planningSeconds=room.planningSeconds;
       room.deadline=room.planningSeconds?now+room.planningSeconds*1000:null;
     }

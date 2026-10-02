@@ -1,9 +1,9 @@
-import { RESOURCE_KEYS, type GameEvent, type GameRuleError, type GameState, type ManagementCommand, type PlayerState } from '@aoh/game-domain';
+import { type GameEvent, type GameRuleError, type GameState, type ManagementCommand, type PlayerState } from '@aoh/game-domain';
 import { err, ok, type Result } from '@aoh/shared';
-import { canAfford } from './resources.js';
+import { payLegacyResources, type ResourcePayment } from './resources.js';
 import { refreshAdministration, stabilityCategory } from './civilization.js';
 
-export function manageCivilization(state: GameState, command: ManagementCommand, version: number): Result<{ player: PlayerState; event: GameEvent }, GameRuleError> {
+export function manageCivilization(state: GameState, command: ManagementCommand, version: number, pay: ResourcePayment = payLegacyResources): Result<{ player: PlayerState; event: GameEvent }, GameRuleError> {
   if (state.phase !== 'PLANNING') return err({ code: 'WRONG_PHASE', message: 'Civilization management requires PLANNING' });
   const player = state.players.find((entry) => entry.id === command.playerId);
   if (!player) return err({ code: 'UNKNOWN_PLAYER', message: 'Player is not in this game' });
@@ -31,8 +31,9 @@ export function manageCivilization(state: GameState, command: ManagementCommand,
       if (city.development >= rules.maxDevelopment) return err({ code: 'MAX_DEVELOPMENT', message: 'City is at maximum development' });
       if (rules.blockDevelopmentAtCritical && stabilityCategory(city.stability, rules) === 'CRITICAL') return err({ code: 'CRITICAL_STABILITY', message: 'Critical stability blocks development' });
       const cost = rules.developmentCosts[city.development - 1];
-      if (!cost || !canAfford(resources, cost)) return err({ code: 'INSUFFICIENT_RESOURCES', message: 'Cannot afford city development' });
-      for (const key of RESOURCE_KEYS) resources[key] -= cost[key];
+      const paymentPlayer = { ...player, resources };
+      if (!cost || !pay(paymentPlayer, cost)) return err({ code: 'INSUFFICIENT_RESOURCES', message: 'Cannot afford city development' });
+      Object.assign(resources, paymentPlayer.resources);
       city = { ...city, development: city.development + 1 };
       event = { ...base, cityId: city.id, type: 'CITY_DEVELOPED', development: city.development, cost };
       break;

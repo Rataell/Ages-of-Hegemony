@@ -22,7 +22,7 @@ function readyRound(input:AlphaState):AlphaState {
   return completeRound(input,{order:input.initiative});
 }
 describe('hegemony declaration and uninterrupted consolidation',()=>{
-  it('requires era V and permits one public path only',()=>{
+  it('requires the sixth era, Hegemony, and permits one public path only',()=>{
     const state=setup(),actor=state.players[0]!.playerId;state.players[0]!.era='FOUNDATION';
     expect(applyAlphaCommand(state,actor,{type:'DECLARE_HEGEMONY',path:'CULTURAL',expectedVersion:0}).ok).toBe(false);
     state.players[0]!.era='HEGEMONY';const declared=declare(state);
@@ -38,9 +38,9 @@ describe('hegemony declaration and uninterrupted consolidation',()=>{
     expect(state.core.status).toBe('FINISHED');expect(AlphaStateSchema.safeParse(state).success).toBe(true);
   });
   it('breaks consolidation immediately when a requirement is lost and restarts after recovery',()=>{
-    const state=declare(setup());state.core.round=2;state.core.players[0]!.resources.influence=0;
+    const state=declare(setup());state.core.round=2;state.players[0]!.resources.influence=0;
     refreshHegemony(state);expect(state.players[0]!.hegemony!.qualifiedSince).toBeNull();
-    state.core.players[0]!.resources.influence=5;refreshHegemony(state);
+    state.players[0]!.resources.influence=5;refreshHegemony(state);
     expect(state.players[0]!.hegemony!.qualifiedSince).toBe(2);
     state.core.round=3;expect(hegemonyWinner(state)).toBeNull();
     state.core.round=4;expect(hegemonyWinner(state)).toBe(state.players[0]!.playerId);
@@ -57,7 +57,7 @@ describe('hegemony declaration and uninterrupted consolidation',()=>{
     expect(view.hegemony).toEqual(hegemonyProgress(state,viewer));
     expect(JSON.stringify(view)).not.toContain('12345');
   });
-  it('rejects historical qualification before declaration or declarations before era V',()=>{
+  it('rejects historical qualification before declaration or declarations before Hegemony',()=>{
     const state=declare(setup());state.players[0]!.hegemony!.declaredRound=2;
     expect(AlphaStateSchema.safeParse(state).success).toBe(false);
     state.players[0]!.hegemony!.declaredRound=1;state.players[0]!.era='EMPIRES';

@@ -1,5 +1,4 @@
 import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, CityIdSchema, HexIdSchema, PlayerIdSchema, alphaRules, alphaToLegacyResources, emptyResourcePool, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { produceAll } from './alpha-rounds.js';
 import { alphaCommandCapacity, applyAlphaCommand, beginAlphaPlanning, createGame, initializeAlphaCards, migrateSnapshotV3ToV4, refreshKnowledge } from '@aoh/game-engine';
 
 /** Authored integration scenario with ample reserves and five settlements per side.
@@ -14,7 +13,9 @@ export function scriptedMatchSetup():AlphaState {
     initialCities:centers.flatMap((cities,p)=>cities.map(([q,r],i)=>({id:`c${p+1}-${i}`,ownerId:`p${p+1}`,hexId:`${q},${r}`,name:`Centro ${p+1}.${i}`,population:2,workers:{producers:1,artisans:1,merchants:0,scholars:0,soldiers:0,unassigned:0}}))),
   });
   if(!initial.ok)throw new Error(initial.error.message);const migrated=migrateSnapshotV3ToV4(initial.value);if(!migrated.ok)throw new Error(migrated.error.message);
-  const state=migrated.value,p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');state.rules=alphaRules('EPIC');
+  const state=migrated.value,p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');state.rules=alphaRules('EPIC');state.core.config.administrativeRules.baseCapacity=50;
+  state.rules.roundLimit=100;
+  Object.assign(state.rules.balance.baseStorage,{foodCapacity:1000,woodCapacity:1000,stoneCapacity:1000,metalCapacity:1000,wealthCapacity:1000});
   state.players[0]!.civilization='aurelia';state.players[1]!.civilization='valgard';
   state.players.forEach(p=>p.knownHexIds=state.core.map.map(t=>t.id));
   state.regions=[{id:'demonstration-region',templateId:'homeland-1',hexIds:['0,0','1,0','1,-1','0,-1','-1,0','-1,1','0,1'].map(id=>HexIdSchema.parse(id)),rotation:0,revealedBy:[]}];
@@ -36,25 +37,19 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   function round(){
     const initialRound=state.core.round;
     for(let guard=0;guard<40&&state.core.status==='ACTIVE'&&state.core.round===initialRound;guard++){
-      if(state.phase==='URBAN_ACTIONS'){
-        const route=state.routes.find(r=>r.ownerId===p1&&!r.suspended);
-        if(route&&state.cities.find(c=>c.cityId===route.fromCityId)!.urbanActionsUsed===0)submit(p1,{type:'URBAN_ACTION',cityId:route.fromCityId,action:'SUPPORT_TRADE'});
-        state=produceAll(state);
-      }
       const player=state.players.find(p=>!p.ready);if(!player)throw new Error('No pending player at decision boundary');
       submit(player.playerId,{type:'READY'});
     }
     if(state.core.status==='ACTIVE'&&state.core.round===initialRound)throw new Error('Round failed to progress');
   }
-  /** Confirms phases until the urban phase opens (without leaving the round). */
-  function toUrban(){
-    for(let guard=0;guard<8&&state.core.status==='ACTIVE'&&state.phase!=='URBAN_ACTIONS';guard++){const pending=state.players.find(p=>!p.ready);if(!pending)break;submit(pending.playerId,{type:'READY'});}
-  }
-  /** One canonical urban action by p1, in the requested city or in the first one that has not acted this round. */
+  /** Queues one canonical urban action by p1, advancing first when the city or global action budget is occupied. */
   function urbanAct(action:string,extra:Record<string,unknown>={},cityId?:string){
     for(let attempt=0;attempt<4;attempt++){
-      toUrban();
-      const free=state.cities.filter(c=>c.currentOwnerId===p1&&c.status==='OWNED'&&c.urbanActionsUsed===0&&(!cityId||c.cityId===cityId));
+      const progress=state.players[0]!;
+      const used=progress.spentCommands+progress.orders.length+progress.plannedActions.length;
+      if(state.phase!=='PLANNING'||used>=alphaCommandCapacity(state,p1))round();
+      const planned=new Set(state.players[0]!.plannedActions.filter(item=>item.type==='URBAN_ACTION').map(item=>item.cityId));
+      const free=state.cities.filter(c=>c.currentOwnerId===p1&&c.status==='OWNED'&&!planned.has(c.cityId)&&(!cityId||c.cityId===cityId));
       if(free.length){submit(p1,{type:'URBAN_ACTION',cityId:free[0]!.cityId,action,...extra});return;}
       round();
     }
@@ -62,7 +57,7 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   }
   function perform(command:Record<string,unknown>){
     const player=state.players[0]!;
-    if(state.phase!=='PLANNING'||player.spentCommands+player.orders.length>=alphaCommandCapacity(state,p1))round();
+    if(state.phase!=='PLANNING'||player.spentCommands+player.orders.length+player.plannedActions.length>=alphaCommandCapacity(state,p1))round();
     submit(p1,command);
   }
   function manage(command:Record<string,unknown>){perform({type:'MANAGE',command:{...command,playerId:p1,expectedVersion:state.core.version}});}
@@ -72,21 +67,25 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   perform({type:'PLAY_CARD',cardId:strategy});
   submit(p1,{type:'MANAGE',command:{type:'ADOPT_GOVERNMENT',government:'MONARCHY',playerId:p1,expectedVersion:state.core.version}});
   submit(p2,{type:'MANAGE',command:{type:'ADOPT_GOVERNMENT',government:'MONARCHY',playerId:p2,expectedVersion:state.core.version}});
-  for(const treaty of ['TRADE_AGREEMENT','OPEN_BORDERS']){
+  for(const treaty of ['TRADE_AGREEMENT','OPEN_BORDERS'])
     perform({type:'PROPOSE_TREATY',recipientId:p2,treaty,deal:{give:emptyResourcePool(),receive:emptyResourcePool()}});
-    submit(p2,{type:'RESPOND_TREATY',treatyId:state.treaties.at(-1)!.id,accept:true});
-  }
+  round();
+  for(const treaty of [...state.treaties])submit(p2,{type:'RESPOND_TREATY',treatyId:treaty.id,accept:true});
+  round();
   perform({type:'QUEUE_ORDER',order:{id:'explore',type:'EXPLORE',unitId:'pioneer',target:'1,0',rotation:0}});
-  urbanAct('RESEARCH',{advancementId:'adv-1-1-1'});round();
   perform({type:'QUEUE_ORDER',order:{id:'route',type:'TRADE',fromCityId:'c1-0',toCityId:'c2-0'}});
+  urbanAct('RESEARCH',{advancementId:'adv-1-1-1'});round();
   perform({type:'QUEUE_ORDER',order:{id:'settler-move',type:'MOVE',unitIds:['pioneer'],path:['3,0']}});
+  urbanAct('SUPPORT_TRADE',{},'c1-0');
+  urbanAct('PRODUCE',{},'c1-1');
   urbanAct('RECRUIT',{unit:'INFANTRY'},'c1-0');round();
   perform({type:'SETTLE',unitId:'pioneer',name:'Travessia'});
   perform({type:'DECLARE_WAR',targetId:p2});
+  round();
   checkpoint?.('beforeAttack',structuredClone(state));
   perform({type:'QUEUE_ORDER',order:{id:'battle',type:'ATTACK',unitIds:Array.from({length:10},(_,i)=>`army-${i}`),target:'9,0'}});round();
   const foundation=ADVANCEMENTS.filter(a=>a.era==='FOUNDATION'&&a.id!=='adv-1-1-1');
-  for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length))urbanAct('RESEARCH',{advancementId:node.id});
+  for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length)){urbanAct('RESEARCH',{advancementId:node.id});round();}
   for(const cityId of ['c1-0','c1-1','c1-2'])for(let i=0;i<2;i++)manage({type:'DEVELOP_CITY',cityId});
   for(const [cityId,district] of [['c1-0','ACADEMIC'],['c1-1','AGRARIAN'],['c1-2','COMMERCIAL'],['c1-3','CULTURAL']])urbanAct('BUILD',{build:{kind:'DISTRICT',district}},cityId);
   for(const cityId of ['c1-0','c1-1','c1-2','c1-4']){
@@ -96,7 +95,7 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   for(const [cityId,hexIds] of Object.entries(claims))for(const hexId of hexIds)manage({type:'CLAIM_HEX',cityId,hexId});
   manage({type:'IMPROVE_HEX',hexId:'1,0',improvement:'FARM'});
   submit(p1,{type:'MANAGE',command:{type:'ASSIGN_WORKED_HEXES',playerId:p1,cityId:CityIdSchema.parse('c1-0'),hexIds:['1,0'],expectedVersion:state.core.version}});
-  perform({type:'ADVANCE_ERA'});urbanAct('RESEARCH',{advancementId:'adv-2-1-2'});perform({type:'ADVANCE_ERA'});
+  perform({type:'ADVANCE_ERA'});urbanAct('RESEARCH',{advancementId:'adv-2-1-2'});round();perform({type:'ADVANCE_ERA'});
   perform({type:'BUILD_PROJECT',projectId:'archive-of-horizons',cityId:'c1-0'});
   perform({type:'ADVANCE_ERA'});perform({type:'ADVANCE_ERA'});perform({type:'ADVANCE_ERA'});
   submit(p1,{type:'DECLARE_HEGEMONY',path:'TERRITORIAL'});

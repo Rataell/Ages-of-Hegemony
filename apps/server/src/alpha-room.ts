@@ -4,6 +4,7 @@ import { AlphaPresetSchema, AlphaStateSchema, CIVILIZATIONS, GameIdSchema, MapPr
 export const AlphaRoomSchema=z.strictObject({
   id:GameIdSchema,version:NonNegativeIntegerSchema,name:z.string().trim().min(1).max(80),joinCode:z.string().regex(/^[A-Za-z0-9_-]{22}$/),
   hostGuestId:z.string().uuid(),preset:AlphaPresetSchema,worldPreset:MapPresetSchema.default('MIXED'),seed:SeedSchema,seatLimit:z.number().int().min(2).max(6),
+  actionsPerRound:z.number().int().min(5).max(10).default(7),
   planningSeconds:z.union([z.literal(0),z.literal(180),z.literal(300),z.literal(480),z.literal(3600),z.literal(14400),z.literal(28800)]),
   deadline:z.number().int().nonnegative().nullable(),
   seats:z.array(z.strictObject({guestId:z.string().uuid(),playerId:PlayerIdSchema,name:z.string().trim().min(1).max(80),civilization:z.string().nullable(),ready:z.boolean()})).min(1).max(6),
@@ -19,7 +20,7 @@ export const AlphaRoomSchema=z.strictObject({
   if((!room.game||room.game.core.status==='FINISHED'||room.planningSeconds===0)&&room.deadline!==null)fail('Unexpected phase deadline');
 });
 export type AlphaRoom=z.infer<typeof AlphaRoomSchema>;
-export const CreateAlphaRoomSchema=z.strictObject({name:z.string().trim().min(1).max(80),displayName:z.string().trim().min(1).max(80),preset:AlphaPresetSchema,worldPreset:MapPresetSchema.default('MIXED'),seatLimit:z.number().int().min(2).max(6),seed:SeedSchema,planningSeconds:AlphaRoomSchema.shape.planningSeconds});
+export const CreateAlphaRoomSchema=z.strictObject({name:z.string().trim().min(1).max(80),displayName:z.string().trim().min(1).max(80),preset:AlphaPresetSchema,worldPreset:MapPresetSchema.default('MIXED'),seatLimit:z.number().int().min(2).max(6),seed:SeedSchema,planningSeconds:AlphaRoomSchema.shape.planningSeconds,actionsPerRound:z.number().int().min(5).max(10).default(7)});
 export const LobbyActionSchema=z.discriminatedUnion('type',[
   z.strictObject({type:z.literal('CHOOSE_CIVILIZATION'),expectedVersion:NonNegativeIntegerSchema,civilization:z.string()}),
   z.strictObject({type:z.literal('LOBBY_READY'),expectedVersion:NonNegativeIntegerSchema,ready:z.boolean()}),

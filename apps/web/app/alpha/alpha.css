@@ -18,6 +18,9 @@
   --warning-bg: #f0e1b8;
   --food: #3f6622;
   --materials: #715c39;
+  --wood: #80562f;
+  --stone: #596566;
+  --metal: #456475;
   --wealth: #825d12;
   --knowledge: #285b75;
   --influence: #735681;
@@ -125,6 +128,18 @@ button.alpha-card { text-align: left; }
 .alpha-round-bar .feedback { line-height: 1.4; }
 .alpha-round-bar ol { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--text-secondary); }
 .alpha-round-bar li + li::before { content: '›'; margin-right: 14px; color: var(--text-muted); }
+.alpha-action-queue,.alpha-resolution-log { position: relative; margin: 0; }
+.alpha-action-queue > summary,.alpha-resolution-log > summary { cursor: pointer; font-size: 12px; white-space: nowrap; }
+.alpha-action-queue > div,.alpha-resolution-log > ol { position: absolute; right: 0; bottom: calc(100% + 12px); width: min(330px,80vw); max-height: 300px; overflow: auto; margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); box-shadow: var(--shadow-lg); z-index: 30; }
+.alpha-action-queue p { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 5px 0; }
+.alpha-action-queue button { padding: 2px 8px; }
+.alpha-resolution-log ol { padding-left: 28px; }
+.alpha-resolution-log li { margin: 5px 0; font-size: 12px; }
+.alpha-resolution-phase { position: fixed; z-index: 40; inset: 92px 50% auto auto; transform: translateX(50%); width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 150px); overflow: auto; padding: 20px; border: 1px solid var(--accent); background: var(--surface-raised); box-shadow: 0 18px 60px #000a; }
+.alpha-resolution-phase h2 { margin: 4px 0 12px; }
+.alpha-resolution-phase ol { display: grid; gap: 8px; padding-left: 24px; }
+.alpha-resolution-phase li span { display: block; margin-top: 2px; color: var(--text-secondary); }
+.alpha-resolution-phase > button { width: 100%; }
 
 /* Army list: one card per stack, class chips, individual pieces on demand. */
 .alpha-armies { display: grid; gap: 8px; }

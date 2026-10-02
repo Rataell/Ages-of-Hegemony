@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MapPresetSchema, PlayerIdSchema } from '@aoh/game-domain';
+import { ACTION_CLASS, AlphaCommandSchema, MapPresetSchema, PlayerIdSchema } from '@aoh/game-domain';
 import { beginAlphaPlanning, createAlphaGame } from '@aoh/game-engine';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { CreateAlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
@@ -42,6 +42,14 @@ describe('creation options match the schemas', () => {
 
   it('the world preset defaults to Misto when the client sends none', () => {
     expect(CreateAlphaRoomSchema.parse(create()).worldPreset).toBe('MIXED');
+  });
+
+  it('accepts only 5 to 10 main actions, defaults to 7, and classifies every command', () => {
+    expect(CreateAlphaRoomSchema.parse(create()).actionsPerRound).toBe(7);
+    for (const actionsPerRound of [5,6,7,8,9,10]) expect(CreateAlphaRoomSchema.safeParse(create({ actionsPerRound })).success).toBe(true);
+    for (const actionsPerRound of [4,11]) expect(CreateAlphaRoomSchema.safeParse(create({ actionsPerRound })).success).toBe(false);
+    const commandTypes=AlphaCommandSchema.options.map(option=>option.shape.type.value).sort();
+    expect(Object.keys(ACTION_CLASS).sort()).toEqual(commandTypes);
   });
 });
 

@@ -1,19 +1,20 @@
 import {
-  ALPHA_CARDS, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources,
-  type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlayerId, type RoundPhase, type StrategicOrder,
+  ALPHA_CARDS, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources, cityLevelForPopulation,
+  type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlannedAction, type PlayerId, type RoundPhase, type StrategicOrder,
 } from '@aoh/game-domain';
 import { clampStability, deriveAdministration, governmentStabilityDelta, multiply, populationCap, refreshAdministration, sum } from './civilization.js';
 import { infrastructureStats } from './urban.js';
-import { alphaEvent } from './alpha-events.js';
+import { alphaEvent, resolutionEvent } from './alpha-events.js';
 import { alphaRandomInteger } from './alpha-random.js';
 import { alphaDrain, alphaGain, alphaLose, enforceStorageRecorded, ledgerOf } from './alpha-resources.js';
 import { maintainCards, scoreAmbitions } from './alpha-cards.js';
-import { establishRoute, maintainTrade, resolveInfluence, settleTreaties } from './alpha-diplomacy.js';
-import { exploreRegion, refreshKnowledge } from './alpha-world.js';
+import { establishRoute, maintainTrade, manageDiplomacy, resolveInfluence, settleTreaties } from './alpha-diplomacy.js';
+import { exploreRegion, refreshKnowledge, resolveRaidBands, visibleHexIds } from './alpha-world.js';
 import { validateMilitaryOrder } from './alpha-military.js';
 import { resolveBattle } from './alpha-combat.js';
 import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
 import { applyRecurringEffects } from './alpha-institutions.js';
+import { performUrbanAction } from './alpha-urban.js';
 
 /**
  * The alpha round is driven only by `state.phase`. The legacy core phase is mirrored (never advanced through the core
@@ -29,13 +30,15 @@ export function setAlphaPhase(state: AlphaState, phase: AlphaRoundPhase): void {
 }
 
 /** Phases that wait for players. The others run automatically as soon as the previous phase closes. */
-export const INTERACTIVE_PHASES: readonly AlphaRoundPhase[] = ['PLANNING', 'URBAN_ACTIONS', 'DIPLOMACY_TRADE', 'CONFLICTS'];
+export const INTERACTIVE_PHASES: readonly AlphaRoundPhase[] = ['PLANNING', 'CONFLICTS'];
 
 type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
   'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'HIRE_ADVISOR',
   'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'BUILD_ROAD',
-  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'READY',
+  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY',
+  'CONTEST_PRESENCE',
+  'INDEPENDENT_ACTION',
 ];
 /** Commands legal in each phase. Everything else is rejected with WRONG_PHASE before any rule runs. */
 export const LEGAL_COMMANDS: Readonly<Record<AlphaRoundPhase, ReadonlySet<CommandType>>> = {
@@ -50,6 +53,10 @@ export const LEGAL_COMMANDS: Readonly<Record<AlphaRoundPhase, ReadonlySet<Comman
 };
 
 const RESOURCE_OF_MODULE = { FOOD: 'food', WOOD: 'wood', STONE: 'stone', METAL: 'metal', WEALTH: 'wealth', KNOWLEDGE: 'knowledge', INFLUENCE: 'influence' } as const;
+
+function viewersAt(state:AlphaState,hexId:string,always:readonly PlayerId[]=[]):PlayerId[]{
+  return state.players.map(player=>player.playerId).filter(playerId=>always.includes(playerId)||visibleHexIds(state,playerId).has(hexId));
+}
 
 /** Buys one Pulse with the private RNG, applies each module to every civilization and records it. */
 function drawWorldPulse(state: AlphaState): void {
@@ -71,6 +78,7 @@ function drawWorldPulse(state: AlphaState): void {
   }
   state.telemetry.worldPulseEvents += 1;
   alphaEvent(state, 'WORLD_PULSE', `Pulso do mundo: ${card.name}.`);
+  resolutionEvent(state,{type:'ROUND_EVENT',actorId:null,visibleTo:null,message:`Pulso do mundo: ${card.name}.`,unitIds:[]});
 }
 
 /**
@@ -80,12 +88,13 @@ function drawWorldPulse(state: AlphaState): void {
 export function openRound(state: AlphaState): void {
   if (state.phase !== 'WORLD_PULSE') throw new Error('Uma rodada só abre a partir do Pulso do mundo.');
   state.roundLedgers = state.roundLedgers.filter(ledger => ledger.round >= state.core.round);
-  for (const player of state.players) { player.ready = false; player.spentCommands = 0; player.orders = []; ledgerOf(state, player.playerId); }
+  for (const player of state.players) { player.ready = false; player.spentCommands = 0; player.orders = []; player.plannedActions=[]; ledgerOf(state, player.playerId); }
   maintainCards(state);
   drawWorldPulse(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'ROUND_START');
   setAlphaPhase(state, 'PLANNING');
   alphaEvent(state, 'ROUND_STARTED', `Rodada ${state.core.round}: Planejamento.`);
+  resolutionEvent(state,{type:'ROUND_EVENT',actorId:null,visibleTo:null,message:`Rodada ${state.core.round} iniciada.`,unitIds:[]});
 }
 
 /** Orders that resolve automatically. `types` chooses the phase: movement and exploration before diplomacy, attacks and influence in conflicts. */
@@ -104,8 +113,57 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         candidate.core.players.forEach(player => { player.civilization = refreshAdministration(player.civilization, candidate.core.config, candidate.core.map); });
         refreshKnowledge(candidate); refreshHegemony(candidate); Object.assign(state, AlphaStateSchema.parse(candidate));
         const message = ({ EXPLORE: 'Região explorada.', MOVE: 'Movimento concluído.', TRADE: 'Rota de comércio estabelecida.', ATTACK: 'Conflito resolvido; consulte dados e perdas.', INFLUENCE: 'Influência aplicada.' })[type];
-        alphaEvent(state, 'ORDER_RESOLVED', message, [id]);
+        alphaEvent(state, type, message, [id]);
+        const target=order.type==='MOVE'?order.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:state.core.players.flatMap(player=>player.civilization.cities).find(city=>city.id===order.toCityId)?.hexId;
+        const unitIds='unitIds' in order?order.unitIds:'unitId' in order?[order.unitId]:[];
+        const eventType=({EXPLORE:'EXPLORATION',MOVE:'MOVEMENT',TRADE:'TRADE',ATTACK:'COMBAT',INFLUENCE:'INFLUENCE'} as const)[order.type];
+        const visibleTo=target?viewersAt(state,target,[id]):[id];
+        resolutionEvent(state,{type:eventType,actorId:id,visibleTo,message,...(target?{hexId:target}:{}),unitIds});
+        if(order.type==='ATTACK'){
+          const battle=state.battles.at(-1);
+          if(battle?.losses.length)resolutionEvent(state,{type:'LOSSES',actorId:id,visibleTo,message:`${battle.losses.length} peça(s) perdida(s) no conflito.`,hexId:order.target,unitIds:battle.losses});
+          if(battle?.retreat)resolutionEvent(state,{type:'RETREAT',actorId:battle.winnerId===id?battle.defenderId:id,visibleTo,message:`Retirada para ${battle.retreat}.`,hexId:battle.retreat,unitIds:[]});
+          const advanced=order.unitIds.filter(unitId=>state.units.some(unit=>unit.id===unitId&&unit.hexId===order.target));
+          if(advanced.length)resolutionEvent(state,{type:'ADVANCE',actorId:id,visibleTo,message:'Força vencedora avançou após o conflito.',hexId:order.target,unitIds:advanced});
+        }
       } catch (error: unknown) { alphaEvent(state, 'ORDER_FAILED', error instanceof Error ? error.message : 'Ordem não pôde ser executada.', [id]); }
+    }
+  }
+}
+
+function plannedOf(state:AlphaState,actor:PlayerId,types:readonly PlannedAction['type'][]):PlannedAction[]{
+  return state.players.find(player=>player.playerId===actor)!.plannedActions.filter(action=>types.includes(action.type));
+}
+
+/** Resolves private urban/diplomatic reservations by slot, then initiative. Failed actions are atomic and become visible events. */
+function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['type'][]):void {
+  const queued=new Map(state.initiative.map(actor=>[actor,plannedOf(state,actor,types)]));
+  const maximum=Math.max(0,...state.initiative.map(actor=>queued.get(actor)!.length));
+  for(let slot=0;slot<maximum;slot++)for(const actor of state.initiative){
+    const action=queued.get(actor)![slot];if(!action)continue;
+    const candidate=structuredClone(state),progress=candidate.players.find(player=>player.playerId===actor)!;
+    progress.plannedActions=progress.plannedActions.filter(item=>item.id!==action.id);
+    try{
+      if(action.type==='URBAN_ACTION'){
+        const {id,...payload}=action;
+        performUrbanAction(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'URBAN_ACTION'}>);
+        alphaEvent(candidate,action.action,`Ação planejada executada: ${action.action}.`,[actor]);
+        const city=candidate.core.players.flatMap(player=>player.civilization.cities).find(item=>item.id===action.cityId)!;
+        const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',PROMOTE_MOOD:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT'} as const)[action.action];
+        const visibleTo=action.action==='BUILD'?viewersAt(candidate,city.hexId,[actor]):[actor];
+        resolutionEvent(candidate,{type,actorId:actor,visibleTo,message:`${city.name}: ação ${action.action} realizada.`,hexId:city.hexId,cityId:city.id,unitIds:[]});
+      }else{
+        const {id,...payload}=action;
+        manageDiplomacy(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'PROPOSE_TREATY'|'DECLARE_WAR'}>);
+        alphaEvent(candidate,action.type,`Ação diplomática planejada executada: ${action.type}.`,[actor]);
+        resolutionEvent(candidate,{type:'ROUND_EVENT',actorId:actor,visibleTo:action.type==='DECLARE_WAR'?null:[actor,action.recipientId],message:action.type==='DECLARE_WAR'?'Guerra declarada.':'Proposta de acordo enviada.',unitIds:[]});
+      }
+      Object.assign(state,AlphaStateSchema.parse(candidate));
+    }catch(error:unknown){
+      state.players.find(player=>player.playerId===actor)!.plannedActions=state.players.find(player=>player.playerId===actor)!.plannedActions.filter(item=>item.id!==action.id);
+      const message=error instanceof Error?`A ação não pôde ser realizada: ${error.message}`:'A ação não pôde ser realizada.';
+      alphaEvent(state,'ACTION_FAILED',message,[actor]);
+      resolutionEvent(state,{type:'FAILURE',actorId:actor,visibleTo:[actor],message,...(action.type==='URBAN_ACTION'?{cityId:action.cityId}:{}),unitIds:[]});
     }
   }
 }
@@ -149,9 +207,17 @@ function maintainCivilizations(state: AlphaState): void {
     if (unitShortage) alphaEvent(state, 'UPKEEP_SHORTAGE', 'Faltaram recursos para manter as peças. Estabilidade das cidades reduzida em 5.', [owner.id]);
 
     cities = cities.map(city => {
-      const delta = sum([governmentStabilityDelta(city, owner.civilization, rules), shortage ? -rules.shortageStabilityPenalty : 0, overextended ? -rules.administrativeRules.overextensionStabilityPenalty : 0, unitShortage ? -5 : 0]);
+      const meta = state.cities.find(candidate => candidate.cityId === city.id);
+      const moodDelta = meta ? state.rules.balance.moodEffects[meta.mood]!.stabilityDelta : 0;
+      const delta = sum([governmentStabilityDelta(city, owner.civilization, rules), moodDelta, shortage ? -rules.shortageStabilityPenalty : 0, overextended ? -rules.administrativeRules.overextensionStabilityPenalty : 0, unitShortage ? -5 : 0]);
       return { ...city, stability: clampStability(sum([city.stability, delta])) };
     });
+    for (const city of cities) {
+      const meta = state.cities.find(candidate => candidate.cityId === city.id);
+      if (!meta) continue;
+      meta.level = cityLevelForPopulation(city.population);
+      state.telemetry.moodSamples.push(meta.mood);
+    }
     owner.civilization = refreshAdministration({ ...owner.civilization, cities }, rules, state.core.map);
     alphaEvent(state, 'UPKEEP', `Manutenção: ${required + upkeep.food} Alimentos e ${upkeep.wealth} Riqueza.`, [owner.id]);
   }
@@ -159,6 +225,7 @@ function maintainCivilizations(state: AlphaState): void {
 
 function runMaintenance(state: AlphaState): void {
   maintainTrade(state);
+  resolveRaidBands(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'MAINTENANCE', { enforceStorage: false });
   maintainCivilizations(state);
   for (const player of state.players) enforceStorageRecorded(state, player.playerId);
@@ -166,6 +233,7 @@ function runMaintenance(state: AlphaState): void {
   refreshKnowledge(state);
   refreshHegemony(state);
   alphaEvent(state, 'MAINTENANCE', `Manutenção da rodada ${state.core.round} concluída.`);
+  resolutionEvent(state,{type:'ROUND_EVENT',actorId:null,visibleTo:null,message:`Manutenção da rodada ${state.core.round} concluída.`,unitIds:[]});
 }
 
 function buildRoundReports(state: AlphaState): void {
@@ -180,7 +248,7 @@ function buildRoundReports(state: AlphaState): void {
       cities: owner.civilization.cities.map(city => {
         const before = ledger.cities.find(entry => entry.cityId === city.id);
         return { cityId: city.id, populationBefore: before?.population ?? city.population, populationAfter: city.population, stabilityBefore: before?.stability ?? city.stability, stabilityAfter: city.stability };
-      }),
+      }), resolution:state.resolutionEvents.filter(event=>event.round===state.core.round&&(event.visibleTo===null||event.visibleTo.includes(owner.id))),
     });
   }
 }
@@ -188,7 +256,7 @@ function buildRoundReports(state: AlphaState): void {
 export function prestigeRanking(state: AlphaState): PlayerId[] {
   const metrics = (id: PlayerId) => {
     const progress = state.players.find(player => player.playerId === id)!; const owner = state.core.players.find(player => player.id === id)!;
-    return [progress.prestige, progress.research.length, owner.civilization.cities.reduce((total, city) => total + city.population, 0), owner.resources.wealth];
+    return [progress.prestige, progress.research.length, owner.civilization.cities.reduce((total, city) => total + city.population, 0), progress.resources.wealth];
   };
   return [...state.initiative].sort((a, b) => {
     const x = metrics(a), y = metrics(b);
@@ -231,20 +299,17 @@ const REACTION_CARD = (id: string) => ALPHA_CARDS.find(card => card.id === id)?.
 export function advanceAfterReady(state: AlphaState): void {
   for (let guard = 0; guard < 16; guard++) {
     switch (state.phase) {
-      case 'PLANNING':
+      case 'PLANNING': {
         state.players.forEach(player => { player.ready = false; });
         state.cities.forEach(city => { city.urbanActionsUsed = 0; });
         setAlphaPhase(state, 'URBAN_ACTIONS');
-        alphaEvent(state, 'PHASE', 'Ações urbanas: cada cidade pode agir uma vez.');
-        return;
-      case 'URBAN_ACTIONS':
+        alphaEvent(state, 'RESOLUTION', 'Todos prontos. Resolvendo a rodada por iniciativa.');
+        resolvePlannedActions(state,['URBAN_ACTION']);
         setAlphaPhase(state, 'ORDERS_MOVEMENT');
         resolveOrders(state, ['EXPLORE', 'MOVE', 'TRADE']);
         alphaEvent(state, 'RESOLUTION', 'Ordens de exploração, movimento e comércio resolvidas por iniciativa explícita.');
         setAlphaPhase(state, 'DIPLOMACY_TRADE');
-        state.players.forEach(player => { player.ready = false; });
-        return;
-      case 'DIPLOMACY_TRADE': {
+        resolvePlannedActions(state,['PROPOSE_TREATY','DECLARE_WAR']);
         settleTreaties(state);
         setAlphaPhase(state, 'CONFLICTS');
         const conflict = state.players.some(player => player.orders.some(order => order.type === 'ATTACK'));
@@ -252,6 +317,9 @@ export function advanceAfterReady(state: AlphaState): void {
         if (state.players.some(player => !player.ready)) return;
         break;
       }
+      case 'URBAN_ACTIONS':
+      case 'DIPLOMACY_TRADE':
+        throw new Error(`A fase interna ${state.phase} não aguarda jogadores.`);
       case 'CONFLICTS':
         resolveOrders(state, ['ATTACK', 'INFLUENCE']);
         setAlphaPhase(state, 'INTEGRATION_MAINTENANCE');

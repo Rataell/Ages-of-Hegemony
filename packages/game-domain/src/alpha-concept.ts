@@ -49,6 +49,11 @@ export const alphaToLegacyResources = (pool: AlphaResourcePool): ResourcePool =>
 export const UrbanActionTypeSchema = z.enum(['PRODUCE', 'BUILD', 'RECRUIT', 'RESEARCH', 'PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION']);
 export const MoodStateSchema = z.enum(['REVOLTING', 'DESPONDENT', 'RESTLESS', 'SERENE', 'SATISFIED', 'PROSPEROUS', 'EXULTANT']);
 export const CityLevelSchema = z.enum(['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS']);
+export type CityLevel = z.infer<typeof CityLevelSchema>;
+/** Settlement size follows population one-for-one through the seven named Alpha levels, then stays at the cap. */
+export function cityLevelForPopulation(population: number): CityLevel {
+  return CityLevelSchema.options[Math.min(CityLevelSchema.options.length - 1, Math.max(0, population - 1))]!;
+}
 export const AlphaDistrictSchema = z.enum(['AGRARIAN', 'COMMERCIAL', 'ACADEMIC', 'ADMINISTRATIVE', 'MILITARY', 'INDUSTRIAL', 'CULTURAL', 'MARITIME']);
 export const AlphaBuildingSchema = z.enum([
   'GRANARY', 'MILL', 'IRRIGATION', 'WAREHOUSE', 'MARKET', 'TREASURY', 'BANK',

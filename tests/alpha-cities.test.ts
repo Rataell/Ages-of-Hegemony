@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { completeRound, readyAll } from './alpha-rounds.js';
+import { completeRound } from './alpha-rounds.js';
 import { AlphaStateSchema, GameStateSchema, type AlphaState } from '@aoh/game-domain';
-import { applyAlphaCommand, beginAlphaPlanning, createGame, migrateSnapshotV3ToV4, occupyCity, refreshKnowledge, serializeAlphaState } from '@aoh/game-engine';
+import { applyAlphaCommand, beginAlphaPlanning, createGame, migrateSnapshotV3ToV4, occupyCity, refreshKnowledge, serializeAlphaState, setAlphaPhase } from '@aoh/game-engine';
 function setup():AlphaState {
   const core=createGame({gameId:'capture-alpha',seed:23,players:[{id:'p1',name:'Um',resources:{food:30,materials:30,wealth:20,knowledge:10,influence:20}},{id:'p2',name:'Dois',resources:{food:30,materials:30,wealth:20,knowledge:10,influence:20}}],
     map:Array.from({length:10},(_,q)=>({id:`${q},0`,q,r:0,terrain:'PLAINS'})),
@@ -30,10 +30,10 @@ describe('alpha city capture and integration',()=>{
     let state=setup();const actor=state.players[0]!.playerId,cityId=state.core.players[1]!.civilization.capitalCityId!;
     occupyCity(state,actor,cityId);refreshKnowledge(state);
     expect(applyAlphaCommand(state,actor,{type:'MANAGE',expectedVersion:state.version,command:{type:'DEVELOP_CITY',playerId:actor,cityId,expectedVersion:state.core.version}}).ok).toBe(false);
-    state=readyAll(state);expect(state.phase).toBe('URBAN_ACTIONS');
+    setAlphaPhase(state,'URBAN_ACTIONS');
     expect(applyAlphaCommand(state,actor,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'RECRUIT',unit:'INFANTRY'}).ok).toBe(false);
     expect(applyAlphaCommand(state,actor,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'CIVIC_ACTION'})).toMatchObject({ok:false,error:{message:expect.stringContaining('rodada seguinte')}});
-    state=completeRound(state);state=readyAll(state);
+    setAlphaPhase(state,'PLANNING');state=completeRound(state);setAlphaPhase(state,'URBAN_ACTIONS');
     const before=state.players[0]!.resources.influence,step=state.rules.balance.integrationPerAction,needed=Math.ceil(100/step);
     for(let i=0;i<needed;i++){
       expect(state.occupations).toHaveLength(1);

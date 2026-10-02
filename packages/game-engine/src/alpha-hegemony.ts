@@ -1,5 +1,6 @@
 import { ADVANCEMENTS, GREAT_PROJECTS, HegemonyPathSchema, type AlphaState, type HegemonyMetric, type HegemonyPath, type PlayerId } from '@aoh/game-domain';
 import { tradePath } from './alpha-diplomacy.js';
+import { culturalPresenceCount } from './alpha-culture.js';
 
 /** All requirements are evaluated against authority, including current access to trade routes. */
 export function hegemonyProgress(state:AlphaState,actor:PlayerId) {
@@ -17,11 +18,11 @@ export function hegemonyProgress(state:AlphaState,actor:PlayerId) {
   const metrics:Record<HegemonyMetric,number>={
     strength:units.reduce((n,u)=>n+state.rules.units[u.kind].strength,0),victories:player.victories,
     foreignPresence:units.filter(u=>{const tile=state.core.map.find(t=>t.id===u.hexId)!;return tile.ownerId!==null&&tile.ownerId!==actor;}).length,
-    wealth:core.resources.wealth,internationalRoutes:foreignRoutes.length,tradePartners:partners.size,
+    wealth:player.resources.wealth,internationalRoutes:foreignRoutes.length,tradePartners:partners.size,
     eraFiveResearch:player.research.filter(id=>ADVANCEMENTS.find(a=>a.id===id)?.era==='ASCENSION').length,
     academicDistricts:districts.filter(d=>d.type==='ACADEMIC').length,
     scientificProjects:projects.filter(p=>GREAT_PROJECTS.find(g=>g.id===p.projectId)?.path==='SCIENTIFIC').length,
-    influence:core.resources.influence,culturalDistricts:districts.filter(d=>d.type==='CULTURAL').length,foreignInfluence:player.foreignInfluence,
+    influence:player.resources.influence,culturalDistricts:districts.filter(d=>d.type==='CULTURAL').length,foreignInfluence:culturalPresenceCount(state,actor),
     treatyPartners:new Set(treaties.map(t=>t.proposerId===actor?t.recipientId:t.proposerId)).size,
     politicalProjects:projects.filter(p=>GREAT_PROJECTS.find(g=>g.id===p.projectId)?.path==='POLITICAL').length,
     territory:state.core.map.filter(t=>t.ownerId===actor&&!state.occupations.some(o=>o.cityId===t.controllerCityId)).length,

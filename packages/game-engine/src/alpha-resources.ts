@@ -4,6 +4,7 @@ import {
 } from '@aoh/game-domain';
 import { sum } from './arithmetic.js';
 import { leaderStorageBonus } from './alpha-leaders.js';
+import type { ResourcePayment } from './resources.js';
 
 /**
  * Converts a cost to the seven-resource shape. A generic legacy `materials` cost never invents a metal requirement:
@@ -85,6 +86,17 @@ export function alphaPay(state: AlphaState, actor: PlayerId, rawCost: ResourcePo
   const after = toLegacy(player.resources);
   addLedger(ledger.expenses, { food: before.food - after.food, materials: before.materials - after.materials, wealth: before.wealth - after.wealth, knowledge: before.knowledge - after.knowledge, influence: before.influence - after.influence });
   syncLegacyResources(state, actor);
+}
+
+/** Lets shared city/territory rules charge Alpha's authoritative seven-resource pool directly. */
+export function alphaResourcePayment(state: AlphaState): ResourcePayment {
+  return (corePlayer, cost) => {
+    if (!alphaCanAfford(state, corePlayer.id, cost)) return false;
+    alphaPay(state, corePlayer.id, cost);
+    const strategic = state.players.find(player => player.playerId === corePlayer.id)!;
+    corePlayer.resources = alphaToLegacyResources(strategic.resources);
+    return true;
+  };
 }
 
 /**
@@ -239,24 +251,4 @@ export function alphaCostWithMetal(state: AlphaState, actor: PlayerId, cost: Res
   const pool = state.players.find(candidate => candidate.playerId === actor)?.resources ?? emptyAlphaResourcePool();
   const base = alphaCost(cost, pool);
   return { ...base, metal: base.metal + metal };
-}
-
-/**
- * TRANSITIONAL ADAPTER for the legacy economic core, which the local slice still shares and which mutates its own
- * five-resource pool (claims, improvements, districts, founding, maintenance production). Call it immediately after such a
- * reducer with the pool captured just before: the net change is routed through alphaGain/alphaDrain so the seven-resource
- * pool stays the single authority. Alpha-owned producers and spenders must NOT use it; they call alphaGain/alphaPay.
- * Remove once the core reducer is v5-aware (task 2.3).
- */
-export function commitLegacyReducer(state: AlphaState, actor: PlayerId, before: ResourcePool): void {
-  const legacy = state.core.players.find(candidate => candidate.id === actor);
-  if (!legacy) return;
-  const after = { ...legacy.resources };
-  const gain: Partial<ResourcePool> = {}, loss = legacyPool({});
-  for (const key of RESOURCE_KEYS) {
-    if (after[key] > before[key]) gain[key] = after[key] - before[key];
-    else loss[key] = before[key] - after[key];
-  }
-  alphaDrain(state, actor, loss);
-  alphaGainLegacy(state, actor, gain, { enforceStorage: false });
 }

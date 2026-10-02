@@ -20,6 +20,9 @@
   --warning-bg: #3d3118;
   --food: #b2cf87;
   --materials: #cbb69a;
+  --wood: #c69a68;
+  --stone: #aeb7b8;
+  --metal: #9fb7c5;
   --wealth: #e6c173;
   --knowledge: #94bed2;
   --influence: #c4a7d4;
@@ -226,6 +229,9 @@ small {
 
 .food { color: var(--food); }
 .materials { color: var(--materials); }
+.wood { color: var(--wood); }
+.stone { color: var(--stone); }
+.metal { color: var(--metal); }
 .wealth { color: var(--wealth); }
 .knowledge { color: var(--knowledge); }
 .influence { color: var(--influence); }

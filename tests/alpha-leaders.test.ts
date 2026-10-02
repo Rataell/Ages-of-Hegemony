@@ -4,9 +4,9 @@ import {
 } from '@aoh/game-domain';
 import {
   alphaCommandCapacity, alphaStorageCapacity, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, deserializeAlphaState, hexDistance, institutionBonus,
-  leaderAbilityBlock, leaderOf, migrateSnapshotV4ToV5, occupyCity, serializeAlphaState, unitSupply,
+  leaderAbilityBlock, leaderOf, migrateSnapshotV4ToV5, occupyCity, serializeAlphaState, setAlphaPhase, unitSupply,
 } from '@aoh/game-engine';
-import { completeRound, must, readyAll } from './alpha-rounds.js';
+import { completeRound, must } from './alpha-rounds.js';
 import { toV4Snapshot } from './alpha-v4-fixture.js';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
@@ -118,7 +118,7 @@ describe('passives apply once, for the right civilization', () => {
     for (const leader of LEADERS) {
       let state = match(leader.civilizationId, 122);
       occupyCity(state, p1, 'capital-2' as never);
-      state = readyAll(completeRound(state));
+      state = completeRound(state);setAlphaPhase(state,'URBAN_ACTIONS');
       const before = state.cities.find(c => c.cityId === 'capital-2')!.integration;
       const done = must(state, p1, { type: 'URBAN_ACTION', cityId: 'capital-2', action: 'CIVIC_ACTION' });
       const gained = done.cities.find(c => c.cityId === 'capital-2')!.integration - before;
@@ -145,7 +145,7 @@ describe('era abilities', () => {
       expect(JSON.stringify(after.players[0]!.resources)).toBe(resources);
       expect(after.players[0]!.spentCommands).toBe(spent);
       if (effect.kind === 'ROUND_BONUS') {
-        expect(alphaCommandCapacity(after, p1)).toBe(commands + (effect.bonus === 'COMMAND' ? effect.amount : 0));
+        expect(alphaCommandCapacity(after, p1)).toBe(commands);
         expect(institutionBonus(after, p1, 'STRENGTH')).toBe(strength + (effect.bonus === 'STRENGTH' ? effect.amount : 0));
         expect(institutionBonus(after, p1, 'MOVEMENT')).toBe(movement + (effect.bonus === 'MOVEMENT' ? effect.amount : 0));
       }
@@ -175,7 +175,7 @@ describe('era abilities', () => {
     state.players[1]!.civilization = null;
     expect(leaderAbilityBlock(state, p2)).toBe('Sua civilização ainda não tem um líder.');
     expect(ability(state, PlayerIdSchema.parse('stranger'))).toMatchObject({ ok: false, error: { code: 'FORBIDDEN' } });
-    const urban = readyAll(match('thalos'));
+    const urban = match('thalos');setAlphaPhase(urban,'URBAN_ACTIONS');
     expect(ability(urban)).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
   });
 

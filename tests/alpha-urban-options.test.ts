@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { PlayerIdSchema, alphaToLegacyResources, type AlphaState } from '@aoh/game-domain';
-import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, occupyCity, urbanOptions, type UrbanOption } from '@aoh/game-engine';
+import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, occupyCity, setAlphaPhase, urbanOptions, type UrbanOption } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
-import { completeRound, readyAll } from './alpha-rounds.js';
+import { completeRound, must } from './alpha-rounds.js';
 
 const p1 = PlayerIdSchema.parse('p1');
-const base = (seed = 111): AlphaState => readyAll(beginAlphaPlanning(createAlphaGame({ gameId: `options-${seed}`, seed, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] })));
+const base = (seed = 111): AlphaState => beginAlphaPlanning(createAlphaGame({ gameId: `options-${seed}`, seed, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] }));
 const rich = (state: AlphaState) => { Object.assign(state.players[0]!.resources, { food: 20, wood: 14, stone: 14, metal: 8, wealth: 24, knowledge: 30, influence: 20 }); state.core.players[0]!.resources = alphaToLegacyResources(state.players[0]!.resources); return state; };
 const command = (cityId: string, option: UrbanOption) => ({ type: 'URBAN_ACTION', cityId, action: option.action, ...(option.build ? { build: option.build } : {}), ...(option.unit ? { unit: option.unit } : {}), ...(option.advancementId ? { advancementId: option.advancementId } : {}) });
 
@@ -42,16 +42,20 @@ describe('urban option preview', () => {
 
   it('agrees with the server for occupied cities and after a city already acted', () => {
     const state = rich(base(113));
-    state.cities.find(c => c.cityId === 'capital-1')!.urbanActionsUsed = 1;
-    expectParity(state);
+    const planned = must(state, p1, { type: 'URBAN_ACTION', cityId: 'capital-1', action: 'PRODUCE' });
+    expectParity(planned);
     const occupied = rich(completeRound(base(114)));
     occupyCity(occupied, p1, 'capital-2' as never);
-    expectParity(readyAll(occupied));
+    expectParity(occupied);
   });
 
-  it('agrees outside the urban phase and after confirming', () => {
+  it('agrees outside planning and after confirming', () => {
     const planning = beginAlphaPlanning(createAlphaGame({ gameId: 'options-planning', seed: 115, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] }));
-    for (const list of Object.values(urbanOptions(planning, p1).cities)) expect(list.every(o => o.blocked === 'Disponível apenas na fase Ações urbanas.')).toBe(true);
+    const chosen = must(planning, p1, { type: 'CHOOSE_AMBITIONS', cardIds: planning.players[0]!.ambitions.slice(0, 2) });
+    const ready = must(chosen, p1, { type: 'READY' });
+    for (const list of Object.values(urbanOptions(ready, p1).cities)) expect(list.every(o => o.blocked === 'Suas decisões já estão confirmadas para esta fase.')).toBe(true);
+    const conflicts = structuredClone(planning); setAlphaPhase(conflicts, 'CONFLICTS');
+    for (const list of Object.values(urbanOptions(conflicts, p1).cities)) expect(list.every(o => o.blocked === 'Disponível apenas no Planejamento.')).toBe(true);
   });
 
   it('shows cost, effect and the exact block reason for the interface', () => {

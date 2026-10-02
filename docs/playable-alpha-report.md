@@ -35,7 +35,7 @@ Ainda não existe prova de que todos esses fluxos estejam completos na experiên
 
 Combate usa força, modificadores e 2d6 privados determinísticos por lado. Empate favorece defensor; margem define perdas e sobreviventes derrotados recuam quando possível. Não há transporte naval. A UI ainda precisa discriminar todas as parcelas antes da confirmação.
 
-Tratados e trocas são validados pelo servidor. Rotas dependem de acesso e acordos. Pactos defensivos convocam parceiros diretos, sem cadeia recursiva. Hegemonia exige Era V, declaração pública, requisitos visíveis e duas rodadas completas posteriores à qualificação. No limite de rodadas, Prestígio decide com desempate determinístico.
+Tratados e trocas são validados pelo servidor. Rotas dependem de acesso e acordos. Pactos defensivos convocam parceiros diretos, sem cadeia recursiva. Hegemonia exige a sexta era, declaração pública, requisitos visíveis e duas rodadas completas posteriores à qualificação. No limite de rodadas, Prestígio decide com desempate determinístico.
 
 ## Banco e implantação
 

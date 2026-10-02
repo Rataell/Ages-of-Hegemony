@@ -1,6 +1,7 @@
 import { type AlphaCommand, type AlphaState, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 import { alphaCanAfford, alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
+import { culturalIdentityOf, establishCulturalPresence } from './alpha-culture.js';
 function enterWar(state:AlphaState,actor:PlayerId,target:PlayerId):void {
   if(atWar(state,actor,target))return;
   state.wars.push([actor,target].sort() as [PlayerId,PlayerId]);
@@ -16,21 +17,42 @@ export function hasTreaty(state:AlphaState,a:PlayerId,b:PlayerId,type:AlphaState
 export function bordersOpen(state:AlphaState,actor:PlayerId,owner:PlayerId|null):boolean {
   return owner===null||owner===actor||!atWar(state,actor,owner)&&(hasTreaty(state,actor,owner,'OPEN_BORDERS')||hasTreaty(state,actor,owner,'ALLIANCE'));
 }
+type DiplomaticInitiative=Extract<AlphaCommand,{type:'PROPOSE_TREATY'|'DECLARE_WAR'}>;
+
+/** Conservative reservation check. Resources stay unescrowed and every condition is checked again at resolution. */
+export function diplomacyBlock(state:AlphaState,actor:PlayerId,command:DiplomaticInitiative):string|null {
+  const player=state.players.find(candidate=>candidate.playerId===actor);
+  if(!player)return 'Jogador não encontrado.';
+  const target=command.type==='DECLARE_WAR'?command.targetId:command.recipientId;
+  if(!player.contacts.includes(target)||target===actor)return 'Estabeleça contato antes de negociar ou declarar guerra.';
+  if(command.type==='DECLARE_WAR'){
+    if(atWar(state,actor,target))return 'As civilizações já estão em guerra.';
+    if(player.plannedActions.some(action=>action.type==='DECLARE_WAR'&&action.targetId===target))return 'Uma declaração de guerra contra esta civilização já está planejada.';
+    return null;
+  }
+  const sameTreaty=(proposerId:PlayerId,recipientId:PlayerId,type:typeof command.treaty)=>
+    [proposerId,recipientId].includes(actor)&&[proposerId,recipientId].includes(target)&&type===command.treaty;
+  if(state.treaties.some(treaty=>['PROPOSED','ACCEPTED','ACTIVE'].includes(treaty.status)&&sameTreaty(treaty.proposerId,treaty.recipientId,treaty.type)))return 'Já existe um acordo deste tipo em análise ou ativo.';
+  if(state.players.some(owner=>owner.plannedActions.some(action=>action.type==='PROPOSE_TREATY'&&sameTreaty(owner.playerId,action.recipientId,action.treaty))))return 'Um acordo deste tipo já está planejado entre estas civilizações.';
+  if(!alphaCanAfford(state,actor,command.deal.give))return 'Recursos insuficientes para oferecer este acordo.';
+  if(!alphaCanAfford(state,target,command.deal.receive))return 'A outra civilização não possui agora os recursos solicitados.';
+  return null;
+}
+
 export function manageDiplomacy(state:AlphaState,actor:PlayerId,command:Extract<AlphaCommand,{type:'PROPOSE_TREATY'|'RESPOND_TREATY'|'END_TREATY'|'DECLARE_WAR'}>):void {
   const player=state.players.find(p=>p.playerId===actor)!;
   if(command.type==='PROPOSE_TREATY'||command.type==='DECLARE_WAR') {
+    const blocked=diplomacyBlock(state,actor,command);if(blocked)throw new Error(blocked);
     const target=command.type==='DECLARE_WAR'?command.targetId:command.recipientId;
-    if(!player.contacts.includes(target)||target===actor)throw new Error('Estabeleça contato antes de negociar ou declarar guerra.');
     if(command.type==='DECLARE_WAR') {
-      if(atWar(state,actor,target))throw new Error('As civilizações já estão em guerra.');
       // Only the original defender calls partners; no recursive alliance chain.
       const defenders=state.initiative.filter(id=>id!==actor&&id!==target&&(hasTreaty(state,target,id,'DEFENSIVE_PACT')||hasTreaty(state,target,id,'ALLIANCE')));
       enterWar(state,actor,target);
       for(const defender of defenders)enterWar(state,defender,actor);
       return;
     }
-    if(state.treaties.some(t=>['PROPOSED','ACCEPTED','ACTIVE'].includes(t.status)&&t.type===command.treaty&&[t.proposerId,t.recipientId].includes(actor)&&[t.proposerId,t.recipientId].includes(target)))throw new Error('Já existe um acordo deste tipo em análise ou ativo.');
-    state.treaties.push({id:`treaty-${actor}-${state.version}`,proposerId:actor,recipientId:target,type:command.treaty,status:'PROPOSED',deal:command.deal,createdRound:state.core.round,expiresRound:state.core.round+state.rules.treatyDuration});return;
+    const source=command.planId??String(state.version);
+    state.treaties.push({id:`treaty-${actor}-${source}`,proposerId:actor,recipientId:target,type:command.treaty,status:'PROPOSED',deal:command.deal,createdRound:state.core.round,expiresRound:state.core.round+state.rules.treatyDuration});return;
   }
   const treaty=state.treaties.find(t=>t.id===command.treatyId);
   if(!treaty)throw new Error('Acordo desconhecido.');
@@ -84,13 +106,16 @@ export function validateInfluence(state:AlphaState,actor:PlayerId,order:Extract<
   if(!envoy||!city||!player.knownHexIds.includes(order.target))throw new Error('Escolha um Emissário próprio junto a uma cidade estrangeira conhecida.');
   if(hexDistance(state.core.map.find(t=>t.id===envoy.hexId)!,state.core.map.find(t=>t.id===city.hexId)!)>1)throw new Error('O Emissário precisa estar na cidade ou em um hex adjacente.');
   if(atWar(state,actor,city.ownerId))throw new Error('Uma missão de influência requer paz.');
-  if(player.influencedCities.includes(city.id))throw new Error('Sua civilização já mantém influência nesta cidade.');
+  const meta=state.cities.find(candidate=>candidate.cityId===city.id)!;
+  const civilization=culturalIdentityOf(state,actor);
+  if(meta.foreignPresence.some(presence=>presence.civilizationId===civilization))throw new Error('Sua civilização já mantém influência nesta cidade.');
+  if(meta.foreignPresence.length>=state.rules.balance.cultureSlots)throw new Error('A cidade já ocupa os três espaços de presença cultural.');
 }
 export function resolveInfluence(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'INFLUENCE'}>):void {
   validateInfluence(state,actor,order);
   const player=state.players.find(p=>p.playerId===actor)!;
   const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target)!;
-  player.influencedCities.push(city.id);player.foreignInfluence=player.influencedCities.length;
+  establishCulturalPresence(state,actor,city.id);
   if(!player.contacts.includes(city.ownerId))player.contacts.push(city.ownerId);
   const other=state.players.find(p=>p.playerId===city.ownerId)!;
   if(!other.contacts.includes(actor))other.contacts.push(actor);

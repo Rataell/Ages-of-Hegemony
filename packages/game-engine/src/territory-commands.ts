@@ -1,20 +1,18 @@
-import { RESOURCE_KEYS, connectedTo, improvementCompatible, productiveTile, type GameEvent, type GameRuleError, type GameState, type HexTile, type PlayerState, type ResourcePool, type TerritoryCommand } from '@aoh/game-domain';
+import { connectedTo, improvementCompatible, productiveTile, type GameEvent, type GameRuleError, type GameState, type HexTile, type PlayerState, type ResourcePool, type TerritoryCommand } from '@aoh/game-domain';
 import { err, ok, type Result } from '@aoh/shared';
 import { hexDistance } from './hex.js';
-import { canAfford } from './resources.js';
+import { payLegacyResources, type ResourcePayment } from './resources.js';
 import { refreshAdministration } from './civilization.js';
 import { foundCityAt } from './founding.js';
 
-export function applyTerritoryCommand(state: GameState, command: TerritoryCommand, version: number): Result<{ player: PlayerState; map: HexTile[]; event: GameEvent }, GameRuleError> {
+export function applyTerritoryCommand(state: GameState, command: TerritoryCommand, version: number, payResources: ResourcePayment = payLegacyResources): Result<{ player: PlayerState; map: HexTile[]; event: GameEvent }, GameRuleError> {
   if (state.phase !== 'PLANNING') return err({ code: 'WRONG_PHASE', message: 'Territory management requires PLANNING' });
   const original = state.players.find((player) => player.id === command.playerId);
   if (!original) return err({ code: 'UNKNOWN_PLAYER', message: 'Unknown player' });
   let player = structuredClone(original); let map = structuredClone(state.map);
   const rules = state.config.territory; const base = { playerId: player.id, round: state.round, version };
   const pay = (cost: ResourcePool): boolean => {
-    if (!canAfford(player.resources, cost)) return false;
-    for (const key of RESOURCE_KEYS) player.resources[key] -= cost[key];
-    return true;
+    return payResources(player, cost);
   };
   const funds: GameRuleError = { code: 'INSUFFICIENT_RESOURCES', message: 'Cannot afford configured cost' };
   let event: GameEvent;
@@ -30,7 +28,7 @@ export function applyTerritoryCommand(state: GameState, command: TerritoryComman
       tile.improvement = command.improvement;
       event = { ...base, type: 'HEX_IMPROVED', hexId: tile.id, improvement: command.improvement, cost };
     } else {
-      const founded=foundCityAt(state,player,map,command,version);
+      const founded=foundCityAt(state,player,map,command,version,payResources);
       if(!founded.ok)return founded;
       event=founded.value;
     }

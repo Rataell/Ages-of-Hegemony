@@ -20,7 +20,7 @@ O E2E alpha usa `AlphaHttp`, `AlphaGameService` e engine reais, mas substitui so
 
 O roteiro escolhe ambições, usa carta, adota governo, negocia comércio e fronteiras, explora, pesquisa, cria rota, move pioneiro, recruta, funda cidade, declara guerra, combate com retirada, desenvolve cidades, constrói distritos e arquivos, reivindica e trabalha território, melhora terreno, avança eras, conclui projeto e consolida Hegemonia. O teste repete o roteiro e compara todo o estado e o histórico de comandos.
 
-Critérios: estado válido, vencedor p1 por Hegemonia, cinco eras percorridas, combate com perdas e retirada, receita comercial em relatório e Grande Projeto concluído. O teste tem timeout próprio de 15 segundos porque executa duas partidas completas. Não aumenta o timeout dos demais testes.
+Critérios: estado válido, vencedor p1 por Hegemonia, progressão pelas seis eras, combate com perdas e retirada, receita comercial em relatório e Grande Projeto concluído. O teste tem timeout próprio de 15 segundos porque executa duas partidas completas. Não aumenta o timeout dos demais testes.
 
 ## Evidências e pendências
 

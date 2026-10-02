@@ -2,13 +2,13 @@
 
 Estado de implementação: regras autoritativas e testes disponíveis; apresentação na interface ainda em integração.
 
-Na quinta era, cada civilização pode declarar um único caminho. A declaração é pública e permanente. Os requisitos estão em `AlphaRules.hegemonyRequirements`; a projeção retorna os valores atuais somente para seu próprio jogador. Adversários recebem caminho, rodada de declaração e início da consolidação, sem saldos privados.
+Na sexta era, Hegemonia, cada civilização pode declarar um único caminho. A declaração é pública e permanente. Os requisitos estão em `AlphaRules.hegemonyRequirements`; a projeção retorna os valores atuais somente para seu próprio jogador. Adversários recebem caminho, rodada de declaração e início da consolidação, sem saldos privados.
 
 | Caminho | Requisitos padrão |
 | --- | --- |
 | Militar | Força-base total 12, duas vitórias, duas peças militares em território estrangeiro |
 | Econômico | 30 Riqueza, duas rotas internacionais válidas, ao menos um parceiro comercial |
-| Científico | Dois avanços da quinta era, dois distritos Acadêmicos, um projeto científico |
+| Científico | Dois avanços da Ascensão, dois distritos Acadêmicos, um projeto científico |
 | Cultural | 25 Influência, dois distritos Culturais, influência estabelecida em três cidades estrangeiras |
 | Político | Um parceiro com tratado ativo, influência em três cidades estrangeiras, um projeto político |
 | Territorial | 10/14/18 hexes no preset Rápido/Padrão/Épico, duas/três/três cidades de desenvolvimento III, administração dentro da capacidade |

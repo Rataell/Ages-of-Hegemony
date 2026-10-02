@@ -1,7 +1,8 @@
-import { CityIdSchema, connectedTo, type AlphaState, type CityId, type PlayerId } from '@aoh/game-domain';
+import { CityIdSchema, cityLevelForPopulation, connectedTo, type AlphaState, type CityId, type PlayerId } from '@aoh/game-domain';
 import { refreshAdministration } from './civilization.js';
-import { commitLegacyReducer } from './alpha-resources.js';
+import { alphaResourcePayment } from './alpha-resources.js';
 import { foundCityAt } from './founding.js';
+import { culturalIdentityOf, refreshCulturalMetrics } from './alpha-culture.js';
 
 export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,name:string):void {
   const pioneer=state.units.find(u=>u.id===unitId&&u.ownerId===actor&&u.kind==='PIONEER');
@@ -10,13 +11,11 @@ export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,
   const tile=state.core.map.find(t=>t.id===pioneer.hexId)!;
   if(tile.ownerId!==null&&tile.ownerId!==actor||state.units.some(u=>u.hexId===tile.id&&u.ownerId!==actor))throw new Error('Não é possível fundar em território ou presença estrangeira.');
   const player=state.core.players.find(p=>p.id===actor)!;
-  const legacyBefore={...player.resources};
-  const founded=foundCityAt(state.core,player,state.core.map,{type:'FOUND_CITY',playerId:actor,cityId:CityIdSchema.parse(`city-${actor}-${state.version}`),hexId:tile.id,name,expectedVersion:state.core.version},state.core.version+1);
+  const founded=foundCityAt(state.core,player,state.core.map,{type:'FOUND_CITY',playerId:actor,cityId:CityIdSchema.parse(`city-${actor}-${state.version}`),hexId:tile.id,name,expectedVersion:state.core.version},state.core.version+1,alphaResourcePayment(state));
   if(!founded.ok)throw new Error(founded.error.message);
-  commitLegacyReducer(state,actor,legacyBefore);
   state.units=state.units.filter(u=>u.id!==unitId);
   const newCity=player.civilization.cities.find(c=>c.hexId===tile.id)!;
-  state.cities.push({cityId:newCity.id,originalOwnerId:actor,currentOwnerId:actor,nativeIdentity:state.players.find(p=>p.playerId===actor)!.civilization??`native-${actor}`,status:'OWNED',integration:100,mood:3,level:'OUTPOST',capital:player.civilization.capitalCityId===newCity.id,districts:newCity.districts.map(d=>d.type),buildings:[],fortification:{level:'NONE',state:'INTACT'},foreignPresence:[],localCohesion:50,culturalAnchor:null,urbanActionsUsed:0});
+  state.cities.push({cityId:newCity.id,originalOwnerId:actor,currentOwnerId:actor,nativeIdentity:state.players.find(p=>p.playerId===actor)!.civilization??`native-${actor}`,status:'OWNED',integration:100,mood:3,level:cityLevelForPopulation(newCity.population),capital:player.civilization.capitalCityId===newCity.id,districts:newCity.districts.map(d=>d.type),buildings:[],fortification:{level:'NONE',state:'INTACT'},foreignPresence:[],localCohesion:50,culturalAnchor:null,urbanActionsUsed:0});
   state.core.version++;state.core.eventLog.push(founded.value);
   player.civilization=refreshAdministration(player.civilization,state.core.config,state.core.map);
 }
@@ -42,12 +41,15 @@ export function occupyCity(state:AlphaState,actor:PlayerId,cityId:CityId):void {
   // Dependencies cannot silently retain permissions granted by a former owner.
   state.routes=state.routes.filter(r=>r.fromCityId!==cityId&&r.toCityId!==cityId);
   for(const project of state.projects)if(project.cityId===cityId)project.ownerId=actor;
-  const progress=state.players.find(p=>p.playerId===actor)!;
-  progress.influencedCities=progress.influencedCities.filter(id=>id!==cityId);progress.foreignInfluence=progress.influencedCities.length;
   state.occupations=state.occupations.filter(o=>o.cityId!==cityId);
   if(!liberated)state.occupations.push({cityId,occupierId:actor,previousOwnerId:previous.id,sinceRound:state.core.round});
   const meta=state.cities.find(c=>c.cityId===cityId);
-  if(meta){meta.currentOwnerId=actor;meta.status=liberated?'OWNED':'OCCUPIED';meta.integration=liberated?100:0;meta.capital=recipient.civilization.capitalCityId===cityId;}
+  if(meta){
+    const civilization=culturalIdentityOf(state,actor);
+    meta.currentOwnerId=actor;meta.status=liberated?'OWNED':'OCCUPIED';meta.integration=liberated?100:0;meta.capital=recipient.civilization.capitalCityId===cityId;
+    meta.foreignPresence=meta.foreignPresence.filter(presence=>presence.civilizationId!==civilization);if(meta.culturalAnchor===civilization)meta.culturalAnchor=null;
+  }
+  refreshCulturalMetrics(state);
   state.core.version++;
   state.core.eventLog.push({type:'CITY_TRANSFERRED',version:state.core.version,round:state.core.round,cityId,playerId:actor,previousOwnerId:previous.id});
   for(const player of state.core.players)player.civilization=refreshAdministration(player.civilization,state.core.config,state.core.map);

@@ -10,10 +10,10 @@
 
 - [x] 2.1 Route every producer and spender (institutions, cards, treaties, routes, founding, civilization ability, upkeep) through `alphaGain` and `alphaPay`; gate: tests for purchase-after-production and unaffordable-rejection. Done for every alpha-owned path; core-reducer paths (claims, districts, founding cost, maintenance production) go through the transitional `commitLegacyReducer` adapter, removed in 2.3.
 - [x] 2.2 Enforce storage capacity and overflow discard, reporting discards in the round report; implement metal sourcing (Producer + metal deposit + Mine, no new population role); gate: `tests/alpha-storage-metal.test.ts` (18 tests).
-- [ ] 2.3 Delete `commitLegacyReducer` (make the core reducer v5-aware) and the legacy-derived reads in alpha reducers; keep legacy fields only for the slice; gate: `npm test`, slice E2E.
+- [x] 2.3 Delete `commitLegacyReducer` (make the core reducer v5-aware) and the legacy-derived reads in alpha reducers; keep legacy fields only for the slice; gate: `npm test`, slice E2E. Core rules now receive an explicit resource-payment authority; Alpha charges the seven-resource pool directly while the slice keeps the five-resource default. Verified: 655 tests and 2 slice E2E.
 - [x] 2.4 Implement the `URBAN_ACTION` handler with one action per city per round and per-round reset; gate: `tests/alpha-urban.test.ts` (30 tests). PRODUCE (with mining and first-PRODUCE institutional production), BUILD (district, building, fortification), RECRUIT, RESEARCH, PROMOTE_MOOD, SUPPORT_TRADE, CIVIC_ACTION. Legacy top-level RECRUIT and RESEARCH commands still exist in PLANNING for compatibility; converge them in workstream H.
-- [ ] 2.5 Implement mood effects, level growth, buildings and integration progress on `AlphaCity`; gate: city tests.
-- [ ] 2.6 Add city-record consistency tests for founding, capture, liberation and last-city loss (fixes already in place; lock them in); gate: `tests/alpha-cities.test.ts`.
+- [x] 2.5 Implement mood effects, level growth, buildings and integration progress on `AlphaCity`; gate: city tests. Mood now affects production and maintenance stability, population drives all seven city levels, building metadata/effects stay synchronized, and integration remains incremental. Verified in 103 focused tests.
+- [x] 2.6 Add city-record consistency tests for founding, capture, liberation and last-city loss (fixes already in place; lock them in); gate: `tests/alpha-cities.test.ts`.
 
 ## 3. C. Turn loop
 
@@ -21,7 +21,7 @@
 - [x] 3.2 Draw and apply the world pulse in the first phase and report it; gate: pulse draw, application, ledger and report tests in `tests/alpha-phases.test.ts`.
 - [x] 3.3 Make URBAN_ACTION the single domain path for BUILD, RECRUIT, RESEARCH, PRODUCE, PROMOTE_MOOD, SUPPORT_TRADE and CIVIC_ACTION: the legacy RECRUIT, RESEARCH and INTEGRATE_CITY commands are removed (no adapter needed), and MANAGE rejects BUILD_DISTRICT and BUILD_BUILDING with USE_URBAN_ACTION; integration is the paid, next-round CIVIC_ACTION on an occupied city; gate: `tests/alpha-phases.test.ts`, `tests/alpha-urban.test.ts`, `tests/alpha-cities.test.ts`, scripted match. Treaties stay in PLANNING and DIPLOMACY_TRADE by design (war must precede attack orders).
 - [x] 3.4 Fix round-report arithmetic for seven resources and storage discards; gate: `tests/alpha-report.test.ts` (7 tests). Reports are built at END_ROUND from a per-round ledger (production, mining, trade, institutions, other, losses, expenses, upkeep, discarded); old reports still parse. The report keeps the legacy five-resource vocabulary (materials = wood + stone + metal); a per-resource seven-column report is left to the interface work in H.
-- [ ] 3.5 Correct Hegemony copy and error text to the six-era structure; keep the Scientific path metric aligned with the Ascension tier; gate: hegemony tests, copy grep.
+- [x] 3.5 Correct Hegemony copy and error text to the six-era structure; keep the Scientific path metric aligned with the Ascension tier; gate: hegemony tests, copy grep. Verified: 25 focused tests; no stale five-era copy in current Alpha surfaces/docs.
 - [x] 3.6 Extend the scripted full-match scenario to run through all eight phases and finish; gate: `tests/alpha-match.test.ts` twice deterministic (the scenario now takes PRODUCE and SUPPORT_TRADE urban actions every round).
 
 ## 4. D. Combat
@@ -29,15 +29,15 @@
 - [x] 4.1 Implement posture and tactical faces in resolution and store real values in battle records; gate: combat tests with breakdown sums.
 - [x] 4.2 Compute modifier breakdowns by source for both sides; gate: arithmetic invariant test.
 - [x] 4.3 Enforce stack limits per hex (`alpha-stack.ts`, limits in `balance.stack`): MOVE at queue time and at resolution, RECRUIT, retreat, victorious advance; projected `stacks` view and preview notes share one verdict; gate: `tests/alpha-stack.test.ts` and the conflict E2E. Re-verified 2026-09-20: 588 tests and 4 of 4 E2E green.
-- [ ] 4.4 Add fortification levels and damage state to defense and siege; gate: city assault tests.
-- [ ] 4.5 Expose a dice-free combat preview through the projection; gate: projection leak test.
+- [x] 4.4 Add fortification levels and damage state to defense and siege; gate: city assault tests. Existing implementation covers all six levels, damage/breach progression and siege; reverified in 72 combat/stack tests.
+- [x] 4.5 Expose a dice-free combat preview through the projection; gate: projection leak test. Existing allow-listed `orderPreviews` hides dice, RNG and defender posture; reverified in combat tests.
 
 ## 5. E. Culture
 
-- [ ] 5.1 Implement `CONTEST_PRESENCE` with two-dice resolution, three slots and the three-civilization cap; gate: culture tests.
-- [ ] 5.2 Implement presence levels, anchors and cohesion bounds; gate: bounds tests.
-- [ ] 5.3 Keep presence coherent on capture and integration; gate: capture tests.
-- [ ] 5.4 Feed cultural Hegemony metrics from the same records the UI reads; gate: metric parity test.
+- [x] 5.1 Implement `CONTEST_PRESENCE` with two-dice resolution, three slots and the three-civilization cap; gate: culture tests.
+- [x] 5.2 Implement presence levels, anchors and cohesion bounds; gate: bounds tests.
+- [x] 5.3 Keep presence coherent on capture and integration; gate: capture tests.
+- [x] 5.4 Feed cultural Hegemony metrics from the same records the UI reads; gate: metric parity test. Presence records are authoritative; compatibility counters, Hegemony and allow-listed projection derive from them. Verified: 54 focused tests.
 
 ## 6. F. World systems
 

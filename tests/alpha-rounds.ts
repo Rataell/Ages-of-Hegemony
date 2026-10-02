@@ -26,7 +26,7 @@ export function completeRound(state: AlphaState, options: { produce?: boolean; o
   let current = state;
   const round = current.core.round;
   for (let guard = 0; guard < 24 && current.core.round === round && current.core.status === 'ACTIVE'; guard++) {
-    if (current.phase === 'URBAN_ACTIONS' && options.produce) current = produceAll(current);
+    if (current.phase === 'PLANNING' && options.produce) current = produceAll(current);
     current = readyAll(current, options.order);
   }
   return current;
@@ -38,7 +38,9 @@ export function produceAll(state: AlphaState): AlphaState {
   for (const owner of state.core.players) {
     for (const city of owner.civilization.cities) {
       const meta = current.cities.find(c => c.cityId === city.id);
-      if (meta && meta.currentOwnerId === owner.id && meta.status === 'OWNED' && meta.urbanActionsUsed === 0) current = must(current, owner.id, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
+      const progress=current.players.find(player=>player.playerId===owner.id)!;
+      const available=current.phase==='PLANNING'?!progress.plannedActions.some(action=>action.type==='URBAN_ACTION'&&action.cityId===city.id):meta?.urbanActionsUsed===0;
+      if (meta && meta.currentOwnerId === owner.id && meta.status === 'OWNED' && available) current = must(current, owner.id, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
     }
   }
   return current;

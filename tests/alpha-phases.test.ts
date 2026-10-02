@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { AlphaRoundPhaseSchema, AlphaStateSchema, PlayerIdSchema, WORLD_PULSE_CARDS, type AlphaState } from '@aoh/game-domain';
-import { CORE_PHASE_MIRROR, LEGAL_COMMANDS, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, serializeAlphaState } from '@aoh/game-engine';
+import { AlphaRoundPhaseSchema, AlphaStateSchema, PlayerIdSchema, ResolutionEventTypeSchema, WORLD_PULSE_CARDS, type AlphaState } from '@aoh/game-domain';
+import { CORE_PHASE_MIRROR, INTERACTIVE_PHASES, LEGAL_COMMANDS, alphaPay, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, hexDistance, serializeAlphaState, visibleHexIds } from '@aoh/game-engine';
 import { completeRound, must, produceAll, readyAll } from './alpha-rounds.js';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
@@ -14,6 +14,19 @@ const legalIn = (state: AlphaState, type: string, extra: Record<string, unknown>
 const relevant = ['WORLD_PULSE', 'ROUND_STARTED', 'PHASE', 'RESOLUTION', 'MAINTENANCE'];
 const none = { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 };
 const noneAlpha = { food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 };
+const movementFixture = (state: AlphaState) => {
+  const origin = state.core.players[0]!.civilization.cities[0]!.hexId;
+  const [q, r] = origin.split(',').map(Number);
+  const known = new Set(state.players[0]!.knownHexIds);
+  const target = state.core.map.find(tile => {
+    if (!known.has(tile.id) || tile.id === origin || ['SEA', 'UNKNOWN'].includes(tile.terrain)) return false;
+    const [tq, tr] = tile.id.split(',').map(Number);
+    const dq = tq! - q!, dr = tr! - r!;
+    return (Math.abs(dq) + Math.abs(dr) + Math.abs(dq + dr)) / 2 === 1;
+  })!.id;
+  state.units = [{ id: 'u1', ownerId: p1, kind: 'INFANTRY', hexId: origin, recruitedRound: 1 }];
+  return target;
+};
 
 describe('the eight-phase round', () => {
   it('declares the eight phases in order and mirrors each onto the legacy core phase', () => {
@@ -41,13 +54,16 @@ describe('the eight-phase round', () => {
     expect(after.core.round).toBe(2);
     expect(after.phase).toBe('PLANNING');
     const trail = after.events.slice(start).map(e => e.type).filter(t => relevant.includes(t));
-    expect(trail).toEqual(['PHASE', 'RESOLUTION', 'MAINTENANCE', 'WORLD_PULSE', 'ROUND_STARTED']);
+    expect(trail).toEqual(['RESOLUTION', 'RESOLUTION', 'MAINTENANCE', 'WORLD_PULSE', 'ROUND_STARTED']);
   });
 
-  it('rests only in the interactive phases, in order', () => {
-    let state = started(); const seen: string[] = [state.phase];
-    for (let i = 0; i < 6; i++) { state = readyAll(state); seen.push(state.phase); }
-    expect(seen).toEqual(['PLANNING', 'URBAN_ACTIONS', 'DIPLOMACY_TRADE', 'PLANNING', 'URBAN_ACTIONS', 'DIPLOMACY_TRADE', 'PLANNING']);
+  it('rests only in planning or conflicts while internal phases resolve automatically', () => {
+    expect(INTERACTIVE_PHASES).toEqual(['PLANNING', 'CONFLICTS']);
+    let state = started();
+    for (let i = 0; i < 6; i++) {
+      state = readyAll(state);
+      expect(INTERACTIVE_PHASES).toContain(state.phase);
+    }
   });
 
   it('does not advance until every player confirms, and never skips a phase', () => {
@@ -58,7 +74,8 @@ describe('the eight-phase round', () => {
     expect(state.players.map(p => p.ready)).toEqual([true, false]);
     state = must(state, p2, { type: 'CHOOSE_AMBITIONS', cardIds: state.players[1]!.ambitions.slice(0, 2) });
     state = must(state, p2, { type: 'READY' });
-    expect(state.phase).toBe('URBAN_ACTIONS');
+    expect(state.phase).toBe('PLANNING');
+    expect(state.core.round).toBe(2);
     expect(state.players.every(p => !p.ready)).toBe(true);
   });
 });
@@ -66,16 +83,11 @@ describe('the eight-phase round', () => {
 describe('phase legality', () => {
   it('permits each command only in its phases', () => {
     const planning = started();
-    expect(legalIn(planning, 'URBAN_ACTION', { cityId: 'capital-1', action: 'PRODUCE' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
-    const urban = readyAll(planning);
-    expect(legalIn(urban, 'CIVILIZATION_ABILITY')).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
-    expect(legalIn(urban, 'QUEUE_ORDER', { order: { id: 'x', type: 'MOVE', unitIds: ['u'], path: ['0,0'] } })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
-    expect(legalIn(urban, 'MANAGE', { command: { type: 'DEVELOP_CITY', playerId: p1, cityId: 'capital-1', expectedVersion: urban.core.version } })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
-    const diplomacy = readyAll(urban);
-    expect(diplomacy.phase).toBe('DIPLOMACY_TRADE');
-    expect(legalIn(diplomacy, 'URBAN_ACTION', { cityId: 'capital-1', action: 'PRODUCE' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
-    expect(legalIn(diplomacy, 'BUILD_ROAD', { hexId: '0,0' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
-    expect(legalIn(diplomacy, 'PROPOSE_TREATY', { recipientId: p2, treaty: 'TRADE_AGREEMENT', deal: { give: none, receive: none } }).ok).toBe(true);
+    expect(legalIn(planning, 'URBAN_ACTION', { cityId: 'capital-1', action: 'PRODUCE' }).ok).toBe(true);
+    expect(legalIn(planning, 'PROPOSE_TREATY', { recipientId: p2, treaty: 'TRADE_AGREEMENT', deal: { give: none, receive: none } }).ok).toBe(true);
+    expect(LEGAL_COMMANDS.CONFLICTS).toEqual(new Set(['PLAY_CARD', 'READY']));
+    for (const phase of ['ORDERS_MOVEMENT', 'INTEGRATION_MAINTENANCE', 'END_ROUND'] as const)
+      expect(LEGAL_COMMANDS[phase].size).toBe(0);
   });
 
   it('has exactly one path for each urban action: the legacy commands no longer exist', () => {
@@ -85,12 +97,14 @@ describe('phase legality', () => {
     for (const build of [{ type: 'BUILD_DISTRICT', cityId: 'capital-1', district: 'AGRARIAN' }, { type: 'BUILD_BUILDING', cityId: 'capital-1', building: 'GRANARY' }])
       expect(legalIn(state, 'MANAGE', { command: { ...build, playerId: p1, expectedVersion: state.core.version } })).toMatchObject({ ok: false, error: { code: 'USE_URBAN_ACTION' } });
     const planning = [...LEGAL_COMMANDS.PLANNING];
-    for (const type of ['URBAN_ACTION', 'RECRUIT', 'RESEARCH', 'INTEGRATE_CITY']) expect(planning).not.toContain(type);
+    expect(planning).toContain('URBAN_ACTION');
+    for (const type of ['RECRUIT', 'RESEARCH', 'INTEGRATE_CITY']) expect(planning).not.toContain(type);
   });
 
-  it('lists no command for the automatic phases', () => {
+  it('keeps automatic-only phases closed and legacy snapshot phases recoverable', () => {
     for (const phase of ['WORLD_PULSE', 'ORDERS_MOVEMENT', 'INTEGRATION_MAINTENANCE', 'END_ROUND'] as const) expect(LEGAL_COMMANDS[phase].size).toBe(0);
-    for (const phase of ['PLANNING', 'URBAN_ACTIONS', 'DIPLOMACY_TRADE', 'CONFLICTS'] as const) expect(LEGAL_COMMANDS[phase].has('READY')).toBe(true);
+    for (const phase of INTERACTIVE_PHASES) expect(LEGAL_COMMANDS[phase].has('READY')).toBe(true);
+    for (const phase of ['URBAN_ACTIONS', 'DIPLOMACY_TRADE'] as const) expect(LEGAL_COMMANDS[phase].has('READY')).toBe(true);
   });
 
   it('answers commands that are not built yet with NOT_IMPLEMENTED instead of silently succeeding', () => {
@@ -98,8 +112,6 @@ describe('phase legality', () => {
     for (const raw of [
       { type: 'PROPOSE_TRADE', recipientId: p2, offerType: 'GIFT', offer: noneAlpha, request: noneAlpha, treatyTerms: [], dueRound: null },
       { type: 'RESPOND_TRADE', offerId: 'o', accept: true },
-      { type: 'CONTEST_PRESENCE', cityId: 'capital-2', defenderCivilizationId: 'valgard' },
-      { type: 'INDEPENDENT_ACTION', peopleId: 'independent-1', action: 'TRADE' },
     ]) expect(applyAlphaCommand(state, p1, { ...raw, expectedVersion: state.version })).toMatchObject({ ok: false, error: { code: 'NOT_IMPLEMENTED' } });
   });
 
@@ -110,7 +122,7 @@ describe('phase legality', () => {
 });
 
 describe('what each phase does', () => {
-  it('resets urban actions when URBAN_ACTIONS opens, not before', () => {
+  it('resets urban actions when planning closes', () => {
     let state = started();
     state.cities[0]!.urbanActionsUsed = 1;
     expect(state.cities[0]!.urbanActionsUsed).toBe(1);
@@ -118,29 +130,42 @@ describe('what each phase does', () => {
     expect(state.cities.every(c => c.urbanActionsUsed === 0)).toBe(true);
   });
 
-  it('resolves movement between URBAN_ACTIONS and DIPLOMACY_TRADE, never earlier', () => {
+  it('resolves movement only when planning closes', () => {
     let state = started();
-    state.units = [{ id: 'u1', ownerId: p1, kind: 'INFANTRY', hexId: state.core.map[0]!.id, recruitedRound: 1 }];
-    const target = '1,0';
+    const target = movementFixture(state);
     state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'm1', type: 'MOVE', unitIds: ['u1'], path: [target] } });
     expect(state.units[0]!.hexId).not.toBe(target);
     state = readyAll(state);
-    expect(state.phase).toBe('URBAN_ACTIONS');
-    expect(state.units[0]!.hexId).not.toBe(target);
-    state = readyAll(state);
-    expect(state.phase).toBe('DIPLOMACY_TRADE');
+    expect(state.phase).toBe('PLANNING');
+    expect(state.core.round).toBe(2);
     expect(state.units[0]!.hexId).toBe(target);
   });
 
-  it('activates accepted treaties when DIPLOMACY_TRADE closes', () => {
+  it('offers a planned treaty after resolution and activates an accepted treaty next round', () => {
     let state = started();
     state = must(state, p1, { type: 'PROPOSE_TREATY', recipientId: p2, treaty: 'TRADE_AGREEMENT', deal: { give: none, receive: none } });
+    expect(state.treaties).toHaveLength(0);
+    state = readyAll(state);
+    expect(state.treaties[0]!.status).toBe('PROPOSED');
     state = must(state, p2, { type: 'RESPOND_TREATY', treatyId: state.treaties.at(-1)!.id, accept: true });
-    expect(state.treaties[0]!.status).toBe('ACCEPTED');
-    state = readyAll(readyAll(state));
     expect(state.treaties[0]!.status).toBe('ACCEPTED');
     state = readyAll(state);
     expect(state.treaties[0]!.status).toBe('ACTIVE');
+  });
+
+  it('validates at reservation, revalidates without escrow, and records a private resolution failure', () => {
+    let state = started(88);
+    const cityId = state.core.players[0]!.civilization.cities[0]!.id;
+    state = must(state, p1, { type: 'URBAN_ACTION', planId: 'future-district', cityId, action: 'BUILD', build: { kind: 'DISTRICT', district: 'AGRARIAN' } });
+    expect(state.players[0]!.plannedActions.map(action => action.id)).toContain('future-district');
+    expect(state.core.players[0]!.civilization.cities[0]!.districts).toHaveLength(0);
+
+    alphaPay(state, p1, { ...state.players[0]!.resources });
+    state = readyAll(state);
+
+    expect(state.core.players[0]!.civilization.cities[0]!.districts).toHaveLength(0);
+    expect(state.players[0]!.plannedActions).toHaveLength(0);
+    expect(state.events).toContainEqual(expect.objectContaining({ type: 'ACTION_FAILED', audience: [p1], message: expect.stringContaining('não pôde ser realizada') }));
   });
 
   it('rotates the initiative once per round', () => {
@@ -154,8 +179,8 @@ describe('what each phase does', () => {
 
   it('resets readiness at each interactive phase and clears orders at the round start', () => {
     let state = started();
-    state.units = [{ id: 'u1', ownerId: p1, kind: 'INFANTRY', hexId: state.core.map[0]!.id, recruitedRound: 1 }];
-    state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'm1', type: 'MOVE', unitIds: ['u1'], path: ['1,0'] } });
+    const target = movementFixture(state);
+    state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'm1', type: 'MOVE', unitIds: ['u1'], path: [target] } });
     expect(state.players[0]!.orders).toHaveLength(1);
     state = completeRound(state);
     expect(state.players.every(p => !p.ready && p.orders.length === 0 && p.spentCommands === 0)).toBe(true);
@@ -212,6 +237,44 @@ describe('what each phase does', () => {
   });
 });
 
+describe('structured resolution visibility', () => {
+  it('defines every result type required by the replay contract', () => {
+    expect(ResolutionEventTypeSchema.options).toEqual([
+      'MOVEMENT', 'EXPLORATION', 'FOUNDATION', 'PRODUCTION', 'CONSTRUCTION', 'RECRUITMENT', 'RESEARCH',
+      'TRADE', 'INFLUENCE', 'COMBAT', 'LOSSES', 'RETREAT', 'ADVANCE', 'FAILURE', 'ROUND_EVENT',
+    ]);
+  });
+
+  it('shows Ana her move and withholds its identifiers from Beto outside his vision', () => {
+    let state = started(89);
+    const target = movementFixture(state);
+    expect(visibleHexIds(state, p2).has(target)).toBe(false);
+    state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'hidden-move', type: 'MOVE', unitIds: ['u1'], path: [target] } });
+    state = readyAll(state);
+
+    const ana = state.roundReports.find(report => report.playerId === p1 && report.round === 1)!.resolution;
+    const beto = state.roundReports.find(report => report.playerId === p2 && report.round === 1)!.resolution;
+    expect(ana).toContainEqual(expect.objectContaining({ type: 'MOVEMENT', actorId: p1, hexId: target, unitIds: ['u1'] }));
+    expect(beto.some(event => event.type === 'MOVEMENT')).toBe(false);
+    expect(JSON.stringify(beto)).not.toContain(target);
+    expect(JSON.stringify(beto)).not.toContain('u1');
+  });
+
+  it('shows Beto Ana\'s move when Beto can see its resolved destination', () => {
+    let state = started(90);
+    const target = movementFixture(state);
+    const targetTile = state.core.map.find(tile => tile.id === target)!;
+    const observerHex = state.core.map.find(tile => tile.id !== target && tile.id !== state.units[0]!.hexId && !['SEA', 'UNKNOWN'].includes(tile.terrain) && hexDistance(tile, targetTile) === 1)!.id;
+    state.units.push({ id: 'beto-observer', ownerId: p2, kind: 'EXPLORER', hexId: observerHex, recruitedRound: 1 });
+    expect(visibleHexIds(state, p2).has(target)).toBe(true);
+    state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'visible-move', type: 'MOVE', unitIds: ['u1'], path: [target] } });
+    state = readyAll(state);
+
+    const beto = state.roundReports.find(report => report.playerId === p2 && report.round === 1)!.resolution;
+    expect(beto).toContainEqual(expect.objectContaining({ type: 'MOVEMENT', actorId: p1, hexId: target, unitIds: ['u1'] }));
+  });
+});
+
 describe('finishing and determinism', () => {
   it('finishes at the round limit without opening another round', () => {
     let state = started(78); state.rules.roundLimit = 2;
@@ -228,7 +291,6 @@ describe('finishing and determinism', () => {
     const play = () => {
       let state = started(79);
       for (let round = 0; round < 3; round++) {
-        state = readyAll(state);
         state = produceAll(state);
         state = completeRound(state);
       }
@@ -257,6 +319,31 @@ describe('client projection of the round loop', () => {
     expect(view).not.toHaveProperty('roundLedgers');
     for (const id of state.worldPulse.deck) expect(text).not.toContain(`"${id}"`);
     expect(view.schemaVersion).toBe(5);
+  });
+
+  it('changes an opponent projection only from Planejando to Pronto, never exposing reserved ids, targets or costs', async () => {
+    const { alphaPlayerView } = await import('../apps/server/src/alpha-projection.js');
+    let state = started(87, 3);
+    const target = movementFixture(state), p3 = state.players[2]!.playerId;
+    state.players[0]!.ambitionsChosen = true;
+    const before = alphaPlayerView(state, p2)!;
+    state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'hidden-move-plan', type: 'MOVE', unitIds: ['u1'], path: [target] } });
+    state = must(state, p1, { type: 'URBAN_ACTION', planId: 'hidden-city-plan', cityId: 'capital-1', action: 'PRODUCE' });
+    state = must(state, p1, { type: 'PROPOSE_TREATY', planId: 'hidden-treaty-plan', recipientId: p3, treaty: 'TRADE_AGREEMENT', deal: { give: { ...none, wealth: 3 }, receive: { ...none, materials: 2 } } });
+    const own = JSON.stringify(alphaPlayerView(state, p1));
+    const rival = alphaPlayerView(state, p2)!;
+    expect(own).toContain('hidden-move-plan');
+    expect(own).toContain('hidden-city-plan');
+    expect(own).toContain('hidden-treaty-plan');
+    const withoutVersion = <T extends { version: number }>(view: T) => ({ ...structuredClone(view), version: 0 });
+    expect(withoutVersion(rival)).toEqual(withoutVersion(before));
+    expect(rival.self.plannedActions).toEqual([]);
+
+    state = must(state, p1, { type: 'READY' });
+    const ready = alphaPlayerView(state, p2)!;
+    const expected = structuredClone(rival);
+    expected.players.find(player => player.id === p1)!.ready = true;
+    expect(withoutVersion(ready)).toEqual(withoutVersion(expected));
   });
 });
 

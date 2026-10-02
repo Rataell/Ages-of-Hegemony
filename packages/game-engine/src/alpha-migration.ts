@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-  AlphaStateSchema, GameStateSchema, WORLD_PULSE_CARDS, leaderStateFor, alphaBalance, alphaRules, alphaUnitCatalog,
+  AlphaStateSchema, GameStateSchema, WORLD_PULSE_CARDS, leaderStateFor, alphaBalance, alphaRules, alphaUnitCatalog, cityLevelForPopulation,
   emptyAlphaResourcePool, legacyToAlphaResources,
   type AlphaCity, type AlphaError, type AlphaState, type AlphaTelemetry, type GameState,
 } from '@aoh/game-domain';
@@ -17,7 +17,7 @@ function initialCities(core: GameState, civilizationByPlayer: Map<string, string
     status: 'OWNED' as const,
     integration: 100,
     mood: 3,
-    level: 'VILLAGE' as const,
+    level: cityLevelForPopulation(city.population),
     capital: player.civilization.capitalCityId === city.id,
     districts: city.districts.map(district => district.type),
     buildings: [],

@@ -9,7 +9,7 @@ import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from '
 import {
   ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
   BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, RaidBandSchema, TacticalFaceSchema,
-  TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool,
+  TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, type AlphaRoundPhase,
 } from './alpha-concept.js';
 
 export const AlphaPresetSchema = z.enum(['QUICK', 'STANDARD', 'EPIC']);
@@ -22,6 +22,8 @@ export type HegemonyPath = z.infer<typeof HegemonyPathSchema>;
 export const HegemonyDeclarationSchema = z.strictObject({path:HegemonyPathSchema,declaredRound:P,qualifiedSince:P.nullable()});
 export const AlphaRulesSchema = z.strictObject({
   preset: AlphaPresetSchema, roundLimit: P, baseCommandPoints: P,
+  /** New matches use one fixed action limit. Missing means a legacy match keeps its command-capacity modifiers. */
+  actionsPerRound: z.number().int().min(5).max(10).optional(),
   hegemonyHoldRounds: P, handLimit: P, advisorLimit: P, unitLimit: P,
   integrationCost:ResourcePoolSchema,occupationStabilityPenalty:N,
   hegemonyRequirements:z.record(HegemonyPathSchema,z.array(z.strictObject({metric:HegemonyMetricSchema,minimum:P})).min(3)),
@@ -35,8 +37,8 @@ export const AlphaRulesSchema = z.strictObject({
   combat: CombatConfigSchema,
 });
 export type AlphaRules = z.infer<typeof AlphaRulesSchema>;
-export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED'): AlphaRules {
-  return AlphaRulesSchema.parse({ preset, roundLimit: { QUICK: 9, STANDARD: 15, EPIC: 20 }[preset], baseCommandPoints: 4,
+export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED', actionsPerRound = 7): AlphaRules {
+  return AlphaRulesSchema.parse({ preset, roundLimit: { QUICK: 9, STANDARD: 15, EPIC: 20 }[preset], baseCommandPoints: 4, actionsPerRound,
     hegemonyHoldRounds: 2, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
     integrationCost:{food:0,materials:0,wealth:0,knowledge:0,influence:3},occupationStabilityPenalty:15,
     hegemonyRequirements:{
@@ -78,12 +80,18 @@ export const StrategicOrderSchema = z.discriminatedUnion('type', [
   z.strictObject({ id: IdentifierSchema, type: z.literal('INFLUENCE'), unitId: IdentifierSchema, target: HexIdSchema }),
 ]);
 export type StrategicOrder = z.infer<typeof StrategicOrderSchema>;
+export const PlannedActionSchema = z.discriminatedUnion('type',[
+  z.strictObject({id:IdentifierSchema,type:z.literal('URBAN_ACTION'),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),advancementId:IdentifierSchema.optional()}),
+  z.strictObject({id:IdentifierSchema,type:z.literal('PROPOSE_TREATY'),recipientId:PlayerIdSchema,treaty:TreatyTypeSchema,deal:ResourceDealSchema}),
+  z.strictObject({id:IdentifierSchema,type:z.literal('DECLARE_WAR'),targetId:PlayerIdSchema}),
+]);
+export type PlannedAction=z.infer<typeof PlannedActionSchema>;
 const StrategicPlayerSchema = z.strictObject({
   playerId: PlayerIdSchema, civilization: IdentifierSchema.nullable(), era: AlphaEraSchema,
   resources:AlphaResourcePoolSchema.default(emptyAlphaResourcePool), legacyCulturalTrack:N.default(0),
   spentCommands: N, ready: z.boolean(), prestige: N, research: z.array(IdentifierSchema),
   hand: z.array(IdentifierSchema), ambitions: z.array(IdentifierSchema), completedAmbitions: z.array(IdentifierSchema), advisors: z.array(IdentifierSchema),
-  knownHexIds: z.array(HexIdSchema), orders: z.array(StrategicOrderSchema),
+  knownHexIds: z.array(HexIdSchema), orders: z.array(StrategicOrderSchema), plannedActions:z.array(PlannedActionSchema).default([]),
   victories: N, exploredRegions: N, foreignInfluence: N,
   contacts:z.array(PlayerIdSchema),abilityRound:N,
   /** Posture this civilization holds when attacked. Private until a battle reveals it. */
@@ -98,6 +106,13 @@ export const AlphaEventSchema = z.strictObject({
   id: IdentifierSchema, round: P, type: IdentifierSchema,
   audience: z.array(PlayerIdSchema).nullable(), message: z.string().max(1000),
 });
+export const ResolutionEventTypeSchema = z.enum(['MOVEMENT','EXPLORATION','FOUNDATION','PRODUCTION','CONSTRUCTION','RECRUITMENT','RESEARCH','TRADE','INFLUENCE','COMBAT','LOSSES','RETREAT','ADVANCE','FAILURE','ROUND_EVENT']);
+export const ResolutionEventSchema = z.strictObject({
+  id: IdentifierSchema, round: P, type: ResolutionEventTypeSchema, actorId: PlayerIdSchema.nullable(),
+  visibleTo: z.array(PlayerIdSchema).nullable(), message: z.string().max(1000),
+  hexId: HexIdSchema.optional(), cityId: CityIdSchema.optional(), unitIds: z.array(IdentifierSchema).default([]),
+});
+export type ResolutionEvent = z.infer<typeof ResolutionEventSchema>;
 export const AlphaStateSchema = z.strictObject({
   schemaVersion: z.literal(5), gameId: GameIdSchema, version: N,
   alphaVersion:z.literal('0.1.0-alpha.1').default('0.1.0-alpha.1'),
@@ -115,14 +130,20 @@ export const AlphaStateSchema = z.strictObject({
   cards:z.strictObject({worldDeck:z.array(IdentifierSchema),strategyDeck:z.array(IdentifierSchema),ambitionDeck:z.array(IdentifierSchema),advisorDeck:z.array(IdentifierSchema),discarded:z.array(IdentifierSchema),advisorMarket:z.array(IdentifierSchema),worldEvent:IdentifierSchema.nullable(),worldEventRound:N,worldResponded:z.array(PlayerIdSchema)}),
   projects:z.array(z.strictObject({projectId:IdentifierSchema,ownerId:PlayerIdSchema,cityId:CityIdSchema,completedRound:P})),
   cities:z.array(AlphaCitySchema).default([]),
+  cultureContests:z.array(z.strictObject({
+    id:IdentifierSchema,round:P,cityId:CityIdSchema,attackerCivilizationId:IdentifierSchema,defenderCivilizationId:IdentifierSchema,
+    attackDice:z.tuple([P.max(6),P.max(6)]),defenseDice:z.tuple([P.max(6),P.max(6)]),attackModifier:N,defenseModifier:N,
+    attackTotal:P,defenseTotal:P,winnerCivilizationId:IdentifierSchema,loserCivilizationId:IdentifierSchema,
+  })).default([]),
   tradeOffers:z.array(TradeOfferSchema).default([]),
   independents:z.array(IndependentPeopleSchema).default([]),
   raidBands:z.array(RaidBandSchema).default([]),
   worldPulse:z.strictObject({deck:z.array(IdentifierSchema),discard:z.array(IdentifierSchema),current:WorldPulseCardSchema.nullable(),resolvedRound:N}).default({deck:[],discard:[],current:null,resolvedRound:0}),
   roundLedgers:z.array(RoundLedgerSchema).default([]),
+  resolutionEvents:z.array(ResolutionEventSchema).default([]),
   telemetry:AlphaTelemetrySchema,
   roundReports:z.array(z.strictObject({playerId:PlayerIdSchema,round:P,opening:ResourcePoolSchema,institutions:ResourcePoolSchema,trade:ResourcePoolSchema,mining:ResourcePoolSchema.default(emptyResourcePool),production:ResourcePoolSchema.default(emptyResourcePool),other:ResourcePoolSchema.default(emptyResourcePool),losses:ResourcePoolSchema.default(emptyResourcePool),expenses:ResourcePoolSchema.default(emptyResourcePool),discarded:ResourcePoolSchema.default(emptyResourcePool),economy:EconomyBreakdownSchema.nullable(),upkeepRequired:ResourcePoolSchema,upkeepPaid:ResourcePoolSchema,closing:ResourcePoolSchema,
-    cities:z.array(z.strictObject({cityId:CityIdSchema,populationBefore:N,populationAfter:N,stabilityBefore:N,stabilityAfter:N})),administrativeLoad:N,administrativeCapacity:N})),
+    cities:z.array(z.strictObject({cityId:CityIdSchema,populationBefore:N,populationAfter:N,stabilityBefore:N,stabilityAfter:N})),administrativeLoad:N,administrativeCapacity:N,resolution:z.array(ResolutionEventSchema).default([])})),
   battles:z.array(z.strictObject({id:IdentifierSchema,round:P,hexId:HexIdSchema,attackerId:PlayerIdSchema,defenderId:PlayerIdSchema,
     attackerUnits:z.array(IdentifierSchema),defenderUnits:z.array(IdentifierSchema),
     attackerPosture:BattlePostureSchema.default('ASSAULT'),defenderPosture:BattlePostureSchema.default('HOLD'),
@@ -140,6 +161,14 @@ export const AlphaStateSchema = z.strictObject({
 }).superRefine((state, ctx) => {
   const fail = (message: string) => ctx.addIssue({ code: 'custom', message });
   const owners = new Set(state.core.players.map(p => p.id));
+  const civilizations = new Map(state.players.map(player => [player.playerId, player.civilization ?? state.cities.find(city => city.originalOwnerId === player.playerId)?.nativeIdentity]));
+  for(const city of state.cities){
+    const presenceIds=city.foreignPresence.map(presence=>presence.civilizationId);
+    if(new Set(presenceIds).size!==presenceIds.length)fail('Duplicate cultural presence');
+    const ownerCivilization=civilizations.get(city.currentOwnerId);
+    if(ownerCivilization!==null&&ownerCivilization!==undefined&&presenceIds.includes(ownerCivilization))fail('Owner cannot have foreign presence');
+    if(city.culturalAnchor!==null&&!city.foreignPresence.some(presence=>presence.civilizationId===city.culturalAnchor&&presence.level==='PREDOMINANT'))fail('Invalid cultural anchor');
+  }
   if(new Set(state.roundReports.map(r=>`${r.playerId}:${r.round}`)).size!==state.roundReports.length)fail('Duplicate round report');
   for(const report of state.roundReports){
     if(!owners.has(report.playerId)||report.round>state.core.round)fail('Invalid round report');
@@ -189,11 +218,13 @@ export const AlphaStateSchema = z.strictObject({
     if(player.research.some(id=>!ADVANCEMENTS.some(a=>a.id===id)))fail('Unknown advancement');
     for(const id of player.research){const node=ADVANCEMENTS.find(a=>a.id===id);if(!node)continue;if(node.prerequisites.some(p=>!player.research.includes(p))||node.excludes.some(p=>player.research.includes(p))||AlphaEraSchema.options.indexOf(node.era)>AlphaEraSchema.options.indexOf(player.era))fail('Illegal research prerequisites, exclusion or era');}
     if(player.contacts.some(id=>!owners.has(id)||id===player.playerId)||new Set(player.contacts).size!==player.contacts.length||player.abilityRound>state.core.round)fail('Invalid contact or ability timing');
-    for (const ids of [player.research, player.hand, player.ambitions, player.completedAmbitions, player.advisors, player.knownHexIds, player.orders.map(o => o.id)]) if (new Set(ids).size !== ids.length) fail('Duplicate exclusive player item');
+    for (const ids of [player.research, player.hand, player.ambitions, player.completedAmbitions, player.advisors, player.knownHexIds, [...player.orders.map(o => o.id),...player.plannedActions.map(action=>action.id)]]) if (new Set(ids).size !== ids.length) fail('Duplicate exclusive player item');
     if (player.knownHexIds.some(id => !hexes.has(id))) fail('Unknown knowledge coordinate');
     if (player.hand.length > state.rules.handLimit || player.advisors.length > state.rules.advisorLimit || state.units.filter(u => u.ownerId === player.playerId).length > state.rules.unitLimit) fail('Player component limit exceeded');
   }
   for (const event of state.events) if (event.round > state.core.round || event.audience?.some(id => !owners.has(id))) fail('Invalid event audience or round');
+  if(new Set(state.resolutionEvents.map(event=>event.id)).size!==state.resolutionEvents.length)fail('Duplicate resolution event');
+  for(const event of state.resolutionEvents)if(event.round>state.core.round||(event.actorId!==null&&!owners.has(event.actorId))||event.visibleTo?.some(id=>!owners.has(id)))fail('Invalid resolution event');
   for(const battle of state.battles) {
     if(!hexes.has(battle.hexId)||!owners.has(battle.attackerId)||!owners.has(battle.defenderId)||battle.attackerId===battle.defenderId||battle.round>state.core.round)fail('Invalid battle participants');
     const legacyAttack=battle.attackDice?battle.attackDice[0]+battle.attackDice[1]:0,legacyDefense=battle.defenseDice?battle.defenseDice[0]+battle.defenseDice[1]:0;
@@ -204,7 +235,7 @@ export const AlphaStateSchema = z.strictObject({
 });
 export type AlphaState = z.infer<typeof AlphaStateSchema>;
 export const AlphaCommandSchema = z.discriminatedUnion('type', [
-  z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),advancementId:IdentifierSchema.optional()}),
+  z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,planId:IdentifierSchema.optional(),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),advancementId:IdentifierSchema.optional()}),
   z.strictObject({type:z.literal('PROPOSE_TRADE'),expectedVersion:N,recipientId:PlayerIdSchema,offerType:z.enum(['TRADE_INSTANT','GIFT','FUTURE_PROMISE','LOAN']),offer:AlphaResourcePoolSchema,request:AlphaResourcePoolSchema,treatyTerms:z.array(IdentifierSchema).max(4),dueRound:P.nullable()}),
   z.strictObject({type:z.literal('RESPOND_TRADE'),expectedVersion:N,offerId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('CONTEST_PRESENCE'),expectedVersion:N,cityId:CityIdSchema,defenderCivilizationId:IdentifierSchema}),
@@ -216,10 +247,10 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('HIRE_ADVISOR'),expectedVersion:N,cardId:IdentifierSchema}),
   z.strictObject({type:z.literal('WORLD_CHOICE'),expectedVersion:N,choice:z.enum(['RESOURCE','PRESTIGE'])}),
   z.strictObject({type:z.literal('BUILD_PROJECT'),expectedVersion:N,projectId:IdentifierSchema,cityId:CityIdSchema}),
-  z.strictObject({type:z.literal('PROPOSE_TREATY'),expectedVersion:N,recipientId:PlayerIdSchema,treaty:TreatyTypeSchema,deal:ResourceDealSchema}),
+  z.strictObject({type:z.literal('PROPOSE_TREATY'),expectedVersion:N,planId:IdentifierSchema.optional(),recipientId:PlayerIdSchema,treaty:TreatyTypeSchema,deal:ResourceDealSchema}),
   z.strictObject({type:z.literal('RESPOND_TREATY'),expectedVersion:N,treatyId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('END_TREATY'),expectedVersion:N,treatyId:IdentifierSchema}),
-  z.strictObject({type:z.literal('DECLARE_WAR'),expectedVersion:N,targetId:PlayerIdSchema}),
+  z.strictObject({type:z.literal('DECLARE_WAR'),expectedVersion:N,planId:IdentifierSchema.optional(),targetId:PlayerIdSchema}),
   z.strictObject({type:z.literal('ADVANCE_ERA'),expectedVersion:N}),
   z.strictObject({type:z.literal('CIVILIZATION_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('LEADER_ABILITY'),expectedVersion:N}),
@@ -231,4 +262,20 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('READY'), expectedVersion: N }),
 ]);
 export type AlphaCommand = z.infer<typeof AlphaCommandSchema>;
+export const ActionClassSchema = z.enum(['MAIN', 'FREE', 'REACTION']);
+export type ActionClass = z.infer<typeof ActionClassSchema>;
+/** Exhaustive command classification shared by engine, projection and UI. Contextual exceptions stay in actionClassForCommand. */
+export const ACTION_CLASS = {
+  URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
+  SETTLE:'MAIN', DECLARE_HEGEMONY:'FREE', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
+  BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN', ADVANCE_ERA:'MAIN',
+  CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
+  CANCEL_ORDER:'FREE', READY:'FREE',
+} as const satisfies Record<AlphaCommand['type'], ActionClass>;
+
+export function actionClassForCommand(command:AlphaCommand,phase?:AlphaRoundPhase):ActionClass {
+  if(command.type==='PLAY_CARD'&&phase==='CONFLICTS')return 'REACTION';
+  if(command.type==='MANAGE'&&['ASSIGN_POPULATION','ASSIGN_WORKED_HEXES'].includes(command.command.type))return 'FREE';
+  return ACTION_CLASS[command.type];
+}
 export type AlphaError = { code: string; message: string };

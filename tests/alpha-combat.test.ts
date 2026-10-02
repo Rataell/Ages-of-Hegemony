@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, BattlePostureSchema, PlayerIdSchema, alphaCombatConfig, alphaRules, type AlphaUnit, type BattlePosture, type TacticalFace } from '@aoh/game-domain';
 import {
-  applyAlphaCommand, beginAlphaPlanning, combatPreview, createAlphaGame, createGame, institutionBonus, migrateSnapshotV3ToV4, resolveBattle, resolveBattleWithFaces, strengthSources, unitSupply,
+  applyAlphaCommand, beginAlphaPlanning, combatPreview, createAlphaGame, createGame, hexDistance, institutionBonus, migrateSnapshotV3ToV4, resolveBattle, resolveBattleWithFaces, setAlphaPhase, strengthSources, unitSupply,
 } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
-import { completeRound, must, readyAll } from './alpha-rounds.js';
+import { completeRound, must } from './alpha-rounds.js';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
 type Kind = AlphaUnit['kind'];
@@ -357,7 +357,7 @@ describe('defence posture command', () => {
     const own = alphaPlayerView(state, p1)!, other = alphaPlayerView(state, p2)!;
     expect(own.self.defensePosture).toBe('MANEUVER');
     expect(JSON.stringify(other)).not.toContain('"defensePosture":"MANEUVER"');
-    const urban = readyAll(state);
+    const urban = state;setAlphaPhase(urban,'URBAN_ACTIONS');
     expect(applyAlphaCommand(urban, p1, { type: 'SET_DEFENSE_POSTURE', expectedVersion: urban.version, posture: 'ASSAULT' })).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });
   });
 
@@ -372,7 +372,8 @@ describe('defence posture command', () => {
     state.wars = [[p1, p2]];
     const own = state.core.players[0]!.civilization.cities[0]!;
     state.units = [{ id: 'u1', ownerId: p1, kind: 'INFANTRY', hexId: own.hexId, recruitedRound: 1 }];
-    const neighbour = state.core.map.find(t => t.id !== own.hexId && !['SEA', 'UNKNOWN'].includes(t.terrain))!;
+    const origin = state.core.map.find(t => t.id === own.hexId)!;
+    const neighbour = state.core.map.find(t => t.id !== own.hexId && !['SEA', 'UNKNOWN'].includes(t.terrain) && hexDistance(origin, t) === 1)!;
     state.players[0]!.knownHexIds = state.core.map.map(t => t.id);
     state.units.push({ id: 'e1', ownerId: p2, kind: 'INFANTRY', hexId: neighbour.id, recruitedRound: 1 });
     state.players[0]!.orders = [{ id: 'atk', type: 'ATTACK', unitIds: ['u1'], target: neighbour.id, posture: 'ASSAULT' }];
@@ -389,7 +390,8 @@ describe('no duplication', () => {
     state.wars = [[p1, p2]];
     for (const player of state.players) player.contacts = [p1, p2].filter(id => id !== player.playerId);
     const own = state.core.players[0]!.civilization.cities[0]!;
-    const neighbour = state.core.map.find(t => t.id !== own.hexId && !['SEA', 'UNKNOWN'].includes(t.terrain))!;
+    const origin = state.core.map.find(t => t.id === own.hexId)!;
+    const neighbour = state.core.map.find(t => t.id !== own.hexId && !['SEA', 'UNKNOWN'].includes(t.terrain) && hexDistance(origin, t) === 1)!;
     state.units = [{ id: 'u1', ownerId: p1, kind: 'INFANTRY', hexId: own.hexId, recruitedRound: 1 }, { id: 'e1', ownerId: p2, kind: 'INFANTRY', hexId: neighbour.id, recruitedRound: 1 }];
     state.players.forEach(p => { p.knownHexIds = state.core.map.map(t => t.id); });
     const command = { type: 'QUEUE_ORDER', order: { id: 'atk', type: 'ATTACK', unitIds: ['u1'], target: neighbour.id, posture: 'ASSAULT' } };

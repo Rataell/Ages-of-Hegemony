@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { completeRound, must, readyAll } from './alpha-rounds.js';
-import { AlphaStateSchema, emptyResourcePool, type AlphaCommand, type AlphaState } from '@aoh/game-domain';
+import { completeRound, must } from './alpha-rounds.js';
+import { AlphaStateSchema, alphaToLegacyResources, emptyResourcePool, type AlphaCommand, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, atWar, beginAlphaPlanning, createGame, maintainTrade, migrateSnapshotV3ToV4, settleTreaties } from '@aoh/game-engine';
 
 function setup():AlphaState {
@@ -20,6 +20,13 @@ function treaty(state:AlphaState,a=0,b=1,type:AlphaState['treaties'][number]['ty
   state.treaties.push({id:`t-${state.treaties.length}`,proposerId:state.players[a]!.playerId,recipientId:state.players[b]!.playerId,type,status:'ACTIVE',deal:{give:emptyResourcePool(),receive:emptyResourcePool()},createdRound:1,expiresRound:4});
 }
 describe('alpha diplomatic commitments',()=>{
+  it('refuses an unaffordable treaty reservation atomically without escrow',()=>{
+    const state=setup();state.players[0]!.resources.wealth=0;state.core.players[0]!.resources=alphaToLegacyResources(state.players[0]!.resources);
+    const before=structuredClone(state);
+    const result=applyAlphaCommand(state,state.players[0]!.playerId,{type:'PROPOSE_TREATY',expectedVersion:state.version,recipientId:state.players[1]!.playerId,treaty:'TRADE_AGREEMENT',deal:{give:{...emptyResourcePool(),wealth:1},receive:emptyResourcePool()}});
+    expect(result).toMatchObject({ok:false,error:{code:'RULE_FAILURE',message:'Recursos insuficientes para oferecer este acordo.'}});
+    expect(state).toEqual(before);
+  });
   it('validates both sides before exchanging resources and rejects unaffordable accepted deals atomically',()=>{
     const state=setup();treaty(state);const t=state.treaties[0]!;t.status='ACCEPTED';
     t.deal.give.wealth=5;t.deal.receive.materials=999;
@@ -34,7 +41,8 @@ describe('alpha diplomatic commitments',()=>{
     let state=setup();state.rules.treatyDuration=7;const original=structuredClone(state);
     const result=applyAlphaCommand(state,state.players[0]!.playerId,{type:'PROPOSE_TREATY',expectedVersion:0,recipientId:state.players[1]!.playerId,treaty:'OPEN_BORDERS',deal:{give:emptyResourcePool(),receive:emptyResourcePool()}});
     if(!result.ok)throw new Error(result.error.message);state=result.value;
-    expect(original.treaties).toHaveLength(0);expect(state.treaties[0]!.expiresRound).toBe(8);
+    expect(original.treaties).toHaveLength(0);expect(state.players[0]!.plannedActions).toHaveLength(1);
+    state=completeRound(state);expect(state.treaties[0]!.expiresRound).toBe(8);
     const command={type:'RESPOND_TREATY',expectedVersion:state.version,treatyId:state.treaties[0]!.id,accept:true};
     expect(applyAlphaCommand(state,state.players[2]!.playerId,command).ok).toBe(false);
     expect(applyAlphaCommand(state,state.players[1]!.playerId,command).ok).toBe(true);
@@ -42,6 +50,7 @@ describe('alpha diplomatic commitments',()=>{
   it('calls only direct defensive partners when war is declared',()=>{
     let state=setup();treaty(state,1,2,'DEFENSIVE_PACT');treaty(state,0,2,'NON_AGGRESSION_PACT');
     state=run(state,0,{type:'DECLARE_WAR',targetId:state.players[1]!.playerId} as AlphaCommand);
+    state=completeRound(state);
     expect(atWar(state,state.players[0]!.playerId,state.players[1]!.playerId)).toBe(true);
     expect(atWar(state,state.players[0]!.playerId,state.players[2]!.playerId)).toBe(true);
     expect(state.treaties[1]!.status).toBe('ENDED');expect(state.treaties[0]!.status).toBe('ACTIVE');
@@ -54,13 +63,13 @@ describe('alpha diplomatic commitments',()=>{
     state.routes.push({id:'route1',ownerId:a,fromCityId:origin,toCityId:state.core.players[1]!.civilization.cities[0]!.id,path:state.core.map.slice(0,5).map(t=>t.id),suspended:false});
     const before=state.core.players.map(p=>p.resources.wealth);maintainTrade(state);
     expect(state.core.players.map(p=>p.resources.wealth)).toEqual(before);
-    state=readyAll(state);expect(state.phase).toBe('URBAN_ACTIONS');
     state=must(state,a,{type:'URBAN_ACTION',cityId:origin,action:'SUPPORT_TRADE'});
-    expect(state.core.players[0]!.resources.wealth).toBe(before[0]!+4);expect(state.core.players[1]!.resources.wealth).toBe(before[1]!+3);
-    expect(state.roundLedgers.find(l=>l.playerId===a)!.trade.wealth).toBe(4);
+    expect(state.core.players[0]!.resources.wealth).toBe(before[0]);
+    state=completeRound(state);
+    expect(state.roundReports.find(report=>report.playerId===a&&report.round===1)!.trade.wealth).toBe(4);
+    expect(state.roundReports.find(report=>report.playerId===b&&report.round===1)!.trade.wealth).toBe(3);
     state.wars=[[a,b]];maintainTrade(state);
     expect(state.routes[0]!.suspended).toBe(true);
-    state.cities.find(c=>c.cityId===origin)!.urbanActionsUsed=0;
     expect(applyAlphaCommand(state,a,{type:'URBAN_ACTION',expectedVersion:state.version,cityId:origin,action:'SUPPORT_TRADE'})).toMatchObject({ok:false,error:{code:'RULE_FAILURE'}});
   });
   it('resolves envoy influence only after ready and prevents repeated farming of one city',()=>{

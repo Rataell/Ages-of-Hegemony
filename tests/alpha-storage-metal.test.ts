@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, PlayerIdSchema, REGION_TEMPLATES, alphaRules, templateMetalDeposit, type AlphaState } from '@aoh/game-domain';
 import {
-  alphaGain, alphaGainLegacy, alphaStorageCapacity, beginAlphaPlanning, leaderStorageBonus, createAlphaGame, metalSites,
+  alphaGain, alphaGainLegacy, alphaStorageCapacity, beginAlphaPlanning, leaderStorageBonus, createAlphaGame, hexDistance, metalSites,
 } from '@aoh/game-engine';
 import { completeRound, must, readyAll, urban } from './alpha-rounds.js';
 
@@ -13,7 +13,8 @@ const pool = (state: AlphaState) => state.players[0]!.resources;
 function mineSite(state: AlphaState, options: { deposit?: boolean; mine?: boolean; terrain?: 'HILLS' | 'MOUNTAINS' | 'PLAINS' } = {}) {
   const { deposit = true, mine = true, terrain = 'HILLS' } = options;
   const owner = state.core.players[0]!, city = owner.civilization.cities[0]!;
-  const tile = state.core.map.find(t => t.terrain !== 'SEA' && t.terrain !== 'UNKNOWN' && !owner.civilization.cities.some(c => c.hexId === t.id) && t.id !== city.hexId)!;
+  const center=state.core.map.find(tile=>tile.id===city.hexId)!;
+  const tile = state.core.map.find(t => t.terrain !== 'SEA' && t.terrain !== 'UNKNOWN' && !owner.civilization.cities.some(c => c.hexId === t.id) && hexDistance(center,t)===1)!;
   tile.terrain = terrain; tile.features = deposit ? ['METAL'] : []; tile.improvement = mine ? 'MINE' : null;
   tile.ownerId = p1; tile.controllerCityId = city.id;
   city.workedHexIds = [tile.id]; city.workers.producers = Math.max(1, city.workers.producers);
@@ -54,12 +55,12 @@ describe('metal production', () => {
     expect(metalSites(state, p1)).toEqual([{ cityId: city.id, hexId: tile.id }]);
     let round = beginAlphaPlanning(state);
     const before = round.players[0]!.resources.metal;
-    round = readyAll(round);
-    expect(round.phase).toBe('URBAN_ACTIONS');
-    expect(round.players[0]!.resources.metal).toBe(before);
     round = must(round, p1, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
+    expect(round.players[0]!.resources.metal).toBe(before);
+    round = readyAll(round);
+    expect(round.phase).toBe('PLANNING');
     expect(round.players[0]!.resources.metal).toBe(before + round.rules.balance.metalPerMine);
-    expect(round.roundLedgers.find(l => l.playerId === p1)!.mining.materials).toBe(round.rules.balance.metalPerMine);
+    expect(round.roundReports.find(report=>report.playerId===p1&&report.round===1)!.mining.materials).toBe(round.rules.balance.metalPerMine);
     expect(round.core.players[0]!.resources.materials).toBe(round.players[0]!.resources.wood + round.players[0]!.resources.stone + round.players[0]!.resources.metal);
   });
 

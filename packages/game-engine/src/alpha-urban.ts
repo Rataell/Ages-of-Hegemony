@@ -1,5 +1,5 @@
 import {
-  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, RESOURCE_KEYS, emptyAlphaResourcePool, legacyToAlphaResources,
+  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, RESOURCE_KEYS, cityLevelForPopulation, emptyAlphaResourcePool, legacyToAlphaResources,
   type AlphaCommand, type AlphaResourcePool, type AlphaState, type PlayerId, type ResourcePool,
 } from '@aoh/game-domain';
 import { applyCommand } from './engine.js';
@@ -9,7 +9,8 @@ import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
 import { applyRecurringEffects, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
-import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, commitLegacyReducer, metalSites } from './alpha-resources.js';
+import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment, metalSites } from './alpha-resources.js';
+import { alphaActionUsage } from './alpha-actions.js';
 
 type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
 
@@ -21,6 +22,7 @@ export function syncCityMetadata(state: AlphaState): void {
     if (!city) continue;
     meta.districts = [...meta.districts.filter(item => !coreDistricts.has(item)), ...city.districts.map(item => item.type)];
     meta.buildings = [...meta.buildings.filter(item => !coreBuildings.has(item)), ...city.buildings.map(item => item.type)];
+    meta.level = cityLevelForPopulation(city.population);
   }
 }
 
@@ -31,14 +33,18 @@ interface UrbanParams { build?: BuildTarget; unit?: UrbanCommand['unit']; advanc
 
 /** Gates every urban action shares: phase, readiness, ownership, occupation and remaining city actions. */
 function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction): string | null {
-  if (state.phase !== 'URBAN_ACTIONS') return 'Disponível apenas na fase Ações urbanas.';
+  if (state.phase !== 'PLANNING'&&state.phase !== 'URBAN_ACTIONS') return 'Disponível apenas no Planejamento.';
   if (state.players.find(player => player.playerId === actor)?.ready) return 'Suas decisões já estão confirmadas para esta fase.';
+  const actions=alphaActionUsage(state,actor);
+  if(actions.used>=actions.limit)return 'Sem ações principais disponíveis nesta rodada.';
   const meta = state.cities.find(candidate => candidate.cityId === cityId);
   const city = state.core.players.find(player => player.id === actor)?.civilization.cities.find(candidate => candidate.id === cityId);
   if (!meta || !city || meta.currentOwnerId !== actor) return 'Escolha uma cidade própria.';
   const occupied = meta.status === 'OCCUPIED' || state.occupations.some(occupation => occupation.cityId === cityId);
   if (occupied && action !== 'CIVIC_ACTION') return 'Cidade ocupada: apenas a Ação Cívica de integração está disponível.';
-  if (meta.urbanActionsUsed >= state.rules.balance.cityActions) return 'Esta cidade já usou sua ação urbana nesta rodada.';
+  const planned=state.players.find(player=>player.playerId===actor)?.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.cityId===cityId).length??0;
+  if(state.phase==='PLANNING'&&planned>=state.rules.balance.cityActions)return 'Esta cidade já possui sua ação planejada para esta rodada.';
+  if (state.phase==='URBAN_ACTIONS'&&meta.urbanActionsUsed >= state.rules.balance.cityActions) return 'Esta cidade já usou sua ação urbana nesta rodada.';
   return null;
 }
 
@@ -130,10 +136,10 @@ const listOf = (pool: Record<string, number>) => Object.entries(pool).filter(([,
 
 export interface UrbanOption {
   action: UrbanAction; build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string;
-  cost: AlphaResourcePool; effect: string; blocked: string | null;
+  actionClass:'MAIN'; cost: AlphaResourcePool; effect: string; blocked: string | null;
 }
 function option(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction, params: UrbanParams, effect: string): UrbanOption {
-  return { action, ...params, cost: urbanCost(state, actor, cityId, action, params), effect, blocked: urbanBlock(state, actor, cityId, action, params) };
+  return { action, ...params, actionClass:'MAIN', cost: urbanCost(state, actor, cityId, action, params), effect, blocked: urbanBlock(state, actor, cityId, action, params) };
 }
 
 /** Every urban option for the player's cities (plus research, which is not city-specific), with cost, effect and the reason it is blocked. */
@@ -165,7 +171,7 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     .map(node => ({
       ...option(state, actor, firstCity, 'RESEARCH', { advancementId: node.id }, node.effect.kind === 'PRODUCTION' ? `+${node.effect.amount} ${RESOURCE_LABEL[node.effect.resource]} por rodada, na manutenção` : `Bônus permanente de ${node.effect.kind}`),
       // Research is not tied to one city: the client adds the selected city's own gate (actions left, occupation).
-      blocked: (state.phase !== 'URBAN_ACTIONS' ? 'Disponível apenas na fase Ações urbanas.' : progress.ready ? 'Suas decisões já estão confirmadas para esta fase.' : researchBlock(state, actor, node.id)),
+      blocked: (state.phase !== 'PLANNING' ? 'Disponível apenas no Planejamento.' : progress.ready ? 'Suas decisões já estão confirmadas para esta fase.' : alphaActionUsage(state,actor).used>=alphaActionUsage(state,actor).limit ? 'Sem ações principais disponíveis nesta rodada.' : researchBlock(state, actor, node.id)),
     }));
   return { cities, research };
 }
@@ -221,14 +227,12 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
         meta.fortification = { level: next, state: 'INTACT' };
         message = `${city.name} recebeu a fortificação ${next}.`;
       } else {
-        const legacyBefore = { ...owner.resources };
         const built = command.build.kind === 'DISTRICT'
           ? { type: 'BUILD_DISTRICT' as const, playerId: actor, cityId: city.id, district: command.build.district, expectedVersion: state.core.version }
           : { type: 'BUILD_BUILDING' as const, playerId: actor, cityId: city.id, building: command.build.building, expectedVersion: state.core.version };
-        const result = applyCommand(state.core, built);
+        const result = applyCommand(state.core, built, alphaResourcePayment(state));
         if (!result.ok) throw new Error(result.error.message);
         state.core = result.value;
-        commitLegacyReducer(state, actor, legacyBefore);
         syncCityMetadata(state);
         message = `${city.name} concluiu uma construção.`;
       }

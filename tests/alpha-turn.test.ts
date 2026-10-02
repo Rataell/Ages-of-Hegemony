@@ -40,8 +40,10 @@ describe('alpha core turn and finish',()=>{
     const state=setup();const result=applyAlphaCommand(state,p1,{type:'MANAGE',expectedVersion:0,command:{type:'DEVELOP_CITY',playerId:p1,cityId:'c1',expectedVersion:0}});
     expect(result.ok).toBe(true);if(!result.ok)return;
     expect(result.value.core.players[0]?.resources.materials).toBe(25);expect(result.value.players[0]?.spentCommands).toBe(1);
-    result.value.players[0]!.spentCommands=4;
-    expect(applyAlphaCommand(result.value,p1,{type:'MANAGE',expectedVersion:1,command:{type:'DEVELOP_CITY',playerId:p1,cityId:'c1',expectedVersion:0}})).toMatchObject({ok:false,error:{code:'COMMAND_LIMIT'}});
+    result.value.players[0]!.spentCommands=result.value.rules.actionsPerRound!;
+    const before=serializeAlphaState(result.value);
+    expect(applyAlphaCommand(result.value,p1,{type:'MANAGE',expectedVersion:result.value.version,command:{type:'DEVELOP_CITY',playerId:p1,cityId:'c1',expectedVersion:result.value.core.version}})).toMatchObject({ok:false,error:{code:'ACTION_LIMIT',message:'Sem ações principais disponíveis nesta rodada.'}});
+    expect(serializeAlphaState(result.value)).toBe(before);
   });
   it('never accepts a scheduler command through the player management envelope',()=>{
     const state=setup();expect(applyAlphaCommand(state,p1,{type:'MANAGE',expectedVersion:0,command:{type:'ADVANCE_PHASE',nextPhase:'RESOLUTION',expectedVersion:state.core.version}})).toMatchObject({ok:false,error:{code:'FORBIDDEN'}});

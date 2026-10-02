@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { PlayerIdSchema, alphaToLegacyResources, type AlphaState } from '@aoh/game-domain';
 import {
   alphaCanAfford, alphaCost, alphaDrain, alphaGainLegacy, alphaPay, applyAlphaCommand, beginAlphaPlanning,
-  commitLegacyReducer, createAlphaGame,
+  createAlphaGame, setAlphaPhase,
 } from '@aoh/game-engine';
-import { readyAll, urban } from './alpha-rounds.js';
+import { urban } from './alpha-rounds.js';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 
 const p1 = PlayerIdSchema.parse('p1');
@@ -15,7 +15,7 @@ const inSync = (state: AlphaState) => state.players.every((p, i) => JSON.stringi
 
 describe('seven-resource authority', () => {
   it('keeps production after a later purchase', () => {
-    const state = readyAll(setup());
+    const state = setup(); setAlphaPhase(state, 'URBAN_ACTIONS');
     expect(inSync(state)).toBe(true);
     const knowledge = pool(state).knowledge;
     const result = urban(state, p1, 'RESEARCH', { advancementId: 'adv-1-1-1' });
@@ -68,30 +68,28 @@ describe('seven-resource authority', () => {
     expect(inSync(state)).toBe(true);
   });
 
-  it('routes a legacy reducer spend and gain through the seven-resource pool', () => {
-    const state = setup();
-    const before = { ...legacy(state) };
-    state.core.players[0]!.resources = { ...before, wealth: before.wealth - 4, knowledge: before.knowledge + 3, materials: before.materials - 2 };
-    commitLegacyReducer(state, p1, before);
-    expect(pool(state).wealth).toBe(before.wealth - 4);
-    expect(pool(state).knowledge).toBe(before.knowledge + 3);
-    expect(pool(state).wood + pool(state).stone + pool(state).metal).toBe(before.materials - 2);
-    expect(inSync(state)).toBe(true);
-  });
-
-  it('keeps both pools in sync through management commands', () => {
+  it('makes management read and charge the seven-resource authority', () => {
     const state = setup();
     const city = state.core.players[0]!.civilization.cities[0]!;
+    Object.assign(pool(state), { food: 100, wood: 100, stone: 100, metal: 0, wealth: 100, knowledge: 100, influence: 100 });
+    Object.assign(legacy(state), { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 });
+    const before = { ...pool(state) };
     const result = applyAlphaCommand(state, p1, { type: 'MANAGE', expectedVersion: state.version, command: { type: 'DEVELOP_CITY', playerId: p1, cityId: city.id, expectedVersion: state.core.version } });
-    if (result.ok) expect(inSync(result.value)).toBe(true);
-    else expect(inSync(state)).toBe(true);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.players[0]!.resources).not.toEqual(before);
+    expect(inSync(result.value)).toBe(true);
   });
 });
 
 describe('client projection envelope', () => {
   it('announces the v5 schema', () => {
     const state = setup();
-    expect(alphaPlayerView(state, p1)!.schemaVersion).toBe(5);
+    const view = alphaPlayerView(state, p1)!;
+    expect(view.schemaVersion).toBe(5);
+    expect(view.costs.founding).toEqual(alphaCost(state.core.config.territory.foundingCost, state.players[0]!.resources));
+    expect(view.costs.founding).not.toHaveProperty('materials');
+    expect(view.costs.projects['archive-of-horizons']).not.toHaveProperty('materials');
     expect(state.schemaVersion).toBe(5);
   });
 });
