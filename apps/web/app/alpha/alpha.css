@@ -329,3 +329,12 @@ button.alpha-card { text-align: left; }
 /* A pending decision in another area: a small dot on its tab (text for screen readers). */
 .alpha-tab-alert { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--warning); vertical-align: 2px; }
 .alpha-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Rules summary. */
+.alpha-guide { width: min(720px, 100%); }
+.alpha-guide h3 { margin: 18px 0 6px; font-size: 15px; }
+.alpha-guide p, .alpha-guide li { font-size: 14px; line-height: 1.5; color: var(--text-secondary); }
+.alpha-guide b { color: var(--text-primary); }
+.alpha-guide ol, .alpha-guide ul { padding-left: 20px; display: grid; gap: 4px; }
+.alpha-guide > button { margin-top: 16px; }
+.alpha-guide-button { white-space: nowrap; }
