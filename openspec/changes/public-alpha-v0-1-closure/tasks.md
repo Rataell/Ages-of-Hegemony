@@ -42,8 +42,8 @@
 ## 6. F. World systems
 
 - [x] 6.1 Implement the world pulse draw, apply, discard and deterministic reshuffle; gate: determinism and exhaustion tests in `tests/alpha-phases.test.ts`. Catalog unchanged: 24 single-module cards.
-- [ ] 6.2 Implement `INDEPENDENT_ACTION` for trade, negotiate, influence, protect, integrate, conquer with fog-safe results; gate: independent-people tests.
-- [ ] 6.3 Implement raid-band movement and attacks; gate: deterministic raid test.
+- [x] 6.2 Implement `INDEPENDENT_ACTION` for trade, negotiate, influence, protect, integrate, conquer with fog-safe results; gate: independent-people tests. Peoples are placed in contested ground for 2–6 seats; the projection lists each action with cost and the exact missing condition (dry run); `tests/alpha-independents.test.ts`.
+- [x] 6.3 Implement raid-band movement and attacks; gate: deterministic raid test. Bands start in the wilderness and are projected only inside current vision; `tests/alpha-raids.test.ts`.
 - [ ] 6.4 Implement `PROPOSE_TRADE` and `RESPOND_TRADE` for the four offer types, with settle and default; gate: trade tests.
 - [ ] 6.5 Sever or suspend routes on capture and war; gate: route tests.
 
@@ -58,9 +58,9 @@
 
 ## 8. H. UI and playability
 
-- [ ] 8.1 Show seven resources, storage limits, city level, mood, integration and fortification; gate: component test and 1440 screenshot.
+- [ ] 8.1 Show seven resources, storage limits, city level, mood, integration and fortification; gate: component test and 1440 screenshot. Done: seven resources with warehouse gauges in the top bar, growth meter and food balance per city. Open: city level, mood, integration and fortification in the city panel.
 - [x] 8.2a Urban controls for every urban action (PRODUCE, BUILD district/building/fortification, RECRUIT, RESEARCH, PROMOTE_MOOD, SUPPORT_TRADE, CIVIC_ACTION) in one panel, with no legacy control left for the same actions; gate: E2E `alpha-play` (produce, build, recruit, research).
-- [ ] 8.2b Add controls for trade offers, independent-people actions, cultural contests and posture once their rules exist (F, E, D); gate: coverage test comparing commands with controls.
+- [ ] 8.2b Add controls for trade offers, independent-people actions, cultural contests and posture once their rules exist (F, E, D); gate: coverage test comparing commands with controls. Done: independent-people actions (Território inspector), attack and defence posture. Open: trade offers (`PROPOSE_TRADE` not implemented; treaty deals carry resources meanwhile) and cultural contests (`CONTEST_PRESENCE`).
 - [x] 8.3 Show costs, missing resources and reasons before commitment for urban actions: cost, effect, requirements, actions left and the exact block reason come from the server preview (`urbanOptions`), which shares its validators with the action and is tested for parity; gate: `tests/alpha-urban-options.test.ts`, E2E `alpha-play` disabled-state assertions. Other commands (treaties, cards, projects) still show costs only.
 - [x] 8.7 Converge `/alpha` gameplay onto the slice shell (`.game-shell`, `.top-bar`, `.main-nav`, `.play-layout`, `.civilization-panel`, `.world-column`, `.context-inspector`, `.action-bar` from `style.css`), group own pieces by hex and class, keep attack posture contextual, move defence posture out of the piece list and fold combat preview into a summary with an expandable breakdown; gate: E2E and 1440/1280/390 screenshots in `docs/evidence/alpha-convergence`.
 - [ ] 8.4 Show round report, world pulse and battle detail with modifier sources; gate: E2E battle scenario.
