@@ -46,7 +46,7 @@ describe('alpha era milestones', () => {
     advanceEra(state, state.players[0]!.playerId);
     expect(state.players[0]!.era).toBe('HEGEMONY');
     expect(eraMilestones(state, state.players[0]!.playerId).next).toBeNull();
-    expect(() => advanceEra(state, state.players[0]!.playerId)).toThrow('Hegemonia');
+    expect(() => advanceEra(state, state.players[0]!.playerId)).toThrow('Ascensão');
   });
 
   it('lets a specialised player advance without meeting every criterion', () => {
