@@ -277,7 +277,8 @@ button.alpha-card { text-align: left; }
 .alpha-unready { white-space: nowrap; }
 
 /* Diplomacy: one card per civilization. */
-.alpha-relations { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; margin: 14px 0 22px; }
+.alpha-relations { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; margin: 14px 0 22px; align-items: start; }
+.alpha-relation header h3 small { display: block; margin-top: 2px; font-size: 12px; letter-spacing: .04em; color: var(--text-secondary); text-transform: none; }
 .alpha-relation header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .alpha-relation header h3 { margin: 0; }
 .alpha-relation.is-war { border-color: var(--danger, #d9776b); }

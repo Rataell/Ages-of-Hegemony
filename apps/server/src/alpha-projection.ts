@@ -1,5 +1,5 @@
 import { ACTION_CLASS, ADVANCEMENTS, GREAT_PROJECTS, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -22,7 +22,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     independents:independentPeopleView(state,actor),
     raidBands:raidBandView(state,actor),
     leaderBlock:leaderAbilityBlock(state,actor),
-    stacks:stackView(state,actor),unitOptions:alphaUnitOptions(state,actor),
+    stacks:stackView(state,actor),unitOptions:alphaUnitOptions(state,actor),claimOptions:alphaClaimOptions(state,actor),
     /** While reactions are open, the defender learns who attacks which of its hexes (never the force or posture). */
     incomingAttacks:state.phase==='CONFLICTS'?pendingAttacks(state).filter(attack=>attack.defenderId===actor).map(({attackerId,target})=>({attackerId,target})):[],
     orderPreviews:Object.fromEntries(progress.orders.flatMap(order=>order.type==='ATTACK'?[[order.id,combatPreview(state,actor,order)] as const]:[])),
@@ -40,7 +40,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     hegemony:hegemonyProgress(state,actor),
     declarations:state.players.filter(p=>p.hegemony!==null).map(p=>({playerId:p.playerId,...p.hegemony})),
     worldEvent:state.cards.worldEvent,worldDecisionPending:!state.cards.worldResponded.includes(actor),advisorMarket:state.cards.advisorMarket,projects:state.projects,
-    players:state.core.players.map(p=>({id:p.id,name:p.name,ready:state.players.find(s=>s.playerId===p.id)!.ready,prestige:state.players.find(s=>s.playerId===p.id)!.prestige,era:state.players.find(s=>s.playerId===p.id)!.era})),
+    players:state.core.players.map(p=>({id:p.id,name:p.name,civilization:state.players.find(s=>s.playerId===p.id)!.civilization,ready:state.players.find(s=>s.playerId===p.id)!.ready,prestige:state.players.find(s=>s.playerId===p.id)!.prestige,era:state.players.find(s=>s.playerId===p.id)!.era})),
     initiative:state.initiative,winner:state.winner,
     /** Only once the match is over: the ranking and the tie-break figures behind it, for everyone. */
     finalStandings:state.winner?prestigeRanking(state).map(id=>{const progress=state.players.find(p=>p.playerId===id)!,owner=state.core.players.find(p=>p.id===id)!;return {playerId:id,name:owner.name,civilization:progress.civilization,prestige:progress.prestige,research:progress.research.length,population:owner.civilization.cities.reduce((total,city)=>total+city.population,0),wealth:progress.resources.wealth,cities:owner.civilization.cities.length,hegemony:progress.hegemony?.path??null};}):[],

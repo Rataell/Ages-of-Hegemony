@@ -5,6 +5,8 @@ import { bordersOpen } from './alpha-diplomacy.js';
 import { institutionBonus } from './alpha-institutions.js';
 import { stackBlock } from './alpha-stack.js';
 import { settleWithPioneer } from './alpha-cities.js';
+import { applyCommand } from './engine.js';
+import { alphaCanAfford } from './alpha-resources.js';
 
 export interface AlphaUnitOptions {
   /** Cheapest legal MOVE path (origin excluded) to every hex the piece can reach this round. */
@@ -69,4 +71,21 @@ function explorable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: M
 function settleBlock(state: AlphaState, actor: PlayerId, unit: AlphaUnit): string | null {
   try { settleWithPioneer(structuredClone(state), actor, unit.id, 'Prévia'); return null; }
   catch (error) { return error instanceof Error ? error.message : 'Fundação indisponível.'; }
+}
+
+/**
+ * Hexes each own city can claim now, by dry-running the shared CLAIM_HEX rule (radius, free land, connection, cost) with
+ * a payment that only checks the seven-resource pool. Occupied cities are left out: their territory is frozen.
+ */
+export function alphaClaimOptions(state: AlphaState, actor: PlayerId): Record<string, string[]> {
+  const player = state.core.players.find(candidate => candidate.id === actor);
+  if (!player) return {};
+  const options: Record<string, string[]> = {};
+  const free = state.core.map.filter(tile => tile.ownerId === null && tile.terrain !== 'SEA' && tile.terrain !== 'UNKNOWN');
+  for (const city of player.civilization.cities) {
+    if (state.occupations.some(occupation => occupation.cityId === city.id)) continue;
+    const center = state.core.map.find(tile => tile.id === city.hexId)!, radius = state.core.config.territory.cityRadii[city.development - 1] ?? 0;
+    options[city.id] = free.filter(tile => hexDistance(center, tile) <= radius).filter(tile => applyCommand(state.core, { type: 'CLAIM_HEX', playerId: actor, cityId: city.id, hexId: tile.id, expectedVersion: state.core.version }, (_, cost) => alphaCanAfford(state, actor, cost)).ok).map(tile => tile.id).sort();
+  }
+  return options;
 }

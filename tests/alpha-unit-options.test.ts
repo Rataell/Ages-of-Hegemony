@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CIVILIZATIONS, PlayerIdSchema, REGION_TEMPLATES } from '@aoh/game-domain';
-import { alphaUnitOptions, beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, hexId, hexNeighbors, orderMessage, settleWithPioneer, urbanActionMessage, validateExploration, validateMilitaryOrder } from '@aoh/game-engine';
+import { alphaClaimOptions, alphaUnitOptions, applyAlphaCommand as apply, beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, hexId, hexNeighbors, orderMessage, settleWithPioneer, urbanActionMessage, validateExploration, validateMilitaryOrder } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 
 function setup(count = 2, seed = 23) {
@@ -123,5 +123,21 @@ describe('withdrawing READY', () => {
     expect(state.players.find(player => player.playerId === a)!.ready).toBe(false);
     expect(state.phase).toBe('PLANNING');
     expect(run({ type: 'CANCEL_ORDER', orderId: 'none' }).ok).toBe(true);
+  });
+});
+
+describe('claim options', () => {
+  it('offers exactly the hexes a city can claim through MANAGE CLAIM_HEX', () => {
+    const state = setup(), actor = state.players[0]!.playerId, city = state.core.players[0]!.civilization.cities[0]!;
+    state.players[0]!.ambitionsChosen = true;
+    const offered = alphaClaimOptions(state, actor)[city.id]!;
+    expect(offered.length).toBeGreaterThan(0);
+    const center = state.core.map.find(tile => tile.id === city.hexId)!;
+    for (const tile of state.core.map.filter(candidate => hexDistance(candidate, center) <= 3)) {
+      const result = apply(state, actor, { type: 'MANAGE', expectedVersion: state.version, command: { type: 'CLAIM_HEX', playerId: actor, cityId: city.id, hexId: tile.id, expectedVersion: state.core.version } });
+      expect(result.ok, tile.id).toBe(offered.includes(tile.id));
+    }
+    state.players[0]!.resources.influence = 0;
+    expect(alphaClaimOptions(state, actor)[city.id]).toEqual([]);
   });
 });
