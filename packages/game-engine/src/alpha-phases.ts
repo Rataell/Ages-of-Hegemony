@@ -53,6 +53,7 @@ export const LEGAL_COMMANDS: Readonly<Record<AlphaRoundPhase, ReadonlySet<Comman
   END_ROUND: new Set(),
 };
 
+const PULSE_RESOURCE_NAMES = { FOOD: 'Alimento', WOOD: 'Madeira', STONE: 'Pedra', METAL: 'Metal', WEALTH: 'Riqueza', KNOWLEDGE: 'Conhecimento', INFLUENCE: 'Influência' } as const;
 const RESOURCE_OF_MODULE = { FOOD: 'food', WOOD: 'wood', STONE: 'stone', METAL: 'metal', WEALTH: 'wealth', KNOWLEDGE: 'knowledge', INFLUENCE: 'influence' } as const;
 
 function viewersAt(state:AlphaState,hexId:string,always:readonly PlayerId[]=[]):PlayerId[]{
@@ -78,8 +79,10 @@ function drawWorldPulse(state: AlphaState): void {
     }
   }
   state.telemetry.worldPulseEvents += 1;
-  alphaEvent(state, 'WORLD_PULSE', `Pulso do mundo: ${card.name}.`);
-  resolutionEvent(state,{type:'ROUND_EVENT',actorId:null,visibleTo:null,message:`Pulso do mundo: ${card.name}.`,unitIds:[]});
+  const effects = card.modules.filter(module => module.resource !== null && module.amount !== 0).map(module => `${module.amount > 0 ? '+' : '−'}${Math.abs(module.amount)} ${PULSE_RESOURCE_NAMES[module.resource!]}`);
+  const message = `Pulso do mundo: ${card.name} — ${effects.length ? `${effects.join(', ')} para todas as civilizações` : 'sem efeito nos recursos'}.`;
+  alphaEvent(state, 'WORLD_PULSE', message);
+  resolutionEvent(state,{type:'ROUND_EVENT',actorId:null,visibleTo:null,message,unitIds:[]});
 }
 
 /**
