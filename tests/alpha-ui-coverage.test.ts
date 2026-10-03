@@ -24,8 +24,14 @@ describe('alpha interface coverage (closed alpha)', () => {
     for (const type of sent) expect(alphaTypes.has(type), `${type} is not a schema command`).toBe(true);
   });
 
+  it('every command a player can issue has a control in the interface', () => {
+    const copy = sources.map(source => source.text).join('\n');
+    const missing = [...alphaTypes].filter(type => !copy.includes(`type:'${type}'`));
+    expect(missing).toEqual([]);
+  });
+
   it('does not advertise unfinished systems as playable', () => {
     const copy = sources.map(source => source.text).join('\n');
-    expect(copy).not.toMatch(/Contestar presença/i);
+    expect(copy).not.toMatch(/Contestar presença|Ação de povo independente/i);
   });
 });
