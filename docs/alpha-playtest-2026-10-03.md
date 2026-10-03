@@ -81,33 +81,37 @@ Legenda: **UI** = feito clicando no navegador nesta sessão; **HTTP** = pela API
 | Ambições secretas | UI, E2E |
 | Produzir | UI, HTTP, E2E |
 | Construir distrito | HTTP, E2E |
-| Construir edifício / fortificação | — |
+| Construir fortificação | UI |
+| Construir edifício | — (exige distrito correspondente) |
 | Recrutar | HTTP, E2E |
 | Pesquisar | HTTP, E2E |
-| Investimento público, Sustentar comércio, Ação cívica | — |
+| Investimento público, Ação cívica | UI |
+| Sustentar comércio | — (exige rota ativa) |
 | Mover, Explorar | UI, HTTP, E2E |
 | Atacar (com guerra planejada na mesma rodada) | UI, E2E |
 | Missão de influência (Emissário) | — |
-| Rota comercial | — (teste de unidade de rotas) |
+| Rota comercial | — (nenhuma cidade estrangeira visível nas partidas; teste de unidade de rotas) |
 | Cancelar ordem / Trocar ação | UI |
 | Fundar cidade | HTTP |
 | Reivindicar território | UI, HTTP, E2E |
 | Distribuir habitantes, territórios trabalhados | UI, E2E |
 | Melhoria (Fazenda) | E2E |
-| Desenvolver cidade, adotar governo, especializar | — |
-| Estrada | — |
+| Desenvolver cidade, adotar governo | UI |
+| Especializar cidade | — |
+| Estrada | UI |
 | Propor tratado, recusar | UI |
-| Aceitar tratado, encerrar tratado | — (E2E aceita em cenário) |
+| Aceitar tratado, encerrar tratado | UI |
 | Declarar guerra | UI, E2E |
 | Carta de reação | UI |
-| Cartas de planejamento, contratar conselheiro, Grande Projeto | — |
+| Carta de planejamento, contratar conselheiro | UI |
+| Grande Projeto | — (exige era e distrito) |
 | Escolha do evento mundial | HTTP |
 | Avançar de era | HTTP |
-| Habilidade da civilização, habilidade do líder | — (testes de unidade) |
+| Habilidade da civilização, habilidade do líder | UI |
 | Postura defensiva | E2E |
 | Declarar Hegemonia | E2E (cenário roteirizado) |
 | Oferta comercial (troca imediata), aceitar | UI |
-| Presente, promessa, empréstimo | — (testes de unidade) |
+| Presente, promessa, empréstimo (liquidados no prazo) | UI |
 | Povo independente: negociar, influenciar | UI |
 | Povo independente: comerciar, proteger, integrar, conquistar | — (testes de unidade) |
 | Disputa cultural | — (testes de unidade) |
