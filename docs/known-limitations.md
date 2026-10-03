@@ -9,7 +9,6 @@ Esta branch ainda não é uma versão pública liberada. A interface usa `TEST B
 - Não há URL pública, destino Railway confirmado nem remote Git configurado.
 - O E2E alpha intercepta HTTP no navegador e executa o boundary real com um repository de teste em memória. Não comprova transporte implantado ou durabilidade PostgreSQL.
 - Assentamentos neutros, manual alpha completo, compêndio alpha e apresentação de componentes ainda precisam ser concluídos.
-- Prévia de combate e detalhamento de modificadores por origem ainda não estão disponíveis.
 - Validação manual de todas as ações, E2E de combate, evidências de término no navegador e auditoria de privacidade completa permanecem pendentes.
 
 ## Simplificações implementadas
@@ -29,7 +28,9 @@ Esta branch ainda não é uma versão pública liberada. A interface usa `TEST B
 
 ## Produto e equilíbrio
 
-O mapa usa SVG e 210 hexes nos cenários alpha atuais. Ainda faltam medições representativas em 2, 4 e 6 clientes. Símbolos de unidades e Grandes Projetos precisam de maior distinção visual; a bandeja de cartas ainda fica na sua aba. Custos e indisponibilidades nem sempre aparecem antes da tentativa, embora o servidor rejeite ações ilegais.
+Playtest de 2026-10-03 e lacunas restantes: [alpha-playtest-2026-10-03.md](alpha-playtest-2026-10-03.md). Em resumo: uma cidade nova produz exatamente o Alimento que consome e só cresce com Produtores em hexes de Alimento; em QUICK (9 rodadas) a Era da Hegemonia não é alcançada e a partida termina por Prestígio; em 6 lugares parte das civilizações ainda não faz contato.
+
+O mapa usa SVG e 210 hexes nos cenários alpha atuais. Ainda faltam medições representativas em 2, 4 e 6 clientes. Símbolos de unidades e Grandes Projetos precisam de maior distinção visual; a bandeja de cartas ainda fica na sua aba. Ações urbanas, movimento, exploração, fundação e reivindicação mostram antes da tentativa o que o servidor aceita; tratados e cartas ainda mostram só o custo.
 
 O teste de partida completa começa com cinco cidades e reservas ampliadas para compor sistemas em poucas rodadas. Ele não é IA, não mede duração real e não substitui playtests a partir do lobby padrão. As durações QUICK/STANDARD/EPIC são hipóteses; os limites efetivos são 9/15/20 rodadas.
 
