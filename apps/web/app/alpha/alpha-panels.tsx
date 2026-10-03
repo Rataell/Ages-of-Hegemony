@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ADVANCEMENTS, ALPHA_CARDS, CIVILIZATIONS, GREAT_PROJECTS, LEADERS, RESOURCE_KEYS, TreatyTypeSchema, emptyResourcePool, type AlphaEffect, type CityState } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_CARDS, CIVILIZATIONS, GREAT_PROJECTS, LEADERS, ALPHA_RESOURCE_KEYS, RESOURCE_KEYS, TreatyTypeSchema, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type AlphaEffect, type CityState } from '@aoh/game-domain';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 import { ResourceDisplay } from '../play/resource-display';
 import { EconomyTable, PopulationManager } from '../play/inspectors';
@@ -8,7 +8,8 @@ import { alphaLabel as text } from './alpha-copy';
 import { BattleReport } from './alpha-combat';
 import type { AlphaSend } from './alpha-board';
 type Panel={game:AlphaPlayerView;locked:boolean;send:AlphaSend};
-function Effect({effect}:{effect:AlphaEffect|null}){return effect?<p className="alpha-effect">+{effect.amount} {text(effect.kind==='PRODUCTION'?effect.resource:effect.kind)}</p>:null;}
+/** A production effect is shown as what it credits in the seven resources (legacy "materials" become Madeira and Pedra). */
+function Effect({effect}:{effect:AlphaEffect|null}){if(!effect)return null;const gains=effect.kind==='PRODUCTION'?Object.entries(alphaGainOf(effect.resource,effect.amount)).filter(([,n])=>n>0).map(([key,n])=>`+${n} ${text(key)}`).join(', '):`+${effect.amount} ${text(effect.kind)}`;return <p className="alpha-effect">{gains}</p>;}
 function Piece({kind='city'}:{kind?:string}){return <svg className="alpha-piece-art" viewBox="0 0 100 70" aria-hidden="true"><path d="M8 55L50 68L92 55L50 42Z"/><path d={kind==='project'?'M22 48V18L50 6L78 18V48L50 58ZM16 20L50 3L84 20M38 52V27H62V52':'M25 48V23H38V31H62V23H75V48L50 58ZM20 48L50 60L80 48M43 54V39H57V54'}/></svg>;}
 
 const CITY_LEVEL:Record<string,string>={OUTPOST:'Posto avançado',HAMLET:'Povoado',VILLAGE:'Aldeia',CITY:'Cidade',GREAT_CITY:'Grande cidade',METROPOLIS:'Metrópole',IMPERIAL_METROPOLIS:'Metrópole imperial'};
@@ -25,7 +26,7 @@ export function AlphaCity({game,city,locked,manage}:Panel&{city:CityState;manage
     <details open><summary>Habitantes e trabalho</summary><PopulationManager city={city} send={async command=>{await manage(command);}} busy={locked}/></details>
     <details><summary>Desenvolvimento e distritos</summary><p>Limite populacional: {rules.developmentPopulationCaps[city.development-1]}</p><button disabled={locked} onClick={()=>void manage({type:'DEVELOP_CITY',cityId:city.id})}>Desenvolver cidade</button>{game.costs.development[city.development-1]&&<ResourceDisplay values={game.costs.development[city.development-1]!} compact/>}<h3>Distritos · {city.districts.length} / {rules.territory.districtSlots[city.development-1]}</h3><p>{city.districts.length?city.districts.map(d=>text(d.type)).join(' · '):'Nenhum distrito construído.'} Novos distritos são construídos pela ação urbana Construir.</p></details>
     <details><summary>Edifícios e especialização</summary><p>{city.buildings.length?city.buildings.map(b=>text(b.type)).join(' · '):'Nenhum edifício construído.'} Novos edifícios são construídos pela ação urbana Construir.</p><h3>Especialização permanente</h3>{city.specialization?<p>{text(city.specialization)}</p>:Object.keys(rules.territory.districts).map(kind=><button disabled={locked} key={kind} onClick={()=>void manage({type:'SPECIALIZE_CITY',cityId:city.id,specialization:kind})}>{text(kind)}</button>)}</details>
-    <details><summary>Economia da cidade</summary><EconomyTable production={details.production}/></details>
+    <details><summary>Economia da cidade</summary><EconomyTable production={details.production} labels={{materials:'Madeira/Pedra'}} help="Madeira/Pedra: a produção de construção é somada e dividida ao Produzir, metade em Madeira (arredondada para cima) e metade em Pedra."/></details>
     {game.view.player.civilization.government==='PROTO_GOVERNANCE'&&<details><summary>Adotar governo</summary><select aria-label="Forma de governo" value={government} onChange={e=>setGovernment(e.target.value)}>{['MONARCHY','REPUBLIC','OLIGARCHY','THEOCRACY','CONFEDERATION'].map(g=><option key={g} value={g}>{text(g)}</option>)}</select><button disabled={locked} onClick={()=>void manage({type:'ADOPT_GOVERNMENT',government})}>Adotar governo</button></details>}
   </section>;
 }
@@ -111,9 +112,9 @@ const TREATY_HELP:Record<string,string>={
   ALLIANCE:'Fronteiras abertas, defesa mútua e fim de qualquer guerra entre as duas.',
   EMBARGO:'Bloqueia o comércio internacional entre as duas civilizações.',
 };
-/** Small resource offer: the legacy deal shape (materials = wood, stone or metal, taken in that order). */
-function DealInputs({title,value,onChange}:{title:string;value:ReturnType<typeof emptyResourcePool>;onChange:(next:ReturnType<typeof emptyResourcePool>)=>void}){
-  return <fieldset className="alpha-deal"><legend>{title}</legend>{RESOURCE_KEYS.map(key=><label key={key}><span>{key==='materials'?'Materiais':text(key)}</span><input type="number" min={0} max={999} value={value[key]} onChange={e=>onChange({...value,[key]:Math.max(0,Number(e.target.value)||0)})}/></label>)}</fieldset>;
+/** Small resource offer in the seven resources. */
+function DealInputs({title,value,onChange}:{title:string;value:AlphaResourcePool;onChange:(next:AlphaResourcePool)=>void}){
+  return <fieldset className="alpha-deal"><legend>{title}</legend>{ALPHA_RESOURCE_KEYS.map(key=><label key={key}><span>{text(key)}</span><input type="number" min={0} max={999} value={value[key]} onChange={e=>onChange({...value,[key]:Math.max(0,Number(e.target.value)||0)})}/></label>)}</fieldset>;
 }
 
 const SEVEN=['food','wood','stone','metal','wealth','knowledge','influence'] as const;
@@ -156,7 +157,7 @@ function TradePanel({game,locked,send,otherId}:Panel&{otherId:string}){
 
 /** One card per other civilization: relation, agreements, pending proposals and what can be decided now. */
 function RelationCard({game,locked,send,otherId}:Panel&{otherId:AlphaPlayerView['self']['playerId']}){
-  const [kind,setKind]=useState('TRADE_AGREEMENT'),[withDeal,setWithDeal]=useState(false),[give,setGive]=useState(emptyResourcePool()),[receive,setReceive]=useState(emptyResourcePool()),[confirmWar,setConfirmWar]=useState(false);
+  const [kind,setKind]=useState('TRADE_AGREEMENT'),[withDeal,setWithDeal]=useState(false),[give,setGive]=useState(emptyAlphaResourcePool()),[receive,setReceive]=useState(emptyAlphaResourcePool()),[confirmWar,setConfirmWar]=useState(false);
   const self=game.self.playerId,name=game.players.find(p=>p.id===otherId)?.name??'Civilização';
   const contact=game.self.contacts.includes(otherId),war=game.wars.some(pair=>pair.includes(otherId));
   const between=game.treaties.filter(t=>[t.proposerId,t.recipientId].includes(otherId));
@@ -171,7 +172,7 @@ function RelationCard({game,locked,send,otherId}:Panel&{otherId:AlphaPlayerView[
     {outgoing.map(t=><p key={t.id} className="alpha-hint">Sua proposta de {text(t.type)} {t.status==='ACCEPTED'?'foi aceita e entra em vigor na resolução.':'aguarda resposta.'}{t.status==='PROPOSED'&&<button disabled={locked} onClick={()=>void send({type:'END_TREATY',treatyId:t.id})}>Retirar</button>}</p>)}
     {planned.map(a=><p key={a.id} className="alpha-hint">Planejado nesta rodada: {a.type==='PROPOSE_TREATY'?`proposta de ${text(a.treaty)}`:'declaração de guerra'}.<button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:a.id})}>Cancelar</button></p>)}
     {contact&&<div className="alpha-relation-actions">
-      <form onSubmit={e=>{e.preventDefault();void send({type:'PROPOSE_TREATY',recipientId:otherId,treaty:kind,deal:withDeal?{give,receive}:{give:emptyResourcePool(),receive:emptyResourcePool()}});}}>
+      <form onSubmit={e=>{e.preventDefault();void send({type:'PROPOSE_TREATY',recipientId:otherId,treaty:kind,deal:withDeal?{give,receive}:{give:emptyAlphaResourcePool(),receive:emptyAlphaResourcePool()}});}}>
         <label>Propor acordo<select value={kind} onChange={e=>setKind(e.target.value)}>{TreatyTypeSchema.options.map(t=><option key={t} value={t}>{text(t)}</option>)}</select></label>
         <p className="alpha-treaty-help">{TREATY_HELP[kind]} Dura {game.rules.treatyDuration} rodadas depois de aceito.</p>
         <label className="alpha-inline-check"><input type="checkbox" checked={withDeal} onChange={e=>setWithDeal(e.target.checked)}/> Incluir troca de recursos</label>
@@ -204,6 +205,6 @@ function reportRows(report:RoundReport):[string,RoundReport['opening'],number][]
   return [['Estoque inicial',report.opening,0],...lines.filter(([,pool])=>RESOURCE_KEYS.some(key=>pool[key]!==0)),['Estoque final',report.closing,0]];
 }
 export function AlphaReports({game}:{game:AlphaPlayerView}){
-  return <section className="alpha-panel"><p className="eyebrow">CRÔNICAS DA CIVILIZAÇÃO</p><h2>Relatórios e conflitos</h2>{[...game.roundReports].reverse().map(report=><details key={report.round} open={report.round===game.view.round}><summary>Manutenção · Rodada {report.round}</summary><div className="table-scroll"><table><thead><tr><th>Etapa</th>{RESOURCE_KEYS.map(k=><th key={k}>{text(k)}</th>)}</tr></thead><tbody>{reportRows(report).map(([name,pool,sign])=><tr key={name} className={sign<0?'is-outflow':sign===0?'is-total':''}><th>{name}</th>{RESOURCE_KEYS.map(k=><td key={k}>{sign<0&&pool[k]>0?'−':sign>0&&pool[k]>0?'+':''}{pool[k]}</td>)}</tr>)}</tbody></table></div><p>Manutenção de alimento (população e peças): {report.upkeepPaid.food} pagos de {report.upkeepRequired.food} necessários.{report.upkeepPaid.food<report.upkeepRequired.food?' Faltou alimento: a estabilidade caiu.':''}</p><p>Administração: carga {report.administrativeLoad} / capacidade {report.administrativeCapacity}</p>{report.cities.map(c=><p key={c.cityId}>{game.view.player.civilization.cities.find(city=>city.id===c.cityId)?.name??'Cidade'} · População {c.populationBefore} → {c.populationAfter} · Estabilidade {c.stabilityBefore} → {c.stabilityAfter}</p>)}</details>)}
+  return <section className="alpha-panel"><p className="eyebrow">CRÔNICAS DA CIVILIZAÇÃO</p><h2>Relatórios e conflitos</h2>{[...game.roundReports].reverse().map(report=><details key={report.round} open={report.round===game.view.round}><summary>Manutenção · Rodada {report.round}</summary><div className="table-scroll"><table><thead><tr><th>Etapa</th>{RESOURCE_KEYS.map(k=><th key={k}>{k==='materials'?'Madeira + Pedra + Metal':text(k)}</th>)}</tr></thead><tbody>{reportRows(report).map(([name,pool,sign])=><tr key={name} className={sign<0?'is-outflow':sign===0?'is-total':''}><th>{name}</th>{RESOURCE_KEYS.map(k=><td key={k}>{sign<0&&pool[k]>0?'−':sign>0&&pool[k]>0?'+':''}{pool[k]}</td>)}</tr>)}</tbody></table></div><p>Manutenção de alimento (população e peças): {report.upkeepPaid.food} pagos de {report.upkeepRequired.food} necessários.{report.upkeepPaid.food<report.upkeepRequired.food?' Faltou alimento: a estabilidade caiu.':''}</p><p>Administração: carga {report.administrativeLoad} / capacidade {report.administrativeCapacity}</p>{report.cities.map(c=><p key={c.cityId}>{game.view.player.civilization.cities.find(city=>city.id===c.cityId)?.name??'Cidade'} · População {c.populationBefore} → {c.populationAfter} · Estabilidade {c.stabilityBefore} → {c.stabilityAfter}</p>)}</details>)}
     <h3>Conflitos</h3>{[...game.battles].reverse().map(b=><BattleReport key={b.id} battle={b} players={game.players}/>)}<h3>Acontecimentos autorizados</h3><ol className="alpha-feed">{[...game.events].reverse().slice(0,60).map(e=><li key={e.id}><small>Rodada {e.round}</small> {e.message}</li>)}</ol></section>;
 }

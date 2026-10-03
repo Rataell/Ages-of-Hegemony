@@ -51,5 +51,6 @@ const civilizations=[
   ['elyra','Elyra','Escola de Elyra','Curadores de saberes e vínculos comunitários','knowledge','food','Escola itinerante'],
 ] as const;
 const colors=['#c8a45c','#7ca6b8','#b6798c','#69a69a','#aab875','#bd8f66','#9b92bf','#80af82','#c294b1','#d1b77d','#91a7ba','#c59a78'];
-const resourceNames={food:'Alimento',materials:'Materiais',wealth:'Riqueza',knowledge:'Conhecimento',influence:'Influência'};
+// Legacy "materials" effects credit Madeira and Pedra (alphaGainOf); there is no Materiais resource.
+const resourceNames={food:'Alimento',materials:'Madeira e Pedra',wealth:'Riqueza',knowledge:'Conhecimento',influence:'Influência'};
 export const CIVILIZATIONS:readonly AlphaCivilization[]=civilizations.map(([id,name,capital,identity,first,second,ability],i)=>({id,name,capital,identity,color:colors[i]!,symbol:`civilization-${i+1}`,bias:`Ênfase em ${resourceNames[first]} e ${resourceNames[second]}; não restringe escolhas.`,passives:[{kind:'PRODUCTION',resource:first,amount:1},{kind:'PRODUCTION',resource:second,amount:1}],ability:{name:ability,effects:[{kind:'PRODUCTION',resource:first,amount:2,timing:'ONCE'},{kind:'PRODUCTION',resource:second,amount:1,timing:'ONCE'}]}}));

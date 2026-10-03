@@ -9,10 +9,14 @@ const paths: Record<string, string> = {
   knowledge: 'M12 6Q7 2 2 5V20Q7 17 12 21Q17 17 22 20V5Q17 2 12 6V21',
   influence: 'M12 22V3M4 5H20L17 13H7ZM7 20H17',
 };
-/** `caps` adds a warehouse gauge under each stored resource (exact numbers in the tooltip); a full store is flagged because new income is discarded. */
-export function ResourceDisplay({ values, compact = false, caps }: { values: Record<string, number>; compact?: boolean; caps?: Partial<Record<string, number>> }) {
+/**
+ * `caps` adds a warehouse gauge under each stored resource (exact numbers in the tooltip); a full store is flagged because new income is discarded.
+ * `labels` renames keys for this display only (the alpha shows legacy materials yields as Madeira/Pedra).
+ */
+export function ResourceDisplay({ values, compact = false, caps, labels = {} }: { values: Record<string, number>; compact?: boolean; caps?: Partial<Record<string, number>>; labels?: Partial<Record<string, string>> }) {
+  const name = (key: string) => labels[key] ?? label(key);
   return <div className={`resources ${compact ? 'compact' : ''}`}>{Object.entries(values).filter(([, n]) => !compact || n !== 0).map(([key, n]) => {
     const cap = caps?.[key], full = cap !== undefined && n >= cap;
-    return <span className={`resource ${key}${full ? ' full' : ''}`} key={key} title={cap === undefined ? label(key) : `${label(key)}: ${n} de ${cap} no armazém${full ? ' · cheio, o excedente é descartado' : ''}`}><svg aria-hidden="true" viewBox="0 0 24 24"><path d={paths[key]} /></svg><span>{!compact && <small>{label(key)}</small>}<b>{n}</b>{cap !== undefined && <span className="resource-meter" aria-hidden="true"><i style={{ width: `${Math.min(100, Math.round(n / Math.max(cap, 1) * 100))}%` }} /></span>}{compact && ` ${label(key)}`}</span></span>;
+    return <span className={`resource ${key}${full ? ' full' : ''}`} key={key} title={cap === undefined ? name(key) : `${name(key)}: ${n} de ${cap} no armazém${full ? ' · cheio, o excedente é descartado' : ''}`}><svg aria-hidden="true" viewBox="0 0 24 24"><path d={paths[key]} /></svg><span>{!compact && <small>{name(key)}</small>}<b>{n}</b>{cap !== undefined && <span className="resource-meter" aria-hidden="true"><i style={{ width: `${Math.min(100, Math.round(n / Math.max(cap, 1) * 100))}%` }} /></span>}{compact && ` ${name(key)}`}</span></span>;
   })}</div>;
 }

@@ -1,4 +1,4 @@
-import { ADVANCEMENTS, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, GREAT_PROJECTS, type EffectTiming, type ResourcePool, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, GREAT_PROJECTS, ALPHA_RESOURCE_KEYS, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type EffectTiming, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { alphaCanAfford, alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { sum } from './arithmetic.js';
 import { cardEffects } from './alpha-cards.js';
@@ -33,14 +33,15 @@ export function strengthSources(state:AlphaState,actor:PlayerId):{technology:num
   const total=sum(cardEffects(state,actor).filter(e=>e.kind==='STRENGTH').map(e=>e.amount));
   return {technology,leader,other:total-leader};
 }
-/** Amounts of one timing (for ON_PRODUCE: those bound to `cityId` or to no city), without crediting anything. */
-export function recurringAmounts(state:AlphaState,actor:PlayerId,timing:EffectTiming,cityId?:string):ResourcePool {
-  const total={food:0,materials:0,wealth:0,knowledge:0,influence:0};
+/** What one timing would credit (for ON_PRODUCE: effects bound to `cityId` or to no city), in the seven resources, without crediting anything. */
+export function recurringAmounts(state:AlphaState,actor:PlayerId,timing:EffectTiming,cityId?:string):AlphaResourcePool {
+  const total=emptyAlphaResourcePool();
   for(const source of recurringSources(state,actor)){
     const effect=source.effect;
     if(effect.kind!=='PRODUCTION'||effectTiming(effect)!==timing)continue;
     if(timing==='ON_PRODUCE'&&source.cityId!==null&&source.cityId!==cityId)continue;
-    total[effect.resource]+=effect.amount;
+    const gain=alphaGainOf(effect.resource,effect.amount);
+    for(const key of ALPHA_RESOURCE_KEYS)total[key]+=gain[key];
   }
   return total;
 }

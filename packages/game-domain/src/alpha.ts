@@ -9,12 +9,14 @@ import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from '
 import {
   ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
   BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, RaidBandSchema, TacticalFaceSchema,
-  TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, type AlphaRoundPhase,
+  TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, legacyToAlphaResources, type AlphaRoundPhase,
 } from './alpha-concept.js';
 
 export const AlphaPresetSchema = z.enum(['QUICK', 'STANDARD', 'EPIC']);
 export const TreatyTypeSchema=z.enum(['TRADE_AGREEMENT','NON_AGGRESSION_PACT','OPEN_BORDERS','DEFENSIVE_PACT','ALLIANCE','EMBARGO']);
-export const ResourceDealSchema = z.strictObject({ give: ResourcePoolSchema, receive: ResourcePoolSchema });
+/** A treaty's resource exchange, in the seven resources. Deals saved before used the legacy pool; they are read with the same split as legacy gains. */
+const DealPoolSchema = z.preprocess(value => value && typeof value === 'object' && 'materials' in value ? legacyToAlphaResources(ResourcePoolSchema.parse(value)) : value, AlphaResourcePoolSchema);
+export const ResourceDealSchema = z.strictObject({ give: DealPoolSchema, receive: DealPoolSchema });
 export const HegemonyPathSchema = z.enum(['MILITARY','ECONOMIC','SCIENTIFIC','CULTURAL','POLITICAL','TERRITORIAL']);
 export const HegemonyMetricSchema = z.enum(['strength','victories','foreignPresence','wealth','internationalRoutes','tradePartners','eraFiveResearch','academicDistricts','scientificProjects','influence','culturalDistricts','foreignInfluence','treatyPartners','politicalProjects','territory','developedCities','withinCapacity']);
 export type HegemonyMetric = z.infer<typeof HegemonyMetricSchema>;

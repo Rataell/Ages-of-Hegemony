@@ -108,18 +108,23 @@ export function PopulationManager({
 
 export function EconomyTable({
   production,
+  labels = {},
+  help,
 }: {
   production: LocalView['cities'][number]['production'];
+  /** Column names that differ from the shared labels (the alpha shows legacy materials as Madeira/Pedra). */
+  labels?: Partial<Record<string, string>>;
+  help?: string;
 }) {
   return (
     <div className="table-scroll">
       <table className="economy-matrix">
-        <caption>Produção estimada por manutenção</caption>
+        <caption>Produção estimada por manutenção{help && <small> {help}</small>}</caption>
         <thead>
           <tr>
             <th>Fonte</th>
             {Object.keys(production.total).map(k => (
-              <th key={k}>{label(k)}</th>
+              <th key={k}>{labels[k] ?? label(k)}</th>
             ))}
           </tr>
         </thead>

@@ -1,5 +1,5 @@
 import {
-  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, RESOURCE_KEYS, cityLevelForPopulation, emptyAlphaResourcePool, legacyToAlphaResources,
+  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, RESOURCE_KEYS, alphaGainOf, cityLevelForPopulation, emptyAlphaResourcePool, legacyToAlphaResources,
   type AlphaCommand, type AlphaResourcePool, type AlphaState, type PlayerId, type ResourcePool,
 } from '@aoh/game-domain';
 import { applyCommand } from './engine.js';
@@ -136,7 +136,10 @@ export function productionOutput(state: AlphaState, actor: PlayerId, cityId: str
   const metal = metalSites(state, actor).filter(site => site.cityId === cityId).length * state.rules.balance.metalPerMine;
   return { output, metal, onProduce: recurringAmounts(state, actor, 'ON_PRODUCE', cityId) };
 }
-const RESOURCE_LABEL: Record<string, string> = { food: 'Alimentos', materials: 'Materiais', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', metal: 'Metal' };
+// Legacy "materials" contributions are summed before the split into Madeira and Pedra, so alone they read as both.
+const RESOURCE_LABEL: Record<string, string> = { food: 'Alimentos', materials: 'Madeira/Pedra', wood: 'Madeira', stone: 'Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', metal: 'Metal' };
+/** A credited legacy pool as the seven resources it becomes. */
+const credited = (pool: ResourcePool): Record<string, number> => legacyToAlphaResources(pool);
 const listOf = (pool: Record<string, number>) => Object.entries(pool).filter(([, amount]) => amount > 0).map(([key, amount]) => `+${amount} ${RESOURCE_LABEL[key]}`).join(', ');
 
 export interface UrbanOption {
@@ -156,7 +159,7 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     const id = meta.cityId, list: UrbanOption[] = [];
     const occupied = meta.status === 'OCCUPIED';
     const produced = productionOutput(state, actor, id);
-    const yields = listOf({ ...produced.output, metal: produced.metal });
+    const yields = listOf({ ...credited(produced.output), metal: produced.metal });
     const extra = listOf(produced.onProduce);
     list.push(option(state, actor, id, 'PRODUCE', {}, `${yields || 'Sem rendimento agora'}${extra ? ` · Bônus da produção: ${extra}` : ''}. Sem esta escolha a cidade não produz nem extrai Metal.`));
     for (const district of DistrictTypeSchema.options) list.push(option(state, actor, id, 'BUILD', { build: { kind: 'DISTRICT', district } }, `Novo distrito${listOf(territory.districts[district].production) ? ` · ${listOf(territory.districts[district].production)}` : ''}`));
@@ -174,7 +177,7 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
   const research: UrbanOption[] = firstCity === undefined ? [] : ADVANCEMENTS
     .filter(node => !progress.research.includes(node.id) && AlphaEraSchema.options.indexOf(node.era) <= AlphaEraSchema.options.indexOf(progress.era))
     .map(node => ({
-      ...option(state, actor, firstCity, 'RESEARCH', { advancementId: node.id }, node.effect.kind === 'PRODUCTION' ? `+${node.effect.amount} ${RESOURCE_LABEL[node.effect.resource]} por rodada, na manutenção` : `Bônus permanente de ${node.effect.kind}`),
+      ...option(state, actor, firstCity, 'RESEARCH', { advancementId: node.id }, node.effect.kind === 'PRODUCTION' ? `${listOf(alphaGainOf(node.effect.resource, node.effect.amount))} por rodada, na manutenção` : `Bônus permanente de ${node.effect.kind}`),
       // Research is not tied to one city: the client adds the selected city's own gate (actions left, occupation).
       blocked: (state.phase !== 'PLANNING' ? 'Disponível apenas no Planejamento.' : progress.ready ? 'Suas decisões já estão confirmadas para esta fase.' : alphaActionUsage(state,actor).used>=alphaActionUsage(state,actor).limit ? 'Sem ações principais disponíveis nesta rodada.' : researchBlock(state, actor, node.id)),
     }));

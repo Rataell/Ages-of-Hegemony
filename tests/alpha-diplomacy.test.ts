@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { completeRound, must } from './alpha-rounds.js';
-import { AlphaStateSchema, alphaToLegacyResources, emptyResourcePool, type AlphaCommand, type AlphaState } from '@aoh/game-domain';
+import { AlphaStateSchema, alphaToLegacyResources, emptyAlphaResourcePool, emptyResourcePool, type AlphaCommand, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, atWar, beginAlphaPlanning, createGame, maintainTrade, migrateSnapshotV3ToV4, settleTreaties } from '@aoh/game-engine';
 
 function setup():AlphaState {
@@ -17,7 +17,7 @@ function run(state:AlphaState,index:number,command:Omit<AlphaCommand,'expectedVe
   if(!result.ok)throw new Error(result.error.message);return result.value;
 }
 function treaty(state:AlphaState,a=0,b=1,type:AlphaState['treaties'][number]['type']='TRADE_AGREEMENT') {
-  state.treaties.push({id:`t-${state.treaties.length}`,proposerId:state.players[a]!.playerId,recipientId:state.players[b]!.playerId,type,status:'ACTIVE',deal:{give:emptyResourcePool(),receive:emptyResourcePool()},createdRound:1,expiresRound:4});
+  state.treaties.push({id:`t-${state.treaties.length}`,proposerId:state.players[a]!.playerId,recipientId:state.players[b]!.playerId,type,status:'ACTIVE',deal:{give:emptyAlphaResourcePool(),receive:emptyAlphaResourcePool()},createdRound:1,expiresRound:4});
 }
 describe('alpha diplomatic commitments',()=>{
   it('refuses an unaffordable treaty reservation atomically without escrow',()=>{
@@ -29,13 +29,29 @@ describe('alpha diplomatic commitments',()=>{
   });
   it('validates both sides before exchanging resources and rejects unaffordable accepted deals atomically',()=>{
     const state=setup();treaty(state);const t=state.treaties[0]!;t.status='ACCEPTED';
-    t.deal.give.wealth=5;t.deal.receive.materials=999;
+    t.deal.give.wealth=5;t.deal.receive.wood=999;
     const opening=state.core.players.map(p=>({...p.resources}));settleTreaties(state);
     expect(t.status).toBe('DECLINED');expect(state.core.players.map(p=>p.resources)).toEqual(opening);
-    t.status='ACCEPTED';t.deal.receive.materials=0;settleTreaties(state);
+    t.status='ACCEPTED';t.deal.receive.wood=0;settleTreaties(state);
     expect(t.status).toBe('ACTIVE');expect(state.core.players[0]!.resources.wealth).toBe(opening[0]!.wealth-5);
     expect(state.core.players[1]!.resources.wealth).toBe(opening[1]!.wealth+5);
     const after=structuredClone(state);settleTreaties(state);expect(state).toEqual(after);
+  });
+  it('exchanges the seven resources named in the deal, with no hidden Materiais split',()=>{
+    const state=setup();treaty(state);const t=state.treaties[0]!;t.status='ACCEPTED';
+    state.players[1]!.resources.stone=5;state.roundLedgers=[];
+    t.deal.give.wealth=2;t.deal.receive.stone=3;
+    const before=state.players.map(p=>({...p.resources}));settleTreaties(state);
+    expect(t.status).toBe('ACTIVE');
+    expect(state.players[0]!.resources).toEqual({...before[0]!,wealth:before[0]!.wealth-2,stone:before[0]!.stone+3});
+    expect(state.players[1]!.resources).toEqual({...before[1]!,wealth:before[1]!.wealth+2,stone:before[1]!.stone-3});
+  });
+  it('reads a treaty saved with the legacy deal shape as the seven resources',()=>{
+    const state=setup();treaty(state);
+    const raw=structuredClone(state) as unknown as {treaties:{deal:{give:unknown;receive:unknown}}[]};
+    raw.treaties[0]!.deal={give:{...emptyResourcePool(),materials:3},receive:emptyResourcePool()};
+    const parsed=AlphaStateSchema.parse(raw);
+    expect(parsed.treaties[0]!.deal.give).toEqual({...emptyAlphaResourcePool(),wood:2,stone:1});
   });
   it('only allows the recipient to accept, uses configured duration, and keeps client input immutable',()=>{
     let state=setup();state.rules.treatyDuration=7;const original=structuredClone(state);

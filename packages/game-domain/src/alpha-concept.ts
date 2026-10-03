@@ -38,6 +38,9 @@ export const legacyToAlphaResources = (pool: ResourcePool): AlphaResourcePool =>
   knowledge: pool.knowledge,
   influence: pool.influence,
 });
+/** What a gain written in a legacy resource credits in the seven resources (legacy "materials" splits as above). */
+export const alphaGainOf = (resource: keyof ResourcePool, amount: number): AlphaResourcePool =>
+  legacyToAlphaResources({ food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0, [resource]: amount });
 export const alphaToLegacyResources = (pool: AlphaResourcePool): ResourcePool => ResourcePoolSchema.parse({
   food: pool.food,
   materials: pool.wood + pool.stone + pool.metal,

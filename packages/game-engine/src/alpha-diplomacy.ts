@@ -1,5 +1,5 @@
 import { type AlphaCommand, type AlphaState, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
-import { alphaCanAfford, alphaGainLegacy, alphaPay } from './alpha-resources.js';
+import { alphaCanAfford, alphaGain, alphaPay } from './alpha-resources.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
 import { culturalIdentityOf, establishCulturalPresence } from './alpha-culture.js';
 function enterWar(state:AlphaState,actor:PlayerId,target:PlayerId):void {
@@ -70,7 +70,7 @@ export function settleTreaties(state:AlphaState):void {
     const a=state.core.players.find(p=>p.id===treaty.proposerId)!,b=state.core.players.find(p=>p.id===treaty.recipientId)!;
     if(!alphaCanAfford(state,a.id,treaty.deal.give)||!alphaCanAfford(state,b.id,treaty.deal.receive)){treaty.status='DECLINED';continue;}
     alphaPay(state,a.id,treaty.deal.give);alphaPay(state,b.id,treaty.deal.receive);
-    alphaGainLegacy(state,a.id,treaty.deal.receive,{category:'trade'});alphaGainLegacy(state,b.id,treaty.deal.give,{category:'trade'});
+    alphaGain(state,a.id,treaty.deal.receive,{category:'trade'});alphaGain(state,b.id,treaty.deal.give,{category:'trade'});
     treaty.status='ACTIVE';
     if(['NON_AGGRESSION_PACT','ALLIANCE'].includes(treaty.type))state.wars=state.wars.filter(pair=>!pair.includes(a.id)||!pair.includes(b.id));
   }

@@ -17,7 +17,7 @@ const match = (civilization: string, seed = 121): AlphaState => beginAlphaPlanni
 }));
 const leaderOfP1 = (leader: AlphaLeader) => leader.civilizationId;
 const ability = (state: AlphaState, actor = p1) => applyAlphaCommand(state, actor, { type: 'LEADER_ABILITY', expectedVersion: state.version });
-const activeTreaty = (state: AlphaState) => state.treaties.push({ id: 't1', proposerId: p1, recipientId: p2, type: 'TRADE_AGREEMENT', status: 'ACTIVE', deal: { give: { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 }, receive: { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 } }, createdRound: 1, expiresRound: 4 });
+const activeTreaty = (state: AlphaState) => state.treaties.push({ id: 't1', proposerId: p1, recipientId: p2, type: 'TRADE_AGREEMENT', status: 'ACTIVE', deal: { give: { food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 }, receive: { food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 } }, createdRound: 1, expiresRound: 4 });
 const names = ['Aurélia', 'Valgard', 'Merídia', 'Thalos', 'Saren', 'Kor', 'Orinth', 'Nymara', 'Veyra', 'Solenne', 'Dravik', 'Elyra'];
 
 describe('leader catalog', () => {
