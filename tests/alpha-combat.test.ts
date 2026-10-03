@@ -144,6 +144,26 @@ describe('COMMAND by class', () => {
     expect(amount(city.battle.defenseBreakdown, 'Proteção da cidade')).toBe(1);
   });
 
+  it('GUARD: its city modifier serves the defenders of a city, never an attack on one (same value)', () => {
+    const guard = alphaRules().units.GUARD.cityModifier;
+    const defending = fight({ city: true, defenders: ['GUARD'] }, faces('EMPTY', 'a1', 'd1'));
+    expect(amount(defending.battle.defenseBreakdown, 'Guarda da cidade')).toBe(guard);
+    expect(entry(defending.battle.attackBreakdown, 'Equipamento contra cidade')).toBeUndefined();
+    const attacking = fight({ city: true, attackers: ['GUARD'] }, faces('EMPTY', 'a1', 'd1'));
+    expect(entry(attacking.battle.attackBreakdown, 'Equipamento contra cidade')).toBeUndefined();
+    expect(entry(fight({ defenders: ['GUARD'] }, faces('EMPTY', 'a1', 'd1')).battle.defenseBreakdown, 'Guarda da cidade')).toBeUndefined();
+    const siege = fight({ city: true, attackers: ['SIEGE'] }, faces('EMPTY', 'a1', 'd1'));
+    expect(amount(siege.battle.attackBreakdown, 'Equipamento contra cidade')).toBe(alphaRules().units.SIEGE.cityModifier);
+    // The preview shows the same static breakdown the battle will use.
+    const { state, order } = arena({ city: true, defenders: ['GUARD'] });
+    expect(amount(combatPreview(state, p1, order).defender!.breakdown, 'Guarda da cidade')).toBe(guard);
+    // Matches saved before the side was explicit keep the corrected rule.
+    const legacy = arena({ city: true, defenders: ['GUARD'] });
+    delete legacy.state.rules.units.GUARD.cityModifierSide;
+    resolveBattleWithFaces(legacy.state, p1, legacy.order, faces('EMPTY', 'a1', 'd1'));
+    expect(amount(legacy.state.battles[0]!.defenseBreakdown, 'Guarda da cidade')).toBe(guard);
+  });
+
   it('RANGED: turns one empty ally die into an impact and does nothing when there is none', () => {
     const support = fight({ attackers: ['INFANTRY', 'RANGED'], attackPosture: 'HOLD' }, { a1: 'EMPTY', a2: 'COMMAND', d1: 'EMPTY' });
     expect(support.battle.attackerTactical.find(r => r.unitId === 'a1')).toMatchObject({ face: 'IMPACT', effect: expect.stringContaining('virou impacto') });

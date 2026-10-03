@@ -1,5 +1,5 @@
 import {
-  type AlphaCity, type CityId, type AlphaState, type AlphaUnit, type BattlePosture, type CombatConfig, type HexId, type PlayerId, type StrategicOrder, type TacticalFace,
+  cityModifierSide, type AlphaCity, type CityId, type AlphaState, type AlphaUnit, type BattlePosture, type CombatConfig, type HexId, type PlayerId, type StrategicOrder, type TacticalFace,
 } from '@aoh/game-domain';
 import { hexNeighbors, hexId } from './hex.js';
 import { alphaRandomInteger } from './alpha-random.js';
@@ -55,7 +55,11 @@ function staticSide(state: AlphaState, sides: Sides, attacking: boolean) {
   const terrain = units.reduce((total, unit) => total + state.rules.units[unit.kind].terrainModifiers[sides.terrain as keyof typeof state.rules.units.INFANTRY.terrainModifiers], 0);
   const landform = attacking ? 0 : sides.terrain === 'HILLS' ? config.hillDefense : sides.terrain === 'MOUNTAINS' ? config.mountainDefense : 0;
   push(modifiers, 'Terreno', terrain + landform);
-  if (attacking && sides.city) push(modifiers, 'Equipamento contra cidade', units.reduce((total, unit) => total + state.rules.units[unit.kind].cityModifier, 0));
+  if (sides.city) {
+    const side = attacking ? 'ATTACK' : 'DEFENSE';
+    const cityBonus = units.reduce((total, unit) => total + (cityModifierSide(unit.kind, state.rules.units[unit.kind]) === side ? state.rules.units[unit.kind].cityModifier : 0), 0);
+    push(modifiers, attacking ? 'Equipamento contra cidade' : 'Guarda da cidade', cityBonus);
+  }
   if (fighters.some(unit => !unitSupply(state, unit).supplied)) push(modifiers, 'Sem suprimento', -config.unsuppliedPenalty);
   let fortification: Fort | null = null;
   if (!attacking && sides.meta) {
