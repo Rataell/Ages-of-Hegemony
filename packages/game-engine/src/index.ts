@@ -28,3 +28,4 @@ export * from './alpha-stack.js';
 export * from './alpha-unit-options.js';
 export * from './alpha-messages.js';
 export * from './alpha-trade.js';
+export * from './alpha-growth.js';

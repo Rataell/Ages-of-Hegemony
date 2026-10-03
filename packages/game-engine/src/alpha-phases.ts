@@ -1,11 +1,11 @@
 import { settleTradeOffers } from './alpha-trade.js';
+import { growCity, growthShares } from './alpha-growth.js';
 import { TREATY_NAMES, battleMessage, lossesMessage, orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
   ALPHA_CARDS, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources, cityLevelForPopulation,
   type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlannedAction, type PlayerId, type RoundPhase, type StrategicOrder,
 } from '@aoh/game-domain';
 import { clampStability, deriveAdministration, governmentStabilityDelta, multiply, populationCap, refreshAdministration, sum } from './civilization.js';
-import { infrastructureStats } from './urban.js';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
 import { alphaRandomInteger } from './alpha-random.js';
 import { alphaDrain, alphaGain, alphaLose, enforceStorageRecorded, ledgerOf } from './alpha-resources.js';
@@ -193,16 +193,13 @@ function maintainCivilizations(state: AlphaState): void {
     if (shortage) alphaEvent(state, 'FOOD_SHORTAGE', `Faltaram ${required - eaten} Alimentos para a população. Estabilidade reduzida.`, [owner.id]);
 
     const surplus = shortage ? 0 : Math.max(0, ledger.production.food - required);
-    const eligible = owner.civilization.cities.filter(city => city.population < populationCap(city, rules)).map(city => city.id).sort();
-    const shares = new Map(eligible.map((id, index) => [id, Math.floor(surplus / eligible.length) + (index < surplus % eligible.length ? 1 : 0)]));
+    // The same rule feeds the forecast players see (alpha-growth.ts).
+    const shares = growthShares(owner.civilization.cities, surplus, rules);
     let cities = owner.civilization.cities.map(city => {
       if (shortage || city.population >= populationCap(city, rules)) return { ...city, workers: { ...city.workers } };
-      const progress = sum([city.growthProgress, shares.get(city.id) ?? 0]);
-      const threshold = infrastructureStats(city, rules).growthThreshold;
-      const growth = Math.min(Math.floor(progress / threshold), rules.maxGrowthPerMaintenance, populationCap(city, rules) - city.population);
-      const population = sum([city.population, growth]);
+      const { population, growthProgress, growth } = growCity(city, shares.get(city.id) ?? 0, rules);
       if (growth > 0) alphaEvent(state, 'POPULATION_GROWN', `${city.name} cresceu para ${population} de população.`, [owner.id]);
-      return { ...city, population, growthProgress: Math.min(threshold, progress - multiply(growth, threshold)), workers: { ...city.workers, unassigned: sum([city.workers.unassigned, growth]) } };
+      return { ...city, population, growthProgress, workers: { ...city.workers, unassigned: sum([city.workers.unassigned, growth]) } };
     });
     const overextended = deriveAdministration({ ...owner.civilization, cities }, rules, state.core.map).administrationStatus === 'OVEREXTENDED';
     if (overextended) alphaEvent(state, 'ADMINISTRATIVE_OVEREXTENSION', 'A administração está sobrecarregada; a estabilidade cai.', [owner.id]);
