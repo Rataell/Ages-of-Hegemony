@@ -362,3 +362,4 @@ button.alpha-card { text-align: left; }
 .alpha-people-option { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 8px; margin: 8px 0; }
 .alpha-people-option small { grid-column: 1 / -1; color: var(--text-secondary); font-size: 12px; }
 .alpha-people-option small em { color: var(--warning); font-style: normal; }
+.alpha-city-facts { margin: 4px 0 8px; font-size: 13px; color: var(--text-secondary); }
