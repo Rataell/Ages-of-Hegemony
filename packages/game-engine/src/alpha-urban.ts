@@ -121,7 +121,8 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
 }
 
 /** What one PRODUCE would credit: worked yields scaled by mood and administration, mined metal, and ON_PRODUCE effects. */
-function productionOutput(state: AlphaState, actor: PlayerId, cityId: string) {
+/** What PRODUCE would credit this city now (shared by the option text and the growth forecast). */
+export function productionOutput(state: AlphaState, actor: PlayerId, cityId: string) {
   const owner = state.core.players.find(player => player.id === actor)!;
   const city = owner.civilization.cities.find(candidate => candidate.id === cityId)!, meta = state.cities.find(candidate => candidate.cityId === cityId)!;
   const breakdown = deriveCityProductionBreakdown(city, owner.civilization, state.core.config, state.core.map);

@@ -1,5 +1,5 @@
 import { ACTION_CLASS, ADVANCEMENTS, GREAT_PROJECTS, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, productionOutput, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -35,7 +35,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
       projects:Object.fromEntries(GREAT_PROJECTS.map(project=>[project.id,displayCost(project.cost)])),
     },
     milestones:eraMilestones(state,actor),
-    cityDetails:economic.player.civilization.cities.map(c=>({id:c.id,category:stabilityCategory(c.stability,state.core.config),production:deriveCityProductionBreakdown(c,economic.player.civilization,state.core.config,state.core.map)})),
+    cityDetails:economic.player.civilization.cities.map(c=>({id:c.id,category:stabilityCategory(c.stability,state.core.config),growthThreshold:infrastructureStats(c,state.core.config).growthThreshold,producedFood:state.cities.some(meta=>meta.cityId===c.id&&meta.currentOwnerId===actor)?(()=>{const produced=productionOutput(state,actor,c.id);return produced.output.food+produced.onProduce.food;})():0,foodEaten:c.population*state.core.config.foodPerPopulation,production:deriveCityProductionBreakdown(c,economic.player.civilization,state.core.config,state.core.map)})),
     roundReports:state.roundReports.filter(r=>r.playerId===actor),
     hegemony:hegemonyProgress(state,actor),
     declarations:state.players.filter(p=>p.hegemony!==null).map(p=>({playerId:p.playerId,...p.hegemony})),

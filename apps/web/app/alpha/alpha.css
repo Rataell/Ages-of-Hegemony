@@ -339,3 +339,5 @@ button.alpha-card { text-align: left; }
 .alpha-guide ol, .alpha-guide ul { padding-left: 20px; display: grid; gap: 4px; }
 .alpha-guide > button { margin-top: 16px; }
 .alpha-guide-button { white-space: nowrap; }
+.alpha-panel tr.is-outflow td { color: var(--danger); }
+.alpha-panel tr.is-total th, .alpha-panel tr.is-total td { font-weight: 700; }
