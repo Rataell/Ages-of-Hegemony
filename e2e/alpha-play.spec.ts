@@ -110,6 +110,12 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await pa.locator('.alpha-urban-detail').screenshot({path:`${actionEvidence}/1440x900-city-refusal.png`});
     // The other player deliberately does not produce this round.
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 1');
+    // The starting Explorer leaves the capital: a highlighted reachable hex offers the move with its path already chosen.
+    await pa.locator('.alpha-army').first().getByRole('button',{name:'Explorador ×1'}).click();
+    await pa.locator('svg.world-map g.hex.eligible:not([aria-label^="Desconhecido"])').first().click();
+    await pa.getByRole('button',{name:'Reservar movimento',exact:true}).click();
+    await expect(pa.locator('.alpha-order')).toContainText('Movimento · Explorador ×1');
+    await pa.getByRole('button',{name:'Cidade',exact:true}).click();
     await pa.reload();await expect(pa.locator('.alpha-urban')).toContainText('Ações planejáveis da cidade: 0 / 1');
     await bothConfirm('Confirmar planejamento','2 / 9');
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
@@ -134,13 +140,14 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 0 / 1');
     {
       const planned=await game();
-      expect(planned.units.filter(u=>u.ownerId===planned.players[0]!.playerId&&u.kind==='EXPLORER')).toHaveLength(0);
+      // Only the starting Explorer exists until the planned recruitment resolves.
+      expect(planned.units.filter(u=>u.ownerId===planned.players[0]!.playerId&&u.kind==='EXPLORER')).toHaveLength(1);
       expect(planned.core.players[1]!.civilization.cities[0]!.districts.map(d=>d.type)).not.toContain('AGRARIAN');
     }
     await bothConfirm('Confirmar planejamento','3 / 9');
     {
       const after=await game();
-      expect(after.units.filter(u=>u.ownerId===after.players[0]!.playerId&&u.kind==='EXPLORER')).toHaveLength(1);
+      expect(after.units.filter(u=>u.ownerId===after.players[0]!.playerId&&u.kind==='EXPLORER')).toHaveLength(2);
       expect(after.core.players[1]!.civilization.cities[0]!.districts.map(d=>d.type)).toContain('AGRARIAN');
     }
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
