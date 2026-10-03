@@ -34,3 +34,17 @@ export function templateMetalDeposit(template: RegionTemplate): number | null {
   const hill = template.terrain.indexOf('HILLS');
   return hill >= 0 ? hill : null;
 }
+
+/** The authored position that lands on region position `index` under `rotation` sixth-turns (the center never moves). */
+export function rotatedTemplateIndex(index: number, rotation: number): number {
+  return index === 0 ? 0 : 1 + (index - 1 + rotation) % 6;
+}
+
+/** The template at each region position under a rotation. Terrain and the metal deposit move together, by the same index. */
+export function rotatedRegionContent(template: RegionTemplate, rotation: number): { terrain: TerrainType; deposit: boolean }[] {
+  const deposit = templateMetalDeposit(template);
+  return template.terrain.map((_, index) => {
+    const source = rotatedTemplateIndex(index, rotation);
+    return { terrain: template.terrain[source]!, deposit: source === deposit };
+  });
+}

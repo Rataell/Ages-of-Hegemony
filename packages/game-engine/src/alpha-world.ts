@@ -1,4 +1,4 @@
-import { REGION_TEMPLATES, leaderStateFor, templateMetalDeposit, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainType } from '@aoh/game-domain';
+import { REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
@@ -28,13 +28,13 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
     const activeHome=home>=0&&home<input.players.length;
     const center={q:q*3,r:r*3};const points=[center,...hexNeighbors(center)];
     regions.push({id:`region-${q}-${r}`,templateId:template.id,hexIds:points.map(hexId),rotation:0,revealedBy:home>=0&&home<input.players.length?[PlayerIdSchema.parse(input.players[home]!.id)]:[]});
-    const deposit=templateMetalDeposit(template);
+    const content=rotatedRegionContent(template,0);
     points.forEach((p,i)=>{
-      let terrain=template.terrain[i]!;const preset=input.worldPreset??'MIXED';
+      let terrain=content[i]!.terrain;const preset=input.worldPreset??'MIXED';
       if(preset==='CONTINENTAL'&&terrain==='SEA')terrain=(p.q+p.r+input.seed)%2===0?'PLAINS':'COAST';
       if(preset==='ARCHIPELAGO'&&!activeHome&&terrain!=='MOUNTAINS'&&(Math.abs(p.q*17+p.r*31+input.seed)%5)<2)terrain='SEA';
       if(preset==='INLAND_SEA'&&!activeHome&&q>=2&&q<=3&&r>=1&&r<=3)terrain=i===0?'SEA':'COAST';
-      map.push({...p,id:hexId(p),terrain,features:i===deposit&&(terrain==='HILLS'||terrain==='MOUNTAINS')?['METAL']:[]});
+      map.push({...p,id:hexId(p),terrain,features:content[i]!.deposit&&holdsMetal(terrain)?['METAL']:[]});
     });
   }
   // Region centres are three hexes apart and touch through a two-hex neck. One SEA neck can otherwise split the
@@ -102,22 +102,34 @@ export function validateExploration(state:AlphaState,actor:PlayerId,order:Extrac
   const origin=state.core.map.find(t=>t.id===unit.hexId)!;
   if(!region.hexIds.some(id=>{const tile=state.core.map.find(t=>t.id===id)!;return hexDistance(origin,tile)<=1;}))throw new Error('A região não está na fronteira desta peça.');
   if(!regionOrientationFixed(state,region)&&order.rotation!==region.rotation){
-    const template=REGION_TEMPLATES.find(r=>r.id===region.templateId)!;
     const observed=new Set(state.players.flatMap(p=>[...p.knownHexIds,...visibleHexIds(state,p.playerId)]));
-    const changesKnownTerrain=region.hexIds.some((id,i)=>observed.has(id)&&state.core.map.find(t=>t.id===id)!.terrain!==template.terrain[i===0?0:1+(i-1+order.rotation)%6]);
+    const rotated=rotatedRegionTiles(state,region,order.rotation);
+    const changesKnownTerrain=region.hexIds.some((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;return observed.has(id)&&(tile.terrain!==rotated[i]!.terrain||tile.features.join()!==rotated[i]!.features.join());});
     if(changesKnownTerrain)throw new Error('A orientação não pode alterar terrenos já conhecidos.');
   }
 }
+const holdsMetal=(terrain:TerrainType)=>terrain==='HILLS'||terrain==='MOUNTAINS';
+/**
+ * The region's tiles after turning it from its current rotation to `rotation`. Terrain and the metal deposit come from the
+ * same rotated template position. World-preset and contact-corridor overrides were generated before fog reveal and stay
+ * where they are; the deposit follows the creation rule (only on hills or mountains).
+ */
+export function rotatedRegionTiles(state:AlphaState,region:AlphaState['regions'][number],rotation:number):{terrain:TerrainType;features:TerrainFeature[]}[] {
+  const template=REGION_TEMPLATES.find(r=>r.id===region.templateId)!;
+  const before=rotatedRegionContent(template,region.rotation),after=rotatedRegionContent(template,rotation);
+  return region.hexIds.map((id,i)=>{
+    const tile=state.core.map.find(t=>t.id===id)!;
+    const terrain=tile.terrain===before[i]!.terrain?after[i]!.terrain:tile.terrain;
+    return {terrain,features:[...tile.features.filter(feature=>feature!=='METAL'),...(after[i]!.deposit&&holdsMetal(terrain)?['METAL' as const]:[])]};
+  });
+}
 export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
   validateExploration(state,actor,order);const region=state.regions.find(r=>r.hexIds.includes(order.target))!;
-  const template=REGION_TEMPLATES.find(r=>r.id===region.templateId)!;
   const fixed=regionOrientationFixed(state,region),rotation=fixed?region.rotation:order.rotation;
-  if(!fixed)region.hexIds.forEach((id,i)=>{
-    const tile=state.core.map.find(t=>t.id===id)!,authored=template.terrain[i]!;
-    // World-preset and contact-corridor overrides are generated before fog reveal and remain authoritative.
-    // Rotate only untouched authored terrain; otherwise revealing a region would silently rewrite the world.
-    if(tile.terrain===authored)tile.terrain=template.terrain[i===0?0:1+(i-1+rotation)%6]!;
-  });
+  if(!fixed){
+    const rotated=rotatedRegionTiles(state,region,rotation);
+    region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;tile.terrain=rotated[i]!.terrain;tile.features=rotated[i]!.features;});
+  }
   region.rotation=rotation;region.revealedBy.push(actor);
   const player=state.players.find(p=>p.playerId===actor)!;player.knownHexIds=[...new Set([...player.knownHexIds,...region.hexIds])].sort();player.exploredRegions++;player.prestige++;
 }

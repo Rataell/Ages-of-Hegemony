@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PlayerIdSchema, REGION_TEMPLATES } from '@aoh/game-domain';
-import { beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, hexId, hexNeighbors, serializeAlphaState } from '@aoh/game-engine';
+import { PlayerIdSchema, REGION_TEMPLATES, rotatedTemplateIndex, templateMetalDeposit } from '@aoh/game-domain';
+import { beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, hexId, hexNeighbors, regionOrientationFixed, rotatedRegionTiles, serializeAlphaState } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 function setup(count=2) {return beginAlphaPlanning(createAlphaGame({gameId:'world-alpha',seed:23,preset:'QUICK',players:Array.from({length:count},(_,i)=>({id:`p${i+1}`,name:`Pessoa ${i+1}`}))}));}
 describe('modular regions and fog of war',()=>{
@@ -59,5 +59,50 @@ describe('modular regions and fog of war',()=>{
     const before=serializeAlphaState(state);
     expect(()=>exploreRegion(state,actor,{type:'EXPLORE',id:'rotate-known',unitId:state.units[0]!.id,target:region.hexIds[0]!,rotation})).toThrow('terrenos já conhecidos');
     expect(serializeAlphaState(state)).toBe(before);
+  });
+  it.each([0,1,2,3,4,5])('turns terrain and the metal deposit together under rotation %i, deterministically',rotation=>{
+    const state=setup();
+    // Untouched regions only: preset and corridor overrides stay in place by design.
+    const regions=state.regions.filter(region=>{const template=REGION_TEMPLATES.find(t=>t.id===region.templateId)!;
+      return !regionOrientationFixed(state,region)&&region.hexIds.every((id,i)=>state.core.map.find(t=>t.id===id)!.terrain===template.terrain[i]);});
+    expect(regions.filter(region=>templateMetalDeposit(REGION_TEMPLATES.find(t=>t.id===region.templateId)!)!==null).length).toBeGreaterThan(0);
+    for(const region of regions){
+      const template=REGION_TEMPLATES.find(t=>t.id===region.templateId)!,deposit=templateMetalDeposit(template);
+      const tiles=rotatedRegionTiles(state,region,rotation);
+      tiles.forEach((tile,i)=>{
+        const source=rotatedTemplateIndex(i,rotation);
+        expect(tile.terrain).toBe(template.terrain[source]);
+        expect(tile.features.includes('METAL')).toBe(source===deposit);
+      });
+      expect(tiles.filter(tile=>tile.features.includes('METAL'))).toHaveLength(deposit===null?0:1);
+      expect(rotatedRegionTiles(state,region,rotation)).toEqual(tiles);
+    }
+  });
+  it('applies the rotated deposit when a region is explored with a turn',()=>{
+    // Find an edge hex from which every observed region hex keeps its content under some turn that moves the deposit.
+    const base=setup(),actor=base.players[0]!.playerId;
+    let found=false;
+    for(const region of base.regions){
+      const template=REGION_TEMPLATES.find(t=>t.id===region.templateId)!,deposit=templateMetalDeposit(template);
+      if(deposit===null||regionOrientationFixed(base,region)||region.hexIds.some((id,i)=>base.core.map.find(t=>t.id===id)!.terrain!==template.terrain[i]))continue;
+      for(const rotation of [1,2,3,4,5]){
+        const tiles=rotatedRegionTiles(base,region,rotation);
+        const moved=tiles.findIndex(tile=>tile.features.includes('METAL'));
+        if(moved===deposit)continue;
+        for(const edge of base.core.map.filter(t=>!region.hexIds.includes(t.id))){
+          const state=structuredClone(base);
+          state.units[0]!.hexId=edge.id;
+          for(const player of state.players)player.knownHexIds=player.knownHexIds.filter(id=>!region.hexIds.includes(id));
+          try{exploreRegion(state,actor,{type:'EXPLORE',id:'turn',unitId:state.units[0]!.id,target:region.hexIds[0]!,rotation});}catch{continue;}
+          expect(state.regions.find(r=>r.id===region.id)!.rotation).toBe(rotation);
+          region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;expect(tile.terrain).toBe(tiles[i]!.terrain);expect(tile.features).toEqual(tiles[i]!.features);});
+          expect(state.core.map.find(t=>t.id===region.hexIds[moved])!.features).toContain('METAL');
+          found=true;break;
+        }
+        if(found)break;
+      }
+      if(found)break;
+    }
+    expect(found).toBe(true);
   });
 });
