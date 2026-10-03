@@ -1,3 +1,4 @@
+import { orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
   ALPHA_CARDS, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources, cityLevelForPopulation,
   type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlannedAction, type PlayerId, type RoundPhase, type StrategicOrder,
@@ -111,8 +112,9 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         if (order.type === 'MOVE') candidate.units.filter(unit => order.unitIds.includes(unit.id)).forEach(unit => { unit.hexId = order.path.at(-1)!; });
         if (order.type === 'ATTACK') resolveBattle(candidate, id, order);
         candidate.core.players.forEach(player => { player.civilization = refreshAdministration(player.civilization, candidate.core.config, candidate.core.map); });
-        refreshKnowledge(candidate); refreshHegemony(candidate); Object.assign(state, AlphaStateSchema.parse(candidate));
-        const message = ({ EXPLORE: 'Região explorada.', MOVE: 'Movimento concluído.', TRADE: 'Rota de comércio estabelecida.', ATTACK: 'Conflito resolvido; consulte dados e perdas.', INFLUENCE: 'Influência aplicada.' })[type];
+        refreshKnowledge(candidate); refreshHegemony(candidate);
+        const message = orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined);
+        Object.assign(state, AlphaStateSchema.parse(candidate));
         alphaEvent(state, type, message, [id]);
         const target=order.type==='MOVE'?order.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:state.core.players.flatMap(player=>player.civilization.cities).find(city=>city.id===order.toCityId)?.hexId;
         const unitIds='unitIds' in order?order.unitIds:'unitId' in order?[order.unitId]:[];
@@ -151,7 +153,7 @@ function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['ty
         const city=candidate.core.players.flatMap(player=>player.civilization.cities).find(item=>item.id===action.cityId)!;
         const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',PROMOTE_MOOD:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT'} as const)[action.action];
         const visibleTo=action.action==='BUILD'?viewersAt(candidate,city.hexId,[actor]):[actor];
-        resolutionEvent(candidate,{type,actorId:actor,visibleTo,message:`${city.name}: ação ${action.action} realizada.`,hexId:city.hexId,cityId:city.id,unitIds:[]});
+        resolutionEvent(candidate,{type,actorId:actor,visibleTo,message:urbanActionMessage(state,candidate,actor,action,city.name),hexId:city.hexId,cityId:city.id,unitIds:[]});
       }else{
         const {id,...payload}=action;
         manageDiplomacy(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'PROPOSE_TREATY'|'DECLARE_WAR'}>);

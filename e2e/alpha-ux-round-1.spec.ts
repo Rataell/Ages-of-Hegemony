@@ -77,6 +77,8 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     const game = projected.value.game!;
     const expected = game.view.visibleTerritory.length + game.knownTerritory.length + game.frontier.length;
     await expect(pa.locator('svg.world-map g.hex')).toHaveCount(expected);
+    // The first-round ambitions dialog may be postponed to look at the atlas first.
+    await pa.getByRole('dialog', { name: 'Escolha duas ambições secretas' }).getByRole('button', { name: 'Ver o mapa primeiro', exact: true }).click();
     const fill = async () => pa.evaluate(() => {
       const stage = document.querySelector('.map-stage')!.getBoundingClientRect(), hexes = Array.from(document.querySelectorAll('svg.world-map g.hex')).map(node => node.getBoundingClientRect());
       const left = Math.min(...hexes.map(r => r.left)), right = Math.max(...hexes.map(r => r.right)), top = Math.min(...hexes.map(r => r.top)), bottom = Math.max(...hexes.map(r => r.bottom));
@@ -115,6 +117,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
 
     // Leaving a running match forgets it in this browser only; the code brings the person back to the same match.
     const running = (await repository.find(roomId))!;
+    await pb.getByRole('dialog', { name: 'Escolha duas ambições secretas' }).getByRole('button', { name: 'Ver o mapa primeiro', exact: true }).click();
     await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click();
     await expect(pb.getByText(`Para voltar, use o código ${code}`, { exact: false })).toBeVisible();
     await pb.getByRole('button', { name: 'Ficar', exact: true }).click();

@@ -75,7 +75,12 @@ test('game shell fills the screen: no page scroll, fixed chrome, panels scroll i
     await page.locator('.alpha-army details summary').first().click();
     await page.locator('.alpha-army').filter({ hasText: '8,0' }).getByRole('button', { name: 'Selecionar todas', exact: true }).click();
     await expect.soft(page.getByRole('heading', { name: 'Planejar com 10 peça(s)' })).toBeVisible();
+    // Target the adjacent enemy so the builder shows its attack block, then open the advanced orders and the manual path.
+    await page.getByRole('status', { name: 'Resolvendo a rodada' }).getByRole('button', { name: 'Continuar' }).click();
+    await page.getByRole('button', { name: 'Planície 9,0', exact: true }).click();
     await page.locator('.alpha-order-builder details summary').click();
+    await page.getByRole('button', { name: 'Traçar caminho hex a hex', exact: true }).click();
+    await page.getByRole('button', { name: 'Planície 9,0', exact: true }).click();
 
     for (const [width, height] of SIZES) {
       const label = `${width}x${height}`;

@@ -43,9 +43,12 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     await expect(stack.locator('.alpha-stack-tag')).toContainText('Exército 10/6');
     await stack.getByRole('button',{name:'Selecionar todas',exact:true}).click();
     await expect(a.getByRole('heading',{name:'Planejar com 10 peça(s)'})).toBeVisible();
+    // The previous round's results open first; the atlas is usable once they are dismissed.
+    await a.getByRole('status',{name:'Resolvendo a rodada'}).getByRole('button',{name:'Continuar'}).click();
     await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
     // Stack limits are explained before any command: ten pieces cannot end a voluntary move on one hex.
-    await a.getByRole('button',{name:'Selecionar caminho no mapa',exact:true}).click();
+    await a.locator('.alpha-order-builder summary').filter({hasText:'Ordens avançadas'}).click();
+    await a.getByRole('button',{name:'Traçar caminho hex a hex',exact:true}).click();
     await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
     await expect(a.getByRole('alert').filter({hasText:'Limite de pilha atingido em 9,0'})).toBeVisible();
     await expect(a.getByRole('button',{name:'Reservar movimento',exact:true})).toBeDisabled();

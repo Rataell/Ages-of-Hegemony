@@ -4,6 +4,13 @@ import { alphaResourcePayment } from './alpha-resources.js';
 import { foundCityAt } from './founding.js';
 import { culturalIdentityOf, refreshCulturalMetrics } from './alpha-culture.js';
 
+/** The shared territory rules answer in codes; players read these sentences. */
+const FOUNDING_REFUSALS:Record<string,(distance:number)=>string>={
+  INVALID_CITY_SITE:()=>'Funde em terra firme, fora de uma cidade e de um território já trabalhado.',
+  CITY_TOO_CLOSE:distance=>`Uma nova cidade precisa ficar a pelo menos ${distance} hexes de qualquer cidade.`,
+  INSUFFICIENT_RESOURCES:()=>'Recursos insuficientes para fundar a cidade.',
+  UNKNOWN_HEX:()=>'Hex desconhecido.',
+};
 export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,name:string):void {
   const pioneer=state.units.find(u=>u.id===unitId&&u.ownerId===actor&&u.kind==='PIONEER');
   if(!pioneer)throw new Error('Escolha um Pioneiro próprio para fundar uma cidade.');
@@ -12,7 +19,7 @@ export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,
   if(tile.ownerId!==null&&tile.ownerId!==actor||state.units.some(u=>u.hexId===tile.id&&u.ownerId!==actor))throw new Error('Não é possível fundar em território ou presença estrangeira.');
   const player=state.core.players.find(p=>p.id===actor)!;
   const founded=foundCityAt(state.core,player,state.core.map,{type:'FOUND_CITY',playerId:actor,cityId:CityIdSchema.parse(`city-${actor}-${state.version}`),hexId:tile.id,name,expectedVersion:state.core.version},state.core.version+1,alphaResourcePayment(state));
-  if(!founded.ok)throw new Error(founded.error.message);
+  if(!founded.ok)throw new Error(FOUNDING_REFUSALS[founded.error.code]?.(state.core.config.territory.minimumCityDistance)??founded.error.message);
   state.units=state.units.filter(u=>u.id!==unitId);
   const newCity=player.civilization.cities.find(c=>c.hexId===tile.id)!;
   state.cities.push({cityId:newCity.id,originalOwnerId:actor,currentOwnerId:actor,nativeIdentity:state.players.find(p=>p.playerId===actor)!.civilization??`native-${actor}`,status:'OWNED',integration:100,mood:3,level:cityLevelForPopulation(newCity.population),capital:player.civilization.capitalCityId===newCity.id,districts:newCity.districts.map(d=>d.type),buildings:[],fortification:{level:'NONE',state:'INTACT'},foreignPresence:[],localCohesion:50,culturalAnchor:null,urbanActionsUsed:0});

@@ -44,10 +44,12 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
       const currentId=new URL(page.url()).searchParams.get('game')!;
       const current=(await repository.find(currentId))!;
       await expect(page.locator('.alpha-about')).toContainText(`Versão ${current.game!.version}`);
+      // Secret ambitions are the first decision: the board opens on them until both are chosen.
+      const dialog=page.getByRole('dialog',{name:'Escolha duas ambições secretas'});await expect(dialog).toBeVisible();
+      const choices=dialog.getByRole('checkbox');
+      await choices.nth(0).check();await choices.nth(1).check();await expect(choices.nth(2)).toBeDisabled();await dialog.getByRole('button',{name:'Confirmar duas ambições',exact:true}).click();
+      await expect(dialog).toHaveCount(0);
       await page.getByRole('button',{name:'Cartas & Projetos',exact:true}).click();
-      const choices=page.locator('.alpha-card').filter({has:page.getByRole('heading',{name:'Escolha duas ambições secretas'})}).getByRole('checkbox');
-      await choices.nth(0).check();await choices.nth(1).check();await page.getByRole('button',{name:'Confirmar duas ambições',exact:true}).click();
-      await expect(page.getByRole('button',{name:'Confirmar duas ambições',exact:true})).toHaveCount(0);
     }
     await pa.screenshot({path:`${evidence}/1440-card-hand.png`});
     await pa.getByRole('button',{name:'Mundo',exact:true}).click();
@@ -63,7 +65,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     const capital=beforeMap.core.map.find(tile=>tile.id===beforeMap.core.players[0]!.civilization.cities[0]!.hexId)!;
     const claim=beforeMap.core.map.find(tile=>tile.ownerId===null&&tile.terrain==='PLAINS'&&hexDistance(capital,tile)===1)!;
     await pa.locator(`svg.world-map [role=button][aria-label$="${claim.id}"]`).click();
-    await pa.getByRole('button',{name:'Reivindicar para Ana',exact:true}).click();
+    await pa.getByRole('button',{name:'Reivindicar para Celeiro Áureo',exact:true}).click();
     await expect(pa.locator('.alpha-inspector')).toContainText('Território de Ana');
     await pa.getByText('Melhorias e estradas',{exact:true}).click();await pa.getByRole('button',{name:'Fazenda',exact:true}).click();
     await expect(pa.locator('.alpha-inspector')).toContainText('Fazenda');
@@ -163,8 +165,8 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await confirm(pb,'Confirmar planejamento');await phase(pa,'4 / 9');await phase(pb,'4 / 9');
     expect((await game()).players[0]!.research).toHaveLength(1);
     const replayA=pa.locator('.alpha-resolution-phase'),replayB=pb.locator('.alpha-resolution-phase');
-    await expect(replayA).toContainText('Movimento');await expect(replayA).toContainText('Movimento concluído.');
-    await expect(replayB).not.toContainText('Movimento concluído.');
+    await expect(replayA).toContainText('Mobilidade');await expect(replayA).toContainText(/Ana: Explorador moveu-se para \d+,\d+\./);
+    await expect(replayB).not.toContainText('moveu-se');
     await pa.screenshot({path:`${actionEvidence}/1440x900-resolution-ana.png`});await pb.screenshot({path:`${actionEvidence}/1440x900-resolution-beto.png`});
     await replayA.getByRole('button',{name:'Continuar'}).click();await replayB.getByRole('button',{name:'Continuar'}).click();
     for(const [tab,file] of [['Teia Civilizacional','research'],['Diplomacia','diplomacy'],['Eras & Hegemonia','hegemony'],['Crônicas','round-report']] as const){await pa.getByRole('button',{name:tab,exact:true}).click();await pa.screenshot({path:`${evidence}/1440-${file}.png`});}

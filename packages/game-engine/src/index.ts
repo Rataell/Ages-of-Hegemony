@@ -25,3 +25,5 @@ export { CORE_PHASE_MIRROR, INTERACTIVE_PHASES, LEGAL_COMMANDS, advanceAfterRead
 export * from './alpha-leaders.js';
 export * from './alpha-combat.js';
 export * from './alpha-stack.js';
+export * from './alpha-unit-options.js';
+export * from './alpha-messages.js';

@@ -135,7 +135,7 @@ button.alpha-card { text-align: left; }
 .alpha-action-queue button { padding: 2px 8px; }
 .alpha-resolution-log ol { padding-left: 28px; }
 .alpha-resolution-log li { margin: 5px 0; font-size: 12px; }
-.alpha-resolution-phase { position: fixed; z-index: 40; inset: 92px 50% auto auto; transform: translateX(50%); width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 150px); overflow: auto; padding: 20px; border: 1px solid var(--accent); background: var(--surface-raised); box-shadow: 0 18px 60px #000a; }
+.alpha-resolution-phase { position: fixed; z-index: 40; inset: 92px 50% auto auto; transform: translateX(50%); width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 150px); overflow: auto; padding: 20px; border: 1px solid var(--accent); background: var(--surface-elevated); box-shadow: 0 18px 60px #000a; }
 .alpha-resolution-phase h2 { margin: 4px 0 12px; }
 .alpha-resolution-phase ol { display: grid; gap: 8px; padding-left: 24px; }
 .alpha-resolution-phase li span { display: block; margin-top: 2px; color: var(--text-secondary); }
@@ -249,3 +249,28 @@ button.alpha-card { text-align: left; }
 
 .alpha-admin-flag { margin-left: 8px; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; color: var(--warning); white-space: nowrap; }
 @media (min-width: 901px) { .alpha-game .top-bar .admin { min-width: 128px; } }
+
+/* Seven stored resources with a warehouse gauge. A full store turns amber: new income would be discarded. */
+.resource .resource-meter { display: block; width: 100%; min-width: 28px; height: 3px; margin-top: 2px; border-radius: 2px; background: var(--border-subtle); overflow: hidden; }
+.resource .resource-meter i { display: block; height: 100%; background: currentColor; opacity: .75; }
+.resource.full b { color: var(--warning); }
+.resource.full .resource-meter i { background: var(--warning); opacity: 1; }
+@media (min-width: 901px) { .alpha-game .top-bar > .resources { gap: 14px; flex-wrap: nowrap; } }
+/* Up to 1400 px the seven names become screen-reader labels (the icon and tooltip still name each one) so brand and round keep their room. */
+@media (min-width: 901px) and (max-width: 1400px) {
+  .alpha-game .top-bar > .resources { gap: 12px; }
+  .alpha-game .top-bar > .resources .resource small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* One block per order the selected pieces can actually give on the chosen hex. */
+.alpha-order-choice { margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border-subtle); border-left: 3px solid var(--gold, #c5a46a); border-radius: 4px; background: rgba(197, 164, 106, 0.05); }
+.alpha-order-choice h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-primary); }
+.alpha-order-choice p { margin: 0 0 8px; font-size: 13px; color: var(--text-secondary); }
+.alpha-order-choice details { margin-top: 8px; font-size: 12px; }
+
+/* Blocking first decision (secret ambitions): solid surface over a dimmed board. */
+.alpha-modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(5, 10, 12, 0.72); }
+.alpha-modal { width: min(760px, 100%); max-height: calc(100dvh - 32px); overflow: auto; padding: 24px; border: 1px solid var(--accent); background: var(--surface-elevated); box-shadow: 0 18px 60px #000a; }
+.alpha-modal .alpha-card-row { margin: 12px 0 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; overflow: visible; }
+.alpha-modal .alpha-card.is-selected { border-color: var(--accent); }
+.alpha-modal > button { margin-left: 8px; }

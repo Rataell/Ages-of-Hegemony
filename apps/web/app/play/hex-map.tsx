@@ -166,7 +166,8 @@ export const HexMap = memo(function HexMap({
             isWorked ? 'is-worked' : '',
           ].filter(Boolean).join(' ');
 
-          const ariaTitle = `${city?.name ?? label(tile.terrain)} ${tile.id}${isWorked ? ', trabalhado' : ''}`;
+          const cityOwner = city && city.ownerId !== data.view.player.id ? data.players.find(player => player.id === city.ownerId)?.name : undefined;
+          const ariaTitle = `${city?.name ?? label(tile.terrain)}${cityOwner ? ` (${cityOwner})` : ''} ${tile.id}${isWorked ? ', trabalhado' : ''}`;
 
           return (
             <g
@@ -228,12 +229,14 @@ export const HexMap = memo(function HexMap({
                   )}
 
                   {/* City Name Banner */}
-                  <g transform="translate(0, 10)">
-                    <rect x="-30" y="-8" width="60" height="15" rx="3" className="city-banner-bg" />
-                    <text className="city-name" y="3">
-                      {isCapital ? '★ ' : ''}{city.name}
-                    </text>
-                  </g>
+                  {/* Long names are condensed into the banner instead of spilling over neighbouring hexes. */}
+                  {(() => {
+                    const name = `${isCapital ? '★ ' : ''}${city.name}`, natural = name.length * 6.8, fitted = Math.min(natural, 92);
+                    return <g transform="translate(0, 10)">
+                      <rect x={-Math.max(30, fitted / 2 + 6)} y="-8" width={Math.max(60, fitted + 12)} height="15" rx="3" className="city-banner-bg" />
+                      <text className="city-name" y="3" {...(natural > fitted ? { textLength: fitted, lengthAdjust: 'spacingAndGlyphs' } : {})}>{name}</text>
+                    </g>;
+                  })()}
 
                   {/* Population & Development Pill */}
                   <g transform="translate(0, 24)">

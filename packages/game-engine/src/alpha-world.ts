@@ -53,7 +53,7 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   }
   const created=createGame({gameId:input.gameId,seed:input.seed,map,
     players:input.players.map(p=>({id:p.id,name:p.name,resources:{food:16,materials:14,wealth:10,knowledge:8,influence:8}})),
-    initialCities:input.players.map((p,i)=>({id:`capital-${i+1}`,ownerId:p.id,name:p.name,hexId:`${homes[i]![0]*3},${homes[i]![1]*3}`,workers:{producers:1,artisans:0,merchants:0,scholars:1,soldiers:0,unassigned:0}}))});
+    initialCities:input.players.map((p,i)=>({id:`capital-${i+1}`,ownerId:p.id,name:(CIVILIZATIONS.find(civ=>civ.id===p.civilization)??CIVILIZATIONS[i]!).capital,hexId:`${homes[i]![0]*3},${homes[i]![1]*3}`,workers:{producers:1,artisans:0,merchants:0,scholars:1,soldiers:0,unassigned:0}}))});
   if(!created.ok)throw new Error(created.error.message);
   const migrated=migrateSnapshotV3ToV4(created.value);if(!migrated.ok)throw new Error(migrated.error.message);
   const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED',input.actionsPerRound??7);state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
@@ -80,13 +80,19 @@ export function refreshKnowledge(state:AlphaState):void {
     }
   }
 }
+/**
+ * Only the first explorer of an untouched region chooses its orientation. Once anyone has revealed, claimed or entered it
+ * the orientation is fixed and later explorers simply use it, so two explorers in the same round never conflict.
+ */
+export function regionOrientationFixed(state:AlphaState,region:AlphaState['regions'][number]):boolean {
+  return region.revealedBy.length>0||region.hexIds.some(id=>state.core.map.find(t=>t.id===id)?.ownerId!==null||state.units.some(u=>u.hexId===id));
+}
 export function validateExploration(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
   const unit=state.units.find(u=>u.id===order.unitId&&u.ownerId===actor);const region=state.regions.find(r=>r.hexIds.includes(order.target));
   if(!unit||!region||region.revealedBy.includes(actor))throw new Error('Escolha uma peça própria junto a uma região ainda não explorada.');
   const origin=state.core.map.find(t=>t.id===unit.hexId)!;
   if(!region.hexIds.some(id=>{const tile=state.core.map.find(t=>t.id===id)!;return hexDistance(origin,tile)<=1;}))throw new Error('A região não está na fronteira desta peça.');
-  if(order.rotation!==region.rotation&&(region.revealedBy.length>0||region.hexIds.some(id=>state.core.map.find(t=>t.id===id)?.ownerId!==null||state.units.some(u=>u.hexId===id))))throw new Error('Uma região ocupada ou já revelada não pode ser girada.');
-  if(order.rotation!==region.rotation){
+  if(!regionOrientationFixed(state,region)&&order.rotation!==region.rotation){
     const template=REGION_TEMPLATES.find(r=>r.id===region.templateId)!;
     const observed=new Set(state.players.flatMap(p=>[...p.knownHexIds,...visibleHexIds(state,p.playerId)]));
     const changesKnownTerrain=region.hexIds.some((id,i)=>observed.has(id)&&state.core.map.find(t=>t.id===id)!.terrain!==template.terrain[i===0?0:1+(i-1+order.rotation)%6]);
@@ -96,13 +102,14 @@ export function validateExploration(state:AlphaState,actor:PlayerId,order:Extrac
 export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
   validateExploration(state,actor,order);const region=state.regions.find(r=>r.hexIds.includes(order.target))!;
   const template=REGION_TEMPLATES.find(r=>r.id===region.templateId)!;
-  region.hexIds.forEach((id,i)=>{
+  const fixed=regionOrientationFixed(state,region),rotation=fixed?region.rotation:order.rotation;
+  if(!fixed)region.hexIds.forEach((id,i)=>{
     const tile=state.core.map.find(t=>t.id===id)!,authored=template.terrain[i]!;
     // World-preset and contact-corridor overrides are generated before fog reveal and remain authoritative.
     // Rotate only untouched authored terrain; otherwise revealing a region would silently rewrite the world.
-    if(tile.terrain===authored)tile.terrain=template.terrain[i===0?0:1+(i-1+order.rotation)%6]!;
+    if(tile.terrain===authored)tile.terrain=template.terrain[i===0?0:1+(i-1+rotation)%6]!;
   });
-  region.rotation=order.rotation;region.revealedBy.push(actor);
+  region.rotation=rotation;region.revealedBy.push(actor);
   const player=state.players.find(p=>p.playerId===actor)!;player.knownHexIds=[...new Set([...player.knownHexIds,...region.hexIds])].sort();player.exploredRegions++;player.prestige++;
 }
 

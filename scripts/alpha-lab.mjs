@@ -104,11 +104,10 @@ try{
   await host.getByRole('button',{name:'Iniciar partida',exact:true}).click();
   await waitPhase('Planejamento');
   for(const {page} of seats){
-    await page.getByRole('button',{name:'Cartas & Projetos',exact:true}).click();
-    const card=page.locator('.alpha-card').filter({has:page.getByRole('heading',{name:'Escolha duas ambições secretas'})});
-    const choices=card.getByRole('checkbox');await choices.nth(0).check();await choices.nth(1).check();
-    await card.getByRole('button',{name:'Confirmar duas ambições',exact:true}).click();
-    await page.getByRole('button',{name:'Mundo',exact:true}).click();
+    const dialog=page.getByRole('dialog',{name:'Escolha duas ambições secretas'});
+    const choices=dialog.getByRole('checkbox');await choices.nth(0).check();await choices.nth(1).check();
+    await dialog.getByRole('button',{name:'Confirmar duas ambições',exact:true}).click();
+    await dialog.waitFor({state:'detached'});
   }
   await snapshot('02-inicio');
   for(let round=1;round<=rounds;round++){
