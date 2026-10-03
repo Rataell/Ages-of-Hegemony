@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef } from 'react';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 
 /**
@@ -6,9 +7,11 @@ import type { AlphaPlayerView } from '@aoh/server/alpha';
  * Only what the Alpha implements is described here.
  */
 export function AlphaGuide({ game, onClose }: { game: AlphaPlayerView; onClose: () => void }) {
-  const rules = game.rules, units = rules.units;
+  const rules = game.rules, units = rules.units, panel = useRef<HTMLElement | null>(null);
+  // Keyboard: focus moves into the guide and Escape closes it.
+  useEffect(() => { panel.current?.focus(); const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); }; window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey); }, [onClose]);
   return <div className="alpha-modal-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <section className="alpha-modal alpha-guide" role="dialog" aria-modal="true" aria-labelledby="alpha-guide-title">
+    <section ref={panel} tabIndex={-1} className="alpha-modal alpha-guide" role="dialog" aria-modal="true" aria-labelledby="alpha-guide-title">
       <p className="eyebrow">GUIA RÁPIDO</p><h2 id="alpha-guide-title">Como jogar</h2>
       <h3>Como se vence</h3>
       <p>Ao fim de {rules.roundLimit} rodadas vence quem tiver mais <b>Prestígio</b> (empates: pesquisas, população, riqueza e, por fim, iniciativa). Antes disso, uma civilização na Era da Hegemonia pode declarar um caminho de Hegemonia e vencer ao manter os requisitos por {rules.hegemonyHoldRounds} rodadas completas.</p>

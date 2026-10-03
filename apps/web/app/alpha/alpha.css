@@ -367,3 +367,7 @@ button.alpha-card { text-align: left; }
 .alpha-trade h4 { margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
 .alpha-trade form { display: grid; gap: 8px; }
 .alpha-trade .alpha-relation-proposal .resources, .alpha-trade .alpha-hint .resources, .alpha-trade .alpha-warning .resources { display: inline-flex; vertical-align: middle; }
+/* Narrow councils (1280 px and below): piece cards wrap instead of spilling past the panel. */
+.alpha-army { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.alpha-army-actions { flex-wrap: wrap; }
+.alpha-army-actions small { min-width: 0; }

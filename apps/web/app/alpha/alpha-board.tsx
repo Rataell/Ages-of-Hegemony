@@ -156,7 +156,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       </aside>
       <div className="world-column"><HexMap data={mapData} units={game.units} peoples={game.independents} raids={game.raidBands} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
       <aside className="context-inspector alpha-inspector" data-collapsed={!panels.inspector}>
-        <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.inspector} aria-label={panels.inspector?'Recolher Inspector':'Expandir Inspector'} title={panels.inspector?'Recolher Inspector':'Expandir Inspector'} onClick={()=>togglePanel('inspector')}>{panels.inspector?'›':'‹'}</button></div>
+        <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.inspector} aria-label={panels.inspector?'Recolher Inspetor':'Expandir Inspetor'} title={panels.inspector?'Recolher Inspetor':'Expandir Inspetor'} onClick={()=>togglePanel('inspector')}>{panels.inspector?'›':'‹'}</button></div>
         <div className="inspector-tabs" role="group" aria-label="Contexto">{INSPECTORS.map(([key,title])=><button key={key} aria-pressed={inspector===key} onClick={()=>setInspector(key)}>{title}{key==='military'&&game.self.orders.length>0?` · ${game.self.orders.length}`:''}</button>)}</div>
       <div className="alpha-panel-body">
         {inspector==='territory'&&<div className="alpha-inspector-body">

@@ -45,6 +45,21 @@ Partidas completas jogadas nesta sessão: 2p até o fim por limite de rodadas (c
 | Hexes trabalhados aceitavam hexes sem dono | Seleção limitada ao território da cidade | `c1929a2` |
 | Celular: botão de confirmar a 1 765 px de rolagem | Barra de fase fixa no rodapé em ≤ 900 px | `a0419eb` |
 
+## Revisão de textos (OpenSpec 8.5)
+
+| Área | Verificação |
+|---|---|
+| Eras | Fundação, Expansão, Civilização, Impérios, Ascensão, Hegemonia em toda a interface; critérios com rótulos em português |
+| Fases | Planejamento, Ações urbanas, Ordens e movimento, Diplomacia e comércio, Conflitos, Integração e manutenção, Fim da rodada |
+| Vitória | "Hegemonia <caminho> consolidada" ou "Maior Prestígio ao fim das N rodadas"; desempate descrito até a iniciativa |
+| Guia | "Como jogar" lê rodadas, ações, duração de acordos e peças das regras da partida |
+| Mensagens | Resolução sem identificadores de comando; recusas do motor Alpha em português; códigos do motor territorial traduzidos por `ruleMessage` |
+| Rótulos | "Inspector" corrigido para "Inspetor"; unidades, níveis de cidade, ânimo, fortificação, atitudes de povos e presença cultural traduzidos |
+
+## Layout e acesso (OpenSpec 8.6)
+
+1440×900, 1280×800 e 390×844, temas Claro e Escuro: sem rolagem horizontal. Em 1280 os cartões de peças cabem no Conselho. Em ≤ 900 px a barra de fase fica fixa. Diálogos recebem foco; o guia fecha com Esc; hexes são selecionáveis por Tab e Enter/Espaço.
+
 ## Medição: rodada do primeiro contato
 
 `node scripts/alpha-contact-sim.mjs --seeds=12` (QUICK, exploração dirigida à capital rival mais próxima):

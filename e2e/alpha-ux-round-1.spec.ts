@@ -105,14 +105,14 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     const stageWidth = async () => (await pa.locator('.map-stage').boundingBox())!.width;
     const normal = await stageWidth();
     await pa.getByRole('button', { name: 'Recolher Conselho', exact: true }).click();
-    await pa.getByRole('button', { name: 'Recolher Inspector', exact: true }).click();
+    await pa.getByRole('button', { name: 'Recolher Inspetor', exact: true }).click();
     await expect(pa.getByRole('button', { name: 'Expandir Conselho', exact: true })).toHaveAttribute('aria-expanded', 'false');
     expect(await stageWidth()).toBeGreaterThan(normal + 300);
     await pa.screenshot({ path: `${shots}/1440x900-panels-collapsed.png` });
     await pa.setViewportSize({ width: 1920, height: 1080 }); await pa.waitForTimeout(250);
     await pa.screenshot({ path: `${shots}/1920x1080-panels-collapsed.png` });
     await pa.setViewportSize({ width: 1440, height: 900 });
-    await pa.getByRole('button', { name: 'Expandir Conselho', exact: true }).click(); await pa.getByRole('button', { name: 'Expandir Inspector', exact: true }).click();
+    await pa.getByRole('button', { name: 'Expandir Conselho', exact: true }).click(); await pa.getByRole('button', { name: 'Expandir Inspetor', exact: true }).click();
     expect(await stageWidth()).toBeCloseTo(normal, -1);
 
     // Leaving a running match forgets it in this browser only; the code brings the person back to the same match.

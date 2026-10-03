@@ -123,14 +123,14 @@ test('game shell fills the screen: no page scroll, fixed chrome, panels scroll i
       // 4. Collapsing the panels gives the room to the atlas and keeps every control reachable.
       const before = (await metrics(page)).map!;
       await page.getByRole('button', { name: 'Recolher Conselho', exact: true }).click();
-      await page.getByRole('button', { name: 'Recolher Inspector', exact: true }).click();
+      await page.getByRole('button', { name: 'Recolher Inspetor', exact: true }).click();
       await expect.soft(page.getByRole('button', { name: 'Expandir Conselho', exact: true })).toBeInViewport();
-      await expect.soft(page.getByRole('button', { name: 'Expandir Inspector', exact: true })).toBeInViewport();
+      await expect.soft(page.getByRole('button', { name: 'Expandir Inspetor', exact: true })).toBeInViewport();
       const collapsed = await assertShell(page, `${label} collapsed`);
       expect.soft(collapsed.map!.width - before.width, `${label}: collapsing widens the atlas`).toBeGreaterThan(width >= 1920 ? 350 : 250);
       expect.soft(Math.abs(collapsed.map!.height - before.height), `${label}: height unchanged`).toBeLessThan(2);
       await page.getByRole('button', { name: 'Expandir Conselho', exact: true }).click();
-      await page.getByRole('button', { name: 'Expandir Inspector', exact: true }).click();
+      await page.getByRole('button', { name: 'Expandir Inspetor', exact: true }).click();
       expect.soft(Math.abs((await metrics(page)).map!.width - before.width), `${label}: expanding restores the atlas`).toBeLessThan(2);
       await page.waitForTimeout(500); await page.evaluate(() => document.querySelectorAll('.alpha-panel-body, .alpha-tab-body').forEach(element => { element.scrollTop = 0; }));
       await page.screenshot({ path: `${shots}/${label}-world.png` });
