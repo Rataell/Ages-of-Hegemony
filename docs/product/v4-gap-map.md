@@ -1,186 +1,225 @@
-# V4 Gap Map — canônico proposto × Alpha atual
+# V4 Gap Map — canônico × Alpha atual
 
-**Base:** `feature/aoh-playable-alpha-v1` @ `547ff39`. Canônico = `canonical-product-spec-v4-draft.md`; se depender de uma decisão, o ID aparece entre colchetes.
+**Base**
+- Código: `feature/aoh-playable-alpha-v1` @ `547ff39`. Desde então só mudou documentação.
+- Canônico: `canonical-product-spec-v4-draft.md`.
+- Decisões aprovadas em 2026-10-03: DEC-001, DEC-002, DEC-004, DEC-005 (com alteração), DEC-010. As outras aparecem como `[DEC-xxx]`, abertas.
 
-**Status:**
-- **IMPLEMENTADO**: existe e se comporta como proposto.
-- **PARCIAL**: existe, mas simplificado.
-- **NÃO IMPLEMENTADO**: não existe.
-- **DIVERGENTE**: existe com outra regra.
-- **REMOVER/CONSOLIDAR**: existe e deve sair ou fundir-se.
+**Status**
 
-**Prioridade:** A antes do Alpha externo · B Experience V2 · C Beta · D futuro.
+| Status | Significado |
+|---|---|
+| IMPLEMENTADO | existe e se comporta como o canônico |
+| PARCIAL | existe, mas simplificado |
+| NÃO IMPLEMENTADO | não existe |
+| DIVERGENTE | existe com outra regra que o canônico |
+| **INERTE** | existe no modelo/código (e às vezes na UI), mas não produz efeito estratégico relevante |
+| **INCONSISTENTE** | UI, documentação e/ou motor expressam comportamentos diferentes |
+| REMOVER/CONSOLIDAR | existe e deve sair ou fundir-se |
 
-## Rodada e ritmo
+**Prioridade:** A antes do Alpha externo · B Experience V2 · C Beta · D futuro. Lacunas de conteúdo (naval completo, edifícios extras, civilizações 13–18, Mercado/Banco, Legado, novas cartas, mapas) **não** são correções.
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+---
+
+## Alpha correctness before Experience V2
+
+Só problemas de correção/integridade do que **já está exposto** no Alpha, a resolver antes da reconstrução visual. Nenhum foi corrigido ainda (aguarda aprovação). Lacunas de conteúdo ficam de fora.
+
+### P0 — comportamento incorreto, UI enganosa ou violação de regra
+
+| ID | Problema | Evidência | Status |
 |---|---|---|---|
-| 8 fases nomeadas, resolução por iniciativa | igual (`AlphaRoundPhaseSchema`, `advanceAfterReady`) | IMPLEMENTADO | — |
-| 2 fases interativas + replay por etapa [DEC-004] | 2 interativas; replay em painel único | PARCIAL | B |
-| Comandos de fase inalcançáveis removidos | `LEGAL_COMMANDS` de Ações urbanas/Diplomacia nunca rodam | REMOVER/CONSOLIDAR | C |
-| Orçamento de ações 5–10 honesto [DEC-018] | fixo; efeitos "+Comando" sem efeito | DIVERGENTE | **A** |
+| P0-1 | **Efeitos de Comando prometem +ações e não dão nada.** 5 cartas de estratégia (jogáveis, consomem carta), 2 conselheiros (contratação paga com recursos), as habilidades de líder de Merídia e Orinth (1×/era) e 5 avanços de Sociedade. O texto da UI diz "+N Ações principais" | `alphaActionCapacity` retorna `actionsPerRound` fixo (`ge/alpha-actions.ts:12`) | INERTE + INCONSISTENTE [DEC-018] |
+| P0-2 | **Previsão de crescimento da cidade diverge do motor.** A UI calcula por cidade e soma ON_PRODUCE; o motor usa a produção da civilização inteira sem ON_PRODUCE e conta comida que o armazém descartará | `apps/server/src/alpha-projection.ts` (cityDetails) × `ge/alpha-phases.ts:195-206` | INCONSISTENTE |
+| P0-3 | **"Materiais" aparece como recurso** (ofertas dentro de tratados, ênfase da civilização, tabela das Crônicas), mas o jogador tem Madeira/Pedra/Metal e o custo é dividido por regra oculta | `ResourceDealSchema` legado; `CIVILIZATIONS.bias`; `AlphaReports` usa `RESOURCE_KEYS` | INCONSISTENTE |
+| P0-4 | **A rotação na exploração move o terreno mas não o depósito de Metal**; o depósito pode cair em hex onde a Mina é proibida (recurso perdido) | `ge/alpha-world.ts:115-120` (features não giram) | INCONSISTENTE (regra) |
+| P0-5 | **A Guarda é descrita como "Defesa de cidades e fortificações"**, mas o bônus de cidade (+2) só vale quando ela **ataca** uma cidade | `gd/alpha-catalog.ts:22`, `ge/alpha-combat.ts:58` | INCONSISTENTE |
+
+### P1 — sistema exposto, porém inerte
+
+| ID | Problema | Evidência | Status |
+|---|---|---|---|
+| P1-1 | **Coesão local:** exibida e alterada (Ação cívica, disputa), sem consumidor em regra. As habilidades de líder de Kor e Elyra (+15 Coesão) não têm efeito estratégico | só escrita em `ge/alpha-culture.ts:97`, `ge/alpha-urban.ts:299`, `ge/alpha-leaders.ts:56` | INERTE [DEC-016/022] |
+| P1-2 | **Ânimo:** só sobe. Revolta, Desânimo e Inquietação (0–2) são inalcançáveis, salvo povos conquistados (iniciam em 1); Exultante (6) é inalcançável (teto 5). A UI expõe a escala inteira | nenhum código reduz o ânimo | INERTE (parcial) [DEC-022] |
+| P1-3 | **Frota:** listada em Recrutar a partir da Expansão; exige cidade em Costa, e todas as capitais iniciais ficam em Planície | `ge/alpha-military.ts:10-23`, `gd/alpha-regions.ts` | INERTE na prática [DEC-014] |
+| P1-4 | **Disputa cultural** impossível em 2 jogadores (exige duas presenças estrangeiras); o guia a menciona | `ge/alpha-culture.ts:71-79` | INERTE em 2p [DEC-016] |
+| P1-5 | **Hegemonia em partida Rápida:** a aba mostra caminhos e "Declarar", mas a sexta era é inalcançável em 9 rodadas | ritmo observado (era III na rodada 6) | INERTE em Rápida [DEC-003/006] |
+| P1-6 | **Baralhos de estratégia e ambição** não reembaralham; com 6 jogadores a compra seca por volta da rodada 3 e a mão para de renovar | `ge/alpha-cards.ts:7-23` | INERTE (após esgotar) |
+| P1-7 | **Proteger povo independente:** ação paga e exposta; `protectorId` não tem efeito | `ge/alpha-independents.ts` | INERTE |
+| P1-8 | **Atitudes Hostil e Desconfiado:** descritas na UI ("Negociar…"), nunca ocorrem (todos começam Neutros e só melhoram) | `ge/alpha-world.ts:72` | INERTE |
+| P1-9 | **Pulso do mundo:** "Bandos em marcha" e "Refugiados da fronteira" sem efeito ("sem efeito nos recursos") | `gd/alpha-concept.ts:191,197` | INERTE |
+| P1-10 | **Papel Soldado:** alocável, sem efeito (a UI o chama de "Guarnição militar da cidade") | `ge/economy.ts`; `gd/rules.ts` | INERTE |
+
+### P2 — dívida técnica ou documentação
+
+| ID | Problema | Evidência | Status |
+|---|---|---|---|
+| P2-1 | **Efeitos `future*` de governo e especialização** (Rep./Olig./Teoc.: +10% Conhecimento/Influência etc.; especializações Militar/Cultural) existem nos dados e são anunciados na documentação antiga; nunca são lidos. A UI do Alpha não os mostra | `gd/rules.ts:76-78` | INERTE + INCONSISTENTE (doc) [DEC-021] |
+| P2-2 | **Documentação antiga** (`docs/glossary.md`, `docs/rules-reference.md`, `docs/player-guide.md`, `docs/compendium.md`): 5 fases, 5 recursos, Desenvolvimento como nível | — | INCONSISTENTE |
+| P2-3 | **Telemetria** declara contadores nunca escritos (batalhas, capturas, declarações de Hegemonia, `prestigeBySource`…); necessários para as métricas de DEC-003/007/018/020 | `AlphaTelemetrySchema` (`gd/alpha-concept.ts:301`) | INERTE |
+| P2-4 | **`LEGAL_COMMANDS` de Ações urbanas e Diplomacia** nunca executam (fases não interativas) | `ge/alpha-phases.ts:47-56` | INERTE / REMOVER |
+| P2-5 | **`treatyTerms`** aceito nas ofertas e ignorado | `ge/alpha-trade.ts` | INERTE / REMOVER |
+| P2-6 | **Pool legado de 5 recursos espelhado** (`syncLegacyResources`); +1 Material ímpar vira sempre Madeira | `ge/alpha-resources.ts:53`, `gd/alpha-concept.ts:32` | REMOVER/CONSOLIDAR |
+| P2-7 | **Código de crescimento duplicado** (Alpha × core) | `ge/alpha-phases.ts:195` × `ge/maintenance.ts:22` | REMOVER/CONSOLIDAR |
+| P2-8 | **Configurações nunca lidas:** `overflowRule`, `cultureDice`, `metalAccessDistance`, `MoodStateSchema`, `GovernmentCatalogSchema` | `gd/alpha-concept.ts` | INERTE |
+| P2-9 | **MANAGE FOUND_CITY** não é bloqueado e falharia com erro genérico de integridade (sem uso pela UI) | `ge/alpha-turn.ts:65` | INCONSISTENTE (API) |
+| P2-10 | **Penalidade de −5** por falta de manutenção de peças é um literal no código, não uma regra configurável | `ge/alpha-phases.ts:220` | dívida |
+
+---
+
+## Mapa completo por sistema
+
+### Rodada e ritmo
+
+| Canônico | Alpha atual | Status | Prior. |
+|---|---|---|---|
+| 8 fases; Planejamento e Conflitos interativas; as demais automáticas com consequências claras (DEC-004) | igual | IMPLEMENTADO | — |
+| "Uma fase do motor não é uma tela" (DEC-004) | a UI tem painel de resolução único | PARCIAL | B |
+| Orçamento de ações honesto [DEC-018] | fixo; "+Comando" sem efeito | INERTE (P0-1) | A |
+| Durações com papel de vitória por modo [DEC-003] | 9/15/20; Hegemonia inalcançável na Rápida | INERTE na Rápida (P1-5) | A (comunicar) / C |
 | Voltar a planejar, checagem antes de confirmar | sim | IMPLEMENTADO | — |
-| Durações com papel de vitória por modo [DEC-003] | 9/15/20; Hegemonia inalcançável em Rápida | DIVERGENTE | A (comunicar) / C (regra) |
-| Voto de Ritmo, assíncrono | prazo por fase só | NÃO IMPLEMENTADO | D |
+| Voto de Ritmo, assíncrono | prazo por fase | NÃO IMPLEMENTADO | D |
 
-## Mapa e mundo
+### Mapa e mundo
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| "Hex" = célula; "região" = bloco de 7 [DEC-010] | código usa assim; Bíblia usa "região" = célula | DIVERGENTE (Bíblia) | B (termo) |
-| Mapa fixo 210 hexes no Alpha | igual | IMPLEMENTADO | — |
-| Três estados de névoa distintos na UI | "conhecido" sem estilo próprio | PARCIAL | **B** |
-| Minimapa, camadas, caminho e setas desenhados | ausentes | NÃO IMPLEMENTADO | **B** |
-| Descobertas (ruína, jazida, terra fértil…) | só depósito de Metal; RIVER/FERTILE/FISH nunca gerados | NÃO IMPLEMENTADO | D |
-| Tamanhos por nº de jogadores, arquétipos | 4 predefinições | PARCIAL | D |
-| Raio de revelação por Teia | região inteira, sem aumento | NÃO IMPLEMENTADO | C |
-| Rotação não desloca depósito de Metal para terreno inválido | desloca | DIVERGENTE (bug) | C |
-| Contato confiável em 6p [DEC-020] | 59/72 civilizações na simulação | PARCIAL | C (medir antes) |
+| Hexágono = célula; região = 7 hexágonos; território = hexágonos controlados (DEC-010) | o código usa assim | IMPLEMENTADO | — |
+| Mapa fixo de 210 hexágonos no Alpha | igual | IMPLEMENTADO | — |
+| Três estados de névoa distintos na UI | "conhecido" sem estilo próprio | PARCIAL | B |
+| Minimapa, camadas, caminho e setas desenhados | ausentes | NÃO IMPLEMENTADO | B |
+| Depósito acompanha a rotação | não acompanha | INCONSISTENTE (P0-4) | A |
+| Descobertas; tamanhos em hexágonos por nº de jogadores; arquétipos | — | NÃO IMPLEMENTADO | D |
+| Raio de revelação por Teia | — | NÃO IMPLEMENTADO | C |
+| Contato confiável em 6p [DEC-020] | 59/72 na simulação | PARCIAL | C (medir) |
 
-## Civilizações
+### Civilizações
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
 | 12 civilizações com líder [DEC-011] | igual | IMPLEMENTADO | — |
-| Ênfase descrita com 7 recursos | "Materiais" no texto de ênfase | DIVERGENTE | **A** |
+| Ênfase descrita nos 7 recursos | "Materiais" | INCONSISTENTE (P0-3) | A |
+| Habilidades de líder com efeito | Comando (P0-1) e Coesão (P1-1) | INERTE | A |
 | Habilidade de civilização 1×/era [DEC-011] | 1×/rodada | DIVERGENTE | C |
-| Habilidades de líder com efeito | Comando (Merídia, Orinth) e Coesão (Kor, Elyra) sem efeito | DIVERGENTE | **A** |
-| Kits iniciais e limitações | iguais para todos | NÃO IMPLEMENTADO | C |
-| Civilizações 13–18, unidades exclusivas | — | NÃO IMPLEMENTADO | D |
+| Kits e limitações; civilizações 13–18; unidades exclusivas | — | NÃO IMPLEMENTADO | C/D |
 
-## Cidades e população
+### Cidades e população
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| Uma progressão: Nível 1–7 [DEC-002] | Desenvolvimento 1–5 (regras) + Nível 1–7 (rótulo) | REMOVER/CONSOLIDAR | B (desenho) / C (regra) |
-| 1 ação por cidade, Produzir obrigatório para produzir | igual | IMPLEMENTADO | — |
-| Crescimento sem microgestão, ritmo lento [DEC-007] | cidade inicial não cresce sem mudar papéis | DIVERGENTE | C (após métricas) |
-| Previsão de crescimento = regra do motor | a previsão por cidade inclui ON_PRODUCE; o motor é civilizacional e sem ON_PRODUCE | DIVERGENTE (bug UI) | **A** |
-| Ânimo com causas de queda [DEC-022] | só sobe; Exultante inalcançável | PARCIAL | C |
-| Coesão com efeito ou fora [DEC-016/022] | sem efeito | REMOVER/CONSOLIDAR | **A** (UI) / C |
-| Soldado com função | sem efeito | PARCIAL | C |
-| Integração de ocupada | Ação cívica, +25% | IMPLEMENTADO | — |
-| Reparo de fortificação | inexistente | NÃO IMPLEMENTADO | C |
-| "Guarnição" com um só sentido | 3 sentidos | REMOVER/CONSOLIDAR | B (termo) |
+| **Nível 1–7 como única progressão**, composto por população + infraestrutura/requisitos + investimento (DEC-002) | Desenvolvimento 1–5 (regras) + Nível 1–7 (rótulo só por população) | DIVERGENTE / REMOVER Desenvolvimento como conceito público | B (UI) / C (regra) |
+| 1 ação por cidade; sem Produzir não produz | igual | IMPLEMENTADO | — |
+| Previsão de crescimento = regra do motor | diverge | INCONSISTENTE (P0-2) | A |
+| Crescimento sem microgestão [DEC-007] | a cidade inicial não cresce sem mudança | DIVERGENTE | C (após métricas) |
+| Ânimo com causas de queda [DEC-022] | só sobe | INERTE parcial (P1-2) | A (UI) / C |
+| Coesão com efeito ou fora [DEC-016/022] | sem efeito | INERTE (P1-1) | A |
+| Soldado com função | sem efeito | INERTE (P1-10) | A (UI) / C |
+| "Guarnição" com um só sentido | 3 sentidos | REMOVER/CONSOLIDAR (termo) | B |
+| Integração de cidade ocupada | Ação cívica +25% | IMPLEMENTADO | — |
+| Reparo de fortificação | — | NÃO IMPLEMENTADO | C |
 
-## Economia
+### Economia
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| 7 recursos, sem "Materiais" na UI | 7 na barra; "Materiais" em tratados, Crônicas e ênfase | PARCIAL | **A** |
-| Pool legado eliminado internamente | espelhado (`syncLegacyResources`) | REMOVER/CONSOLIDAR | C |
+| 7 recursos; "Materiais" fora da UI | parcial | INCONSISTENTE (P0-3) | A |
+| Pool legado eliminado | espelhado | REMOVER/CONSOLIDAR (P2-6) | C |
 | Armazém civilizacional por Nível [DEC-008] | por cidade × nº de cidades | DIVERGENTE | C |
-| Armazém, Tesouro e Banco construíveis | só no esquema | NÃO IMPLEMENTADO | C |
-| Mercado e Banco (monetizar, converter) | — | NÃO IMPLEMENTADO | C |
-| Substituição por Riqueza até 50% | igual (arredonda para baixo) | IMPLEMENTADO | — |
-| Renda de rota passiva + amplificação [DEC-019] | só via Sustentar comércio | DIVERGENTE | C |
+| Substituição por Riqueza ≤50% | igual | IMPLEMENTADO | — |
+| Renda de rota passiva + amplificação [DEC-019] | só "Sustentar comércio" | DIVERGENTE | C |
 | Administração e sobre-extensão | igual | IMPLEMENTADO | — |
+| Mercado/Banco; Armazém/Tesouro/Banco construíveis | — | NÃO IMPLEMENTADO (conteúdo) | C |
 
-## Teia, edifícios, distritos
+### Teia, edifícios, distritos
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| Teia qualitativa (desbloqueios) [DEC-012] | 50 nós de bônus; 4 desbloqueios de pilha | DIVERGENTE | C |
-| Efeitos dos nós sempre ativos | 5 nós de Comando sem efeito | DIVERGENTE | **A** |
-| Teia em grafo navegável | grade de cartões | PARCIAL | **B** |
+| Teia qualitativa [DEC-012] | 50 nós de bônus; 4 desbloqueios de pilha | DIVERGENTE | C |
+| Nós sempre com efeito | 5 nós de Comando | INERTE (P0-1) | A |
+| Teia em grafo | grade | PARCIAL | B |
 | Catálogo de edifícios ligado à Teia [DEC-013] | 7 construíveis | PARCIAL | C |
-| 22 edifícios do esquema Alpha sem uso; distrito Marítimo | órfãos | REMOVER/CONSOLIDAR | C |
-| Vagas de edifício por Nível | edifícios não ocupam vaga | NÃO IMPLEMENTADO | C |
-| Regra 1 melhoria produtiva + 1 de infraestrutura | — | NÃO IMPLEMENTADO | D |
-| Estrada útil para suprimento | só em território próprio (redundante) | DIVERGENTE | C |
+| 22 edifícios do esquema e distrito Marítimo | órfãos | REMOVER/CONSOLIDAR (conteúdo, não correção) | C |
+| Estrada útil para suprimento [DEC-009] | redundante | DIVERGENTE | C |
 
-## Militar e naval
+### Militar e naval
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| Dado tático, posturas, fortificação com integridade, pilhas | igual | IMPLEMENTADO | — |
-| Chamada de Conflitos só para as partes | igual | IMPLEMENTADO | — |
-| Suprimento progressivo com efeito proporcional [DEC-009] | raio 3 fixo, −2 por lado | DIVERGENTE | C |
-| Escalas e Modernização | 9 classes fixas | NÃO IMPLEMENTADO | C |
-| Até 3 choques por batalha | 1 choque | DIVERGENTE | C |
-| Peças civis não morrem primeiro | morrem primeiro | DIVERGENTE | C |
-| Guarda com bônus defendendo cidade | bônus só no ataque | DIVERGENTE | C |
-| Frota com caminho real ou escondida [DEC-014] | capitais em Planície → Frota inalcançável | DIVERGENTE | **A** |
-| Naval: transporte e bloqueio | — | NÃO IMPLEMENTADO | C |
-| Naval completo (7 navios, missões, naufrágio) | — | NÃO IMPLEMENTADO | D |
-| Setas de ataque, prévia no mapa | prévia no Inspetor | PARCIAL | B |
+| Dado tático, posturas, fortificação, pilhas, chamada de Conflitos | igual | IMPLEMENTADO | — |
+| Descrição da Guarda = regra | diverge | INCONSISTENTE (P0-5) | A |
+| Frota com caminho real ou oculta [DEC-014] | inalcançável | INERTE (P1-3) | A |
+| Suprimento progressivo [DEC-009]; escalas; até 3 choques; civis não morrem primeiro | — | DIVERGENTE / NÃO IMPLEMENTADO | C |
+| Naval (transporte, bloqueio; depois completo) | — | NÃO IMPLEMENTADO | C/D |
 
-## Diplomacia e comércio
+### Diplomacia e comércio
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| 6 tratados com efeitos | igual | IMPLEMENTADO | — |
-| PNA impede declarar guerra? [DEC-015] | não impede | [DEC-015] | B (decisão) |
-| Embargo unilateral? [DEC-015] | exige aceite | [DEC-015] | C |
-| Ofertas comerciais (4 tipos), calote | igual; `treatyTerms` ignorado | IMPLEMENTADO / REMOVER `treatyTerms` | C |
-| Reputação | — | NÃO IMPLEMENTADO | C |
-| Confiança e Tensão | — | NÃO IMPLEMENTADO (não recomendado) | — |
-| Custo de Influência nos tratados | — | NÃO IMPLEMENTADO | C |
-| Financiar a ação de outro jogador | — | NÃO IMPLEMENTADO | C |
-| Rotas desenhadas no mapa | não | NÃO IMPLEMENTADO | B |
+| 6 tratados; ofertas comerciais (4 tipos); calote | igual | IMPLEMENTADO | — |
+| `treatyTerms` | ignorado | INERTE (P2-5) | C |
+| PNA impede guerra? Embargo unilateral? [DEC-015] | não / exige aceite | aberto | C |
+| Reputação; custo de Influência; financiar a ação de outro jogador | — | NÃO IMPLEMENTADO | C |
+| Rotas desenhadas | não | NÃO IMPLEMENTADO | B |
 
-## Cultura e povos
+### Cultura e povos
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| Influência / Presença / Prestígio separados [DEC-016] | separados no código; sobreposição na linguagem | PARCIAL | B (termo) |
-| Disputa possível em 2p [DEC-016] | só entre duas estrangeiras | DIVERGENTE | **A** (comunicar) / C |
-| Legado Cultural | — | NÃO IMPLEMENTADO | D |
+| Influência / Presença / Prestígio separados [DEC-016] | separados no código; linguagem sobreposta | PARCIAL | B (termo) |
+| Disputa possível em 2p [DEC-016] | impossível | INERTE em 2p (P1-4) | A (comunicar) / C |
+| Proteger com efeito | sem efeito | INERTE (P1-7) | A (UI) / C |
+| Atitudes variadas | só Neutro → Amistoso | INERTE (P1-8) | C |
+| Bandos atacáveis e por gatilho | inatacáveis; andam sempre | DIVERGENTE | C |
 | Camada cultural no mapa | — | NÃO IMPLEMENTADO | B |
-| Povos com 6 interações | igual; atitude só sobe; Proteger sem efeito; Conquistar sem guerra | PARCIAL | C |
-| Bandos atacáveis; movimento por gatilho | inatacáveis; andam sempre | DIVERGENTE | C |
+| Legado Cultural | — | NÃO IMPLEMENTADO (conteúdo) | D |
 
-## Cartas, eventos, projetos
+### Cartas, eventos, projetos
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| Pulso (clima) e Evento (decisão) distintos [DEC-017] | dois sistemas com nomes próximos | PARCIAL | B (termo) |
-| Cartas sempre com efeito | 5 estratégias e 2 conselheiros de Comando sem efeito | DIVERGENTE | **A** |
-| Baralhos reembaralham | estratégia e ambição não reembaralham (secam em 6p) | DIVERGENTE | **A** |
-| Pulso condicional com severidade | ±recurso para todos; 2 cartas sem efeito | PARCIAL | C |
-| Obras de Legado com efeito único e etapas | 12 projetos genéricos de 1 etapa | PARCIAL | C |
-| Táticas e Encontros | — | NÃO IMPLEMENTADO | D |
+| Pulso e Evento distintos [DEC-017] | nomes próximos | PARCIAL | B (termo) |
+| Cartas sempre com efeito | Comando (P0-1); Pulso nulo (P1-9) | INERTE | A |
+| Baralhos reembaralham | não (P1-6) | INERTE (após esgotar) | A |
+| Pulso condicional; Obras com efeito e etapas | genérico | PARCIAL | C |
+| Táticas e Encontros | — | NÃO IMPLEMENTADO (conteúdo) | D |
 
-## Governos, eras, vitória
+### Governos, eras, vitória
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| Governos sem efeitos fantasmas [DEC-021] | campos `future*` lidos em lugar nenhum; a doc os anuncia | DIVERGENTE | **A** (UI/doc) |
-| 7 governos, adoção por era, reforma | 5, adoção a qualquer hora, definitiva | PARCIAL | C |
+| Governos sem efeitos fantasmas [DEC-021] | `future*` | INERTE + INCONSISTENTE doc (P2-1) | A (doc) |
+| 7 governos, adoção por era, reforma | 5, definitivos | PARCIAL | C |
+| **6 eras de progressão; Hegemonia não é era** (DEC-005) | 6 eras com a VI chamada Hegemonia, sem avanços, só para declarar | DIVERGENTE | B (UI/termo) / C (regra) |
+| Nomes das Eras V/VI [DEC-023] | V Ascensão, VI Hegemonia | aberto | B |
 | Eras por critérios contados | igual | IMPLEMENTADO | — |
-| Nº e nome das eras [DEC-005] | 6, a VI chama-se Hegemonia | [DEC-005] | **B** |
-| Metas de Hegemonia escaladas [DEC-006] | fixas (exceto Territorial por duração) | DIVERGENTE | C |
-| Prestígio por marcos únicos | parcial (sem conquista/fundação) | PARCIAL | C |
+| Metas de Hegemonia escaladas [DEC-006] | fixas | DIVERGENTE | C |
+| Prestígio por marcos únicos; modo de vitória configurável | parcial | PARCIAL | C |
 | Tela final com ranking e desempate | igual | IMPLEMENTADO | — |
-| Modo de vitória configurável | — | NÃO IMPLEMENTADO | C |
 
-## Interface (Canvas × Alpha)
+### Interface (Canvas × Alpha)
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| Shell em tela cheia: Conselho, mapa, Inspetor e barra de fase | igual (≥901 px) | IMPLEMENTADO | — |
-| Barra global: recursos e tetos, Administração, ações, Prestígio, era/rodada/fase | igual | IMPLEMENTADO | — |
-| Alertas de pendência por aba | sim | IMPLEMENTADO | — |
-| Abas Cidades, Guerra e Cultura (Canvas) | não existem (conteúdo no Inspetor/Crônicas) | DIVERGENTE | B (decidir arquitetura) |
-| Menu de contexto sobre o mapa | ordens no Inspetor | PARCIAL | B |
-| Gaveta da cidade com tabuleiro de distritos e escada de níveis | painel lateral textual | PARCIAL | B |
-| Ranking de Prestígio durante a partida | só no fim | NÃO IMPLEMENTADO | B |
-| "Caminho de Hegemonia mais próximo" | — | NÃO IMPLEMENTADO | B |
-| Onboarding sobre o tabuleiro (coach marks) | modal "Como jogar" | PARCIAL | B |
-| Compêndio pesquisável com glossário | — | NÃO IMPLEMENTADO | B |
-| Tela inicial com mesas recentes | retoma só a última mesa | PARCIAL | B |
-| Criação com cartões visuais e prévia do mundo | selects | PARCIAL | B |
-| Lobby em mesa, seleção de civ com detalhe | lista/grade com ênfase, capital e líder | PARCIAL | B |
-| Responsivo: gavetas no tablet, abas no celular | barra de fase fixa ≤900 px; resto empilhado | PARCIAL | B |
-| Feedback de consequência (resultado da rodada) | painel de resolução + Crônicas | IMPLEMENTADO (camada CONSEQUENCE a formalizar) | B |
+| Shell em tela cheia, barra global, alertas por aba | sim | IMPLEMENTADO | — |
+| Nível único na UI (sem "Desenvolvimento") | ambos exibidos | DIVERGENTE (DEC-002) | B |
+| Linha das eras sem "Hegemonia" como era | exibe Hegemonia como era 6 | DIVERGENTE (DEC-005) | B |
+| Abas Cidades, Guerra, Cultura (Canvas) | conteúdo no Inspetor/Crônicas | DIVERGENTE | B (arquitetura) |
+| Menu de contexto no mapa; gaveta da cidade | Inspetor lateral | PARCIAL | B |
+| Ranking ao vivo; caminho de Hegemonia mais próximo | — | NÃO IMPLEMENTADO | B |
+| Onboarding sobre o tabuleiro; compêndio pesquisável | modal "Como jogar" | PARCIAL | B |
+| Telas de entrada (mesas recentes, criação visual, lobby em mesa, detalhe de civ) | funcionais, simples | PARCIAL | B |
+| Responsivo (gavetas, abas no celular) | barra de fase fixa | PARCIAL | B |
+| Camada CONSEQUÊNCIA (resultado da rodada) | painel + Crônicas | PARCIAL | B |
 
-## Documentação e telemetria
+### Documentação e telemetria
 
-| Canônico proposto | Alpha atual | Status | Prior. |
+| Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| Uma doc de regras atual | `docs/glossary.md`, `rules-reference.md`, `player-guide.md` descrevem a fatia antiga | REMOVER/CONSOLIDAR | **A** |
-| Telemetria para as métricas de DEC-003/007/018/020 | contadores declarados e nunca escritos | PARCIAL | **A**/C |
+| Uma doc de regras atual | docs da fatia antiga | INCONSISTENTE (P2-2) | A |
+| Telemetria para métricas | contadores nunca escritos | INERTE (P2-3) | A/C |
+
+---
 
 ## Correção à auditoria de 2026-10-03
 
-`docs/audit/concept-vs-alpha-2026-10-03.md` compara "30 regiões" do Alpha com "37–127 regiões" da Bíblia como se fossem a mesma unidade. Não são: a "região" da Bíblia é uma célula. Ver DEC-010.
+`docs/audit/concept-vs-alpha-2026-10-03.md` comparou "30 regiões" com "37–127 regiões" da Bíblia. Pela terminologia aprovada (DEC-010), a "região" da Bíblia era uma célula (hexágono). Em hexágonos, o Alpha tem 210.

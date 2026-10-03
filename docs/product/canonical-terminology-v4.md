@@ -2,6 +2,8 @@
 
 Escopo: as palavras que o jogador lê. Cada termo tem **uma** definição.
 
+Decisões aprovadas em 2026-10-03 e incorporadas aqui: DEC-001, DEC-002, DEC-004, DEC-005 (com alteração) e DEC-010.
+
 Onde o termo depende de uma decisão pendente, aparece a marca `[DEC-xxx]` (ver `product-owner-decision-register.md`). Nesses casos a definição vale só até a decisão.
 
 Substitui, quando aprovado, `docs/glossary.md`. Aquele glossário é da fatia antiga: descreve 5 fases, "Materiais" e Desenvolvimento I–V como nível da cidade, e diverge do Alpha.
@@ -18,19 +20,19 @@ Colunas das tabelas:
 |---|---|---|---|---|
 | **Partida** | Uma mesa de 2–6 civilizações do lobby ao fim | Sessão do navegador | Lobby, tela final | `AlphaRoom` |
 | **Rodada** | Ciclo completo: Pulso → Planejamento → resolução → Conflitos → manutenção → fim | Fase; turno individual (todos jogam juntos) | Barra superior "Rodada N / M" | `core.round`, `roundLimit` |
-| **Fase** | Etapa da rodada; o Alpha tem 8, das quais 2 esperam jogadores (Planejamento, Conflitos) [DEC-004] | Era | Barra de fase | `AlphaRoundPhaseSchema` |
+| **Fase** | Etapa da rodada no motor. São 8; Planejamento e Conflitos são as interativas, as demais resolvem sozinhas e mostram consequências. Uma fase do motor **não** corresponde necessariamente a uma tela ou clique (DEC-004, aprovada) | Era; tela | Barra de fase | `AlphaRoundPhaseSchema` |
 | **Planejamento** | Fase secreta e simultânea em que se reservam ações | "Turno do jogador" | Botão "Confirmar planejamento" | `PLANNING` |
 | **Resolução** | Execução automática do que foi planejado, por iniciativa | Fase em que o jogador age | Painel "Resolvendo a rodada" | `advanceAfterReady` |
 | **Iniciativa** | Ordem em que as decisões da rodada se resolvem; gira a cada rodada | Vantagem de combate | Lista "Ana › Beto" na barra | `initiative` |
-| **Era** | Estágio da civilização (Fundação, Expansão, Civilização, Impérios, Ascensão, Hegemonia) [DEC-005] | Duração da partida; fase | Aba Eras & Hegemonia, barra superior | `AlphaEraSchema` |
+| **Era** | Um dos **6 estágios** de progressão civilizacional (DEC-005, aprovada): I Fundação, II Expansão, III Civilização, IV Impérios, V *[nome pendente — DEC-023]*, VI **Ascensão** (provisório). Abre possibilidades; não concede vitória | Duração da partida; fase; **Hegemonia** (não é era) | Aba Eras & Hegemonia, barra superior | `AlphaEraSchema` (hoje `ASCENSION`=V, `HEGEMONY`=VI: divergência a migrar) |
 
 ## 2. Mapa
 
 | Termo | Definição | Não significa | UI hoje | Código |
 |---|---|---|---|---|
-| **Hex** | Uma célula do mapa, com terreno, dono e unidades | Região; território | Mapa, "Alvo: 7,6" | `HexTile` |
-| **Região** | Bloco de 7 hexes; unidade de exploração (revela-se inteiro) [DEC-010] | Célula (na Bíblia "região" = célula); país | "Explorar esta região" | `regions`, `REGION_TEMPLATES` |
-| **Território** | Conjunto de hexes reivindicados por uma civilização | Região; mapa conhecido | Inspetor Território | `HexTile.ownerId` |
+| **Hexágono / hex** | Célula individual do tabuleiro, com terreno, dono e unidades (DEC-010, aprovada) | Região; território | Mapa, "Alvo: 7,6" | `HexTile` |
+| **Região** | Agrupamento estrutural de **7 hexágonos** do mapa Alpha; unidade de exploração (DEC-010, aprovada) | Célula (sentido antigo da Bíblia); território; país | "Explorar esta região" | `regions`, `REGION_TEMPLATES` |
+| **Território** | Conjunto de hexágonos sob controle/reivindicação de uma civilização ou cidade, conforme as regras (DEC-010, aprovada) | Região; mapa conhecido | Inspetor Território | `HexTile.ownerId`, `controllerCityId` |
 | **Desconhecido** | Hex nunca visto ("?") | Hex vazio | Mapa | `frontier` |
 | **Conhecido** | Hex já visto, fora da visão atual; mostra terreno, não unidades | Visível | Hoje não tem estilo próprio | `knownHexIds` |
 | **Visível** | Hex na visão atual (território próprio e vizinhos de cidades e peças) | Conhecido | Mapa | `visibleHexIds` |
@@ -44,8 +46,8 @@ Colunas das tabelas:
 |---|---|---|---|---|
 | **Cidade** | Assentamento de uma civilização, com população e uma ação por rodada | Território | Conselho, mapa | `CityState` + `AlphaCity` |
 | **Capital** | Primeira cidade; status político (★) | Nível de cidade | ★ no mapa | `capitalCityId` |
-| **Nível da cidade** | Hoje é só um rótulo do porte (7 nomes derivados da população) [DEC-002] | Desenvolvimento (hoje); era | Painel da cidade | `cityLevelForPopulation` |
-| **Desenvolvimento** | Hoje é a progressão paga 1–5 (teto de população, raio, vagas de distrito) [DEC-002: candidato a ser absorvido pelo Nível] | Nível; Era | "Desenvolver cidade" | `CityState.development` |
+| **Nível da cidade** | **A única progressão canônica da cidade, 1–7** (DEC-002, aprovada). Composto por população + infraestrutura/requisitos + investimento (fórmula a especificar). No Alpha atual ainda é só um rótulo derivado da população | Era; só população | Painel da cidade | hoje `cityLevelForPopulation` (implementação a migrar) |
+| **Desenvolvimento** | **Não é termo canônico** (DEC-002, aprovada). Nome interno do Alpha para a progressão 1–5 cujas funções serão absorvidas pelo Nível. Não deve aparecer na UI V2 | Nível | Hoje: "Desenvolver cidade", "Desenvolvimento N" | `CityState.development` (legado) |
 | **Distrito** | Zona especializada da cidade (Agrário, Comercial, Acadêmico, Administrativo, Militar, Industrial, Cultural); ocupa uma vaga | Edifício; especialização | Construir → Distrito | `DistrictTypeSchema` |
 | **Edifício** | Estrutura dentro de um distrito (ex.: Celeiro no Agrário) | Distrito; melhoria | Construir → Edifício | `BuildingTypeSchema` |
 | **Especialização** | Vocação permanente da cidade; dobra a produção do distrito do mesmo tipo | Distrito | Painel da cidade | `specialization` |
@@ -103,7 +105,7 @@ Colunas das tabelas:
 | **Disputa cultural** | Duelo de dados entre duas presenças estrangeiras numa cidade | Guerra | "Disputar · 1 ação" | `CONTEST_PRESENCE` |
 | **Âncora cultural** | Presença que chegou a Predominante; dá bônus de disputa | Capital | Painel cultural | `culturalAnchor` |
 | **Legado** | Trilha cultural permanente da Bíblia; **não existe no Alpha** [DEC-016] | Prestígio | — | — |
-| **Hegemonia** | Vitória antecipada: declarar um caminho na Era VI e manter os requisitos por 2 rodadas completas [DEC-005/006] | Era (ambiguidade atual); Prestígio | Eras & Hegemonia | `hegemony` |
+| **Hegemonia** | **Condição/estado de vitória** (DEC-005, aprovada): declarar um caminho e manter os requisitos por 2 rodadas completas. Hoje só é declarável na sexta era; metas em DEC-006 | **Era** (não é era); Prestígio | Eras & Hegemonia | `hegemony` |
 | **Caminho de Hegemonia** | Militar, Econômica, Científica, Cultural, Política, Territorial | Estratégia livre | Cartões de caminho | `HegemonyPathSchema` |
 | **Ambição** | Objetivo secreto que dá Prestígio uma vez | Caminho de Hegemonia | Cartas & Projetos | `AMBITION` |
 
@@ -144,9 +146,9 @@ Colunas das tabelas:
 
 ## 11. Conflitos de terminologia encontrados (a resolver na UI V2)
 
-1. **"Nível" e "Desenvolvimento"** aparecem os dois na mesma cidade [DEC-002].
-2. **"Hegemonia"** é nome de era, de vitória e de aba [DEC-005].
-3. **"Região"** muda de sentido entre a Bíblia (célula) e o Alpha (bloco de 7) [DEC-010].
+1. **"Nível" e "Desenvolvimento"** aparecem os dois na mesma cidade. **Resolvido (DEC-002):** só Nível; o Alpha ainda exibe ambos.
+2. **"Hegemonia"** é nome de era, de vitória e de aba. **Resolvido (DEC-005):** só vitória. O Alpha ainda chama a Era VI de Hegemonia; o nome da Era V/VI depende de DEC-023.
+3. **"Região"** muda de sentido entre a Bíblia (célula) e o Alpha (bloco de 7). **Resolvido (DEC-010):** região = 7 hexágonos.
 4. **"Ações principais" (Alpha) × "Comandos" (Canvas) × "pontos de comando"** (cartas e líderes legados) [DEC-018].
 5. **"Materiais"** ainda aparece em ofertas de tratado, ênfases de civilização e Crônicas, mas não existe como recurso.
 6. **"Guarnição"** tem três sentidos no código: limite de pilha, força de defesa (`garrisonCapacity`) e papel Soldado (sem efeito).
@@ -169,7 +171,7 @@ Colunas das tabelas:
   - mão de cartas;
   - relações.
 - **Cidade**
-  - porte (Nível/Desenvolvimento);
+  - Nível 1–7;
   - população e papéis;
   - crescimento;
   - ânimo, estabilidade, integração;

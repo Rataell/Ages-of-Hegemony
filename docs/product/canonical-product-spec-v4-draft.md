@@ -1,6 +1,8 @@
 # Ages of Hegemony — Canonical Product Specification V4 (DRAFT)
 
-**Status:** rascunho para revisão do Product Owner. Nada aqui é normativo até as decisões do registro serem tomadas.
+**Status:** rascunho.
+- **Aprovadas em 2026-10-03 e incorporadas:** DEC-001 (a V4 é a fonte normativa quando aprovada), DEC-002 (Nível 1–7 único), DEC-004 (8 fases; nem toda fase é tela), DEC-005 com alteração (6 eras; Hegemonia não é era) e DEC-010 (hex / região / território).
+- **Abertas:** as demais, incluindo a nova DEC-023 (nomes das Eras V e VI). Seções que dependem delas continuam não normativas.
 
 **Fontes**
 - **Bíblia v3.1:** artefato `QrXXeJtE…`, 28 pranchas, camada v3 autoritativa.
@@ -34,7 +36,7 @@
 
 | Pilar (Bíblia/Canvas) | Promessa | Alpha hoje |
 |---|---|---|
-| Explorar | revelar regiões, oportunidades, ameaças | exploração por região de 7 hexes; sem descobertas |
+| Explorar | revelar o mapa, oportunidades, ameaças | exploração por região de 7 hexes; sem descobertas |
 | Expandir | cidades, território, redes | fundar, reivindicar, estradas |
 | Governar (Desenvolvimento) | população, distritos, especialização | papéis, distritos, governo, ânimo/estabilidade |
 | Negociar | tratados, influência, comércio | 6 tratados, ofertas comerciais, rotas, povos |
@@ -92,7 +94,13 @@ Regra de ouro: se uma decisão exige rolar a página, o layout está errado.
 - **Alpha:** 2 fases interativas; prazo por fase em 7 valores; sem Voto de Ritmo.
 - **Decisões:** DEC-004 (fases interativas), DEC-018 (ações e Comando).
 
-**Canônico proposto:** 8 fases nomeadas, 2 interativas. Recomendação: replay por etapa da Resolução [DEC-004]. O orçamento de ações é a variável central de ritmo (ver §20).
+**Canônico (DEC-004, aprovada):** 8 fases no motor.
+- Planejamento e Conflitos são as principais fases interativas.
+- As demais resolvem automaticamente e apresentam claramente suas consequências.
+- **Princípio UX canônico: "uma fase do motor não precisa corresponder a uma tela ou clique".**
+- Replay por etapa da Resolução é a forma recomendada de apresentar consequências (detalhe de UX V2, não decisão).
+
+O orçamento de ações é a variável central de ritmo (ver §20).
 
 ## 5. World / map
 
@@ -111,12 +119,16 @@ Regra de ouro: se uma decisão exige rolar a página, o layout está errado.
 | Bandos saqueadores | 2 (força 2 e 3) nos ermos |
 | Equidade | capitais em casas autorais compactas |
 
-**Bíblia:** 37/61/91/127 "regiões" (raio 3–6), 7 arquétipos, Deserto, 6 fichas de descoberta, raio de revelação 1/2/3 com Cartografia/Navegação, névoa opcional.
+**Bíblia:** mapas de 37/61/91/127 células (que ela chama de "regiões"; na V4 = hexágonos; raio 3–6), 7 arquétipos, Deserto, 6 fichas de descoberta, raio de revelação 1/2/3 com Cartografia/Navegação, névoa opcional.
 
-> **Achado:** na Bíblia, *região = célula*. Medido assim, o Alpha tem 210 células, mais que o Épico da Bíblia (127). [DEC-010]
+> **Nota histórica:** a Bíblia usava "região" para uma célula. Na terminologia canônica (DEC-010), o mapa Alpha tem 210 hexágonos em 30 regiões. Os tamanhos 37/61/91/127 da Bíblia correspondem a hexágonos, não a regiões.
 
 **Canônico proposto:**
-- Termos: "hex" = célula; "região" = bloco de 7 hexes (unidade de exploração).
+- Terminologia espacial (DEC-010, aprovada):
+  - **hexágono/hex** = célula individual do tabuleiro;
+  - **região** = agrupamento estrutural de 7 hexágonos do mapa Alpha;
+  - **território** = hexágonos sob controle/reivindicação de uma civilização ou cidade conforme as regras.
+- Tamanhos de mapa futuros são medidos em hexágonos.
 - O mapa do Alpha continua fixo.
 - Para depois, tamanhos em hexes por número de jogadores, arquétipos e descobertas (D).
 - Os três estados de conhecimento precisam ser **visíveis e distintos na UI** (B). Hoje "conhecido" não tem estilo próprio.
@@ -178,9 +190,16 @@ Regra de ouro: se uma decisão exige rolar a página, o layout está errado.
 
 **Canvas:** escada 1–7 "conceitual" e o botão "Desenvolver cidade". Em "Perguntas em aberto" registra que as cidades não sobem de nível hoje.
 
-### 7.2 Canônico proposto [DEC-002]
+### 7.2 Canônico (DEC-002, aprovada)
 
-Uma única progressão chamada **Nível (1–7)**, comprada (não automática), que absorve todas as funções do Desenvolvimento e acrescenta o que a Bíblia liga ao nível quando os sistemas existirem: vagas de edifício, escala de Produzir, raio de suprimento e armazém.
+A cidade tem **uma única progressão: Nível 1–7**.
+- O Desenvolvimento 1–5 **deixa de ser conceito público/canônico**; suas responsabilidades serão absorvidas pelo Nível.
+- O Nível **não depende só de população**. A progressão é composta por três pilares:
+  1. **população** (requisito mínimo de habitantes);
+  2. **infraestrutura/requisitos** (distritos, edifícios, avanços da Teia ou outros requisitos a definir);
+  3. **investimento** (custo em recursos e ação para subir).
+- O Nível absorve as funções atuais do Desenvolvimento e acrescenta o que a Bíblia liga ao nível quando os sistemas existirem: vagas de edifício, escala de Produzir, raio de suprimento e armazém.
+- **Não implementado.** A fórmula exata (que requisitos por nível, custos, tetos) é detalhamento de regras da V4 a validar por playtest; não é uma decisão aberta nova.
 
 ### 7.3 Efeitos colaterais da recomendação
 
@@ -190,7 +209,7 @@ Uma única progressão chamada **Nível (1–7)**, comprada (não automática), 
 
 ### 7.4 Migração conceitual (não implementar)
 
-1. Nível novo = `max(nível pelo desenvolvimento, nível pela população limitado pelo teto)`, com tabela proposta:
+1. Para saves existentes, o nível inicial deriva do Desenvolvimento pago (investimento já feito) e não só da população. Tabela proposta (a validar):
 
 | Desenvolvimento | Nível |
 |---|---|
@@ -591,10 +610,25 @@ Inconsistências internas da Bíblia: o cabeçalho de Estratégia diz 30–36 co
 - **Bíblia:** 6 eras (Hegemonia é a VI); as eras "abrem possibilidades, nunca concedem"; rodadas por era = total/6.
 - **Canvas:** "5 eras" na capa e linha do tempo I–V, mas "Era III: 3 de 5 critérios".
 
-### Canônico proposto [DEC-005]
+### Canônico (DEC-005, aprovada com alteração)
 
 - Eras como **marcos de capacidade** (abrem opções), avançadas por critérios contados (manter).
-- Número de eras e nome da última conforme DEC-005.
+- **6 eras** de progressão civilizacional (DEC-005, aprovada com alteração).
+- **Hegemonia não é era**: é condição/estado de vitória (§19).
+- A sexta era é o estágio final de ascensão, imediatamente anterior à disputa plena por Hegemonia.
+
+Nomenclatura canônica provisória:
+
+| Era | Nome | Origem |
+|---|---|---|
+| I | Fundação | Bíblia, Canvas, Alpha |
+| II | Expansão | Bíblia, Canvas, Alpha |
+| III | Civilização | Bíblia, Canvas, Alpha |
+| IV | Impérios | Bíblia, Canvas, Alpha |
+| V | **[nome pendente — DEC-023]** | nas fontes, V = Ascensão |
+| VI | **Ascensão** (provisório) | nas fontes, VI = Hegemonia (Bíblia/Alpha); o Canvas não tem VI |
+
+O Alpha atual diverge: os IDs são `ASCENSION` = V e `HEGEMONY` = VI, e a Era VI só libera declarar Hegemonia e não tem avanços. A migração é futura (gap map).
 - O ritmo de eras deve casar com DEC-003.
 
 ## 19. Prestige / Hegemony / victory
@@ -634,7 +668,7 @@ Inconsistências internas da Bíblia: o cabeçalho de Estratégia diz 30–36 co
 ### Bíblia
 
 - Declarar → contestar → sustentar 2 rodadas.
-- Metas **escaladas** por jogadores, regiões e arquétipo.
+- Metas **escaladas** por jogadores, tamanho do mapa (células na Bíblia) e arquétipo.
 - Livro de marcos de Prestígio (cidades, distritos, cadeias, governo, Obra, presença, conquista, exploração 25%), cada marco uma vez.
 - Modos de vitória: Hegemonia + Prestígio, só Prestígio, Conquista Total.
 
@@ -644,7 +678,7 @@ Inconsistências internas da Bíblia: o cabeçalho de Estratégia diz 30–36 co
 - Metas escaladas por jogadores e duração.
 - Prestígio por marcos únicos (antifarm), incluindo conquista e fundação (C).
 - Modo de vitória escolhido na criação da mesa (C).
-- Na UI, "Hegemonia" = vitória/caminho.
+- **"Hegemonia" designa exclusivamente a condição de vitória e os seus caminhos (DEC-005, aprovada).** A declaração permanece liberada na sexta era (hoje: `HEGEMONY`; canônico: Ascensão provisório). Se a declaração deve continuar presa à Era VI fica para DEC-006.
 
 ## 20. Match configuration
 
@@ -696,10 +730,15 @@ Manter as opções do Alpha. Adicionar no C:
 
 ## 21. Canonical terminology
 
-Ver `docs/product/canonical-terminology-v4.md`. Resumo das colisões a resolver:
-- Nível × Desenvolvimento;
-- Hegemonia (era × vitória);
-- Região (célula × bloco);
+Ver `docs/product/canonical-terminology-v4.md`.
+
+Resolvidas por decisão aprovada (o Alpha ainda precisa migrar a UI):
+- Nível × Desenvolvimento → só Nível (DEC-002);
+- Hegemonia era × vitória → só vitória (DEC-005);
+- Região célula × bloco → região = 7 hexágonos (DEC-010).
+
+Colisões ainda abertas:
+- nomes das Eras V/VI (DEC-023);
 - Ações × Comando;
 - "Materiais";
 - Guarnição (3 sentidos);
@@ -739,9 +778,11 @@ Ver `docs/product/canonical-terminology-v4.md`. Resumo das colisões a resolver:
 | Fase/rodada | barra inferior + superior |
 | Feedback de consequências | painel de resolução + Crônicas |
 
-**Bloqueiam o desenho:** DEC-002, DEC-004, DEC-005, DEC-010; também DEC-001 (escopo de telas) e a terminologia.
+**Bloqueios do desenho:** DEC-001, DEC-002, DEC-004, DEC-005 e DEC-010 foram **aprovadas**. Ainda afeta a UX V2, sem bloquear a arquitetura: **DEC-023** (nomes das eras na linha do tempo). Princípio derivado da DEC-004: as telas da V2 representam **Planejar → Resultado → (Conflitos)**, não 8 fases.
 
 ## 23. Alpha / Beta / Future scope
+
+As correções de integridade que precedem a reconstrução visual estão em `v4-gap-map.md`, seção **"Alpha correctness before Experience V2"** (P0/P1/P2). A tabela abaixo é a matriz de escopo por sistema.
 
 | Sistema | Classe | Justificativa |
 |---|---|---|
@@ -754,7 +795,7 @@ Ver `docs/product/canonical-terminology-v4.md`. Resumo das colisões a resolver:
 | Reembaralhar baralhos esgotados (6p) | **A** | A mão seca na rodada ~3 |
 | Rápida não alcança Hegemonia: comunicar | **A** | Expectativa errada |
 | Disputa cultural impossível em 2p: comunicar ou decidir | **A** | Botão sem caso de uso |
-| Unificar Nível/Desenvolvimento (decisão + desenho) | **B** | A UI V2 precisa de uma escada |
+| Nível 1–7 como única escada na UI (DEC-002 aprovada; regra no C) | **B** | A UI V2 desenha uma escada |
 | Minimapa, caminho, setas, névoa em 3 estados, camadas | **B** | Núcleo do Canvas |
 | Painel/gaveta da cidade | **B** | Canvas 10 |
 | Teia em grafo | **B** | Canvas 11 (depende do formato da Teia) |
@@ -778,7 +819,9 @@ Ver `docs/product/canonical-terminology-v4.md`. Resumo das colisões a resolver:
 
 ## 24. Known unresolved decisions
 
-DEC-001 a DEC-022 em `product-owner-decision-register.md`. Bloqueiam a UX V2: DEC-001, DEC-002, DEC-004, DEC-005, DEC-010.
+Ver `product-owner-decision-register.md`.
+- **Aprovadas:** DEC-001, DEC-002, DEC-004, DEC-005 (com alteração), DEC-010.
+- **Abertas:** DEC-003, DEC-006, DEC-007, DEC-008, DEC-009, DEC-011 a DEC-022, DEC-023 (nova).
 
 ### Inconsistências adicionais registradas (sem decisão própria)
 

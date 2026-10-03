@@ -1,6 +1,6 @@
 # Registro de decisões do Product Owner — V4
 
-Status de todas: **AGUARDANDO PRODUCT OWNER**. Nada aqui está decidido.
+Status: **DEC-001, DEC-002, DEC-004, DEC-005 (com alteração) e DEC-010 APROVADAS em 2026-10-03**. As demais estão **AGUARDANDO PRODUCT OWNER**. Uma decisão nova, DEC-023, surgiu da aprovação da DEC-005.
 Ordem: primeiro as que bloqueiam a Experience/UI V2 (marcadas **[bloqueia UX V2]**), depois regras.
 Fontes: Bíblia v3.1 (artefato `QrXXeJtE…`), Canvas UX (artefato `8BJPUCa5…`), código em `feature/aoh-playable-alpha-v1` (`547ff39`). Detalhes em `canonical-product-spec-v4-draft.md`.
 
@@ -17,6 +17,8 @@ Fontes: Bíblia v3.1 (artefato `QrXXeJtE…`), Canvas UX (artefato `8BJPUCa5…`
 **Recomendação:** C. Bíblia para intenção de design, Canvas para experiência, código para o que existe; números só entram na V4 por decisão explícita.
 
 **Consequências:** a V4 vira a única referência; Bíblia e Canvas ficam como históricos.
+
+**Status: APROVADA.** Nenhuma fonte histórica vence automaticamente. A V4, depois de aprovada, é a fonte normativa do produto. Bíblia, Canvas e Alpha permanecem como referências históricas, conceituais e de implementação.
 
 ---
 
@@ -42,6 +44,8 @@ A Bíblia tem só Nível 1–7, subido com recursos + avanço da Teia.
 **Recomendação:** A, com migração conceitual (spec §7.4). B é mais barata, mas perde os 7 nomes que Canvas e Bíblia usam. C mantém a confusão.
 
 **Consequências:** a UX V2 desenha uma escada só. A migração de saves precisa de um mapeamento Desenvolvimento→Nível, e os custos e tetos precisam de reequilíbrio (playtest).
+
+**Status: APROVADA.** Uma progressão de cidade: **Nível 1–7**. O Desenvolvimento 1–5 deixa de ser conceito público/canônico; suas responsabilidades serão absorvidas pelo Nível no futuro. O Nível **não depende só de população**: compõe-se de população + infraestrutura/requisitos + investimento. Não implementar ainda. A fórmula da composição fica pendente de especificação de regras (não é decisão nova; é detalhamento da V4, com playtest).
 
 ---
 
@@ -71,6 +75,8 @@ A Bíblia tem só Nível 1–7, subido com recursos + avanço da Teia.
 
 **Consequências:** a UX V2 desenha um ciclo **Planejar → Resolução → (Conflitos) → Resultado**, não 8 telas de fase. Remover os comandos inalcançáveis.
 
+**Status: APROVADA.** Manter as 8 fases. Planejamento e Conflitos são as principais fases interativas; as demais podem ser resolução automática com apresentação clara das consequências. Princípio UX canônico: **"uma fase do motor não precisa corresponder a uma tela ou clique"**.
+
 ---
 
 ## DEC-005 — Eras: quantas e o que é "Hegemonia" **[bloqueia UX V2]**
@@ -90,11 +96,18 @@ A Bíblia tem só Nível 1–7, subido com recursos + avanço da Teia.
 
 **Consequências:** muda a linha do tempo, os critérios de era (`ALPHA_ERA_MILESTONES`) e o texto do guia.
 
+**Status: APROVADA COM ALTERAÇÃO.** A recomendação de 5 eras não foi adotada.
+- **6 eras** de progressão civilizacional.
+- **"Hegemonia" não é era**: é uma condição/estado de vitória.
+- A sexta era representa o estágio final de ascensão, imediatamente anterior à disputa plena por Hegemonia.
+- Nome provisório da Era VI: **Ascensão**. Nas fontes, Ascensão é a Era V; a Bíblia a descreve como a "ponte" que antecede a disputa final, que é o papel aprovado para a VI.
+- O nome da nova Era V fica pendente: ver **DEC-023**.
+
 ---
 
 ## DEC-006 — Metas de Hegemonia fixas ou escaladas
 
-**Problema:** o Alpha usa metas fixas (ex.: Força 12, Riqueza 30, Influência 25); só a Territorial muda por duração. A Bíblia escala pela mesa (jogadores, regiões, arquétipo). Hoje a declaração é permanente e não exige cumprir nada, e Pacto de não agressão não impede guerra.
+**Problema:** o Alpha usa metas fixas (ex.: Força 12, Riqueza 30, Influência 25); só a Territorial muda por duração. A Bíblia escala pela mesa (jogadores, tamanho do mapa, arquétipo). Hoje a declaração é permanente e não exige cumprir nada, e Pacto de não agressão não impede guerra.
 
 **Opção A:** manter fixas.
 **Opção B:** escalar por nº de jogadores e duração (não por mapa enquanto o mapa for fixo).
@@ -148,7 +161,7 @@ A Bíblia tem só Nível 1–7, subido com recursos + avanço da Teia.
 
 ---
 
-## DEC-010 — Mapa: tamanho e unidade de medida **[bloqueia UX V2]**
+## DEC-010 — Mapa: terminologia espacial e tamanho **[bloqueia UX V2]**
 
 **Problema:** na **Bíblia, "região" é uma célula do tabuleiro**. As unidades movem-se e recuam "uma região". A exploração revela "anéis de região" (raio 1 = 7 células; Cartografia raio 2 = 19; Navegação Oceânica raio 3 = 37). O mapa tem 37/61/91/127 regiões (raio 3/4/5/6) e a caixa traz 127 peças de região. **No Alpha, "região" é um bloco de 7 hexes** (30 regiões = 210 hexes) e a célula chama-se "hex". Na unidade da Bíblia, o mapa do Alpha tem 210 células, mais que o tamanho Épico da Bíblia (127). Os números da Bíblia e do Alpha não são comparáveis sem fixar o termo.
 
@@ -159,6 +172,13 @@ A Bíblia tem só Nível 1–7, subido com recursos + avanço da Teia.
 **Recomendação:** A. O código e a UI já usam "hex"; o bloco de 7 é a unidade de exploração e rotação. Manter o mapa fixo no Alpha e definir os tamanhos futuros em hexes (o atual é 210) por número de jogadores.
 
 **Consequências:** a UI V2 precisa de minimapa já com 210 hexes. Mapas maiores pioram o contato (DEC-020).
+
+**Status: APROVADA.** Terminologia espacial canônica:
+- **Hexágono / hex** = célula individual do tabuleiro.
+- **Região** = agrupamento estrutural de 7 hexágonos usado pelo mapa Alpha.
+- **Território** = conjunto de hexágonos sob controle/reivindicação de uma civilização ou cidade, conforme as regras.
+
+Tamanhos de mapa futuros continuam em aberto e serão medidos em hexes.
 
 ---
 
@@ -319,3 +339,19 @@ A Bíblia tem só Nível 1–7, subido com recursos + avanço da Teia.
 **Opção C:** Bíblia (Ânimo 0–6 + Estabilidade 0–6, Coesão derivada).
 
 **Recomendação:** B ou C no Beta. No Alpha, a UI deve dizer o que cada medidor faz hoje.
+
+---
+
+## DEC-023 — Nomes da Era V e da Era VI (decorre da DEC-005)
+
+**Problema:** as fontes têm 6 nomes, e um deles é Hegemonia: Fundação, Expansão, Civilização, Impérios, Ascensão, Hegemonia (Bíblia e Alpha; o Canvas para em Ascensão). A DEC-005 tirou Hegemonia da lista de eras e manteve 6 eras, então falta um nome. O papel aprovado para a Era VI ("estágio final imediatamente anterior à disputa plena por Hegemonia") coincide com a descrição da Bíblia para Ascensão, hoje Era V.
+
+**Opção A:** Ascensão passa a ser a Era VI; a Era V recebe um nome novo (a definir pelo PO).
+**Opção B:** Ascensão continua Era V; a Era VI recebe um nome novo.
+**Opção C:** Ascensão continua V e a VI fica sem nome próprio ("Era VI") até haver conteúdo para ela.
+
+**Recomendação:** A, que segue a instrução da aprovação e o texto da Bíblia. O nome da nova Era V não é inventado aqui.
+
+**Consequências:** o código usa os IDs `ASCENSION` (V) e `HEGEMONY` (VI) em `AlphaEraSchema`. A renomeação será uma migração aditiva futura. Os critérios de era e o conteúdo da Teia por era (hoje 10 avanços em Fundação–Ascensão, 0 em Hegemonia) precisam ser redistribuídos.
+
+**Status:** AGUARDANDO PRODUCT OWNER
