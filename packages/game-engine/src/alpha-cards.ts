@@ -14,8 +14,19 @@ export function cardEffects(state:AlphaState,actor:PlayerId):AlphaEffect[]{
   const player=state.players.find(p=>p.playerId===actor)!;
   return [...player.advisors.map(id=>ALPHA_CARDS.find(c=>c.id===id)!.effect!).filter(Boolean),...state.projects.filter(p=>p.ownerId===actor).map(p=>GREAT_PROJECTS.find(g=>g.id===p.projectId)!.effect),...player.temporaryEffects.filter(e=>e.round===state.core.round).map(e=>e.effect)];
 }
+/**
+ * Hands refill by one card each round for the whole match, so an empty strategy deck takes back the played strategy cards
+ * (seeded shuffle). Only cards already discarded return; cards in hands stay there.
+ */
+function reshuffleStrategy(state:AlphaState):void {
+  const strategy=new Set(ALPHA_CARDS.filter(c=>c.family==='STRATEGY').map(c=>c.id));
+  const returning=state.cards.discarded.filter(id=>strategy.has(id));
+  if(!returning.length)return;
+  state.cards.discarded=state.cards.discarded.filter(id=>!strategy.has(id));
+  state.cards.strategyDeck=shuffled(state,returning);
+}
 export function maintainCards(state:AlphaState):void {
-  for(const player of state.players){player.cardsPlayed=0;player.temporaryEffects=player.temporaryEffects.filter(e=>e.round>=state.core.round);if(player.hand.length<state.rules.handLimit){const next=state.cards.strategyDeck.shift();if(next)player.hand.push(next);}}
+  for(const player of state.players){player.cardsPlayed=0;player.temporaryEffects=player.temporaryEffects.filter(e=>e.round>=state.core.round);if(player.hand.length<state.rules.handLimit){if(!state.cards.strategyDeck.length)reshuffleStrategy(state);const next=state.cards.strategyDeck.shift();if(next)player.hand.push(next);}}
   if(state.cards.worldDeck.length&&(state.cards.worldEvent===null||state.core.round%state.rules.eventEvery===0&&state.cards.worldEventRound!==state.core.round)) {
     if(state.cards.worldEvent)state.cards.discarded.push(state.cards.worldEvent);
     state.cards.worldEvent=state.cards.worldDeck.shift()!;state.cards.worldResponded=[];state.cards.worldEventRound=state.core.round;
