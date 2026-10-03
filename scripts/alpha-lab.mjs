@@ -124,7 +124,7 @@ try{
     }
     const advanced=await Promise.race([
       waitRound(round+1).then(()=>true),
-      Promise.all(seats.map(({page})=>page.locator('.alpha-finale').waitFor({timeout:20000}))).then(()=>false),
+      Promise.all(seats.map(({page})=>page.locator('.alpha-finale, .alpha-finale-panel').first().waitFor({timeout:20000}))).then(()=>false),
     ]);
     await snapshot(`round-${round}-end`);
     if(directedContact)await recordContacts(round);

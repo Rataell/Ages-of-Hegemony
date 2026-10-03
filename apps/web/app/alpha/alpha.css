@@ -307,3 +307,13 @@ button.alpha-card { text-align: left; }
 .alpha-conflict-call h2 { margin: 4px 0 10px; }
 .alpha-conflict-call .alpha-card-row { margin: 10px 0 14px; }
 .alpha-conflict-call > button.primary { width: 100%; }
+
+/* End of match: ranking and what to do next. */
+.alpha-finale-panel h2 { margin: 4px 0 6px; font-size: 26px; }
+.alpha-standings { width: 100%; border-collapse: collapse; margin: 12px 0 6px; font-variant-numeric: tabular-nums; }
+.alpha-standings th, .alpha-standings td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+.alpha-standings tbody th small { display: block; font-weight: 400; color: var(--text-secondary); }
+.alpha-standings tr.is-self { background: rgba(197, 164, 106, 0.1); }
+.alpha-standings tbody tr:first-child td:first-child { color: var(--accent); font-weight: 700; }
+.alpha-finale-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.alpha-game > .alpha-finale button { margin-top: 4px; }

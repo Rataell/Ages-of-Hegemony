@@ -130,9 +130,16 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     await confirmRound();
     const finished=(await repository.find(room.id))!.game!;
     expect(finished.winner).toMatchObject({playerId:'p1',reason:'HEGEMONY'});
-    for(const page of pages){
-      await page.reload();await expect(page.getByRole('heading',{name:'Aurélia venceu'})).toBeVisible();
-      await expect(page.getByText('Hegemonia consolidada',{exact:false})).toBeVisible();
+    for(const [index,page] of pages.entries()){
+      await page.reload();
+      // The end of the match opens on the result: headline, reason, ranking for everyone, and what to do next.
+      const finale=page.getByRole('dialog',{name:index===0?'Sua civilização venceu':'Aurélia venceu'});
+      await expect(finale).toBeVisible();
+      await expect(finale).toContainText(/Hegemonia .+ consolidada\./);
+      await expect(finale.locator('.alpha-standings tbody tr')).toHaveCount(2);
+      await expect(finale.locator('.alpha-standings tbody tr').first()).toContainText('Aurélia');
+      await expect(finale.getByRole('button',{name:'Nova partida',exact:true})).toBeVisible();
+      await finale.getByRole('button',{name:'Ver o mapa final',exact:true}).click();
       await expect(page.locator('.alpha-round-bar button')).toBeDisabled();
     }
     await a.screenshot({path:`${evidence}/1440-finished.png`});
