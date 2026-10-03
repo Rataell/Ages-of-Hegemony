@@ -103,11 +103,16 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await detailA.getByRole('button',{name:'Planejar ação urbana'}).click();
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 0 / 1');
     await expect(pa.locator('.alpha-action-queue')).toContainText('Ações planejadas 1 / 7');
-    // A second action in the same city explains the private reservation and stays disabled.
+    // With its one action planned, the city shows that plan instead of the full menu, and offers to swap it.
+    const plannedCard=urbanA.getByRole('article',{name:'Ação planejada'});
+    await expect(plannedCard).toContainText('Nesta rodada: Produzir');
+    await expect(urbanA.getByRole('button',{name:'Escolher produzir'})).toHaveCount(0);
+    await plannedCard.screenshot({path:`${actionEvidence}/1440x900-city-refusal.png`});
+    await plannedCard.getByRole('button',{name:'Trocar ação',exact:true}).click();
+    await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 1');
     await urbanA.getByRole('button',{name:'Escolher produzir'}).click();
-    await expect(pa.locator('.alpha-urban-detail')).toContainText('já possui sua ação planejada');
-    await expect(pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'})).toBeDisabled();
-    await pa.locator('.alpha-urban-detail').screenshot({path:`${actionEvidence}/1440x900-city-refusal.png`});
+    await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
+    await expect(urbanA).toContainText('Ações planejáveis da cidade: 0 / 1');
     // The other player deliberately does not produce this round.
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 1');
     // The starting Explorer leaves the capital: a highlighted reachable hex offers the move with its path already chosen.
