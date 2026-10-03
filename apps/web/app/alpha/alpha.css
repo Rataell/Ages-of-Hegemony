@@ -341,3 +341,14 @@ button.alpha-card { text-align: left; }
 .alpha-guide-button { white-space: nowrap; }
 .alpha-panel tr.is-outflow td { color: var(--danger); }
 .alpha-panel tr.is-total th, .alpha-panel tr.is-total td { font-weight: 700; }
+
+/* Phones and tablets: the page scrolls, so the phase bar stays pinned to the bottom and keeps only what decides the phase. */
+@media (max-width: 900px) {
+  .alpha-game { padding-bottom: 76px; }
+  .alpha-game .alpha-round-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface-elevated); border-top: 1px solid var(--border-subtle); box-shadow: 0 -8px 24px #0008; }
+  .alpha-game .alpha-round-bar ol[aria-label="Iniciativa"], .alpha-game .alpha-round-bar .alpha-resolution-log { display: none; }
+  .alpha-game .alpha-round-bar .feedback { flex: 1 1 auto; min-width: 0; font-size: 12px; }
+  .alpha-game .alpha-round-bar .advance-phase-btn { flex: 0 0 auto; }
+  .alpha-game .alpha-round-bar .alpha-action-queue { order: 3; flex-basis: 100%; }
+  .alpha-ready-check { right: 8px; left: 8px; width: auto; }
+}
