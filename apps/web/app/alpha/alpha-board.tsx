@@ -71,10 +71,20 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const known=game.knownTerritory.map(t=>({...t,ownerId:null,controllerCityId:null,improvement:null,yield:null,yieldError:null}));
   const unknown=game.frontier.map(t=>({...t,terrain:'UNKNOWN' as const,features:[],ownerId:null,controllerCityId:null,improvement:null,yield:null,yieldError:null}));
   const planned=[...game.self.orders.map(order=>({id:order.id,label:orderLabel(order)})),...game.self.plannedActions.map(action=>({id:action.id,label:action.type==='URBAN_ACTION'?`${text(action.action)} · ${civ.cities.find(candidate=>candidate.id===action.cityId)?.name??'Cidade'}`:text(action.type)}))];
+  /** Decisions waiting in other areas, flagged on their tab so the player does not have to go looking. */
+  const incomingProposals=game.treaties.filter(t=>t.status==='PROPOSED'&&t.recipientId===room.selfPlayerId).length;
+  const worldChoice=!!game.worldEvent&&game.worldDecisionPending&&game.phase==='PLANNING';
+  const tabAlerts:Record<string,string|undefined>={
+    cards:worldChoice?'Evento mundial aguarda sua escolha':undefined,
+    diplomacy:incomingProposals?`${incomingProposals} proposta(s) aguardam resposta`:undefined,
+    era:game.milestones.canAdvance&&game.phase==='PLANNING'?'Você já pode avançar de era':undefined,
+  };
   /** What a confirmation would leave undone: a city without its action produces nothing; idle pieces and spare actions are just reminders. */
   const orderedNow=new Set(game.self.orders.flatMap(o=>'unitIds' in o?o.unitIds:'unitId' in o?[o.unitId]:[]));
   const planningWarnings=game.phase!=='PLANNING'?[]:[
     ...game.cityStates.filter(c=>c.status!=='OCCUPIED'&&c.plannedUrbanActions===0).map(c=>`${civ.cities.find(x=>x.id===c.cityId)?.name??'Uma cidade'} não tem ação planejada: não produz nesta rodada.`),
+    ...(worldChoice?['O evento mundial oferece um recurso ou 1 Prestígio: escolha em Cartas & Projetos.']:[]),
+    ...(incomingProposals?[`${incomingProposals} proposta(s) diplomática(s) sem resposta em Diplomacia.`]:[]),
     ...(()=>{const idle=ownUnits.filter(u=>!orderedNow.has(u.id)&&Object.keys(game.unitOptions[u.id]?.moves??{}).length>0);return idle.length?[`${idle.length} peça(s) sem ordem: ${compositionText(idle)}.`]:[];})(),
   ];
   const reactions=game.self.hand.map(id=>ALPHA_CARDS.find(card=>card.id===id)).filter(card=>card?.timing==='REACTION').map(card=>card!);
@@ -105,7 +115,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       <div className="admin"><small>Ações principais</small><b>{game.actions.used} / {game.actions.limit}</b><small>{game.actions.reserved} planejadas · {game.self.prestige} Prestígio</small></div>
       <div className="round-label"><small>{text(game.self.era)}</small><b>Rodada {game.view.round} / {game.rules.roundLimit}</b><span>{replay?'RESOLVENDO A RODADA':text(game.phase)}</span></div>
     </header>
-    <nav className="main-nav" aria-label="Áreas da civilização">{TABS.map(([key,title])=><button key={key} aria-current={tab===key?'page':undefined} onClick={()=>setTab(key)}>{title}</button>)}{tools}</nav>
+    <nav className="main-nav" aria-label="Áreas da civilização">{TABS.map(([key,title])=><button key={key} aria-current={tab===key?'page':undefined} aria-describedby={tabAlerts[key]?`alpha-alert-${key}`:undefined} onClick={()=>setTab(key)}>{title}{tabAlerts[key]&&<span className="alpha-tab-alert" aria-hidden="true" title={tabAlerts[key]}/>}</button>)}{TABS.filter(([key])=>tabAlerts[key]).map(([key])=><span key={key} id={`alpha-alert-${key}`} className="alpha-sr-only">{tabAlerts[key]}</span>)}{tools}</nav>
     {replay&&<section className="alpha-resolution-phase" role="status" aria-label="Resolvendo a rodada"><p className="eyebrow">RESOLVENDO A RODADA {replay.round}</p><h2>Resultados autorizados</h2><ol>{replay.resolution.map(event=><li key={event.id}><b>{text(event.type)}</b><span>{event.message}</span></li>)}</ol><button className="primary" onClick={()=>setDismissedResolution(replay.round)}>Continuar</button></section>}
     {ambitionsPending&&!ambitionsLater&&!replay&&<div className="alpha-modal-backdrop"><section className="alpha-modal" role="dialog" aria-modal="true" aria-labelledby="alpha-ambitions-title"><p className="eyebrow">ANTES DO PRIMEIRO PLANEJAMENTO</p><AmbitionChooser game={game} locked={locked} send={send}/><button type="button" onClick={()=>setAmbitionsLater(true)}>Ver o mapa primeiro</button></section></div>}
     {conflictCall&&<section className="alpha-conflict-call" role="alert" aria-label="Conflitos da rodada"><p className="eyebrow">CONFLITOS DA RODADA {game.view.round}</p><h2>{game.incomingAttacks.length?'Sua civilização está sendo atacada':'Seu ataque aguarda reações'}</h2>

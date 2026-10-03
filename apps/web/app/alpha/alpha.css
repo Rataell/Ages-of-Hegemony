@@ -325,3 +325,7 @@ button.alpha-card { text-align: left; }
 .alpha-ready-check button { margin-right: 8px; }
 .alpha-round-bar { position: relative; }
 .alpha-ready-check li::before, .alpha-ready-check li::after { content: none !important; }
+
+/* A pending decision in another area: a small dot on its tab (text for screen readers). */
+.alpha-tab-alert { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--warning); vertical-align: 2px; }
+.alpha-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
