@@ -153,7 +153,7 @@ O orçamento de ações é a variável central de ritmo (ver §20).
   - habilidade **1×/rodada** (+2 A +1 B, ação principal).
 - **Líder** (12):
   - passiva: armazém +6 (+4 Metal), raio de suprimento +1 ou integração +10;
-  - habilidade 1×/era: Força +2, Movimento +1, Comando +1 (sem efeito), ânimo +1, coesão +15 (sem efeito) ou prorrogar tratado +2.
+  - habilidade 1×/era: Força +2, Movimento +1, Comando +1 (+1 ação principal na rodada, desde 2026-10-03), ânimo +1, coesão +15 (sem efeito) ou prorrogar tratado +2.
 - Kit inicial igual para todos: 1 Pioneiro + 1 Explorador; capital com 2 habitantes.
 
 **Bíblia:**
@@ -167,7 +167,7 @@ O orçamento de ações é a variável central de ritmo (ver §20).
 **Canônico proposto:** 12 no Alpha, com líderes; as outras 6 são conteúdo D. Identidade qualitativa (kit, limitação) no C. [DEC-011]
 
 **Achados**
-- A ênfase usa o termo legado "Materiais".
+- A ênfase usava o termo legado "Materiais"; desde 2026-10-03 diz "Madeira e Pedra" (o que o efeito credita).
 - A habilidade 1×/rodada diverge do 1×/era da Bíblia.
 - Dois líderes (Kor, Elyra) agem sobre Coesão, que não tem efeito.
 - Dois líderes (Merídia, Orinth) dão Comando, sem efeito.
@@ -264,7 +264,7 @@ Sem rebalancear agora.
 - % de rodadas com Produzir em todas as cidades;
 - número de mudanças de papel por partida.
 
-**Bug de UI registrado:** a previsão "Com Produzir… cresce em N rodadas" (`apps/server/src/alpha-projection.ts`) soma efeitos ON_PRODUCE e calcula por cidade. O motor usa a produção da civilização inteira sem ON_PRODUCE. A previsão pode divergir. Prioridade A (corrigir ou remover) após aprovação.
+**Bug de UI corrigido em 2026-10-03 (P0-2):** a previsão somava efeitos ON_PRODUCE e calculava por cidade. Agora a manutenção, a projeção e a UI usam a mesma regra (`ge/alpha-growth.ts`): sobra da civilização, só do Produzir, dividida entre as cidades abaixo do teto. O motor conta para o crescimento o Alimento produzido mesmo que o armazém o descarte depois; a previsão segue o motor.
 
 ## 9. Economy
 
@@ -361,7 +361,7 @@ Bônus numéricos permanecem como recompensa secundária.
 | Peça | Mov/Força | Observação |
 |---|---|---|
 | Infantaria | 2/2 | |
-| Guarda | 2/2 | modificador contra cidade +2, só no ataque |
+| Guarda | 2/2 | modificador de cidade +2 ao **defender** uma cidade (até 2026-10-03 valia só no ataque) |
 | Arqueiros | 2/1 | |
 | Cavalaria | 3/2 | Planície +1 |
 | Cerco | 1/1 | abre brecha |
@@ -525,13 +525,13 @@ Bônus numéricos permanecem como recompensa secundária.
 |---|---|---|
 | Pulso do mundo | 24 | 1 por rodada, automático, ±1–2 de um recurso para todos (2 sem efeito) |
 | Evento mundial | 24 | trocado a cada 2 rodadas (rodadas 1, 2, 4, 6…); cada um escolhe recurso +2 ou +1 Prestígio |
-| Estratégia | 30 | 15 de recurso; 5 reações (+Força); 5 de Movimento; **5 de Comando (sem efeito)** |
+| Estratégia | 30 | 15 de recurso; 5 reações (+Força); 5 de Movimento; 5 de Comando (+ações na rodada, desde 2026-10-03) |
 | Ambição | 24 | 3 por métrica; secretas; 2 escolhidas |
-| Conselheiro | 18 | +1 recurso por rodada; Força; Movimento; **Comando (sem efeito)** |
+| Conselheiro | 18 | +1 recurso por rodada; Força; Movimento; Comando (+1 ação por rodada, desde 2026-10-03) |
 | Grande Projeto | 12 | único no mundo; distrito + era; +2 recurso, +4 Prestígio |
 
 - **Total de cartas:** 108 (+24 de Pulso).
-- **Distribuição:** mão inicial de 3 estratégias e 3 ambições; +1 por rodada até 5; os baralhos de estratégia e ambição **não são reembaralhados**, e com 6 jogadores a estratégia acaba por volta da rodada 3.
+- **Distribuição:** mão inicial de 3 estratégias e 3 ambições; +1 por rodada até 5; as ambições são distribuídas uma vez; o baralho de estratégia, quando acaba, recebe de volta as estratégias descartadas, embaralhadas pela semente da partida (desde 2026-10-03; antes, com 6 jogadores, a mão parava de renovar por volta da rodada 3).
 
 ### Bíblia (v3)
 
@@ -828,15 +828,15 @@ Ver `product-owner-decision-register.md`.
 
 ### Inconsistências adicionais registradas (sem decisão própria)
 
-1. A rotação na exploração move terreno mas não o depósito de Metal, que pode parar fora de Colina/Montanha.
+1. ~~A rotação na exploração move terreno mas não o depósito de Metal~~ — corrigido em 2026-10-03 (P0-4).
 2. Arredondamento para baixo da substituição por Riqueza: custos de 1 Material nunca permitem substituir.
 3. Um Material ímpar vira sempre Madeira (+1 Material → 1 Madeira, 0 Pedra).
-4. Guarda: o modificador de cidade vale só no ataque.
+4. ~~Guarda: o modificador de cidade vale só no ataque~~ — corrigido em 2026-10-03 (P0-5): vale ao defender.
 5. Perdas matam primeiro as peças civis do lado derrotado.
 6. Telemetria declara contadores (batalhas, capturas, Hegemonia) que nunca são escritos.
 7. Embargo exige aceite do alvo e conta como "tratado" para ambições.
 8. Conquistar povo independente não exige guerra nem dá Prestígio.
 9. MANAGE FOUND_CITY não é bloqueado e falharia com erro genérico de integridade.
 10. A habilidade da civilização é 1×/rodada; a do líder, 1×/era.
-11. A previsão de crescimento da UI e o motor calculam de forma diferente (§8.5).
+11. ~~A previsão de crescimento da UI e o motor calculam de forma diferente~~ — corrigido em 2026-10-03 (P0-2).
 12. O Canvas mostra o viés de civilização com recursos diferentes do Alpha (ex.: Valgard "Pedra" × Alpha Materiais+Alimento).

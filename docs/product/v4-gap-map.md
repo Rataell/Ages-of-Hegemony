@@ -23,17 +23,17 @@
 
 ## Alpha correctness before Experience V2
 
-Só problemas de correção/integridade do que **já está exposto** no Alpha, a resolver antes da reconstrução visual. Nenhum foi corrigido ainda (aguarda aprovação). Lacunas de conteúdo ficam de fora.
+Só problemas de correção/integridade do que **já está exposto** no Alpha, a resolver antes da reconstrução visual. Correções de 2026-10-03 na branch `fix/aoh-alpha-correctness-pre-v2`: ver [alpha-correctness-pre-v2-2026-10-03.md](../alpha-correctness-pre-v2-2026-10-03.md). Lacunas de conteúdo ficam de fora.
 
 ### P0 — comportamento incorreto, UI enganosa ou violação de regra
 
 | ID | Problema | Evidência | Status |
 |---|---|---|---|
-| P0-1 | **Efeitos de Comando prometem +ações e não dão nada.** 5 cartas de estratégia (jogáveis, consomem carta), 2 conselheiros (contratação paga com recursos), as habilidades de líder de Merídia e Orinth (1×/era) e 5 avanços de Sociedade. O texto da UI diz "+N Ações principais" | `alphaActionCapacity` retorna `actionsPerRound` fixo (`ge/alpha-actions.ts:12`) | INERTE + INCONSISTENTE [DEC-018] |
-| P0-2 | **Previsão de crescimento da cidade diverge do motor.** A UI calcula por cidade e soma ON_PRODUCE; o motor usa a produção da civilização inteira sem ON_PRODUCE e conta comida que o armazém descartará | `apps/server/src/alpha-projection.ts` (cityDetails) × `ge/alpha-phases.ts:195-206` | INCONSISTENTE |
-| P0-3 | **"Materiais" aparece como recurso** (ofertas dentro de tratados, ênfase da civilização, tabela das Crônicas), mas o jogador tem Madeira/Pedra/Metal e o custo é dividido por regra oculta | `ResourceDealSchema` legado; `CIVILIZATIONS.bias`; `AlphaReports` usa `RESOURCE_KEYS` | INCONSISTENTE |
-| P0-4 | **A rotação na exploração move o terreno mas não o depósito de Metal**; o depósito pode cair em hex onde a Mina é proibida (recurso perdido) | `ge/alpha-world.ts:115-120` (features não giram) | INCONSISTENTE (regra) |
-| P0-5 | **A Guarda é descrita como "Defesa de cidades e fortificações"**, mas o bônus de cidade (+2) só vale quando ela **ataca** uma cidade | `gd/alpha-catalog.ts:22`, `ge/alpha-combat.ts:58` | INCONSISTENTE |
+| P0-1 | **Efeitos de Comando prometem +ações e não dão nada.** 5 cartas de estratégia (jogáveis, consomem carta), 2 conselheiros (contratação paga com recursos), as habilidades de líder de Merídia e Orinth (1×/era) e 5 avanços de Sociedade. O texto da UI diz "+N Ações principais" | `alphaActionCapacity` retorna `actionsPerRound` fixo (`ge/alpha-actions.ts:12`) | CORRIGIDO (95752e9) |
+| P0-2 | **Previsão de crescimento da cidade diverge do motor.** A UI calcula por cidade e soma ON_PRODUCE; o motor usa a produção da civilização inteira sem ON_PRODUCE e conta comida que o armazém descartará | `apps/server/src/alpha-projection.ts` (cityDetails) × `ge/alpha-phases.ts:195-206` | CORRIGIDO (93ce41f) |
+| P0-3 | **"Materiais" aparece como recurso** (ofertas dentro de tratados, ênfase da civilização, tabela das Crônicas), mas o jogador tem Madeira/Pedra/Metal e o custo é dividido por regra oculta | `ResourceDealSchema` legado; `CIVILIZATIONS.bias`; `AlphaReports` usa `RESOURCE_KEYS` | CORRIGIDO (c3901c9) |
+| P0-4 | **A rotação na exploração move o terreno mas não o depósito de Metal**; o depósito pode cair em hex onde a Mina é proibida (recurso perdido) | `ge/alpha-world.ts:115-120` (features não giram) | CORRIGIDO (2728e4d) |
+| P0-5 | **A Guarda é descrita como "Defesa de cidades e fortificações"**, mas o bônus de cidade (+2) só vale quando ela **ataca** uma cidade | `gd/alpha-catalog.ts:22`, `ge/alpha-combat.ts:58` | CORRIGIDO (f1b803b) |
 
 ### P1 — sistema exposto, porém inerte
 
@@ -44,11 +44,11 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | P1-3 | **Frota:** listada em Recrutar a partir da Expansão; exige cidade em Costa, e todas as capitais iniciais ficam em Planície | `ge/alpha-military.ts:10-23`, `gd/alpha-regions.ts` | INERTE na prática [DEC-014] |
 | P1-4 | **Disputa cultural** impossível em 2 jogadores (exige duas presenças estrangeiras); o guia a menciona | `ge/alpha-culture.ts:71-79` | INERTE em 2p [DEC-016] |
 | P1-5 | ~~Hegemonia em partida Rápida~~ — **retirado**: com DEC-006 (aprovada) é comportamento aceitável; partida curta pode terminar por Prestígio | — | aceitável |
-| P1-6 | **Baralhos de estratégia e ambição** não reembaralham; com 6 jogadores a compra seca por volta da rodada 3 e a mão para de renovar | `ge/alpha-cards.ts:7-23` | INERTE (após esgotar) |
+| P1-6 | **Baralhos de estratégia e ambição** não reembaralham; com 6 jogadores a compra seca por volta da rodada 3 e a mão para de renovar | `ge/alpha-cards.ts:7-23` | CORRIGIDO (2065d62): só o baralho de estratégia; ambições são distribuídas uma vez |
 | P1-7 | **Proteger povo independente:** ação paga e exposta; `protectorId` não tem efeito | `ge/alpha-independents.ts` | INERTE |
 | P1-8 | **Atitudes Hostil e Desconfiado:** descritas na UI ("Negociar…"), nunca ocorrem (todos começam Neutros e só melhoram) | `ge/alpha-world.ts:72` | INERTE |
 | P1-9 | **Pulso do mundo:** "Bandos em marcha" e "Refugiados da fronteira" sem efeito ("sem efeito nos recursos") | `gd/alpha-concept.ts:191,197` | INERTE |
-| P1-10 | **Papel Soldado:** alocável, sem efeito (a UI o chama de "Guarnição militar da cidade") | `ge/economy.ts`; `gd/rules.ts` | INERTE |
+| P1-10 | **Papel Soldado:** alocável, sem efeito (a UI o chama de "Guarnição militar da cidade") | `ge/economy.ts`; `gd/rules.ts` | INERTE; texto da UI corrigido (27c9c7d) |
 
 ### P2 — dívida técnica ou documentação
 
@@ -75,7 +75,7 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 |---|---|---|---|
 | 8 fases; Planejamento e Conflitos interativas; as demais automáticas com consequências claras (DEC-004) | igual | IMPLEMENTADO | — |
 | "Uma fase do motor não é uma tela" (DEC-004) | a UI tem painel de resolução único | PARCIAL | B |
-| Orçamento de ações honesto [DEC-018] | fixo; "+Comando" sem efeito | INERTE (P0-1) | A |
+| Orçamento de ações honesto [DEC-018] | base + modificadores de +Ações | IMPLEMENTADO (P0-1) | A |
 | Durações com papel de vitória por modo [DEC-003] | 9/15/20; Hegemonia inalcançável na Rápida | aceitável pela DEC-006; durações ainda em DEC-003 | C |
 | Voltar a planejar, checagem antes de confirmar | sim | IMPLEMENTADO | — |
 | Voto de Ritmo, assíncrono | prazo por fase | NÃO IMPLEMENTADO | D |
@@ -88,7 +88,7 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | Mapa fixo de 210 hexágonos no Alpha | igual | IMPLEMENTADO | — |
 | Três estados de névoa distintos na UI | "conhecido" sem estilo próprio | PARCIAL | B |
 | Minimapa, camadas, caminho e setas desenhados | ausentes | NÃO IMPLEMENTADO | B |
-| Depósito acompanha a rotação | não acompanha | INCONSISTENTE (P0-4) | A |
+| Depósito acompanha a rotação | acompanha | IMPLEMENTADO (P0-4) | A |
 | Descobertas; tamanhos em hexágonos por nº de jogadores; arquétipos | — | NÃO IMPLEMENTADO | D |
 | Raio de revelação por Teia | — | NÃO IMPLEMENTADO | C |
 | Contato confiável em 6p [DEC-020] | 59/72 na simulação | PARCIAL | C (medir) |
@@ -98,8 +98,8 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
 | 12 civilizações com líder [DEC-011] | igual | IMPLEMENTADO | — |
-| Ênfase descrita nos 7 recursos | "Materiais" | INCONSISTENTE (P0-3) | A |
-| Habilidades de líder com efeito | Comando (P0-1) e Coesão (P1-1) | INERTE | A |
+| Ênfase descrita nos 7 recursos | Madeira e Pedra | IMPLEMENTADO (P0-3) | A |
+| Habilidades de líder com efeito | Comando sim (P0-1); Coesão não (P1-1) | INERTE (Coesão) | A |
 | Habilidade de civilização 1×/era [DEC-011] | 1×/rodada | DIVERGENTE | C |
 | Kits e limitações; civilizações 13–18; unidades exclusivas | — | NÃO IMPLEMENTADO | C/D |
 
@@ -109,7 +109,7 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 |---|---|---|---|
 | **Nível 1–7 como única progressão**, composto por população + infraestrutura/requisitos + investimento (DEC-002) | Desenvolvimento 1–5 (regras) + Nível 1–7 (rótulo só por população) | DIVERGENTE / REMOVER Desenvolvimento como conceito público | B (UI) / C (regra) |
 | 1 ação por cidade; sem Produzir não produz | igual | IMPLEMENTADO | — |
-| Previsão de crescimento = regra do motor | diverge | INCONSISTENTE (P0-2) | A |
+| Previsão de crescimento = regra do motor | mesma regra | IMPLEMENTADO (P0-2) | A |
 | Crescimento sem microgestão [DEC-007] | a cidade inicial não cresce sem mudança | DIVERGENTE | C (após métricas) |
 | Ânimo com causas de queda [DEC-022] | só sobe | INERTE parcial (P1-2) | A (UI) / C |
 | Coesão com efeito ou fora [DEC-016/022] | sem efeito | INERTE (P1-1) | A |
@@ -122,7 +122,7 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 
 | Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
-| 7 recursos; "Materiais" fora da UI | parcial | INCONSISTENTE (P0-3) | A |
+| 7 recursos; "Materiais" fora da UI | sim; agregados legados rotulados Madeira/Pedra | IMPLEMENTADO (P0-3) | A |
 | Pool legado eliminado | espelhado | REMOVER/CONSOLIDAR (P2-6) | C |
 | Armazém civilizacional por Nível [DEC-008] | por cidade × nº de cidades | DIVERGENTE | C |
 | Substituição por Riqueza ≤50% | igual | IMPLEMENTADO | — |
@@ -135,7 +135,7 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
 | Teia qualitativa [DEC-012] | 50 nós de bônus; 4 desbloqueios de pilha | DIVERGENTE | C |
-| Nós sempre com efeito | 5 nós de Comando | INERTE (P0-1) | A |
+| Nós sempre com efeito | sim (P0-1) | IMPLEMENTADO | A |
 | Teia em grafo | grade | PARCIAL | B |
 | Catálogo de edifícios ligado à Teia [DEC-013] | 7 construíveis | PARCIAL | C |
 | 22 edifícios do esquema e distrito Marítimo | órfãos | REMOVER/CONSOLIDAR (conteúdo, não correção) | C |
@@ -146,7 +146,7 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
 | Dado tático, posturas, fortificação, pilhas, chamada de Conflitos | igual | IMPLEMENTADO | — |
-| Descrição da Guarda = regra | diverge | INCONSISTENTE (P0-5) | A |
+| Descrição da Guarda = regra | igual | IMPLEMENTADO (P0-5) | A |
 | Frota com caminho real ou oculta [DEC-014] | inalcançável | INERTE (P1-3) | A |
 | Suprimento progressivo [DEC-009]; escalas; até 3 choques; civis não morrem primeiro | — | DIVERGENTE / NÃO IMPLEMENTADO | C |
 | Naval (transporte, bloqueio; depois completo) | — | NÃO IMPLEMENTADO | C/D |
@@ -178,8 +178,8 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | Canônico | Alpha atual | Status | Prior. |
 |---|---|---|---|
 | Pulso e Evento distintos [DEC-017] | nomes próximos | PARCIAL | B (termo) |
-| Cartas sempre com efeito | Comando (P0-1); Pulso nulo (P1-9) | INERTE | A |
-| Baralhos reembaralham | não (P1-6) | INERTE (após esgotar) | A |
+| Cartas sempre com efeito | Comando sim (P0-1); Pulso nulo (P1-9) | INERTE (Pulso) | A |
+| Baralhos reembaralham | estratégia sim (P1-6) | IMPLEMENTADO | A |
 | Pulso condicional; Obras com efeito e etapas | genérico | PARCIAL | C |
 | Táticas e Encontros | — | NÃO IMPLEMENTADO (conteúdo) | D |
 
