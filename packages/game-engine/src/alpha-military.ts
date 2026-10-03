@@ -68,7 +68,10 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
     const enemies=state.units.filter(u=>u.hexId===order.target&&u.ownerId!==actor);
     const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target&&c.ownerId!==actor);
     if(!enemies.length&&!city)throw new Error('Não há adversário conhecido nesse destino.');
-    const defender=enemies[0]?.ownerId??city!.ownerId;if(!atWar(state,actor,defender))throw new Error('Declare guerra antes de ordenar um ataque a outra civilização.');
+    const defender=enemies[0]?.ownerId??city!.ownerId;
+    // A declaration planned this round resolves in Diplomacy, before Conflicts, so the attack may be reserved with it.
+    const declared=state.phase==='PLANNING'&&progress.plannedActions.some(action=>action.type==='DECLARE_WAR'&&action.targetId===defender);
+    if(!atWar(state,actor,defender)&&!declared)throw new Error('Declare guerra antes de ordenar um ataque a outra civilização.');
     if(new Set(units.map(u=>u?.hexId)).size!==1)throw new Error('Uma força de ataque deve partir do mesmo hex.');
   }
 }

@@ -1,4 +1,4 @@
-import { orderMessage, urbanActionMessage } from './alpha-messages.js';
+import { TREATY_NAMES, battleMessage, lossesMessage, orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
   ALPHA_CARDS, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources, cityLevelForPopulation,
   type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlannedAction, type PlayerId, type RoundPhase, type StrategicOrder,
@@ -37,7 +37,7 @@ type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
   'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'HIRE_ADVISOR',
   'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'BUILD_ROAD',
-  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY',
+  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY',
   'CONTEST_PRESENCE',
   'INDEPENDENT_ACTION',
 ];
@@ -45,10 +45,10 @@ const planning: CommandType[] = [
 export const LEGAL_COMMANDS: Readonly<Record<AlphaRoundPhase, ReadonlySet<CommandType>>> = {
   WORLD_PULSE: new Set(),
   PLANNING: new Set(planning),
-  URBAN_ACTIONS: new Set<CommandType>(['URBAN_ACTION', 'READY']),
+  URBAN_ACTIONS: new Set<CommandType>(['URBAN_ACTION', 'READY', 'UNREADY']),
   ORDERS_MOVEMENT: new Set(),
-  DIPLOMACY_TRADE: new Set<CommandType>(['PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'READY']),
-  CONFLICTS: new Set<CommandType>(['PLAY_CARD', 'READY']),
+  DIPLOMACY_TRADE: new Set<CommandType>(['PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'READY', 'UNREADY']),
+  CONFLICTS: new Set<CommandType>(['PLAY_CARD', 'READY', 'UNREADY']),
   INTEGRATION_MAINTENANCE: new Set(),
   END_ROUND: new Set(),
 };
@@ -113,7 +113,8 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         if (order.type === 'ATTACK') resolveBattle(candidate, id, order);
         candidate.core.players.forEach(player => { player.civilization = refreshAdministration(player.civilization, candidate.core.config, candidate.core.map); });
         refreshKnowledge(candidate); refreshHegemony(candidate);
-        const message = orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined);
+        const before = { units: new Map(state.units.map(unit => [unit.id, unit])), rules: state.rules, names: new Map(state.core.players.map(player => [player.id as string, player.name])) };
+        const message = order.type === 'ATTACK' ? battleMessage(before.names, candidate.battles.at(-1)!) : orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined);
         Object.assign(state, AlphaStateSchema.parse(candidate));
         alphaEvent(state, type, message, [id]);
         const target=order.type==='MOVE'?order.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:state.core.players.flatMap(player=>player.civilization.cities).find(city=>city.id===order.toCityId)?.hexId;
@@ -123,10 +124,10 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         resolutionEvent(state,{type:eventType,actorId:id,visibleTo,message,...(target?{hexId:target}:{}),unitIds});
         if(order.type==='ATTACK'){
           const battle=state.battles.at(-1);
-          if(battle?.losses.length)resolutionEvent(state,{type:'LOSSES',actorId:id,visibleTo,message:`${battle.losses.length} peça(s) perdida(s) no conflito.`,hexId:order.target,unitIds:battle.losses});
-          if(battle?.retreat)resolutionEvent(state,{type:'RETREAT',actorId:battle.winnerId===id?battle.defenderId:id,visibleTo,message:`Retirada para ${battle.retreat}.`,hexId:battle.retreat,unitIds:[]});
+          if(battle?.losses.length)resolutionEvent(state,{type:'LOSSES',actorId:id,visibleTo,message:lossesMessage(before,battle.losses),hexId:order.target,unitIds:battle.losses});
+          if(battle?.retreat){const retreating=battle.winnerId===id?battle.defenderId:id;resolutionEvent(state,{type:'RETREAT',actorId:retreating,visibleTo,message:`${before.names.get(retreating)??'O derrotado'} recuou para ${battle.retreat}.`,hexId:battle.retreat,unitIds:[]});}
           const advanced=order.unitIds.filter(unitId=>state.units.some(unit=>unit.id===unitId&&unit.hexId===order.target));
-          if(advanced.length)resolutionEvent(state,{type:'ADVANCE',actorId:id,visibleTo,message:'Força vencedora avançou após o conflito.',hexId:order.target,unitIds:advanced});
+          if(advanced.length)resolutionEvent(state,{type:'ADVANCE',actorId:id,visibleTo,message:`${before.names.get(id)??'O vencedor'} avançou para ${order.target}.`,hexId:order.target,unitIds:advanced});
         }
       } catch (error: unknown) { alphaEvent(state, 'ORDER_FAILED', error instanceof Error ? error.message : 'Ordem não pôde ser executada.', [id]); }
     }
@@ -158,7 +159,7 @@ function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['ty
         const {id,...payload}=action;
         manageDiplomacy(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'PROPOSE_TREATY'|'DECLARE_WAR'}>);
         alphaEvent(candidate,action.type,`Ação diplomática planejada executada: ${action.type}.`,[actor]);
-        resolutionEvent(candidate,{type:'ROUND_EVENT',actorId:actor,visibleTo:action.type==='DECLARE_WAR'?null:[actor,action.recipientId],message:action.type==='DECLARE_WAR'?'Guerra declarada.':'Proposta de acordo enviada.',unitIds:[]});
+        resolutionEvent(candidate,{type:'ROUND_EVENT',actorId:actor,visibleTo:action.type==='DECLARE_WAR'?null:[actor,action.recipientId],message:action.type==='DECLARE_WAR'?`${candidate.core.players.find(player=>player.id===actor)?.name??'Uma civilização'} declarou guerra a ${candidate.core.players.find(player=>player.id===action.targetId)?.name??'outra civilização'}.`:`${candidate.core.players.find(player=>player.id===actor)?.name??'Uma civilização'} propôs ${TREATY_NAMES[action.treaty]??'um acordo'} a ${candidate.core.players.find(player=>player.id===action.recipientId)?.name??'outra civilização'}.`,unitIds:[]});
       }
       Object.assign(state,AlphaStateSchema.parse(candidate));
     }catch(error:unknown){
@@ -292,6 +293,15 @@ function endRound(state: AlphaState): void {
   openRound(state);
 }
 
+/** Reserved attacks with their defender (owner of the pieces or city on the target), in initiative order. */
+export function pendingAttacks(state: AlphaState): { attackerId: PlayerId; defenderId: PlayerId; target: string; orderId: string }[] {
+  return state.initiative.flatMap(attackerId => state.players.find(player => player.playerId === attackerId)!.orders.flatMap(order => {
+    if (order.type !== 'ATTACK') return [];
+    const defenderId = state.units.find(unit => unit.hexId === order.target && unit.ownerId !== attackerId)?.ownerId
+      ?? state.core.players.find(player => player.id !== attackerId && player.civilization.cities.some(city => city.hexId === order.target))?.id;
+    return defenderId ? [{ attackerId, defenderId, target: order.target as string, orderId: order.id }] : [];
+  }));
+}
 const REACTION_CARD = (id: string) => ALPHA_CARDS.find(card => card.id === id)?.timing === 'REACTION';
 
 /**
@@ -314,8 +324,9 @@ export function advanceAfterReady(state: AlphaState): void {
         resolvePlannedActions(state,['PROPOSE_TREATY','DECLARE_WAR']);
         settleTreaties(state);
         setAlphaPhase(state, 'CONFLICTS');
-        const conflict = state.players.some(player => player.orders.some(order => order.type === 'ATTACK'));
-        state.players.forEach(player => { player.ready = !(conflict && player.cardsPlayed < state.rules.cardsPerRound && player.hand.some(REACTION_CARD)); });
+        // Only the sides of a reserved attack may react; everyone else is not asked to wait.
+        const parties = new Set(pendingAttacks(state).flatMap(attack => [attack.attackerId, attack.defenderId]));
+        state.players.forEach(player => { player.ready = !(parties.has(player.playerId) && player.cardsPlayed < state.rules.cardsPerRound && player.hand.some(REACTION_CARD)); });
         if (state.players.some(player => !player.ready)) return;
         break;
       }

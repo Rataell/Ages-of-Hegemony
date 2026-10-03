@@ -1,5 +1,5 @@
 import { ACTION_CLASS, ADVANCEMENTS, GREAT_PROJECTS, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, pendingAttacks, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -23,6 +23,8 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     raidBands:raidBandView(state,actor),
     leaderBlock:leaderAbilityBlock(state,actor),
     stacks:stackView(state,actor),unitOptions:alphaUnitOptions(state,actor),
+    /** While reactions are open, the defender learns who attacks which of its hexes (never the force or posture). */
+    incomingAttacks:state.phase==='CONFLICTS'?pendingAttacks(state).filter(attack=>attack.defenderId===actor).map(({attackerId,target})=>({attackerId,target})):[],
     orderPreviews:Object.fromEntries(progress.orders.flatMap(order=>order.type==='ATTACK'?[[order.id,combatPreview(state,actor,order)] as const]:[])),
     self:progress,storage:alphaStorageCapacity(state,actor),actions:alphaActionUsage(state,actor),actionClasses:ACTION_CLASS,commandCapacity:alphaCommandCapacity(state,actor),rules:state.rules,
     costs:{

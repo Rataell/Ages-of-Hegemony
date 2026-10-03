@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { CIVILIZATIONS, stackCategory, stackViewVerdict } from '@aoh/game-domain';
+import { ALPHA_CARDS, CIVILIZATIONS, stackCategory, stackViewVerdict } from '@aoh/game-domain';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import { HexMap } from '../play/hex-map';
 import { ResourceDisplay } from '../play/resource-display';
@@ -26,7 +26,9 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const game=room.game!,player=game.view.player,civ=player.civilization,identity=CIVILIZATIONS.find(c=>c.id===game.self.civilization);
   const [tab,setTab]=useState('world'),[inspector,setInspector]=useState<Inspector>('city'),[selected,setSelected]=useState<string|null>(civ.cities[0]?.hexId??null),[selectedCity,setSelectedCity]=useState(civ.cities[0]?.id??''),[focus,setFocus]=useState<string|null>(civ.cities[0]?.hexId??null);
   const [units,setUnits]=useState<string[]>([]),[path,setPath]=useState<string[]>([]),[pathMode,setPathMode]=useState(false),[rotation,setRotation]=useState(0),[working,setWorking]=useState(false),[worked,setWorked]=useState<string[]>([]),[name,setName]=useState('Novo Horizonte'),[posture,setPosture]=useState('ASSAULT');
-  const [panels,setPanels]=useState(loadPanels),[dismissedResolution,setDismissedResolution]=useState(0),[ambitionsLater,setAmbitionsLaterState]=useState(()=>{try{return sessionStorage.getItem(`aoh-ambitions-later-${room.id}`)==='1';}catch{return false;}});
+  const [panels,setPanels]=useState(loadPanels),[dismissedResolution,setDismissedResolutionState]=useState(()=>{try{return Number(sessionStorage.getItem(`aoh-resolution-seen-${room.id}`)??0);}catch{return 0;}}),[ambitionsLater,setAmbitionsLaterState]=useState(()=>{try{return sessionStorage.getItem(`aoh-ambitions-later-${room.id}`)==='1';}catch{return false;}});
+  /** A round's results are shown once per browser session, not again on every reload. */
+  const setDismissedResolution=(round:number)=>{setDismissedResolutionState(round);try{sessionStorage.setItem(`aoh-resolution-seen-${room.id}`,String(round));}catch{/* storage blocked: shown again after reload */}};
   const setAmbitionsLater=(later:boolean)=>{setAmbitionsLaterState(later);try{sessionStorage.setItem(`aoh-ambitions-later-${room.id}`,later?'1':'0');}catch{/* storage blocked: the choice lasts until reload */}};
   const togglePanel=(key:'council'|'inspector')=>setPanels(old=>{const next={...old,[key]:!old[key]};try{localStorage.setItem(PANELS_KEY,JSON.stringify(next));}catch{/* private mode: keep the choice for this session only */}return next;});
   const locked=busy||game.self.ready||game.view.status==='FINISHED';
@@ -53,7 +55,10 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const fighters=chosen.every(u=>(game.rules.units[u.kind]?.strength??0)>0);
   const coords=(id:string|null)=>{const [q,r]=(id??'').split(',').map(Number);return {q:q??0,r:r??0};};
   const adjacent=!!selected&&!!origin&&(()=>{const a=coords(origin),b=coords(selected);return (Math.abs(a.q-b.q)+Math.abs(a.q+a.r-b.q-b.r)+Math.abs(a.r-b.r))/2===1;})();
-  const targetName=!selected?'nenhum':foreignCity?`${foreignCity.name} (${game.players.find(p=>p.id===foreignCity.ownerId)?.name??'estrangeira'})`:tile?`${text(tile.terrain)} · ${selected}`:`Região desconhecida · ${selected}`;
+  const defenderId=foreignCity?.ownerId??game.units.find(u=>u.hexId===selected&&u.ownerId!==room.selfPlayerId)?.ownerId;
+  const hostile=!!defenderId&&(game.wars.some(pair=>pair.includes(defenderId))||game.self.plannedActions.some(a=>a.type==='DECLARE_WAR'&&a.targetId===defenderId));
+  const defenderName=game.players.find(p=>p.id===defenderId)?.name??'esta civilização';
+  const targetName=!selected?'nenhum':foreignCity?`${foreignCity.name} (${game.players.find(p=>p.id===foreignCity.ownerId)?.name??'estrangeira'})`:tile?`${text(tile.terrain)} · ${selected}${defenderId?` · peças de ${defenderName}`:''}`:`Região desconhecida · ${selected}`;
   /** "Movimento · Pioneiro → 4,6": what moves, and where, instead of the bare order type. */
   const orderLabel=(order:typeof game.self.orders[number])=>{
     const ids='unitIds' in order?order.unitIds:'unitId' in order?[order.unitId]:[];
@@ -66,7 +71,9 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const known=game.knownTerritory.map(t=>({...t,ownerId:null,controllerCityId:null,improvement:null,yield:null,yieldError:null}));
   const unknown=game.frontier.map(t=>({...t,terrain:'UNKNOWN' as const,features:[],ownerId:null,controllerCityId:null,improvement:null,yield:null,yieldError:null}));
   const planned=[...game.self.orders.map(order=>({id:order.id,label:orderLabel(order)})),...game.self.plannedActions.map(action=>({id:action.id,label:action.type==='URBAN_ACTION'?`${text(action.action)} · ${civ.cities.find(candidate=>candidate.id===action.cityId)?.name??'Cidade'}`:text(action.type)}))];
-  const latestReport=game.roundReports.at(-1),replay=latestReport&&latestReport.resolution.length>0&&latestReport.round>dismissedResolution?latestReport:null;
+  const reactions=game.self.hand.map(id=>ALPHA_CARDS.find(card=>card.id===id)).filter(card=>card?.timing==='REACTION').map(card=>card!);
+  const conflictCall=game.phase==='CONFLICTS'&&!game.self.ready&&!game.winner&&(game.incomingAttacks.length>0||game.self.orders.some(o=>o.type==='ATTACK'));
+  const latestReport=game.roundReports.at(-1),replay=!conflictCall&&latestReport&&latestReport.resolution.length>0&&latestReport.round>dismissedResolution?latestReport:null;
   const resolution=latestReport?.resolution.slice(-8)??[];
   const mapData={view:{...game.view,era:game.self.era,visibleTerritory:[...game.view.visibleTerritory,...known,...unknown]},players:game.players,claimable:targetHexes,workable:city?game.view.visibleTerritory.filter(t=>t.controllerCityId===city.id).map(t=>t.id):[]};
   /** The inspector follows what the player just touched, except while a map interaction is in progress. */
@@ -95,6 +102,11 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
     <nav className="main-nav" aria-label="Áreas da civilização">{TABS.map(([key,title])=><button key={key} aria-current={tab===key?'page':undefined} onClick={()=>setTab(key)}>{title}</button>)}{tools}</nav>
     {replay&&<section className="alpha-resolution-phase" role="status" aria-label="Resolvendo a rodada"><p className="eyebrow">RESOLVENDO A RODADA {replay.round}</p><h2>Resultados autorizados</h2><ol>{replay.resolution.map(event=><li key={event.id}><b>{text(event.type)}</b><span>{event.message}</span></li>)}</ol><button className="primary" onClick={()=>setDismissedResolution(replay.round)}>Continuar</button></section>}
     {ambitionsPending&&!ambitionsLater&&!replay&&<div className="alpha-modal-backdrop"><section className="alpha-modal" role="dialog" aria-modal="true" aria-labelledby="alpha-ambitions-title"><p className="eyebrow">ANTES DO PRIMEIRO PLANEJAMENTO</p><AmbitionChooser game={game} locked={locked} send={send}/><button type="button" onClick={()=>setAmbitionsLater(true)}>Ver o mapa primeiro</button></section></div>}
+    {conflictCall&&<section className="alpha-conflict-call" role="alert" aria-label="Conflitos da rodada"><p className="eyebrow">CONFLITOS DA RODADA {game.view.round}</p><h2>{game.incomingAttacks.length?'Sua civilização está sendo atacada':'Seu ataque aguarda reações'}</h2>
+      {game.incomingAttacks.map(a=><p key={`${a.attackerId}-${a.target}`}><b>{game.players.find(p=>p.id===a.attackerId)?.name}</b> ataca suas posições em <b>{a.target}</b>.</p>)}
+      {game.self.orders.filter(o=>o.type==='ATTACK').map(o=><p key={o.id}>Seu ataque em <b>{o.type==='ATTACK'?o.target:''}</b> é resolvido depois das reações.</p>)}
+      {reactions.length>0?<><p>Uma carta de reação soma Força aos seus conflitos desta rodada, antes dos dados. Restam {Math.max(0,game.rules.cardsPerRound-game.self.cardsPlayed)} carta(s) nesta rodada.</p><div className="alpha-card-row">{reactions.map(card=><article className="alpha-card" key={card.id}><h4>{card.name}</h4><p>+{card.effect?.amount??0} Força nesta rodada</p><button disabled={busy} onClick={()=>void send({type:'PLAY_CARD',cardId:card.id})}>Jogar reação</button></article>)}</div></>:<p>Você não tem cartas de reação.</p>}
+      <button className="primary" disabled={busy} onClick={()=>void send({type:'READY'})}>Seguir para os dados</button></section>}
     {game.winner&&<section className="alpha-finale" role="status"><p className="eyebrow">FIM DA PARTIDA</p><h2>{game.players.find(p=>p.id===game.winner!.playerId)?.name} venceu</h2><p>{game.winner.reason==='HEGEMONY'?'Hegemonia consolidada':'Maior pontuação ao fim do limite de rodadas'} · Rodada {game.winner.round}</p></section>}
     {tab==='world'?<div className="play-layout alpha-layout" data-council={panels.council?'open':'closed'} data-inspector={panels.inspector?'open':'closed'}>
       <aside className="civilization-panel alpha-council" data-collapsed={!panels.council}>
@@ -135,7 +147,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
             {exploreChoice&&<div className="alpha-order-choice"><h4>Explorar esta região</h4><p>Revela os 7 hexes da região na resolução. A peça não se move.</p><button className="primary" disabled={locked||ordered.length>0} onClick={()=>void queue({type:'EXPLORE',unitId:units[0],target:exploreChoice.target,rotation})}>Explorar região</button>
               <details><summary>Orientação da região</summary><label>Se ninguém explorou a região, você escolhe como ela é girada<select value={rotation} onChange={e=>setRotation(Number(e.target.value))}>{[0,1,2,3,4,5].map(n=><option key={n} value={n}>{n*60}°</option>)}</select></label></details></div>}
             {movePath&&<div className="alpha-order-choice"><h4>Mover para cá</h4><p>{movePath.length} {movePath.length===1?'passo':'passos'} pelo caminho mais curto conhecido.</p>{groupBlock&&<p className="alpha-warning" role="alert">{groupBlock}</p>}<button className="primary" disabled={locked||ordered.length>0||groupBlock!==null} onClick={()=>void queue({type:'MOVE',unitIds:units,path:movePath})}>Reservar movimento</button></div>}
-            {foreignHere&&<div className="alpha-order-choice"><h4>Atacar</h4>{!fighters?<p>Peças civis não participam de ataques.</p>:!adjacent?<p>O alvo precisa estar a 1 hex das peças selecionadas.</p>:<div className="alpha-form-row">
+            {foreignHere&&<div className="alpha-order-choice"><h4>Atacar</h4>{!fighters?<p>Peças civis não participam de ataques.</p>:!adjacent?<p>O alvo precisa estar a 1 hex das peças selecionadas.</p>:!hostile?<p>Você está em paz com {defenderName}. Planeje uma declaração de guerra em Diplomacia; ela é resolvida antes dos conflitos, então o ataque pode ser na mesma rodada. <button type="button" onClick={()=>setTab('diplomacy')}>Abrir Diplomacia</button></p>:<div className="alpha-form-row">
               <label>Postura do ataque<select value={posture} onChange={e=>setPosture(e.target.value)}>{POSTURES.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
               <button className="primary" disabled={locked||ordered.length>0} onClick={()=>void queue({type:'ATTACK',unitIds:units,target:selected,posture})}>Ordenar ataque</button></div>}</div>}
             {!movePath&&!exploreChoice&&!foreignHere&&settle===undefined&&<p className="alpha-hint">{!sameHex?'Peças em hexes diferentes: selecione um grupo de cada vez.':selected===origin?'Clique num hex destacado no mapa: destinos alcançáveis nesta rodada e regiões que esta peça pode explorar.':'Fora do alcance nesta rodada. Os hexes destacados no mapa são alcançáveis ou exploráveis.'}</p>}
@@ -159,7 +171,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       <details className="alpha-action-queue"><summary>Ações planejadas {game.actions.reserved} / {game.actions.limit}</summary><div>{planned.map(action=><p key={action.id}><span>{action.label}</span><button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:action.id})}>Cancelar</button></p>)}{planned.length===0&&<small>Nenhuma ação reservada.</small>}</div></details>
       {resolution.length>0&&<details className="alpha-resolution-log"><summary>Última resolução</summary><ol>{resolution.map(event=><li key={event.id}>{event.message}</li>)}</ol></details>}
       <ol aria-label="Iniciativa">{game.initiative.map(id=><li key={id}>{game.players.find(p=>p.id===id)?.name}</li>)}</ol>
-      {ambitionsPending?<button className="primary advance-phase-btn" disabled={locked} onClick={()=>setAmbitionsLater(false)}>Escolher ambições</button>:<button className="primary advance-phase-btn" disabled={locked} onClick={()=>void send({type:'READY'})}>{game.self.ready?'Aguardando outras pessoas':game.phase==='CONFLICTS'?'Passar / pronto':game.phase==='PLANNING'?'Confirmar planejamento':'Concluir fase'}</button>}
+      {ambitionsPending?<button className="primary advance-phase-btn" disabled={locked} onClick={()=>setAmbitionsLater(false)}>Escolher ambições</button>:<>{game.self.ready&&!game.winner&&<button className="alpha-unready" disabled={busy} title="Retira sua confirmação enquanto outras pessoas decidem" onClick={()=>void send({type:'UNREADY'})}>Voltar a planejar</button>}<button className="primary advance-phase-btn" disabled={locked} onClick={()=>void send({type:'READY'})}>{game.self.ready?'Aguardando outras pessoas':game.phase==='CONFLICTS'?'Passar / pronto':game.phase==='PLANNING'?'Confirmar planejamento':'Concluir fase'}</button></>}
     </footer>
   </>;
 }

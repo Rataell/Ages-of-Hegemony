@@ -92,14 +92,56 @@ export function AlphaCards({game,locked,send,cityId}:Panel&{cityId:string|null})
   </section>;
 }
 
+const TREATY_HELP:Record<string,string>={
+  TRADE_AGREEMENT:'Permite rotas comerciais entre as duas civilizações, desde que estejam em paz e sem embargo.',
+  NON_AGGRESSION_PACT:'Compromisso de paz. Ao ser ativado, encerra uma guerra em curso entre as duas.',
+  OPEN_BORDERS:'As peças de cada uma podem atravessar o território da outra.',
+  DEFENSIVE_PACT:'Se uma das duas sofrer uma declaração de guerra, a outra entra na guerra contra o agressor.',
+  ALLIANCE:'Fronteiras abertas, defesa mútua e fim de qualquer guerra entre as duas.',
+  EMBARGO:'Bloqueia o comércio internacional entre as duas civilizações.',
+};
+/** Small resource offer: the legacy deal shape (materials = wood, stone or metal, taken in that order). */
+function DealInputs({title,value,onChange}:{title:string;value:ReturnType<typeof emptyResourcePool>;onChange:(next:ReturnType<typeof emptyResourcePool>)=>void}){
+  return <fieldset className="alpha-deal"><legend>{title}</legend>{RESOURCE_KEYS.map(key=><label key={key}><span>{key==='materials'?'Materiais':text(key)}</span><input type="number" min={0} max={999} value={value[key]} onChange={e=>onChange({...value,[key]:Math.max(0,Number(e.target.value)||0)})}/></label>)}</fieldset>;
+}
+
+/** One card per other civilization: relation, agreements, pending proposals and what can be decided now. */
+function RelationCard({game,locked,send,otherId}:Panel&{otherId:AlphaPlayerView['self']['playerId']}){
+  const [kind,setKind]=useState('TRADE_AGREEMENT'),[withDeal,setWithDeal]=useState(false),[give,setGive]=useState(emptyResourcePool()),[receive,setReceive]=useState(emptyResourcePool()),[confirmWar,setConfirmWar]=useState(false);
+  const self=game.self.playerId,name=game.players.find(p=>p.id===otherId)?.name??'Civilização';
+  const contact=game.self.contacts.includes(otherId),war=game.wars.some(pair=>pair.includes(otherId));
+  const between=game.treaties.filter(t=>[t.proposerId,t.recipientId].includes(otherId));
+  const active=between.filter(t=>t.status==='ACTIVE'),incoming=between.filter(t=>t.status==='PROPOSED'&&t.recipientId===self),outgoing=between.filter(t=>['PROPOSED','ACCEPTED'].includes(t.status)&&t.proposerId===self);
+  const planned=game.self.plannedActions.filter(a=>(a.type==='PROPOSE_TREATY'&&a.recipientId===otherId)||(a.type==='DECLARE_WAR'&&a.targetId===otherId));
+  const status=!contact?'Sem contato':war?'Em guerra':active.length?'Em paz · com acordos':'Em paz';
+  return <article className={`alpha-card alpha-relation ${war?'is-war':''}`} aria-label={`Relação com ${name}`}>
+    <header><h3>{name}</h3><span className={`alpha-relation-status ${war?'war':contact?'peace':'unknown'}`}>{status}</span></header>
+    {!contact&&<p>Ainda não encontrada. Avistar uma peça ou cidade desta civilização abre a negociação.</p>}
+    {active.length>0&&<ul className="alpha-relation-list">{active.map(t=><li key={t.id}><b>{text(t.type)}</b> · até a rodada {t.expiresRound}<button disabled={locked} onClick={()=>void send({type:'END_TREATY',treatyId:t.id})}>Encerrar (−2 Prestígio)</button></li>)}</ul>}
+    {incoming.map(t=><div className="alpha-relation-proposal" key={t.id} role="group" aria-label={`Proposta de ${name}`}><p><b>{name} propõe {text(t.type)}</b>. {TREATY_HELP[t.type]}</p>{(Object.values(t.deal.give).some(Boolean)||Object.values(t.deal.receive).some(Boolean))&&<p className="alpha-deal-summary">Você recebe <ResourceDisplay values={t.deal.give} compact/> e entrega <ResourceDisplay values={t.deal.receive} compact/></p>}<button className="primary" disabled={locked} onClick={()=>void send({type:'RESPOND_TREATY',treatyId:t.id,accept:true})}>Aceitar</button><button disabled={locked} onClick={()=>void send({type:'RESPOND_TREATY',treatyId:t.id,accept:false})}>Recusar</button></div>)}
+    {outgoing.map(t=><p key={t.id} className="alpha-hint">Sua proposta de {text(t.type)} {t.status==='ACCEPTED'?'foi aceita e entra em vigor na resolução.':'aguarda resposta.'}{t.status==='PROPOSED'&&<button disabled={locked} onClick={()=>void send({type:'END_TREATY',treatyId:t.id})}>Retirar</button>}</p>)}
+    {planned.map(a=><p key={a.id} className="alpha-hint">Planejado nesta rodada: {a.type==='PROPOSE_TREATY'?`proposta de ${text(a.treaty)}`:'declaração de guerra'}.<button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:a.id})}>Cancelar</button></p>)}
+    {contact&&<div className="alpha-relation-actions">
+      <form onSubmit={e=>{e.preventDefault();void send({type:'PROPOSE_TREATY',recipientId:otherId,treaty:kind,deal:withDeal?{give,receive}:{give:emptyResourcePool(),receive:emptyResourcePool()}});}}>
+        <label>Propor acordo<select value={kind} onChange={e=>setKind(e.target.value)}>{TreatyTypeSchema.options.map(t=><option key={t} value={t}>{text(t)}</option>)}</select></label>
+        <p className="alpha-treaty-help">{TREATY_HELP[kind]} Dura {game.rules.treatyDuration} rodadas depois de aceito.</p>
+        <label className="alpha-inline-check"><input type="checkbox" checked={withDeal} onChange={e=>setWithDeal(e.target.checked)}/> Incluir troca de recursos</label>
+        {withDeal&&<div className="alpha-form-row"><DealInputs title="Você oferece" value={give} onChange={setGive}/><DealInputs title="Você pede" value={receive} onChange={setReceive}/></div>}
+        <button className="primary" disabled={locked}>Enviar proposta · 1 ação</button>
+      </form>
+      {!war&&!planned.some(a=>a.type==='DECLARE_WAR')&&(confirmWar?<div className="alpha-war-confirm" role="alert"><p>Declarar guerra a {name} encerra os acordos entre vocês (−2 Prestígio por acordo) e chama os aliados defensivos de {name}.</p><button className="danger" disabled={locked} onClick={()=>void send({type:'DECLARE_WAR',targetId:otherId}).then(()=>setConfirmWar(false))}>Confirmar declaração de guerra</button><button onClick={()=>setConfirmWar(false)}>Manter a paz</button></div>
+        :<button className="alpha-war-button" disabled={locked} onClick={()=>setConfirmWar(true)}>Declarar guerra…</button>)}
+      {war&&<p className="alpha-hint">Em guerra: ataque com peças militares adjacentes pelo painel Militar. Um pacto de não agressão ou aliança aceito encerra a guerra.</p>}
+    </div>}
+  </article>;
+}
+
 export function AlphaDiplomacy({game,locked,send}:Panel){
-  const [target,setTarget]=useState(game.self.contacts[0]??''),[kind,setKind]=useState('TRADE_AGREEMENT'),[give,setGive]=useState(emptyResourcePool()),[receive,setReceive]=useState(emptyResourcePool());
   const [from,setFrom]=useState(game.view.player.civilization.cities[0]?.id??''),[to,setTo]=useState('');
   const cities=[...game.view.player.civilization.cities,...game.view.visibleCities];
-  const other=(a:string,b:string)=>game.players.find(p=>p.id===(a===game.self.playerId?b:a))?.name;
-  return <section className="alpha-panel"><p className="eyebrow">MESA DE NEGOCIAÇÃO</p><h2>Acordos entre civilizações</h2><p>Contato é estabelecido ao avistar cidades ou peças estrangeiras. Propostas aceitas são efetivadas na resolução.</p>
-    <form className="alpha-card" onSubmit={e=>{e.preventDefault();void send({type:'PROPOSE_TREATY',recipientId:target,treaty:kind,deal:{give,receive}});}}><div className="alpha-form-row"><label>Destinatário<select value={target} onChange={e=>setTarget(e.target.value)}><option value="">Selecione um contato</option>{game.self.contacts.map(id=><option key={id} value={id}>{game.players.find(p=>p.id===id)?.name}</option>)}</select></label><label>Tratado<select value={kind} onChange={e=>setKind(e.target.value)}>{TreatyTypeSchema.options.map(t=><option key={t} value={t}>{text(t)}</option>)}</select></label></div><div className="alpha-form-row">{[[give,setGive,'Você oferece'],[receive,setReceive,'Você solicita']].map(([pool,setPool,title],i)=><fieldset key={i}><legend>{title as string}</legend>{RESOURCE_KEYS.map(key=><label key={key}>{text(key)}<input type="number" min={0} max={999999} value={(pool as typeof give)[key]} onChange={e=>(setPool as typeof setGive)(old=>({...old,[key]:Number(e.target.value)}))}/></label>)}</fieldset>)}</div><button disabled={locked||!target}>Enviar proposta</button><button type="button" disabled={locked||!target} onClick={()=>void send({type:'DECLARE_WAR',targetId:target})}>Declarar guerra</button></form>
-    <div className="alpha-card-row">{game.treaties.map(t=><article className="alpha-card" key={t.id}><small>ACORDO · {text(t.status)}</small><h3>{text(t.type)}</h3><p>Com {other(t.proposerId,t.recipientId)} · Até rodada {t.expiresRound}</p><p>Proponente oferece</p><ResourceDisplay values={t.deal.give} compact/><p>Destinatário oferece</p><ResourceDisplay values={t.deal.receive} compact/>{t.status==='PROPOSED'&&t.recipientId===game.self.playerId?<><button disabled={locked} onClick={()=>void send({type:'RESPOND_TREATY',treatyId:t.id,accept:true})}>Aceitar</button><button disabled={locked} onClick={()=>void send({type:'RESPOND_TREATY',treatyId:t.id,accept:false})}>Recusar</button></>:['ACTIVE','PROPOSED','ACCEPTED'].includes(t.status)&&<button disabled={locked} onClick={()=>void send({type:'END_TREATY',treatyId:t.id})}>Encerrar acordo</button>}</article>)}</div>
+  const others=game.players.filter(p=>p.id!==game.self.playerId).sort((a,b)=>Number(game.self.contacts.includes(b.id))-Number(game.self.contacts.includes(a.id)));
+  return <section className="alpha-panel"><p className="eyebrow">MESA DE NEGOCIAÇÃO</p><h2>Diplomacia</h2><p>Propostas e declarações são planejadas como ações principais e resolvidas na fase Diplomacia. A resposta a uma proposta é livre.</p>
+    <div className="alpha-relations">{others.map(p=><RelationCard key={p.id} game={game} locked={locked} send={send} otherId={p.id as AlphaPlayerView['self']['playerId']}/>)}</div>
     <h3>Rotas comerciais</h3><form className="alpha-card" onSubmit={e=>{e.preventDefault();void send({type:'QUEUE_ORDER',order:{id:`trade-${game.version}`,type:'TRADE',fromCityId:from,toCityId:to}});}}><div className="alpha-form-row"><label>Origem<select value={from} onChange={e=>setFrom(e.target.value)}>{game.view.player.civilization.cities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Destino visível<select value={to} onChange={e=>setTo(e.target.value)}><option value="">Selecione uma cidade</option>{cities.filter(c=>c.id!==from).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label></div><button disabled={locked||!to}>Reservar rota</button><p>Requer caminho conhecido e acesso às fronteiras. Comércio internacional também requer acordo comercial e paz.</p></form>{game.routes.map(r=><p key={r.id}>{cities.find(c=>c.id===r.fromCityId)?.name??'Origem'} — {cities.find(c=>c.id===r.toCityId)?.name??'Destino conhecido'} · {r.suspended?'Suspensa':'Ativa'}</p>)}
   </section>;
 }

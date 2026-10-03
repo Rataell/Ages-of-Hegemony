@@ -49,3 +49,20 @@ export function orderMessage(before: AlphaState, actor: PlayerId, order: Strateg
     case 'TRADE': return `${who}: rota de comércio estabelecida${cityName ? ` até ${cityName}` : ''}.`;
   }
 }
+
+export const TREATY_NAMES: Record<string, string> = { TRADE_AGREEMENT: 'um acordo comercial', NON_AGGRESSION_PACT: 'um pacto de não agressão', OPEN_BORDERS: 'fronteiras abertas', DEFENSIVE_PACT: 'um pacto defensivo', ALLIANCE: 'uma aliança', EMBARGO: 'um embargo' };
+
+type Battle = AlphaState['battles'][number];
+/** "Beto atacou Ana em 7,6 e foi repelido (Ataque 3 × Defesa 5)." Totals are public once the dice are rolled. */
+export function battleMessage(names: Map<string, string>, battle: Battle): string {
+  const attacker = names.get(battle.attackerId) ?? 'O atacante', defender = names.get(battle.defenderId) ?? 'o defensor';
+  const outcome = battle.winnerId === battle.attackerId ? 'e venceu' : 'e foi repelido';
+  return `${attacker} atacou ${defender} em ${battle.hexId} ${outcome} (Ataque ${battle.attackTotal} × Defesa ${battle.defenseTotal}).`;
+}
+
+/** "Beto perdeu Infantaria. Ana perdeu Pioneiro, Explorador." Uses the pieces as they were before the battle removed them. */
+export function lossesMessage(before: { units: Map<string, { kind: string; ownerId: string }>; rules: AlphaState['rules']; names: Map<string, string> }, losses: readonly string[]): string {
+  const byOwner = new Map<string, string[]>();
+  for (const id of losses) { const unit = before.units.get(id); if (!unit) continue; byOwner.set(unit.ownerId, [...(byOwner.get(unit.ownerId) ?? []), before.rules.units[unit.kind as keyof AlphaState['rules']['units']].name]); }
+  return [...byOwner].map(([owner, kinds]) => `${before.names.get(owner) ?? 'Uma civilização'} perdeu ${kinds.join(', ')}.`).join(' ') || `${losses.length} peça(s) perdida(s) no conflito.`;
+}

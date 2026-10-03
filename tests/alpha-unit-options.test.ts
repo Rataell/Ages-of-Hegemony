@@ -108,3 +108,20 @@ describe('names players read', () => {
     expect(`${produce} ${move}`).not.toMatch(/\b[A-Z]{4,}(_[A-Z]+)*\b/);
   });
 });
+
+describe('withdrawing READY', () => {
+  it('lets a player take back READY while someone is still deciding, then decide again', async () => {
+    const { applyAlphaCommand } = await import('@aoh/game-engine');
+    let state = setup();
+    for (const player of state.players) { player.ambitionsChosen = true; }
+    const [a] = state.players.map(player => player.playerId);
+    const run = (raw: Record<string, unknown>) => { const result = applyAlphaCommand(state, a!, { ...raw, expectedVersion: state.version }); if (result.ok) state = result.value; return result; };
+    expect(run({ type: 'UNREADY' })).toMatchObject({ ok: false, error: { code: 'NOT_READY' } });
+    expect(run({ type: 'READY' }).ok).toBe(true);
+    expect(run({ type: 'CANCEL_ORDER', orderId: 'none' })).toMatchObject({ ok: false, error: { code: 'ALREADY_READY' } });
+    expect(run({ type: 'UNREADY' }).ok).toBe(true);
+    expect(state.players.find(player => player.playerId === a)!.ready).toBe(false);
+    expect(state.phase).toBe('PLANNING');
+    expect(run({ type: 'CANCEL_ORDER', orderId: 'none' }).ok).toBe(true);
+  });
+});

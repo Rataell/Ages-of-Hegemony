@@ -283,12 +283,24 @@ export const HexMap = memo(function HexMap({
               {eligible && !working && (
                 <polygon className="frontier-pulse" points={innerPoints} />
               )}
-              {units.some(u=>u.hexId===tile.id)&&<g transform="translate(0 40)" className="alpha-unit-stack">
-                <rect x="-24" y="-9" width="48" height="18" rx="4" fill="var(--surface)" stroke="var(--accent)" />
-                <path d="M-16 5V-2L-12 -6L-8 -2V5ZM-18 5H-6" fill="var(--accent)" />
-                <text x="7" y="4" fill="var(--text-primary)" fontSize="11" textAnchor="middle">{units.filter(u=>u.hexId===tile.id).length}</text>
-                <title>Peças presentes: selecione o território para inspecionar</title>
-              </g>}
+              {/* One badge per owner: the owner's colour, a soldier or a flag for civil pieces, and the count. Foreign pieces are outlined. */}
+              {(() => {
+                const here = units.filter(u => u.hexId === tile.id);
+                if (!here.length) return null;
+                const owners = [...new Set(here.map(u => u.ownerId))].sort((a, b) => Number(b === data.view.player.id) - Number(a === data.view.player.id));
+                return <g transform="translate(0 40)">{owners.slice(0, 2).map((ownerId, slot) => {
+                  const mine = here.filter(u => u.ownerId === ownerId), index = data.players.findIndex(p => p.id === ownerId), own = ownerId === data.view.player.id;
+                  const military = mine.some(u => !['PIONEER', 'EXPLORER', 'ENVOY', 'SETTLER'].includes(u.kind));
+                  const kinds = [...mine.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
+                  const x = owners.length > 1 ? (slot === 0 ? -26 : 26) : 0;
+                  return <g key={ownerId} transform={`translate(${x} 0)`} className={`alpha-unit-stack owner-${index + 1} ${own ? 'own' : 'foreign'}`}>
+                    <rect x="-24" y="-9" width="48" height="18" rx="4" className="unit-badge" />
+                    {military ? <path d="M-17 5L-9 -5M-9 -5L-7 -7M-15 -1L-11 3" className="unit-glyph" /> : <path d="M-16 6V-7M-16 -7H-8L-10 -4L-8 -1H-16" className="unit-glyph" />}
+                    <text x="7" y="4" className="unit-count" textAnchor="middle">{mine.length}</text>
+                    <title>{own ? 'Suas peças' : `Peças de ${data.players[index]?.name ?? 'outra civilização'}`}: {kinds}</title>
+                  </g>;
+                })}</g>;
+              })()}
             </g>
           );
         })}

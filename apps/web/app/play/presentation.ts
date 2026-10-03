@@ -10,6 +10,7 @@ export const labels: Record<string, string> = {
   RIVER: 'Rio', FERTILE: 'Fértil', TIMBER: 'Madeira', STONE: 'Pedra', METAL: 'Metal', FISH: 'Peixe',
   population: 'População', terrain: 'Terreno', feature: 'Características', improvement: 'Melhoria', district: 'Distrito', building: 'Edifício', specialization: 'Especialização', government: 'Governo', stability: 'Estabilidade',
   CRITICAL: 'Crítica', UNSTABLE: 'Instável', TENSE: 'Tensa', STABLE: 'Estável', PROSPEROUS: 'Próspera',
+  INFANTRY: 'Infantaria', GUARD: 'Guarda', RANGED: 'Arqueiros', CAVALRY: 'Cavalaria', SIEGE: 'Engenho de cerco', FLEET: 'Frota', EXPLORER: 'Explorador', PIONEER: 'Pioneiro', ENVOY: 'Emissário',
   PRODUCER: 'Produtor', ARTISAN: 'Artesão', MERCHANT: 'Mercador', SCHOLAR: 'Estudioso', SOLDIER: 'Soldado',
   MAINTENANCE: 'Manutenção', PLANNING: 'Planejamento', RESOLUTION: 'Resolução', REACTION: 'Reação', END_ROUND: 'Fim da rodada', FOUNDATION: 'Fundação',
 };

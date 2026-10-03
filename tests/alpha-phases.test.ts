@@ -85,7 +85,7 @@ describe('phase legality', () => {
     const planning = started();
     expect(legalIn(planning, 'URBAN_ACTION', { cityId: 'capital-1', action: 'PRODUCE' }).ok).toBe(true);
     expect(legalIn(planning, 'PROPOSE_TREATY', { recipientId: p2, treaty: 'TRADE_AGREEMENT', deal: { give: none, receive: none } }).ok).toBe(true);
-    expect(LEGAL_COMMANDS.CONFLICTS).toEqual(new Set(['PLAY_CARD', 'READY']));
+    expect(LEGAL_COMMANDS.CONFLICTS).toEqual(new Set(['PLAY_CARD', 'READY', 'UNREADY']));
     for (const phase of ['ORDERS_MOVEMENT', 'INTEGRATION_MAINTENANCE', 'END_ROUND'] as const)
       expect(LEGAL_COMMANDS[phase].size).toBe(0);
   });

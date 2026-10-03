@@ -56,7 +56,8 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
   if (!player) return err({ code:'FORBIDDEN', message:'Você não ocupa um lugar nesta partida.' });
   if (UNSUPPORTED.has(command.type)) return err({ code:'NOT_IMPLEMENTED', message:'Esta ação ainda não está disponível na alpha.' });
   if (!LEGAL_COMMANDS[state.phase].has(command.type)) return err({ code:'WRONG_PHASE', message:`Esta decisão não é permitida na fase ${PHASE_LABEL[state.phase]}.` });
-  if (player.ready) return err({ code:'ALREADY_READY', message:'Suas decisões já estão confirmadas para esta fase.' });
+  if (command.type === 'UNREADY' && !player.ready) return err({ code:'NOT_READY', message:'Você ainda não confirmou esta fase.' });
+  if (player.ready && command.type !== 'UNREADY') return err({ code:'ALREADY_READY', message:'Suas decisões já estão confirmadas para esta fase.' });
   try {
     const actionClass=actionClassForCommand(command,state.phase);
     let reservedMainAction=false;
@@ -86,6 +87,9 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
         const blocked=urbanBlock(state,actor,command.cityId,command.action,params);if(blocked)throw new Error(blocked);
         player.plannedActions.push({id:command.planId??`action-${state.version}`,type:'URBAN_ACTION',cityId:command.cityId,action:command.action,...params});reservedMainAction=true;
       }else performUrbanAction(state, actor, command);
+    } else if (command.type === 'UNREADY') {
+      // Everyone ready advances the phase inside the same command, so a withdrawable READY always has someone still deciding.
+      player.ready = false;
     } else if (command.type === 'READY') {
       if(!player.ambitionsChosen)throw new Error('Escolha duas ambições antes de confirmar seu primeiro planejamento.');
       player.ready = true;

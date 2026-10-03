@@ -274,3 +274,36 @@ button.alpha-card { text-align: left; }
 .alpha-modal .alpha-card-row { margin: 12px 0 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; overflow: visible; }
 .alpha-modal .alpha-card.is-selected { border-color: var(--accent); }
 .alpha-modal > button { margin-left: 8px; }
+.alpha-unready { white-space: nowrap; }
+
+/* Diplomacy: one card per civilization. */
+.alpha-relations { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 14px; margin: 14px 0 22px; }
+.alpha-relation header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.alpha-relation header h3 { margin: 0; }
+.alpha-relation.is-war { border-color: var(--danger, #d9776b); }
+.alpha-relation-status { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+.alpha-relation-status.peace { color: var(--success, #8fbf8a); border-color: currentColor; }
+.alpha-relation-status.war { color: var(--danger, #d9776b); border-color: currentColor; }
+.alpha-relation-list { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 6px; }
+.alpha-relation-list li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.alpha-relation-list li button, .alpha-relation .alpha-hint button { margin-left: auto; font-size: 12px; padding: 3px 8px; }
+.alpha-relation-proposal { margin: 10px 0; padding: 10px; border: 1px solid var(--accent); border-radius: 4px; }
+.alpha-relation-proposal button { margin-right: 8px; }
+.alpha-relation-actions { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle); display: grid; gap: 10px; }
+.alpha-relation-actions form { display: grid; gap: 8px; }
+.alpha-treaty-help { margin: 0; font-size: 13px; color: var(--text-secondary); }
+.alpha-inline-check { display: flex !important; flex-direction: row !important; align-items: center; gap: 6px; font-size: 13px; }
+.alpha-deal { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 6px; padding: 8px; }
+.alpha-deal label { display: grid; gap: 2px; font-size: 11px; }
+.alpha-deal input { width: 100%; padding: 4px 6px; }
+.alpha-deal-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.alpha-war-button { justify-self: start; color: var(--danger, #d9776b); border-color: var(--danger, #d9776b); }
+.alpha-war-confirm { padding: 10px; border: 1px solid var(--danger, #d9776b); border-radius: 4px; }
+.alpha-war-confirm button { margin-right: 8px; }
+.alpha-war-confirm .danger { background: var(--danger, #d9776b); color: #1a0d0b; border-color: transparent; }
+
+/* Conflicts: the one decision of the phase, shown to the attacker and the defender only. */
+.alpha-conflict-call { position: fixed; z-index: 40; inset: 92px 50% auto auto; transform: translateX(50%); width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 150px); overflow: auto; padding: 20px; border: 1px solid var(--danger); background: var(--surface-elevated); box-shadow: 0 18px 60px #000a; }
+.alpha-conflict-call h2 { margin: 4px 0 10px; }
+.alpha-conflict-call .alpha-card-row { margin: 10px 0 14px; }
+.alpha-conflict-call > button.primary { width: 100%; }

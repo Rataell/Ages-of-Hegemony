@@ -260,6 +260,8 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('QUEUE_ORDER'), expectedVersion: N, order: StrategicOrderSchema }),
   z.strictObject({ type: z.literal('CANCEL_ORDER'), expectedVersion: N, orderId: IdentifierSchema }),
   z.strictObject({ type: z.literal('READY'), expectedVersion: N }),
+  /** Withdraws a READY while others are still deciding, so a misclick does not forfeit the phase. */
+  z.strictObject({ type: z.literal('UNREADY'), expectedVersion: N }),
 ]);
 export type AlphaCommand = z.infer<typeof AlphaCommandSchema>;
 export const ActionClassSchema = z.enum(['MAIN', 'FREE', 'REACTION']);
@@ -270,7 +272,7 @@ export const ACTION_CLASS = {
   SETTLE:'MAIN', DECLARE_HEGEMONY:'FREE', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN', ADVANCE_ERA:'MAIN',
   CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
-  CANCEL_ORDER:'FREE', READY:'FREE',
+  CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
 
 export function actionClassForCommand(command:AlphaCommand,phase?:AlphaRoundPhase):ActionClass {
