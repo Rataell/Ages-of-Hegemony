@@ -8,12 +8,18 @@ export interface AlphaActionUsage {
   limit:number;
 }
 
-/** New matches use the configured fixed limit. Legacy snapshots keep their previous modifier-based capacity. */
+/**
+ * Main actions available this round: the match base (configured actions per round; legacy snapshots use the old base command
+ * points) plus every active modifier defined as "+N ações principais" (Comando): researched advancements, hired advisors,
+ * strategy cards and leader abilities played this round (round-scoped temporary effects) and the government delta. One
+ * function feeds the engine checks and the projected counter, so the client shows exactly what the server enforces.
+ */
 export function alphaActionCapacity(state:AlphaState,playerId:PlayerId):number {
-  if(state.rules.actionsPerRound!==undefined)return state.rules.actionsPerRound;
   const player=state.core.players.find(candidate=>candidate.id===playerId);
   if(!player)return 0;
-  return Math.max(0,state.rules.baseCommandPoints+commandPoints(player.civilization,state.core.config)-state.core.config.baseCommandPoints+institutionBonus(state,playerId,'COMMAND'));
+  const base=state.rules.actionsPerRound??state.rules.baseCommandPoints;
+  const government=commandPoints(player.civilization,state.core.config)-state.core.config.baseCommandPoints;
+  return Math.max(0,base+government+institutionBonus(state,playerId,'COMMAND'));
 }
 
 export function alphaActionUsage(state:AlphaState,playerId:PlayerId):AlphaActionUsage {

@@ -145,7 +145,7 @@ describe('era abilities', () => {
       expect(JSON.stringify(after.players[0]!.resources)).toBe(resources);
       expect(after.players[0]!.spentCommands).toBe(spent);
       if (effect.kind === 'ROUND_BONUS') {
-        expect(alphaCommandCapacity(after, p1)).toBe(commands);
+        expect(alphaCommandCapacity(after, p1)).toBe(commands + (effect.bonus === 'COMMAND' ? effect.amount : 0));
         expect(institutionBonus(after, p1, 'STRENGTH')).toBe(strength + (effect.bonus === 'STRENGTH' ? effect.amount : 0));
         expect(institutionBonus(after, p1, 'MOVEMENT')).toBe(movement + (effect.bonus === 'MOVEMENT' ? effect.amount : 0));
       }
