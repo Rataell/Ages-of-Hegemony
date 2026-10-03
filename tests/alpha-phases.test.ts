@@ -109,7 +109,7 @@ describe('phase legality', () => {
 
   it('answers trade commands with their real rule instead of silently succeeding', () => {
     const state = started();
-    expect(applyAlphaCommand(state, p1, { type: 'PROPOSE_TRADE', recipientId: p2, offerType: 'GIFT', offer: noneAlpha, request: noneAlpha, treatyTerms: [], dueRound: null, expectedVersion: state.version })).toMatchObject({ ok: false, error: { message: 'Estabeleça contato antes de negociar.' } });
+    expect(applyAlphaCommand(state, p1, { type: 'PROPOSE_TRADE', recipientId: p2, offerType: 'GIFT', offer: noneAlpha, request: noneAlpha, treatyTerms: [], dueRound: null, expectedVersion: state.version })).toMatchObject({ ok: false, error: { message: 'Inclua algum recurso na oferta.' } });
     expect(applyAlphaCommand(state, p1, { type: 'RESPOND_TRADE', offerId: 'o', accept: true, expectedVersion: state.version })).toMatchObject({ ok: false, error: { message: 'Esta oferta não está mais aberta.' } });
   });
 
