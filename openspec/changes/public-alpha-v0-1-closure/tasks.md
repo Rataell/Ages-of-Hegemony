@@ -69,11 +69,11 @@
 
 ## 9. I. PostgreSQL
 
-- [ ] 9.1 Run the integration suite on the Docker `db-test` container (`npm run test:db:docker`). Infra is written (`docker-compose.yml`, `scripts/test-db.mjs`, `.env.example`, `docs/database-local.md`) but Docker is not installed on this machine, so it is unexecuted; the suite has passed only on an embedded PostgreSQL 18 binary. Supabase is never used for tests; gate: `npm run test:db:docker` green.
-- [ ] 9.2 Apply the additive migrations to the Docker dev database (`npm run db:up`, `npm run db:deploy`) and to a fresh `db-test`; gate: `prisma migrate status` up to date on both. (Verified so far on the embedded binary: 3 migrations apply and status is up to date.)
-- [ ] 9.3 Add a v4-row read, migrate and save test on real PostgreSQL; gate: `tests/alpha-postgres.db.integration.ts`.
-- [ ] 9.4 Add concurrent-save and restart-durability tests; gate: same suite.
-- [ ] 9.5 Verify 503 when database or secret is missing; gate: HTTP test.
+- [x] 9.1 Run the integration suite on the Docker `db-test` container (`npm run test:db:docker`); gate: green. Green on 2026-10-03 (macOS, Docker 29.8, postgres:17-alpine): 3 migrations applied, 2 files, 6 tests.
+- [x] 9.2 Apply the additive migrations to the Docker dev database and to a fresh `db-test`; gate: `prisma migrate status` up to date on both. Done on 2026-10-03: db-dev `migrate deploy` then status "Database schema is up to date"; db-test migrated by the suite run.
+- [x] 9.3 Add a v4-row read, migrate and save test on real PostgreSQL; gate: `tests/alpha-postgres-migration.db.integration.ts` (migrate on read without writing, archive once with the first v5 save, corrupt rows refused), green on Docker.
+- [x] 9.4 Add concurrent-save and restart-durability tests; gate: same suite. Competing first saves (one wins, one archive), losing CAS does not archive, a running match persists across connections; green on Docker.
+- [x] 9.5 Verify 503 when database or secret is missing; gate: HTTP test. `tests/alpha-health.test.ts` and `tests/alpha-memory-runtime.test.ts`.
 
 ## 10. J. Release gates
 
