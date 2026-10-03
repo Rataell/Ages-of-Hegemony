@@ -6,6 +6,8 @@ Fontes comparadas:
 - **Canvas de UX/UI** "Concepção de Produto, UI e UX" (artefato `8BJPUCa5…`, 20 telas 1440×900; a tela 08 é interativa).
 - **Jogo real**: branch `feature/aoh-playable-alpha-v1`, HEAD `86b565a`, servidor `npm run dev:alpha`.
 
+> **Correção (V4):** a Bíblia chama de "região" uma célula do tabuleiro; o Alpha chama de "região" um bloco de 7 hexes. Comparar "30 regiões" com "37–127 regiões" mistura unidades: em células, o Alpha tem 210. Ver `docs/product/product-owner-decision-register.md` DEC-010.
+
 Legenda: **OK** = implementado e jogável · **Parcial** = existe, mas simplificado em relação ao conceito · **Ausente** = não existe · **Diverge** = existe com regra ou número diferente.
 
 ## 1. Veredito
