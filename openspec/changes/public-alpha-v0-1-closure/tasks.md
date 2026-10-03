@@ -77,10 +77,10 @@
 
 ## 10. J. Release gates
 
-- [ ] 10.1 Run lint, typecheck, test, build, `db:validate` and `git diff --check`; record counts; gate: all zero failures.
-- [ ] 10.2 Run the slice and all alpha Playwright scenarios; add battle and finish scenarios; gate: E2E green.
-- [ ] 10.3 Run the manual play checklist of every action with two browsers and record untested items; gate: signed report.
-- [ ] 10.4 Update `docs/known-limitations.md` and `docs/playable-alpha-report.md` to the real results; gate: report matches logs.
+- [x] 10.1 Run lint, typecheck, test, build, `db:validate` and `git diff --check`; record counts; gate: all zero failures. 2026-10-03: lint 0, typecheck 0, 700/700 tests in 54 files, build ok, schema valid, diff check clean.
+- [x] 10.2 Run the slice and all alpha Playwright scenarios; add battle and finish scenarios; gate: E2E green. 6/6 including the slice (`local-play`) and battle plus Hegemony finish (`alpha-conflict`).
+- [ ] 10.3 Run the manual play checklist of every action with two browsers and record untested items; gate: signed report. Checklist prepared in `docs/alpha-playtest-2026-10-03.md` with the untested items marked; awaiting the owner's signature.
+- [x] 10.4 Update `docs/known-limitations.md` and `docs/playable-alpha-report.md` to the real results; gate: report matches logs. Both point to `docs/alpha-playtest-2026-10-03.md`.
 - [ ] 10.5 Ask the owner before any release commit or tag; gate: all of 10.1 to 10.4 green.
 
 ## 11. K. Deploy and public playtest

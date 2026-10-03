@@ -2,6 +2,8 @@
 
 **Estado: implementação em andamento; release não aprovada.** Este relatório é um checkpoint, não uma declaração de entrega pública.
 
+> **Atualização 2026-10-03.** Estado real, achados de playtest, medições, gates e checklist de ações: [alpha-playtest-2026-10-03.md](alpha-playtest-2026-10-03.md). Gates: lint, typecheck, 700 testes, 6 E2E, build, `db:validate`, `git diff --check` e a suíte PostgreSQL em Docker verdes. Seções abaixo são históricas onde divergirem.
+
 ## Base e Git
 
 - Base: `feature/aoh-player-guide-compendium`, commit `193bf87`.

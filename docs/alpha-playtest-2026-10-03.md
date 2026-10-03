@@ -72,9 +72,52 @@ Partidas completas jogadas nesta sessão: 2p até o fim por limite de rodadas (c
 
 Em jogo real (2p, pela interface e bots): contato na rodada 5, guerra declarada e ataque na rodada 6, reação e combate resolvidos na 7, fim por limite na 9.
 
+## Checklist de ações (OpenSpec 10.3, aguarda assinatura do dono)
+
+Legenda: **UI** = feito clicando no navegador nesta sessão; **HTTP** = pela API pública com o cookie do lugar (bot); **E2E** = coberto por spec Playwright; **—** = não exercitado em jogo nesta sessão (só testes de unidade).
+
+| Comando | Como foi exercitado |
+|---|---|
+| Ambições secretas | UI, E2E |
+| Produzir | UI, HTTP, E2E |
+| Construir distrito | HTTP, E2E |
+| Construir edifício / fortificação | — |
+| Recrutar | HTTP, E2E |
+| Pesquisar | HTTP, E2E |
+| Investimento público, Sustentar comércio, Ação cívica | — |
+| Mover, Explorar | UI, HTTP, E2E |
+| Atacar (com guerra planejada na mesma rodada) | UI, E2E |
+| Missão de influência (Emissário) | — |
+| Rota comercial | — (teste de unidade de rotas) |
+| Cancelar ordem / Trocar ação | UI |
+| Fundar cidade | HTTP |
+| Reivindicar território | UI, HTTP, E2E |
+| Distribuir habitantes, territórios trabalhados | UI, E2E |
+| Melhoria (Fazenda) | E2E |
+| Desenvolver cidade, adotar governo, especializar | — |
+| Estrada | — |
+| Propor tratado, recusar | UI |
+| Aceitar tratado, encerrar tratado | — (E2E aceita em cenário) |
+| Declarar guerra | UI, E2E |
+| Carta de reação | UI |
+| Cartas de planejamento, contratar conselheiro, Grande Projeto | — |
+| Escolha do evento mundial | HTTP |
+| Avançar de era | HTTP |
+| Habilidade da civilização, habilidade do líder | — (testes de unidade) |
+| Postura defensiva | E2E |
+| Declarar Hegemonia | E2E (cenário roteirizado) |
+| Oferta comercial (troca imediata), aceitar | UI |
+| Presente, promessa, empréstimo | — (testes de unidade) |
+| Povo independente: negociar, influenciar | UI |
+| Povo independente: comerciar, proteger, integrar, conquistar | — (testes de unidade) |
+| Disputa cultural | — (testes de unidade) |
+| Confirmar / Voltar a planejar | UI |
+
+Partidas: 2p até o fim (guerra, reação, combate), 2p com desenvolvimento até a era Civilização, 4p até contato, 6p completa (9 rodadas) pelo `alpha:lab` com 0 erros.
+
 ## Gates ao fim da sessão
 
-`npm run lint` ✓ · `npm run typecheck` ✓ · `npm test` 683/683 ✓ · `npm run test:e2e` 6/6 ✓ · `npm run build` ✓.
+`npm run lint` ✓ · `npm run typecheck` ✓ · `npm test` 700/700 (54 arquivos) ✓ · `npm run test:e2e` 6/6 ✓ · `npm run build` ✓ · `npm run db:validate` ✓ · `git diff --check` ✓ · `npm run test:db:docker` 6/6 ✓ (PostgreSQL 17 em Docker). `openspec validate` não rodou: a CLI não está instalada neste Mac.
 
 ## Lacunas que continuam (por prioridade)
 
