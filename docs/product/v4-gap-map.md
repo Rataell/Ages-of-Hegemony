@@ -43,7 +43,7 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | P1-2 | **Ânimo:** só sobe. Revolta, Desânimo e Inquietação (0–2) são inalcançáveis, salvo povos conquistados (iniciam em 1); Exultante (6) é inalcançável (teto 5). A UI expõe a escala inteira | nenhum código reduz o ânimo | INERTE (parcial) [DEC-022] |
 | P1-3 | **Frota:** listada em Recrutar a partir da Expansão; exige cidade em Costa, e todas as capitais iniciais ficam em Planície | `ge/alpha-military.ts:10-23`, `gd/alpha-regions.ts` | INERTE na prática [DEC-014] |
 | P1-4 | **Disputa cultural** impossível em 2 jogadores (exige duas presenças estrangeiras); o guia a menciona | `ge/alpha-culture.ts:71-79` | INERTE em 2p [DEC-016] |
-| P1-5 | **Hegemonia em partida Rápida:** a aba mostra caminhos e "Declarar", mas a sexta era é inalcançável em 9 rodadas | ritmo observado (era III na rodada 6) | INERTE em Rápida [DEC-003/006] |
+| P1-5 | ~~Hegemonia em partida Rápida~~ — **retirado**: com DEC-006 (aprovada) é comportamento aceitável; partida curta pode terminar por Prestígio | — | aceitável |
 | P1-6 | **Baralhos de estratégia e ambição** não reembaralham; com 6 jogadores a compra seca por volta da rodada 3 e a mão para de renovar | `ge/alpha-cards.ts:7-23` | INERTE (após esgotar) |
 | P1-7 | **Proteger povo independente:** ação paga e exposta; `protectorId` não tem efeito | `ge/alpha-independents.ts` | INERTE |
 | P1-8 | **Atitudes Hostil e Desconfiado:** descritas na UI ("Negociar…"), nunca ocorrem (todos começam Neutros e só melhoram) | `ge/alpha-world.ts:72` | INERTE |
@@ -76,7 +76,7 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | 8 fases; Planejamento e Conflitos interativas; as demais automáticas com consequências claras (DEC-004) | igual | IMPLEMENTADO | — |
 | "Uma fase do motor não é uma tela" (DEC-004) | a UI tem painel de resolução único | PARCIAL | B |
 | Orçamento de ações honesto [DEC-018] | fixo; "+Comando" sem efeito | INERTE (P0-1) | A |
-| Durações com papel de vitória por modo [DEC-003] | 9/15/20; Hegemonia inalcançável na Rápida | INERTE na Rápida (P1-5) | A (comunicar) / C |
+| Durações com papel de vitória por modo [DEC-003] | 9/15/20; Hegemonia inalcançável na Rápida | aceitável pela DEC-006; durações ainda em DEC-003 | C |
 | Voltar a planejar, checagem antes de confirmar | sim | IMPLEMENTADO | — |
 | Voto de Ritmo, assíncrono | prazo por fase | NÃO IMPLEMENTADO | D |
 
@@ -190,9 +190,10 @@ Só problemas de correção/integridade do que **já está exposto** no Alpha, a
 | Governos sem efeitos fantasmas [DEC-021] | `future*` | INERTE + INCONSISTENTE doc (P2-1) | A (doc) |
 | 7 governos, adoção por era, reforma | 5, definitivos | PARCIAL | C |
 | **6 eras de progressão; Hegemonia não é era** (DEC-005) | 6 eras com a VI chamada Hegemonia, sem avanços, só para declarar | DIVERGENTE | B (UI/termo) / C (regra) |
-| Nomes das Eras V/VI [DEC-023] | V Ascensão, VI Hegemonia | aberto | B |
+| Nomes das eras: V Potências, VI Ascensão (DEC-023) | V exibida "Ascensão", VI exibida "Hegemonia" | DIVERGENTE (rótulos) | A (rótulo) / C (Teia) |
 | Eras por critérios contados | igual | IMPLEMENTADO | — |
-| Metas de Hegemonia escaladas [DEC-006] | fixas | DIVERGENTE | C |
+| Declarar só na Era VI — Ascensão; requisitos contam a partida toda (DEC-006) | declarar só na Era VI | IMPLEMENTADO | — |
+| Metas de Hegemonia escaladas [DEC-006, parte aberta] | fixas | DIVERGENTE | C |
 | Prestígio por marcos únicos; modo de vitória configurável | parcial | PARCIAL | C |
 | Tela final com ranking e desempate | igual | IMPLEMENTADO | — |
 

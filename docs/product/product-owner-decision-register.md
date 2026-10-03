@@ -1,6 +1,6 @@
 # Registro de decisões do Product Owner — V4
 
-Status: **DEC-001, DEC-002, DEC-004, DEC-005 (com alteração) e DEC-010 APROVADAS em 2026-10-03**. As demais estão **AGUARDANDO PRODUCT OWNER**. Uma decisão nova, DEC-023, surgiu da aprovação da DEC-005.
+Status: **DEC-001, DEC-002, DEC-004, DEC-005 (com alteração), DEC-010, DEC-023 e DEC-006 (quanto à declaração) APROVADAS em 2026-10-03**. As demais estão **AGUARDANDO PRODUCT OWNER**. Uma decisão nova, DEC-023, surgiu da aprovação da DEC-005.
 Ordem: primeiro as que bloqueiam a Experience/UI V2 (marcadas **[bloqueia UX V2]**), depois regras.
 Fontes: Bíblia v3.1 (artefato `QrXXeJtE…`), Canvas UX (artefato `8BJPUCa5…`), código em `feature/aoh-playable-alpha-v1` (`547ff39`). Detalhes em `canonical-product-spec-v4-draft.md`.
 
@@ -101,7 +101,7 @@ A Bíblia tem só Nível 1–7, subido com recursos + avanço da Teia.
 - **"Hegemonia" não é era**: é uma condição/estado de vitória.
 - A sexta era representa o estágio final de ascensão, imediatamente anterior à disputa plena por Hegemonia.
 - Nome provisório da Era VI: **Ascensão**. Nas fontes, Ascensão é a Era V; a Bíblia a descreve como a "ponte" que antecede a disputa final, que é o papel aprovado para a VI.
-- O nome da nova Era V fica pendente: ver **DEC-023**.
+- Nomes definidos na **DEC-023** (aprovada): V Potências, VI Ascensão.
 
 ---
 
@@ -116,6 +116,12 @@ A Bíblia tem só Nível 1–7, subido com recursos + avanço da Teia.
 **Recomendação:** B, com tabela validada por simulação.
 
 **Consequências:** a UI de Hegemonia mostra metas "desta mesa".
+
+**Status: APROVADA (declaração e contabilização).**
+- Os requisitos de um Caminho de Hegemonia podem ser construídos e contabilizados ao longo de toda a partida.
+- **Declarar Hegemonia só é permitido na Era VI — Ascensão.**
+- A progressão não é comprimida para que uma partida Rápida alcance a Hegemonia: uma partida curta pode legitimamente terminar por Prestígio.
+- **Continua aberto:** se as metas são fixas ou escaladas (opções A/B/C acima).
 
 ---
 
@@ -350,8 +356,8 @@ Tamanhos de mapa futuros continuam em aberto e serão medidos em hexes.
 **Opção B:** Ascensão continua Era V; a Era VI recebe um nome novo.
 **Opção C:** Ascensão continua V e a VI fica sem nome próprio ("Era VI") até haver conteúdo para ela.
 
-**Recomendação:** A, que segue a instrução da aprovação e o texto da Bíblia. O nome da nova Era V não é inventado aqui.
+**Recomendação:** A, que segue a instrução da aprovação e o texto da Bíblia.
 
 **Consequências:** o código usa os IDs `ASCENSION` (V) e `HEGEMONY` (VI) em `AlphaEraSchema`. A renomeação será uma migração aditiva futura. Os critérios de era e o conteúdo da Teia por era (hoje 10 avanços em Fundação–Ascensão, 0 em Hegemonia) precisam ser redistribuídos.
 
-**Status:** AGUARDANDO PRODUCT OWNER
+**Status: APROVADA.** Eras canônicas: I Fundação, II Expansão, III Civilização, IV Impérios, **V Potências**, **VI Ascensão**. "Hegemonia" não é era. A Teia não é redistribuída agora (trabalho posterior).

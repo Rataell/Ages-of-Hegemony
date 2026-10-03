@@ -24,7 +24,7 @@ Colunas das tabelas:
 | **Planejamento** | Fase secreta e simultânea em que se reservam ações | "Turno do jogador" | Botão "Confirmar planejamento" | `PLANNING` |
 | **Resolução** | Execução automática do que foi planejado, por iniciativa | Fase em que o jogador age | Painel "Resolvendo a rodada" | `advanceAfterReady` |
 | **Iniciativa** | Ordem em que as decisões da rodada se resolvem; gira a cada rodada | Vantagem de combate | Lista "Ana › Beto" na barra | `initiative` |
-| **Era** | Um dos **6 estágios** de progressão civilizacional (DEC-005, aprovada): I Fundação, II Expansão, III Civilização, IV Impérios, V *[nome pendente — DEC-023]*, VI **Ascensão** (provisório). Abre possibilidades; não concede vitória | Duração da partida; fase; **Hegemonia** (não é era) | Aba Eras & Hegemonia, barra superior | `AlphaEraSchema` (hoje `ASCENSION`=V, `HEGEMONY`=VI: divergência a migrar) |
+| **Era** | Um dos **6 estágios** de progressão civilizacional (DEC-005, aprovada): I Fundação, II Expansão, III Civilização, IV Impérios, V **Potências**, VI **Ascensão** (DEC-023, aprovada). Abre possibilidades; não concede vitória | Duração da partida; fase; **Hegemonia** (não é era) | Aba Eras & Hegemonia, barra superior | `AlphaEraSchema` (hoje `ASCENSION`=V exibido "Ascensão", `HEGEMONY`=VI exibido "Hegemonia": divergência) |
 
 ## 2. Mapa
 
@@ -105,7 +105,7 @@ Colunas das tabelas:
 | **Disputa cultural** | Duelo de dados entre duas presenças estrangeiras numa cidade | Guerra | "Disputar · 1 ação" | `CONTEST_PRESENCE` |
 | **Âncora cultural** | Presença que chegou a Predominante; dá bônus de disputa | Capital | Painel cultural | `culturalAnchor` |
 | **Legado** | Trilha cultural permanente da Bíblia; **não existe no Alpha** [DEC-016] | Prestígio | — | — |
-| **Hegemonia** | **Condição/estado de vitória** (DEC-005, aprovada): declarar um caminho e manter os requisitos por 2 rodadas completas. Hoje só é declarável na sexta era; metas em DEC-006 | **Era** (não é era); Prestígio | Eras & Hegemonia | `hegemony` |
+| **Hegemonia** | **Condição/estado de vitória** (DEC-005, aprovada): declarar um caminho e manter os requisitos por 2 rodadas completas. Declarável **só na Era VI — Ascensão** (DEC-006, aprovada); requisitos contam a partida toda | **Era** (não é era); Prestígio | Eras & Hegemonia | `hegemony` |
 | **Caminho de Hegemonia** | Militar, Econômica, Científica, Cultural, Política, Territorial | Estratégia livre | Cartões de caminho | `HegemonyPathSchema` |
 | **Ambição** | Objetivo secreto que dá Prestígio uma vez | Caminho de Hegemonia | Cartas & Projetos | `AMBITION` |
 
@@ -147,7 +147,7 @@ Colunas das tabelas:
 ## 11. Conflitos de terminologia encontrados (a resolver na UI V2)
 
 1. **"Nível" e "Desenvolvimento"** aparecem os dois na mesma cidade. **Resolvido (DEC-002):** só Nível; o Alpha ainda exibe ambos.
-2. **"Hegemonia"** é nome de era, de vitória e de aba. **Resolvido (DEC-005):** só vitória. O Alpha ainda chama a Era VI de Hegemonia; o nome da Era V/VI depende de DEC-023.
+2. **"Hegemonia"** é nome de era, de vitória e de aba. **Resolvido (DEC-005):** só vitória. O Alpha ainda chama a Era VI de Hegemonia e a V de Ascensão; nomes canônicos em DEC-023 (aprovada): V Potências, VI Ascensão.
 3. **"Região"** muda de sentido entre a Bíblia (célula) e o Alpha (bloco de 7). **Resolvido (DEC-010):** região = 7 hexágonos.
 4. **"Ações principais" (Alpha) × "Comandos" (Canvas) × "pontos de comando"** (cartas e líderes legados) [DEC-018].
 5. **"Materiais"** ainda aparece em ofertas de tratado, ênfases de civilização e Crônicas, mas não existe como recurso.

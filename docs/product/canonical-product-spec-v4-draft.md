@@ -2,7 +2,8 @@
 
 **Status:** rascunho.
 - **Aprovadas em 2026-10-03 e incorporadas:** DEC-001 (a V4 é a fonte normativa quando aprovada), DEC-002 (Nível 1–7 único), DEC-004 (8 fases; nem toda fase é tela), DEC-005 com alteração (6 eras; Hegemonia não é era) e DEC-010 (hex / região / território).
-- **Abertas:** as demais, incluindo a nova DEC-023 (nomes das Eras V e VI). Seções que dependem delas continuam não normativas.
+- **Aprovadas depois:** DEC-023 (V Potências, VI Ascensão) e DEC-006 quanto à declaração (só na Era VI — Ascensão; requisitos contabilizados a partida toda).
+- **Abertas:** as demais. Seções que dependem delas continuam não normativas.
 
 **Fontes**
 - **Bíblia v3.1:** artefato `QrXXeJtE…`, 28 pranchas, camada v3 autoritativa.
@@ -625,8 +626,8 @@ Nomenclatura canônica provisória:
 | II | Expansão | Bíblia, Canvas, Alpha |
 | III | Civilização | Bíblia, Canvas, Alpha |
 | IV | Impérios | Bíblia, Canvas, Alpha |
-| V | **[nome pendente — DEC-023]** | nas fontes, V = Ascensão |
-| VI | **Ascensão** (provisório) | nas fontes, VI = Hegemonia (Bíblia/Alpha); o Canvas não tem VI |
+| V | **Potências** | DEC-023 (nas fontes antigas, V = Ascensão) |
+| VI | **Ascensão** | DEC-023 (nas fontes antigas, VI = Hegemonia; o Canvas não tem VI) |
 
 O Alpha atual diverge: os IDs são `ASCENSION` = V e `HEGEMONY` = VI, e a Era VI só libera declarar Hegemonia e não tem avanços. A migração é futura (gap map).
 - O ritmo de eras deve casar com DEC-003.
@@ -672,13 +673,15 @@ O Alpha atual diverge: os IDs são `ASCENSION` = V e `HEGEMONY` = VI, e a Era VI
 - Livro de marcos de Prestígio (cidades, distritos, cadeias, governo, Obra, presença, conquista, exploração 25%), cada marco uma vez.
 - Modos de vitória: Hegemonia + Prestígio, só Prestígio, Conquista Total.
 
-### Canônico proposto [DEC-003, DEC-006]
+### Canônico [DEC-003; DEC-006 aprovada quanto à declaração]
 
-- Manter declarar/sustentar.
-- Metas escaladas por jogadores e duração.
+- Os requisitos de um Caminho podem ser construídos e contabilizados ao longo de toda a partida.
+- **Declarar Hegemonia só na Era VI — Ascensão** (DEC-006). Depois de declarar, sustentar 2 rodadas completas.
+- A progressão não é comprimida para a Rápida; partida curta pode terminar por Prestígio (aceitável).
+- Metas fixas ou escaladas: **ainda aberto** (DEC-006, parte de escala).
 - Prestígio por marcos únicos (antifarm), incluindo conquista e fundação (C).
 - Modo de vitória escolhido na criação da mesa (C).
-- **"Hegemonia" designa exclusivamente a condição de vitória e os seus caminhos (DEC-005, aprovada).** A declaração permanece liberada na sexta era (hoje: `HEGEMONY`; canônico: Ascensão provisório). Se a declaração deve continuar presa à Era VI fica para DEC-006.
+- **"Hegemonia" designa exclusivamente a condição de vitória e os seus caminhos (DEC-005, aprovada).** A declaração é liberada na Era VI — Ascensão (no código, o ID ainda é `HEGEMONY`).
 
 ## 20. Match configuration
 
@@ -738,7 +741,6 @@ Resolvidas por decisão aprovada (o Alpha ainda precisa migrar a UI):
 - Região célula × bloco → região = 7 hexágonos (DEC-010).
 
 Colisões ainda abertas:
-- nomes das Eras V/VI (DEC-023);
 - Ações × Comando;
 - "Materiais";
 - Guarnição (3 sentidos);
@@ -778,7 +780,7 @@ Colisões ainda abertas:
 | Fase/rodada | barra inferior + superior |
 | Feedback de consequências | painel de resolução + Crônicas |
 
-**Bloqueios do desenho:** DEC-001, DEC-002, DEC-004, DEC-005 e DEC-010 foram **aprovadas**. Ainda afeta a UX V2, sem bloquear a arquitetura: **DEC-023** (nomes das eras na linha do tempo). Princípio derivado da DEC-004: as telas da V2 representam **Planejar → Resultado → (Conflitos)**, não 8 fases.
+**Bloqueios do desenho:** DEC-001, DEC-002, DEC-004, DEC-005 e DEC-010 foram **aprovadas**. **DEC-023** (nomes das eras) também foi aprovada. Princípio derivado da DEC-004: as telas da V2 representam **Planejar → Resultado → (Conflitos)**, não 8 fases.
 
 ## 23. Alpha / Beta / Future scope
 
@@ -821,7 +823,8 @@ As correções de integridade que precedem a reconstrução visual estão em `v4
 
 Ver `product-owner-decision-register.md`.
 - **Aprovadas:** DEC-001, DEC-002, DEC-004, DEC-005 (com alteração), DEC-010.
-- **Abertas:** DEC-003, DEC-006, DEC-007, DEC-008, DEC-009, DEC-011 a DEC-022, DEC-023 (nova).
+- **Aprovadas depois:** DEC-023; DEC-006 (declaração).
+- **Abertas:** DEC-003, DEC-006 (escala das metas), DEC-007, DEC-008, DEC-009, DEC-011 a DEC-022.
 
 ### Inconsistências adicionais registradas (sem decisão própria)
 
