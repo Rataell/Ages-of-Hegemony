@@ -61,8 +61,16 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   state.players.forEach((p,i)=>{p.civilization=input.players[i]!.civilization??CIVILIZATIONS[i]!.id;p.leader=leaderStateFor(p.civilization);const center=state.core.players[i]!.civilization.cities[0]!.hexId;state.units.push({id:`pioneer-${i+1}`,ownerId:p.playerId,kind:'PIONEER',hexId:center,recruitedRound:1});state.units.push({id:`explorer-${i+1}`,ownerId:p.playerId,kind:'EXPLORER',hexId:center,recruitedRound:1});const city=state.cities.find(city=>city.currentOwnerId===p.playerId)!;city.nativeIdentity=p.civilization;});
   const occupied=new Set(state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)));
   const neutral=state.core.map.filter(tile=>!occupied.has(tile.id)&&!['SEA','UNKNOWN'].includes(tile.terrain)).sort((a,b)=>a.id.localeCompare(b.id));
-  state.independents=neutral.slice(0,3).map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));
-  state.raidBands=neutral.slice(3,5).map((tile,index)=>({id:`raid-${index+1}`,hexId:tile.id,strength:2+index,lastMovedRound:0}));
+  // Independent peoples sit in contested ground: about as far from a seat's capital as from its nearest rival's, at least
+  // 3 hexes from any capital and 4 from each other. Raid bands start in the wilderness, as far from every capital as possible.
+  const capitals=state.core.players.map(player=>state.core.map.find(tile=>tile.id===player.civilization.cities[0]!.hexId)!);
+  const reach=(tile:{q:number;r:number})=>{const distances=capitals.map(capital=>hexDistance(capital,tile)).sort((a,b)=>a-b);return {near:distances[0]!,contest:(distances[1]??distances[0]!)-distances[0]!};};
+  const land=neutral.filter(tile=>reach(tile).near>=3);
+  const pick=(candidates:typeof land,count:number,taken:typeof land)=>{const chosen:typeof land=[];for(const tile of candidates){if(chosen.length===count)break;if([...taken,...chosen].every(other=>hexDistance(other,tile)>=4))chosen.push(tile);}return chosen;};
+  const peoples=pick([...land].sort((a,b)=>reach(a).contest-reach(b).contest||reach(a).near-reach(b).near||a.id.localeCompare(b.id)),3,[]);
+  const wild=pick([...land].sort((a,b)=>reach(b).near-reach(a).near||a.id.localeCompare(b.id)),2,peoples);
+  state.independents=peoples.map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));
+  state.raidBands=wild.map((tile,index)=>({id:`raid-${index+1}`,hexId:tile.id,strength:2+index,lastMovedRound:0}));
   initializeAlphaCards(state);return AlphaStateSchema.parse(state);
 }
 export function visibleHexIds(state:AlphaState,actor:PlayerId):Set<string> {
@@ -152,7 +160,8 @@ export function resolveRaidBands(state:AlphaState):void {
   }
 }
 
+/** Bands move every round, so only those inside current vision are shown; a remembered hex would leak a live position. */
 export function raidBandView(state:AlphaState,actor:PlayerId){
-  const known=new Set(state.players.find(player=>player.playerId===actor)?.knownHexIds??[]);
-  return state.raidBands.filter(band=>known.has(band.hexId)).map(band=>({id:band.id,hexId:band.hexId,strength:band.strength,lastMovedRound:band.lastMovedRound}));
+  const visible=visibleHexIds(state,actor);
+  return state.raidBands.filter(band=>visible.has(band.hexId)).map(band=>({id:band.id,hexId:band.hexId,strength:band.strength,lastMovedRound:band.lastMovedRound}));
 }

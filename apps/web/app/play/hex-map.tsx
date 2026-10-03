@@ -8,6 +8,9 @@ import { clampCentre, clampZoom, mapFrame, position, tileSummary, viewBoxOf } fr
 type Props = {
   data: Pick<LocalView,'players'|'claimable'|'workable'> & {view:Pick<LocalView['view'],'player'|'visibleCities'> & {era:string;visibleTerritory:HexTile[]}};
   units?: readonly AlphaUnit[];
+  /** Independent peoples and raid bands the player knows of (Alpha). */
+  peoples?: readonly { hexId: string; type: string; attitude: string; integratedBy: string | null }[];
+  raids?: readonly { hexId: string; strength: number }[];
   selected: string | null;
   focus: string | null;
   working: boolean;
@@ -60,6 +63,8 @@ export const HexMap = memo(function HexMap({
   worked,
   onSelect,
   units = [],
+  peoples = [],
+  raids = [],
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   // null = fitted to the projected tiles; otherwise an explicit centre and zoom (1 shows the whole fitted frame).
@@ -283,6 +288,14 @@ export const HexMap = memo(function HexMap({
               {eligible && !working && (
                 <polygon className="frontier-pulse" points={innerPoints} />
               )}
+              {/* Neutral powers: an independent people (house) or a raid band (crossed blades, with its strength). */}
+              {(() => {
+                const people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null), raid = raids.find(r => r.hexId === tile.id);
+                return <>
+                  {people && <g transform="translate(0 -30)" className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
+                  {raid && <g transform="translate(0 -30)" className="alpha-raid"><rect x="-17" y="-10" width="34" height="20" rx="4" className="raid-badge" /><path d="M-11 6L-1 -5M-11 -5L-1 6" className="raid-glyph" /><text x="8" y="4" className="raid-count" textAnchor="middle">{raid.strength}</text><title>Bando saqueador · Força {raid.strength}</title></g>}
+                </>;
+              })()}
               {/* One badge per owner: the owner's colour, a soldier or a flag for civil pieces, and the count. Foreign pieces are outlined. */}
               {(() => {
                 const here = units.filter(u => u.hexId === tile.id);

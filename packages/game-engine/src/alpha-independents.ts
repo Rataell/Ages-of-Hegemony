@@ -21,6 +21,12 @@ export const INDEPENDENT_RULES = {
 
 const attitudes = ['HOSTILE', 'WARY', 'NEUTRAL', 'FRIENDLY'] as const;
 const cost = (value: AlphaResourcePool) => value;
+const ATTITUDE_NAMES: Record<string, string> = { HOSTILE: 'Hostil', WARY: 'Desconfiado', NEUTRAL: 'Neutro', FRIENDLY: 'Amistoso' };
+/** "atitude Amistosa (agora Neutro), influência 1 de 3": only the conditions still unmet. */
+const missing = (people: People, influence: number, required: number) => [
+  people.attitude !== 'FRIENDLY' ? `atitude Amistosa (agora ${ATTITUDE_NAMES[people.attitude]})` : null,
+  influence < required ? `influência ${influence} de ${required}` : null,
+].filter(Boolean).join(', ');
 
 function requireKnown(state: AlphaState, actor: PlayerId, peopleId: string): People {
   const people = state.independents.find(candidate => candidate.id === peopleId);
@@ -68,6 +74,7 @@ export function independentAction(state: AlphaState, actor: PlayerId, command: I
       alphaGain(state, actor, INDEPENDENT_RULES.tradeGain, { category: 'trade' });
       break;
     case 'NEGOTIATE': {
+      if (people.attitude === 'FRIENDLY') throw new Error('Este povo já está amistoso.');
       alphaPay(state, actor, cost(INDEPENDENT_RULES.negotiateCost));
       const index = attitudes.indexOf(people.attitude);
       people.attitude = attitudes[Math.min(attitudes.length - 1, index + 1)]!;
@@ -79,18 +86,18 @@ export function independentAction(state: AlphaState, actor: PlayerId, command: I
       people.influenceByPlayer[actor] = influence + 1;
       break;
     case 'PROTECT':
-      if (people.attitude !== 'FRIENDLY' || influence < INDEPENDENT_RULES.protectInfluence) throw new Error('Proteção exige atitude amistosa e influência suficiente.');
+      if (people.attitude !== 'FRIENDLY' || influence < INDEPENDENT_RULES.protectInfluence) throw new Error(`Falta: ${missing(people, influence, INDEPENDENT_RULES.protectInfluence)}.`);
       if (people.protectorId !== null && people.protectorId !== actor) throw new Error('Este povo já possui outro protetor.');
       people.protectorId = actor;
       break;
     case 'INTEGRATE':
-      if (people.attitude !== 'FRIENDLY' || influence < INDEPENDENT_RULES.integrateInfluence) throw new Error('Integração exige atitude amistosa e influência suficiente.');
+      if (people.attitude !== 'FRIENDLY' || influence < INDEPENDENT_RULES.integrateInfluence) throw new Error(`Falta: ${missing(people, influence, INDEPENDENT_RULES.integrateInfluence)}.`);
       createIndependentCity(state, actor, people, true);
       break;
     case 'CONQUER': {
       const strength = state.units.filter(unit => unit.ownerId === actor && unit.hexId === people.hexId)
         .reduce((total, unit) => total + state.rules.units[unit.kind].strength, 0);
-      if (strength < INDEPENDENT_RULES.conquerStrength[people.type]) throw new Error('Força militar insuficiente para conquistar este povo.');
+      if (strength < INDEPENDENT_RULES.conquerStrength[people.type]) throw new Error(`Força militar neste hex: ${strength} de ${INDEPENDENT_RULES.conquerStrength[people.type]}.`);
       createIndependentCity(state, actor, people, false);
       break;
     }
@@ -104,5 +111,23 @@ export function independentPeopleView(state: AlphaState, actor: PlayerId) {
     id: people.id, hexId: people.hexId, type: people.type, attitude: people.attitude,
     yourInfluence: people.influenceByPlayer[actor] ?? 0, protectorId: people.protectorId, integratedBy: people.integratedBy,
     canAffordTrade: alphaCanAfford(state, actor, INDEPENDENT_RULES.tradeCost),
+    actions: INDEPENDENT_ACTIONS.map(action => ({ action, effect: INDEPENDENT_EFFECTS[action](people.type), cost: INDEPENDENT_COSTS[action] ?? null, blocked: independentBlock(state, actor, people.id, action) })),
   }));
+}
+
+const INDEPENDENT_ACTIONS = ['TRADE', 'NEGOTIATE', 'INFLUENCE', 'PROTECT', 'INTEGRATE', 'CONQUER'] as const;
+const INDEPENDENT_COSTS: Partial<Record<(typeof INDEPENDENT_ACTIONS)[number], AlphaResourcePool>> = { TRADE: INDEPENDENT_RULES.tradeCost, NEGOTIATE: INDEPENDENT_RULES.negotiateCost, INFLUENCE: INDEPENDENT_RULES.influenceCost };
+const INDEPENDENT_EFFECTS: Record<(typeof INDEPENDENT_ACTIONS)[number], (type: People['type']) => string> = {
+  TRADE: () => `Troca imediata: +${INDEPENDENT_RULES.tradeGain.food} Alimento. Povos hostis não comerciam.`,
+  NEGOTIATE: () => 'A atitude do povo melhora um passo (Hostil, Desconfiado, Neutro, Amistoso).',
+  INFLUENCE: () => '+1 da sua influência sobre este povo. Exige que não seja hostil.',
+  PROTECT: () => `Torna-se protetor. Exige atitude Amistosa e influência ${INDEPENDENT_RULES.protectInfluence}.`,
+  INTEGRATE: () => `O povo se une a você como cidade, em paz. Exige atitude Amistosa e influência ${INDEPENDENT_RULES.integrateInfluence}.`,
+  CONQUER: type => `Toma o povo como cidade à força. Exige Força ${INDEPENDENT_RULES.conquerStrength[type]} das suas peças militares neste hex.`,
+};
+/** The refusal the action would give now (dry run on a copy), or null. Every option is one main action in planning. */
+function independentBlock(state: AlphaState, actor: PlayerId, peopleId: string, action: (typeof INDEPENDENT_ACTIONS)[number]): string | null {
+  if (state.phase !== 'PLANNING') return 'Disponível no Planejamento.';
+  try { independentAction(structuredClone(state), actor, { type: 'INDEPENDENT_ACTION', expectedVersion: state.version, peopleId, action }); return null; }
+  catch (error) { return error instanceof Error ? error.message : 'Ação indisponível.'; }
 }

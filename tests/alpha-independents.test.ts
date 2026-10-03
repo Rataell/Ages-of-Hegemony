@@ -80,3 +80,30 @@ describe('independent peoples', () => {
     }
   });
 });
+
+describe('neutral powers placement and options', () => {
+  it.each([2, 3, 4, 5, 6])('places peoples and raid bands away from every capital and apart from each other (%i players)', async count => {
+    const { beginAlphaPlanning: begin, createAlphaGame: create, hexDistance: distance } = await import('@aoh/game-engine');
+    const state = begin(create({ gameId: `neutral-${count}`, seed: 7, preset: 'QUICK', players: Array.from({ length: count }, (_, i) => ({ id: `p${i + 1}`, name: `P${i + 1}` })) }));
+    const at = (id: string) => state.core.map.find(tile => tile.id === id)!;
+    const capitals = state.core.players.map(player => at(player.civilization.cities[0]!.hexId));
+    const sites = [...state.independents.map(people => people.hexId), ...state.raidBands.map(band => band.hexId)].map(at);
+    expect(state.independents).toHaveLength(3); expect(state.raidBands).toHaveLength(2);
+    for (const site of sites) expect(Math.min(...capitals.map(capital => distance(capital, site)))).toBeGreaterThanOrEqual(3);
+    for (const [i, a] of sites.entries()) for (const b of sites.slice(i + 1)) expect(distance(a, b)).toBeGreaterThanOrEqual(4);
+  });
+
+  it('projects each action with what is still missing, and refuses negotiating with a friendly people', async () => {
+    const { beginAlphaPlanning: begin, createAlphaGame: create, independentPeopleView, applyAlphaCommand } = await import('@aoh/game-engine');
+    let state = begin(create({ gameId: 'people-options', seed: 7, preset: 'QUICK', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] }));
+    const actor = state.players[0]!.playerId, people = state.independents[0]!;
+    state.players[0]!.knownHexIds = [...state.players[0]!.knownHexIds, people.hexId as never];
+    const options = () => Object.fromEntries(independentPeopleView(state, actor)[0]!.actions.map(option => [option.action, option.blocked]));
+    expect(options().NEGOTIATE).toBeNull();
+    expect(options().INTEGRATE).toBe('Falta: atitude Amistosa (agora Neutro), influência 0 de 3.');
+    const result = applyAlphaCommand(state, actor, { type: 'INDEPENDENT_ACTION', expectedVersion: state.version, peopleId: people.id, action: 'NEGOTIATE' });
+    expect(result.ok).toBe(true); if (result.ok) state = result.value;
+    expect(options().NEGOTIATE).toBe('Este povo já está amistoso.');
+    expect(options().INTEGRATE).toBe('Falta: influência 0 de 3.');
+  });
+});

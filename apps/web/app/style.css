@@ -2408,3 +2408,12 @@ dialog h2 {
 .alpha-unit-stack.foreign .unit-badge { stroke-dasharray: 4 2; stroke-width: 2; }
 .alpha-unit-stack .unit-glyph { fill: none; stroke: var(--owner); stroke-width: 1.8; stroke-linecap: round; }
 .alpha-unit-stack .unit-count { fill: var(--text-primary); font-size: 11px; font-weight: 700; }
+
+/* Neutral powers on the atlas. */
+.alpha-people .people-badge { fill: var(--surface); stroke: #b9c4a0; stroke-width: 1.5; }
+.alpha-people.attitude-HOSTILE .people-badge { stroke: var(--danger); }
+.alpha-people.attitude-FRIENDLY .people-badge { stroke: var(--success); }
+.alpha-people .people-glyph { fill: none; stroke: #e6e1cf; stroke-width: 1.5; stroke-linejoin: round; }
+.alpha-raid .raid-badge { fill: #2a1512; stroke: var(--danger); stroke-width: 1.5; }
+.alpha-raid .raid-glyph { fill: none; stroke: var(--danger); stroke-width: 2; stroke-linecap: round; }
+.alpha-raid .raid-count { fill: var(--text-primary); font-size: 11px; font-weight: 700; }

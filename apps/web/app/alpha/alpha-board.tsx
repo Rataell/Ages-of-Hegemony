@@ -19,6 +19,7 @@ const PANELS_KEY='aoh-alpha-panels';
 function loadPanels():{council:boolean;inspector:boolean}{
   try{const raw=JSON.parse(localStorage.getItem(PANELS_KEY)??'{}') as Record<string,unknown>;return {council:raw.council!==false,inspector:raw.inspector!==false};}catch{return {council:true,inspector:true};}
 }
+const PEOPLE_ACTIONS:Record<string,string>={TRADE:'Comerciar',NEGOTIATE:'Negociar',INFLUENCE:'Influenciar',PROTECT:'Proteger',INTEGRATE:'Integrar',CONQUER:'Conquistar'};
 const INSPECTORS:[Inspector,string][]=[['city','Cidade'],['territory','Território'],['military','Militar']];
 
 /** Same shell as the local slice: top bar, area navigation, council | atlas | inspector, bottom action bar. */
@@ -88,6 +89,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
     ...(incomingProposals?[`${incomingProposals} proposta(s) diplomática(s) sem resposta em Diplomacia.`]:[]),
     ...(()=>{const idle=ownUnits.filter(u=>!orderedNow.has(u.id)&&Object.keys(game.unitOptions[u.id]?.moves??{}).length>0);return idle.length?[`${idle.length} peça(s) sem ordem: ${compositionText(idle)}.`]:[];})(),
   ];
+  const people=game.independents.find(p=>p.hexId===selected&&p.integratedBy===null),raidHere=game.raidBands.find(r=>r.hexId===selected);
   const reactions=game.self.hand.map(id=>ALPHA_CARDS.find(card=>card.id===id)).filter(card=>card?.timing==='REACTION').map(card=>card!);
   const conflictCall=game.phase==='CONFLICTS'&&!game.self.ready&&!game.winner&&(game.incomingAttacks.length>0||game.self.orders.some(o=>o.type==='ATTACK'));
   const latestReport=game.roundReports.at(-1),replay=!conflictCall&&!game.winner&&latestReport&&latestReport.resolution.length>0&&latestReport.round>dismissedResolution?latestReport:null;
@@ -147,12 +149,16 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
         <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><p>Código para voltar: <code>{room.joinCode}</code></p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p>{feedbackUrl&&<a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a>}<p>Ambiente de teste: a partida pode ser reiniciada ou apagada.</p></details>
       </div>
       </aside>
-      <div className="world-column"><HexMap data={mapData} units={game.units} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
+      <div className="world-column"><HexMap data={mapData} units={game.units} peoples={game.independents} raids={game.raidBands} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
       <aside className="context-inspector alpha-inspector" data-collapsed={!panels.inspector}>
         <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.inspector} aria-label={panels.inspector?'Recolher Inspector':'Expandir Inspector'} title={panels.inspector?'Recolher Inspector':'Expandir Inspector'} onClick={()=>togglePanel('inspector')}>{panels.inspector?'›':'‹'}</button></div>
         <div className="inspector-tabs" role="group" aria-label="Contexto">{INSPECTORS.map(([key,title])=><button key={key} aria-pressed={inspector===key} onClick={()=>setInspector(key)}>{title}{key==='military'&&game.self.orders.length>0?` · ${game.self.orders.length}`:''}</button>)}</div>
       <div className="alpha-panel-body">
         {inspector==='territory'&&<div className="alpha-inspector-body">
+          {people&&<section className="alpha-people-panel" aria-label="Povo independente"><p className="eyebrow">POVO INDEPENDENTE · {text(people.type).toUpperCase()}</p><p>Atitude: <b>{text(people.attitude)}</b> · Sua influência: <b>{people.yourInfluence}</b>{people.protectorId?` · Protegido por ${game.players.find(p=>p.id===people.protectorId)?.name??'outra civilização'}`:''}</p>
+            {people.actions.map(option=><div className="alpha-people-option" key={option.action}><button disabled={locked||option.blocked!==null} onClick={()=>void send({type:'INDEPENDENT_ACTION',peopleId:people.id,action:option.action})}>{PEOPLE_ACTIONS[option.action]}</button>{option.cost&&<ResourceDisplay values={option.cost} compact/>}<small>{option.effect}{option.blocked&&<em> {option.blocked}</em>}</small></div>)}
+            <p className="alpha-hint">Cada ação com um povo usa 1 ação principal e vale na hora.</p></section>}
+          {raidHere&&<section className="alpha-people-panel is-raid" aria-label="Bando saqueador"><p className="eyebrow">BANDO SAQUEADOR · FORÇA {raidHere.strength}</p><p>A cada fim de rodada o bando avança um hex rumo à peça ou cidade mais fraca e ataca quem tiver defesa menor que {raidHere.strength} (soma da força das peças e do desenvolvimento da cidade).</p></section>}
           <h2>{tile?text(tile.terrain):selected?'Fronteira por explorar':'Selecione o mapa'}</h2><p>{selected}</p>{tile?.yield&&<ResourceDisplay values={tile.yield} compact/>}{tile&&<p>{tile.ownerId?`Território de ${game.players.find(p=>p.id===tile.ownerId)?.name}`:'Território livre'} · {tile.improvement?text(tile.improvement):'Sem melhoria'}</p>}
           {city&&<>{!working&&<><p className="alpha-hint">Hexes destacados podem ser reivindicados por {city.name} (troque a cidade no Conselho).</p>{tile&&!tile.ownerId&&selected&&!(game.claimOptions[city.id]??[]).includes(selected)&&<p className="alpha-warning">Fora do alcance de {city.name}, sem ligação com o território dela ou sem Influência suficiente.</p>}<button disabled={locked||!selected||!(game.claimOptions[city.id]??[]).includes(selected)} onClick={()=>void manage({type:'CLAIM_HEX',cityId:city.id,hexId:selected})}>Reivindicar para {city.name}</button><ResourceDisplay values={game.costs.claim} compact/></>}
             <button disabled={locked} onClick={()=>{setWorking(!working);setWorked(city.workedHexIds);}}> {working?'Cancelar atribuição':'Escolher territórios trabalhados'}</button>{working&&<div><p className="alpha-hint">Clique nos hexes destacados do território de {city.name}. Cada Produtor trabalha um hex; reivindique hexes para ter mais opções.</p><p>{worked.length} territórios selecionados · {city.workers.producers} Produtores</p><button disabled={locked} onClick={()=>void manage({type:'ASSIGN_WORKED_HEXES',cityId:city.id,hexIds:worked}).then(ok=>{if(ok)setWorking(false);})}>Confirmar trabalho</button></div>}</>}

@@ -37,9 +37,12 @@ describe('raid bands', () => {
     expect(AlphaStateSchema.safeParse(state).success).toBe(true);
   });
 
-  it('projects only raid bands on known hexes', () => {
+  it('projects raid bands only inside current vision, never on a merely remembered hex', () => {
     const state = setup();
     state.players[0]!.knownHexIds = [state.raidBands[0]!.hexId];
+    expect(raidBandView(state, p1)).toEqual([]);
+    const scout = state.units.find(unit => unit.ownerId === p1)!;
+    scout.hexId = state.raidBands[0]!.hexId as never;
     expect(raidBandView(state, p1).map(band => band.id)).toEqual([state.raidBands[0]!.id]);
   });
 });
