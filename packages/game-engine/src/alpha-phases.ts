@@ -1,3 +1,4 @@
+import { settleTradeOffers } from './alpha-trade.js';
 import { TREATY_NAMES, battleMessage, lossesMessage, orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
   ALPHA_CARDS, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources, cityLevelForPopulation,
@@ -40,6 +41,7 @@ const planning: CommandType[] = [
   'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY',
   'CONTEST_PRESENCE',
   'INDEPENDENT_ACTION',
+  'PROPOSE_TRADE', 'RESPOND_TRADE',
 ];
 /** Commands legal in each phase. Everything else is rejected with WRONG_PHASE before any rule runs. */
 export const LEGAL_COMMANDS: Readonly<Record<AlphaRoundPhase, ReadonlySet<CommandType>>> = {
@@ -231,6 +233,7 @@ function maintainCivilizations(state: AlphaState): void {
 
 function runMaintenance(state: AlphaState): void {
   maintainTrade(state);
+  settleTradeOffers(state);
   resolveRaidBands(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'MAINTENANCE', { enforceStorage: false });
   maintainCivilizations(state);

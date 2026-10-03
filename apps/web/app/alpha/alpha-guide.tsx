@@ -31,6 +31,7 @@ export function AlphaGuide({ game, onClose }: { game: AlphaPlayerView; onClose: 
       </ul>
       <h3>Contato, diplomacia e guerra</h3>
       <p>Avistar uma peça ou cidade de outra civilização estabelece contato e abre a negociação em Diplomacia. Acordos duram {rules.treatyDuration} rodadas depois de aceitos; responder a uma proposta não gasta ação.</p>
+      <p>Em paz, também dá para trocar recursos: troca imediata, presente, promessa futura ou empréstimo. Ofertas valem até o fim da rodada; quem não paga uma promessa ou empréstimo no prazo perde Prestígio.</p>
       <p>Uma declaração de guerra planejada se resolve antes dos conflitos, então o ataque pode ser reservado na mesma rodada. Nos Conflitos, atacante e defensor podem jogar cartas de reação antes dos dados.</p>
       <h3>Eras</h3>
       <p>Eras & Hegemonia mostra os critérios da próxima era. Quando bastarem, avance de era: novos avanços, peças e caminhos se abrem.</p>

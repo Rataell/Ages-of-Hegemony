@@ -26,6 +26,6 @@ describe('alpha interface coverage (closed alpha)', () => {
 
   it('does not advertise unfinished systems as playable', () => {
     const copy = sources.map(source => source.text).join('\n');
-    expect(copy).not.toMatch(/Contestar presença|Propor oferta comercial|Ação de povo independente/i);
+    expect(copy).not.toMatch(/Contestar presença/i);
   });
 });

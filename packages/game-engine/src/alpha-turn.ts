@@ -1,3 +1,4 @@
+import { proposeTrade, respondTrade } from './alpha-trade.js';
 import { AlphaCommandSchema, AlphaStateSchema, actionClassForCommand, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { err, ok, type Result } from '@aoh/shared';
 import { applyCommand } from './engine.js';
@@ -34,8 +35,8 @@ export function beginAlphaPlanning(input: AlphaState): AlphaState {
 }
 
 /** Commands that exist in the schema but have no rules yet. No control may send them; the reducer refuses them with NOT_IMPLEMENTED. */
-export const ALPHA_UNSUPPORTED_COMMANDS = ['PROPOSE_TRADE', 'RESPOND_TRADE'] as const;
-const UNSUPPORTED = new Set<string>(ALPHA_UNSUPPORTED_COMMANDS);
+export const ALPHA_UNSUPPORTED_COMMANDS = [] as const;
+const UNSUPPORTED = new Set<string>(ALPHA_UNSUPPORTED_COMMANDS as readonly string[]);
 const PHASE_LABEL: Record<AlphaState['phase'], string> = {
   WORLD_PULSE: 'Pulso do mundo', PLANNING: 'Planejamento', URBAN_ACTIONS: 'Ações urbanas', ORDERS_MOVEMENT: 'Ordens e movimento',
   DIPLOMACY_TRADE: 'Diplomacia e comércio', CONFLICTS: 'Conflitos', INTEGRATION_MAINTENANCE: 'Integração e manutenção', END_ROUND: 'Fim da rodada',
@@ -79,6 +80,10 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       useLeaderAbility(state, actor);
     } else if (command.type === 'CONTEST_PRESENCE') {
       contestPresence(state, actor, command);
+    } else if (command.type === 'PROPOSE_TRADE') {
+      proposeTrade(state, actor, command);
+    } else if (command.type === 'RESPOND_TRADE') {
+      respondTrade(state, actor, command);
     } else if (command.type === 'INDEPENDENT_ACTION') {
       independentAction(state, actor, command);
     } else if (command.type === 'URBAN_ACTION') {

@@ -363,3 +363,7 @@ button.alpha-card { text-align: left; }
 .alpha-people-option small { grid-column: 1 / -1; color: var(--text-secondary); font-size: 12px; }
 .alpha-people-option small em { color: var(--warning); font-style: normal; }
 .alpha-city-facts { margin: 4px 0 8px; font-size: 13px; color: var(--text-secondary); }
+.alpha-trade { margin-top: 6px; padding-top: 10px; border-top: 1px dashed var(--border-subtle); display: grid; gap: 8px; }
+.alpha-trade h4 { margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.alpha-trade form { display: grid; gap: 8px; }
+.alpha-trade .alpha-relation-proposal .resources, .alpha-trade .alpha-hint .resources, .alpha-trade .alpha-warning .resources { display: inline-flex; vertical-align: middle; }

@@ -107,12 +107,10 @@ describe('phase legality', () => {
     for (const phase of ['URBAN_ACTIONS', 'DIPLOMACY_TRADE'] as const) expect(LEGAL_COMMANDS[phase].has('READY')).toBe(true);
   });
 
-  it('answers commands that are not built yet with NOT_IMPLEMENTED instead of silently succeeding', () => {
+  it('answers trade commands with their real rule instead of silently succeeding', () => {
     const state = started();
-    for (const raw of [
-      { type: 'PROPOSE_TRADE', recipientId: p2, offerType: 'GIFT', offer: noneAlpha, request: noneAlpha, treatyTerms: [], dueRound: null },
-      { type: 'RESPOND_TRADE', offerId: 'o', accept: true },
-    ]) expect(applyAlphaCommand(state, p1, { ...raw, expectedVersion: state.version })).toMatchObject({ ok: false, error: { code: 'NOT_IMPLEMENTED' } });
+    expect(applyAlphaCommand(state, p1, { type: 'PROPOSE_TRADE', recipientId: p2, offerType: 'GIFT', offer: noneAlpha, request: noneAlpha, treatyTerms: [], dueRound: null, expectedVersion: state.version })).toMatchObject({ ok: false, error: { message: 'Estabeleça contato antes de negociar.' } });
+    expect(applyAlphaCommand(state, p1, { type: 'RESPOND_TRADE', offerId: 'o', accept: true, expectedVersion: state.version })).toMatchObject({ ok: false, error: { message: 'Esta oferta não está mais aberta.' } });
   });
 
   it('keeps the legacy core phase consistent with the alpha phase in every resting state', () => {

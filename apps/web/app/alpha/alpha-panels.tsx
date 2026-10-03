@@ -116,6 +116,44 @@ function DealInputs({title,value,onChange}:{title:string;value:ReturnType<typeof
   return <fieldset className="alpha-deal"><legend>{title}</legend>{RESOURCE_KEYS.map(key=><label key={key}><span>{key==='materials'?'Materiais':text(key)}</span><input type="number" min={0} max={999} value={value[key]} onChange={e=>onChange({...value,[key]:Math.max(0,Number(e.target.value)||0)})}/></label>)}</fieldset>;
 }
 
+const SEVEN=['food','wood','stone','metal','wealth','knowledge','influence'] as const;
+type Seven=Record<(typeof SEVEN)[number],number>;
+const noGoods=():Seven=>({food:0,wood:0,stone:0,metal:0,wealth:0,knowledge:0,influence:0});
+const TRADE_KINDS:Record<string,{name:string;give:string;get:string|null;due:boolean;help:string}>={
+  TRADE_INSTANT:{name:'Troca imediata',give:'Você entrega',get:'Você recebe',due:false,help:'Os dois lados trocam na hora em que a outra civilização aceitar.'},
+  GIFT:{name:'Presente',give:'Você dá',get:null,due:false,help:'Entregue sem pedir nada em troca.'},
+  FUTURE_PROMISE:{name:'Promessa futura',give:'Você entrega no prazo',get:'Você recebe agora',due:true,help:'Você recebe agora e paga até o prazo. Não pagar é calote: −2 Prestígio.'},
+  LOAN:{name:'Empréstimo',give:'Você empresta agora',get:'Você recebe de volta no prazo',due:true,help:'Você entrega agora e recebe de volta até o prazo. Se não pagarem, quem deve perde 2 Prestígio.'},
+};
+function GoodsInputs({title,value,onChange}:{title:string;value:Seven;onChange:(next:Seven)=>void}){
+  return <fieldset className="alpha-deal"><legend>{title}</legend>{SEVEN.map(key=><label key={key}><span>{text(key)}</span><input type="number" min={0} max={999} value={value[key]} onChange={e=>onChange({...value,[key]:Math.max(0,Number(e.target.value)||0)})}/></label>)}</fieldset>;
+}
+type TradeOffer=AlphaPlayerView['tradeOffers'][number];
+/** "Ana entrega 3 Madeira e recebe 2 Conhecimento", worded for the offer's type. */
+function offerText(game:AlphaPlayerView,offer:TradeOffer){
+  const who=game.players.find(p=>p.id===offer.proposerId)?.name??'Alguém',due=offer.dueRound?` até a rodada ${offer.dueRound}`:'';
+  const give=<ResourceDisplay values={offer.offer} compact/>,get=<ResourceDisplay values={offer.request} compact/>;
+  return offer.type==='GIFT'?<>{who} dá {give}</>:offer.type==='TRADE_INSTANT'?<>{who} entrega {give} e recebe {get}</>:offer.type==='FUTURE_PROMISE'?<>{who} recebe {get} agora e entrega {give}{due}</>:<>{who} empresta {give} agora e recebe {get} de volta{due}</>;
+}
+function TradePanel({game,locked,send,otherId}:Panel&{otherId:string}){
+  const [kind,setKind]=useState('TRADE_INSTANT'),[give,setGive]=useState(noGoods),[get,setGet]=useState(noGoods),[due,setDue]=useState(game.view.round+2);
+  const spec=TRADE_KINDS[kind]!,self=game.self.playerId;
+  const offers=game.tradeOffers.filter(o=>[o.proposerId,o.recipientId].includes(otherId as never));
+  const lastRound=game.rules.roundLimit,dueChoices=Array.from({length:Math.max(0,lastRound-game.view.round)},(_,i)=>game.view.round+1+i);
+  return <div className="alpha-trade"><h4>Troca de recursos</h4>
+    {offers.filter(o=>o.status==='PROPOSED'&&o.recipientId===self).map(o=><div className="alpha-relation-proposal" key={o.id} role="group" aria-label="Oferta recebida"><div>{offerText(game,o)}.</div><button className="primary" disabled={locked} onClick={()=>void send({type:'RESPOND_TRADE',offerId:o.id,accept:true})}>Aceitar oferta</button><button disabled={locked} onClick={()=>void send({type:'RESPOND_TRADE',offerId:o.id,accept:false})}>Recusar</button></div>)}
+    {offers.filter(o=>o.status==='PROPOSED'&&o.proposerId===self).map(o=><div className="alpha-hint" key={o.id}>Sua oferta aguarda resposta nesta rodada: {offerText(game,o)}.<button disabled={locked} onClick={()=>void send({type:'RESPOND_TRADE',offerId:o.id,accept:false})}>Retirar</button></div>)}
+    {offers.filter(o=>o.status==='ACCEPTED').map(o=><div className="alpha-hint" key={o.id}>Em aberto: {offerText(game,o)}.</div>)}
+    {offers.filter(o=>o.status==='DEFAULTED').slice(-2).map(o=><div className="alpha-warning" key={o.id}>Calote: {offerText(game,o)}.</div>)}
+    <form onSubmit={e=>{e.preventDefault();void send({type:'PROPOSE_TRADE',recipientId:otherId,offerType:kind,offer:give,request:spec.get?get:noGoods(),treatyTerms:[],dueRound:spec.due?due:null}).then(ok=>{if(ok){setGive(noGoods());setGet(noGoods());}});}}>
+      <label>Tipo de oferta<select value={kind} onChange={e=>setKind(e.target.value)}>{Object.entries(TRADE_KINDS).map(([key,entry])=><option key={key} value={key}>{entry.name}</option>)}</select></label>
+      <p className="alpha-treaty-help">{spec.help} Ofertas valem até o fim da rodada.</p>
+      <div className="alpha-form-row"><GoodsInputs title={spec.give} value={give} onChange={setGive}/>{spec.get&&<GoodsInputs title={spec.get} value={get} onChange={setGet}/>}</div>
+      {spec.due&&<label>Prazo<select value={due} onChange={e=>setDue(Number(e.target.value))}>{dueChoices.map(r=><option key={r} value={r}>Rodada {r}</option>)}</select></label>}
+      <button disabled={locked||(spec.due&&dueChoices.length===0)}>Enviar oferta · 1 ação</button>
+    </form></div>;
+}
+
 /** One card per other civilization: relation, agreements, pending proposals and what can be decided now. */
 function RelationCard({game,locked,send,otherId}:Panel&{otherId:AlphaPlayerView['self']['playerId']}){
   const [kind,setKind]=useState('TRADE_AGREEMENT'),[withDeal,setWithDeal]=useState(false),[give,setGive]=useState(emptyResourcePool()),[receive,setReceive]=useState(emptyResourcePool()),[confirmWar,setConfirmWar]=useState(false);
@@ -129,7 +167,7 @@ function RelationCard({game,locked,send,otherId}:Panel&{otherId:AlphaPlayerView[
     <header><h3>{name}<small>{CIVILIZATIONS.find(c=>c.id===game.players.find(p=>p.id===otherId)?.civilization)?.name}</small></h3><span className={`alpha-relation-status ${war?'war':contact?'peace':'unknown'}`}>{status}</span></header>
     {!contact&&<p>Ainda não encontrada. Avistar uma peça ou cidade desta civilização abre a negociação.</p>}
     {active.length>0&&<ul className="alpha-relation-list">{active.map(t=><li key={t.id}><b>{text(t.type)}</b> · até a rodada {t.expiresRound}<button disabled={locked} onClick={()=>void send({type:'END_TREATY',treatyId:t.id})}>Encerrar (−2 Prestígio)</button></li>)}</ul>}
-    {incoming.map(t=><div className="alpha-relation-proposal" key={t.id} role="group" aria-label={`Proposta de ${name}`}><p><b>{name} propõe {text(t.type)}</b>. {TREATY_HELP[t.type]}</p>{(Object.values(t.deal.give).some(Boolean)||Object.values(t.deal.receive).some(Boolean))&&<p className="alpha-deal-summary">Você recebe <ResourceDisplay values={t.deal.give} compact/> e entrega <ResourceDisplay values={t.deal.receive} compact/></p>}<button className="primary" disabled={locked} onClick={()=>void send({type:'RESPOND_TREATY',treatyId:t.id,accept:true})}>Aceitar</button><button disabled={locked} onClick={()=>void send({type:'RESPOND_TREATY',treatyId:t.id,accept:false})}>Recusar</button></div>)}
+    {incoming.map(t=><div className="alpha-relation-proposal" key={t.id} role="group" aria-label={`Proposta de ${name}`}><p><b>{name} propõe {text(t.type)}</b>. {TREATY_HELP[t.type]}</p>{(Object.values(t.deal.give).some(Boolean)||Object.values(t.deal.receive).some(Boolean))&&<div className="alpha-deal-summary">Você recebe <ResourceDisplay values={t.deal.give} compact/> e entrega <ResourceDisplay values={t.deal.receive} compact/></div>}<button className="primary" disabled={locked} onClick={()=>void send({type:'RESPOND_TREATY',treatyId:t.id,accept:true})}>Aceitar</button><button disabled={locked} onClick={()=>void send({type:'RESPOND_TREATY',treatyId:t.id,accept:false})}>Recusar</button></div>)}
     {outgoing.map(t=><p key={t.id} className="alpha-hint">Sua proposta de {text(t.type)} {t.status==='ACCEPTED'?'foi aceita e entra em vigor na resolução.':'aguarda resposta.'}{t.status==='PROPOSED'&&<button disabled={locked} onClick={()=>void send({type:'END_TREATY',treatyId:t.id})}>Retirar</button>}</p>)}
     {planned.map(a=><p key={a.id} className="alpha-hint">Planejado nesta rodada: {a.type==='PROPOSE_TREATY'?`proposta de ${text(a.treaty)}`:'declaração de guerra'}.<button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:a.id})}>Cancelar</button></p>)}
     {contact&&<div className="alpha-relation-actions">
@@ -142,6 +180,7 @@ function RelationCard({game,locked,send,otherId}:Panel&{otherId:AlphaPlayerView[
       </form>
       {!war&&!planned.some(a=>a.type==='DECLARE_WAR')&&(confirmWar?<div className="alpha-war-confirm" role="alert"><p>Declarar guerra a {name} encerra os acordos entre vocês (−2 Prestígio por acordo) e chama os aliados defensivos de {name}.</p><button className="danger" disabled={locked} onClick={()=>void send({type:'DECLARE_WAR',targetId:otherId}).then(()=>setConfirmWar(false))}>Confirmar declaração de guerra</button><button onClick={()=>setConfirmWar(false)}>Manter a paz</button></div>
         :<button className="alpha-war-button" disabled={locked} onClick={()=>setConfirmWar(true)}>Declarar guerra…</button>)}
+      {!war&&<TradePanel game={game} locked={locked} send={send} otherId={otherId}/>}
       {war&&<p className="alpha-hint">Em guerra: ataque com peças militares adjacentes pelo painel Militar. Um pacto de não agressão ou aliança aceito encerra a guerra.</p>}
     </div>}
   </article>;
