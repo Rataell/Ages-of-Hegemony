@@ -104,7 +104,7 @@ export function AlphaCards({game,locked,send,cityId}:Panel&{cityId:string|null})
 }
 
 const TREATY_HELP:Record<string,string>={
-  TRADE_AGREEMENT:'Permite rotas comerciais entre as duas civilizações, desde que estejam em paz e sem embargo.',
+  TRADE_AGREEMENT:'Permite rotas comerciais entre as duas civilizações, inclusive pelo território do parceiro, desde que estejam em paz e sem embargo.',
   NON_AGGRESSION_PACT:'Compromisso de paz. Ao ser ativado, encerra uma guerra em curso entre as duas.',
   OPEN_BORDERS:'As peças de cada uma podem atravessar o território da outra.',
   DEFENSIVE_PACT:'Se uma das duas sofrer uma declaração de guerra, a outra entra na guerra contra o agressor.',
@@ -192,7 +192,7 @@ export function AlphaDiplomacy({game,locked,send}:Panel){
   const others=game.players.filter(p=>p.id!==game.self.playerId).sort((a,b)=>Number(game.self.contacts.includes(b.id))-Number(game.self.contacts.includes(a.id)));
   return <section className="alpha-panel"><p className="eyebrow">MESA DE NEGOCIAÇÃO</p><h2>Diplomacia</h2><p>Propostas e declarações são planejadas como ações principais e resolvidas na fase Diplomacia. A resposta a uma proposta é livre.</p>
     <div className="alpha-relations">{others.map(p=><RelationCard key={p.id} game={game} locked={locked} send={send} otherId={p.id as AlphaPlayerView['self']['playerId']}/>)}</div>
-    <h3>Rotas comerciais</h3><form className="alpha-card" onSubmit={e=>{e.preventDefault();void send({type:'QUEUE_ORDER',order:{id:`trade-${game.version}`,type:'TRADE',fromCityId:from,toCityId:to}});}}><div className="alpha-form-row"><label>Origem<select value={from} onChange={e=>setFrom(e.target.value)}>{game.view.player.civilization.cities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Destino visível<select value={to} onChange={e=>setTo(e.target.value)}><option value="">Selecione uma cidade</option>{cities.filter(c=>c.id!==from).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label></div><button disabled={locked||!to}>Reservar rota</button><p>Requer caminho conhecido e acesso às fronteiras. Comércio internacional também requer acordo comercial e paz.</p></form>{game.routes.map(r=><p key={r.id}>{cities.find(c=>c.id===r.fromCityId)?.name??'Origem'} — {cities.find(c=>c.id===r.toCityId)?.name??'Destino conhecido'} · {r.suspended?'Suspensa':'Ativa'}</p>)}
+    <h3>Rotas comerciais</h3><form className="alpha-card" onSubmit={e=>{e.preventDefault();void send({type:'QUEUE_ORDER',order:{id:`trade-${game.version}`,type:'TRADE',fromCityId:from,toCityId:to}});}}><div className="alpha-form-row"><label>Origem<select value={from} onChange={e=>setFrom(e.target.value)}>{game.view.player.civilization.cities.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Destino visível<select value={to} onChange={e=>setTo(e.target.value)}><option value="">Selecione uma cidade</option>{cities.filter(c=>c.id!==from).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label></div><button disabled={locked||!to}>Reservar rota</button><p>Requer caminho conhecido. Rota internacional requer acordo comercial ativo (que abre o território do parceiro à rota) e paz; guerra ou embargo a suspendem.</p></form>{game.routes.map(r=><p key={r.id}>{cities.find(c=>c.id===r.fromCityId)?.name??'Origem'} — {cities.find(c=>c.id===r.toCityId)?.name??'Destino conhecido'} · {r.suspended?'Suspensa':'Ativa'}</p>)}
   </section>;
 }
 

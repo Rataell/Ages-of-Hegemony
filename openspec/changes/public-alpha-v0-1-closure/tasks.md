@@ -45,7 +45,7 @@
 - [x] 6.2 Implement `INDEPENDENT_ACTION` for trade, negotiate, influence, protect, integrate, conquer with fog-safe results; gate: independent-people tests. Peoples are placed in contested ground for 2–6 seats; the projection lists each action with cost and the exact missing condition (dry run); `tests/alpha-independents.test.ts`.
 - [x] 6.3 Implement raid-band movement and attacks; gate: deterministic raid test. Bands start in the wilderness and are projected only inside current vision; `tests/alpha-raids.test.ts`.
 - [x] 6.4 Implement `PROPOSE_TRADE` and `RESPOND_TRADE` for the four offer types, with settle and default; gate: trade tests. Instant trade, gift, future promise and loan in the seven-resource vocabulary, exact goods only (no wealth substitution), refused at war or under embargo; unanswered offers lapse at round end; due promises and loans settle in maintenance or default with −2 Prestige, told to both parties; `tests/alpha-trade.test.ts`.
-- [ ] 6.5 Sever or suspend routes on capture and war; gate: route tests.
+- [x] 6.5 Sever or suspend routes on capture and war; gate: route tests. Maintenance re-validates every route: war, embargo or a lost origin suspend it, peace restores it; a trade agreement opens the partner's territory to the route. `tests/alpha-routes.test.ts`.
 
 ## 7. G. Multiplayer and privacy
 

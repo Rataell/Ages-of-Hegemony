@@ -79,11 +79,13 @@ export function tradePath(state:AlphaState,actor:PlayerId,fromCityId:string,toCi
   const cities=state.core.players.flatMap(p=>p.civilization.cities);const from=cities.find(c=>c.id===fromCityId&&c.ownerId===actor),to=cities.find(c=>c.id===toCityId);
   if(!from||!to||from.id===to.id)throw new Error('Escolha duas cidades distintas e uma origem própria.');
   if(to.ownerId!==actor&&(!hasTreaty(state,actor,to.ownerId,'TRADE_AGREEMENT')||atWar(state,actor,to.ownerId)||hasTreaty(state,actor,to.ownerId,'EMBARGO')))throw new Error('Comércio internacional requer acordo ativo, paz e ausência de embargo.');
+  // The trade agreement itself opens the partner's territory to the route (caravans, not armies).
+  const partner=to.ownerId!==actor?to.ownerId:null;
   const known=new Set(state.players.find(p=>p.playerId===actor)!.knownHexIds);const byId=new Map(state.core.map.map(t=>[t.id,t]));
   const queue=[[from.hexId]],seen=new Set([from.hexId]);
   for(let i=0;i<queue.length;i++) {
     const path=queue[i]!;const id=path.at(-1)!;if(id===to.hexId)return path;
-    for(const point of hexNeighbors(byId.get(id)!)){const next=byId.get(hexId(point));if(next&&known.has(next.id)&&!seen.has(next.id)&&bordersOpen(state,actor,next.ownerId)){seen.add(next.id);queue.push([...path,next.id]);}}
+    for(const point of hexNeighbors(byId.get(id)!)){const next=byId.get(hexId(point));if(next&&known.has(next.id)&&!seen.has(next.id)&&(bordersOpen(state,actor,next.ownerId)||next.ownerId===partner)){seen.add(next.id);queue.push([...path,next.id]);}}
   }
   throw new Error('Não há caminho conhecido com acesso permitido entre essas cidades.');
 }
