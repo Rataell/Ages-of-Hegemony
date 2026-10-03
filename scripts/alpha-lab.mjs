@@ -120,6 +120,7 @@ try{
     await snapshot(`round-${round}-planned`);
     for(const [index,{page}] of seats.entries()){
       await page.getByRole('button',{name:'Confirmar planejamento',exact:true}).click();
+      const anyway=page.getByRole('button',{name:'Confirmar mesmo assim',exact:true});if(await anyway.isVisible().catch(()=>false))await anyway.click();
       if(index<seats.length-1)await page.getByRole('button',{name:'Aguardando outras pessoas',exact:true}).waitFor();
     }
     const advanced=await Promise.race([

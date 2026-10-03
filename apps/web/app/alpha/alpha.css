@@ -317,3 +317,11 @@ button.alpha-card { text-align: left; }
 .alpha-standings tbody tr:first-child td:first-child { color: var(--accent); font-weight: 700; }
 .alpha-finale-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .alpha-game > .alpha-finale button { margin-top: 4px; }
+
+/* Confirmation check: things the player probably meant to do this round. */
+.alpha-ready-check { position: absolute; right: 16px; bottom: calc(100% + 8px); z-index: 45; width: min(420px, calc(100vw - 32px)); padding: 14px 16px; border: 1px solid var(--warning); background: var(--surface-elevated); box-shadow: 0 12px 40px #000a; }
+.alpha-ready-check h3 { margin: 0 0 6px; font-size: 14px; }
+.alpha-ready-check ul { margin: 0 0 10px; padding-left: 18px; font-size: 13px; color: var(--text-secondary); display: grid; gap: 4px; }
+.alpha-ready-check button { margin-right: 8px; }
+.alpha-round-bar { position: relative; }
+.alpha-ready-check li::before, .alpha-ready-check li::after { content: none !important; }

@@ -82,7 +82,8 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(pa.locator('html')).toHaveAttribute('data-alpha-theme','DARK');
     const phase=async(page:typeof pa,text:string)=>expect(page.locator('.alpha-round-bar')).toContainText(text);
     const game=async()=>(await repository.find(gameId))!.game!;
-    const confirm=async(page:typeof pa,label:string)=>page.getByRole('button',{name:label,exact:true}).click();
+    // Confirming may first list what is left undone (idle pieces, a city without action); the player confirms anyway.
+    const confirm=async(page:typeof pa,label:string)=>{await page.getByRole('button',{name:label,exact:true}).click();const anyway=page.getByRole('button',{name:'Confirmar mesmo assim',exact:true});if(await anyway.isVisible().catch(()=>false))await anyway.click();};
     async function bothConfirm(label:string,next:string){
       // No reload: a page that is behind recovers by itself (VERSION_CONFLICT -> refresh -> one retry).
       await confirm(pa,label);await expect(pb.locator('.alpha-round-bar')).toContainText('1 / 2 prontos');
