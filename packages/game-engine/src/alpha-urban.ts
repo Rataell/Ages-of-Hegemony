@@ -83,7 +83,12 @@ export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, a
     case 'PRODUCE': return null;
     case 'BUILD': return params.build ? buildBlock(state, actor, cityId, params.build) : 'Escolha o que construir.';
     case 'RECRUIT': return params.unit ? recruitBlock(state, actor, cityId, params.unit) : 'Escolha a peça a recrutar.';
-    case 'RESEARCH': return params.advancementId ? researchBlock(state, actor, params.advancementId) : 'Escolha o avanço a pesquisar.';
+    case 'RESEARCH': {
+      if (!params.advancementId) return 'Escolha o avanço a pesquisar.';
+      // While planning, a second city cannot reserve an advancement another city already reserved: it would be a lost action.
+      const reserved = state.phase === 'PLANNING' && state.players.find(player => player.playerId === actor)?.plannedActions.some(planned => planned.type === 'URBAN_ACTION' && planned.action === 'RESEARCH' && planned.advancementId === params.advancementId);
+      return reserved ? 'Este avanço já está planejado em outra cidade nesta rodada.' : researchBlock(state, actor, params.advancementId);
+    }
     case 'PROMOTE_MOOD':
       if (meta.mood >= balance.promoteMoodCeiling) return 'O investimento público não eleva o ânimo além do limite; outras ações são necessárias.';
       return alphaCanAfford(state, actor, { ...emptyAlphaResourcePool(), wealth: balance.publicInvestmentCost }) ? null : 'Recursos insuficientes para esta ação.';

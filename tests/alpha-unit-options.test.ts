@@ -141,3 +141,19 @@ describe('claim options', () => {
     expect(alphaClaimOptions(state, actor)[city.id]).toEqual([]);
   });
 });
+
+describe('research reservations', () => {
+  it('refuses reserving the same advancement in a second city while planning', async () => {
+    const { settleWithPioneer, applyAlphaCommand: run, urbanOptions } = await import('@aoh/game-engine');
+    let state = setup();
+    const actor = state.players[0]!.playerId, pioneer = state.units.find(unit => unit.ownerId === actor && unit.kind === 'PIONEER')!;
+    pioneer.hexId = state.core.map.find(tile => ['PLAINS', 'HILLS', 'FOREST'].includes(tile.terrain) && tile.ownerId === null && state.core.players.every(player => player.civilization.cities.every(city => hexDistance(tile, state.core.map.find(t => t.id === city.hexId)!) >= 4)))!.id;
+    state.players[0]!.resources = { ...state.players[0]!.resources, food: 20, wood: 10, stone: 10, wealth: 20, knowledge: 20 };
+    settleWithPioneer(state, actor, pioneer.id, 'Segunda');
+    const [first, second] = state.core.players[0]!.civilization.cities.map(city => city.id);
+    const advancementId = urbanOptions(state, actor).research.find(option => option.blocked === null)!.advancementId!;
+    const reserve = (cityId: string) => run(state, actor, { type: 'URBAN_ACTION', expectedVersion: state.version, cityId, action: 'RESEARCH', advancementId });
+    const once = reserve(first!); expect(once.ok).toBe(true); if (once.ok) state = once.value;
+    expect(reserve(second!)).toMatchObject({ ok: false, error: { message: 'Este avanço já está planejado em outra cidade nesta rodada.' } });
+  });
+});
