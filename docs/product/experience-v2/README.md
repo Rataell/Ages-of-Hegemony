@@ -14,5 +14,6 @@ Proposta de experiência. **Não implementada no produto.**
 7. [Identidade das civilizações](06-identidade-civilizacoes.md) — emblema, padrão, cor do assento; UXDEC-009 e 010.
 8. [V2 → V2.1 e recomendação](07-v2-para-v21-recomendacao.md) — A/B, validação por perfil, UXDEC-011, recomendação.
 9. [Conceitos V2.1](concepts/v21-concepts.html) — `?f=` `10a`, `10b`, `11`–`20`, `cansa`.
+10. **Pranchas V2.1** no mesmo arquivo: `?f=c01` … `c20` (as 20 pranchas do canvas reescritas com as regras V2.1) e `mv21` … `mv26` (Mesa viva). São a fonte do canvas “Ages of Hegemony — Concepção de Produto, UI e UX” (versão 12, 2026-10-03), que agora tem 27 pranchas em 6 páginas. Os conceitos V2 (`v2-concepts.html`) ficam como histórico.
 
 Autoridade: Canonical Product Specification V4 e decisões aprovadas acima de tudo; as pranchas 01–20 da proposta anterior são referência histórica. Números nos conceitos são ilustrativos.
