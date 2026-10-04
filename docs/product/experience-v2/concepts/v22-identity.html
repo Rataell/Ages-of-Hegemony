@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AoH Identidade V2.2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+:root{--night:#0b1114;--stone:#121b20;--steel:#19252b;--steel2:#22323a;--line:#33474f;--bronze:#7d5c33;--gold:#c9a45c;--gold2:#e7c98a;--parch:#e8dbbb;--ink:#2a2116;--text:#eee8da;--muted:#b3c0bd;--dim:#93a3a0;--ok:#9ec4a2;--warn:#e5bf72;--bad:#e59a86}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05090b;color:var(--text);font:15px/1.45 'Source Sans 3',system-ui,sans-serif}
+.frame{position:relative;width:1440px;height:900px;overflow:hidden;background:var(--night);margin:0 auto 24px;padding:36px 44px}
+.frame.mesa{padding:0}
+.disp{font-family:Cinzel,Georgia,serif;letter-spacing:.04em}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700}
+h2{font:600 30px Cinzel,serif;letter-spacing:.03em;margin:4px 0 6px}
+.lead{color:var(--muted);max-width:1100px;font-size:16px}
+.muted{color:var(--muted)}.dim{color:var(--dim)}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:10px;padding:1px 8px;color:var(--muted)}
+.tag.fut{color:var(--warn);border-color:#6b5426}.tag.alpha{color:var(--ok);border-color:#3d5c45}.tag.prop{color:#b9b0e0;border-color:#4b4570}
+.lbl{font-size:13px;color:var(--muted);text-align:center}
+.lbl b{display:block;color:var(--text);font:600 14px Cinzel,serif}
+.glass{background:linear-gradient(180deg,rgba(25,37,43,.96),rgba(18,27,32,.96));border:1px solid var(--line);box-shadow:0 10px 30px #0009,inset 0 1px 0 #ffffff10;border-radius:12px}
+.btn{height:44px;padding:0 18px;border-radius:8px;border:1px solid var(--line);background:#16232a;color:var(--text);font:600 15px 'Source Sans 3';display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.primary{background:linear-gradient(180deg,#e2bf78,#c99f55);color:#1a1206;border-color:#e7c98a}
+.btn.sm{height:34px;padding:0 12px;font-size:14px}
+.gray{filter:grayscale(1)}
+.note{position:absolute;left:44px;right:44px;bottom:26px;font-size:14px;color:var(--dim)}
+table.t{border-collapse:collapse;font-size:14px}
+table.t td,table.t th{border-bottom:1px solid #22323a;padding:6px 10px;text-align:left;vertical-align:middle}
+table.t th{color:var(--dim);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+svg{display:block}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="art-v22.js"></script>
+<script>
+const A=window.AOH,{city,citySeal,fort,piece,ship,banner,seal,emblem,hexD,CIVS,CIV,LEVELS,FORTS,PIECES,SHIPS,BANNERS,SEALS,BORDERS,borderStyle,mix}=A;
+const TER={PLAINS:'#71844f',FOREST:'#3f6148',HILLS:'#857c68',MOUNTAINS:'#646d69',SEA:'#264a5c',COAST:'#3f6d7c'};
+const SEAT={azul:'#6ca7d9',verde:'#5cb3a5',terra:'#d48a6a',violeta:'#a691d6',oliva:'#a9bf6a',areia:'#d9bf86'};
+const root=document.getElementById('root');
+const frames=[];
+function F(id,html,cls=''){frames.push(`<section class="frame ${cls}" id="${id}" data-id="${id}">${html}</section>`);}
+function head(eye,title,lead){return `<div class="eyebrow">${eye}</div><h2>${title}</h2>${lead?`<p class="lead">${lead}</p>`:''}`;}
+const sv=(w,h,body,vb)=>`<svg width="${w}" height="${h}" viewBox="${vb||`${-w/2} ${-h/2} ${w} ${h}`}">${body}</svg>`;
+const hexTile=(r,t='PLAINS')=>`<path d="${hexD(r)}" fill="${TER[t]}" stroke="#0b111455" stroke-width="1"/>`;
+
+/* ---------- a1 · cidades A/B ---------- */
+(()=>{const r=74;let rows='';
+ for(const v of ['A','B']){let cells='';
+  for(let l=1;l<=7;l++)cells+=`<div style="width:172px">${sv(170,168,hexTile(r+4)+city(l,r,{col:SEAT.azul,variant:v,seed:3}))}<div class="lbl"><b>${l} · ${LEVELS[l-1]}</b></div></div>`;
+  rows+=`<div style="display:flex;align-items:flex-end;gap:10px;margin-top:22px"><div style="width:120px"><div class="disp" style="font-size:40px;color:var(--gold2)">${v}</div><div class="muted" style="font-size:14px">${v==='A'?'plano top-down puro <span class="tag prop">preferida</span>':'top-down com profundidade leve: sombra e cumeeira'}</div></div>${cells}</div>`;}
+ F('a1',head('V2.2 · Cidades','A cidade ocupa o hex e cresce pelo traçado urbano','Do Posto à Metrópole Imperial a cidade não fica mais alta: ganha casas, ruas, centro cívico, praça, segundo anel e cidadela. O telhado do centro cívico e a borda do hex usam a cor do assento; o resto é neutro.')+rows+
+ `<div class="note">Leitura por nível: 1 três cabanas e uma trilha · 2 clareira e praça · 3 duas ruas cruzadas · 4 quadras em grade · 5 avenidas diagonais · 6 anel viário do antigo limite e jardins · 7 cidadela com pátio e quatro torres. Muralhas não fazem parte da cidade: são overlay de fortificação (prancha seguinte).</div>`);})();
+
+/* ---------- a2 · LOD + fortificações ---------- */
+(()=>{
+ const lod=`<div style="display:flex;gap:36px;align-items:flex-end;margin-top:14px">
+  <div>${sv(120,120,`<rect x="-60" y="-60" width="120" height="120" fill="#71844f"/>`+[[-30,-20,5],[25,-28,2],[-5,25,3],[32,22,6]].map(([x,y,l])=>`<g transform="translate(${x},${y})">${citySeal(l,10,l>4?SEAT.verde:SEAT.azul)}</g>`).join(''))}<div class="lbl"><b>Afastado</b>selo compacto + nível (20 px)</div></div>
+  <div>${sv(150,140,hexTile(46)+city(5,42,{col:SEAT.azul,seed:5}))}<div class="lbl"><b>Normal</b>cidade top-down reconhecível (84 px)</div></div>
+  <div>${sv(250,240,hexTile(118)+city(5,112,{col:SEAT.azul,seed:5,detail:1,emblem:'passo'}))}<div class="lbl"><b>Foco</b>cumeeiras, jardins, emblema na praça</div></div></div>`;
+ let forts='';for(let f=1;f<=5;f++)forts+=`<div style="width:196px">${sv(190,176,hexTile(80)+city(4,64,{col:SEAT.azul,seed:9})+fort(f,64))}<div class="lbl"><b>${f} · ${FORTS[f-1]}</b>${['estacas tracejadas','muro contínuo, 3 torres quadradas','muro grosso, 6 torres redondas, portão','bastiões em ponta','fosso, bastiões e muralha interna'][f-1]}</div></div>`;
+ const dmg=`<div style="width:196px">${sv(190,176,hexTile(80)+city(4,64,{col:SEAT.azul,seed:9})+fort(3,64,{integrity:.45}))}<div class="lbl"><b>Integridade baixa</b>brechas com entulho</div></div>`;
+ F('a2',head('V2.2 · Escala e fortificação','Três distâncias, uma só cidade; a muralha é uma camada à parte','')+lod+`<div style="display:flex;gap:16px;margin-top:22px">${forts}${dmg}</div>`+
+ `<div class="note">A fortificação é desenhada sobre a borda do hex, nunca dentro da cidade. Assim o nível (traçado) e a defesa (overlay) se leem separados: uma Aldeia pode ter Paliçada; uma Metrópole pode não ter muralha.</div>`);})();
+
+/* ---------- a3 · atlas de peças ---------- */
+(()=>{const kinds=['infantaria','guarda','atiradores','cavalaria','cerco','explorador','pioneiro','enviado'];
+ const sig=['escudos','elefantes','estepes','naval','engenheiros'];
+ const cell=(k,px,col,t='PLAINS')=>sv(54,54,`<path d="${hexD(26)}" fill="${TER[t]}"/>`+piece(k,col,px));
+ const row=k=>`<tr><td><b>${PIECES[k].name}</b><div class="dim" style="font-size:12px">${PIECES[k].cls==='civ'?'civil':PIECES[k].cls==='sig'?`assinatura · ${PIECES[k].civ}`:'militar'}</div></td><td>${cell(k,36,SEAT.azul)}</td><td>${cell(k,28,SEAT.azul,'FOREST')}</td><td class="gray">${cell(k,28,SEAT.azul)}</td><td>${cell(k,36,SEAT.verde,'HILLS')}</td><td>${cell(k,36,SEAT.terra,'MOUNTAINS')}</td></tr>`;
+ const th=`<tr><th>Família</th><th>36 px</th><th>28 px</th><th>Cinza</th><th>Outro assento</th><th>Outro terreno</th></tr>`;
+ F('a3',head('V2.2 · Peças','A forma diz o que é; a cor diz de quem é','Militares: silhueta cheia com contorno escuro. Civis: disco de pergaminho com aro do assento. Assinatura: silhueta da família com variação e estrela.')+
+ `<div style="display:flex;gap:40px;margin-top:10px"><table class="t">${th}${kinds.map(row).join('')}</table><table class="t">${th}${sig.map(row).join('')}<tr><td colspan="6" style="border:0;padding-top:16px" class="muted">Degrau tecnológico (UXDEC-015): pontos na base, sem trocar a silhueta.<div style="display:flex;gap:14px;margin-top:8px">${[0,1,2,3].map(t=>sv(54,60,`<path d="${hexD(26)}" fill="${TER.PLAINS}"/>`+piece('infantaria',SEAT.azul,32,{tier:t}))).join('')}</div><div style="margin-top:10px">Pilha: a família dominante + contagem.</div><div style="display:flex;gap:14px;margin-top:8px">${sv(54,54,`<path d="${hexD(26)}" fill="${TER.PLAINS}"/>`+piece('infantaria',SEAT.azul,36,{n:4}))}${sv(54,54,`<path d="${hexD(26)}" fill="${TER.PLAINS}"/>`+piece('cavalaria',SEAT.verde,36,{n:3}))}${sv(54,54,`<path d="${hexD(26)}" fill="${TER.PLAINS}"/>`+piece('escudos',SEAT.azul,36,{n:2}))}</div></td></tr></table></div>`);})();
+
+/* ---------- shared hex map ---------- */
+function terrainAt(q,r,seed=1){const R=A.rng(seed*7919+q*131+r*977);const n=Math.sin(q*.55+seed)+Math.cos(r*.7-seed*.3)+Math.sin((q+r)*.35)*.8+R()*.5;
+ if(q<3+((r*7)%3===0?1:0)||(r>9&&q<7))return 'SEA';if(q<5&&!(r>9&&q>=7))return 'COAST';
+ return n>1.7?'MOUNTAINS':n>1.05?'HILLS':n<-.6?'FOREST':'PLAINS';}
+function hexMap(o){const{cols,rows,R,W,H}=o;const S=Math.sqrt(3);let g='';const pos=(q,r)=>[o.ox+(q+(r&1)*.5)*S*R,o.oy+r*1.5*R];
+ const tiles=[];for(let r=0;r<rows;r++)for(let q=0;q<cols;q++){const t=(o.ter||terrainAt)(q,r,o.seed||1);const[x,y]=pos(q,r);tiles.push({q,r,t,x,y});g+=`<path d="${hexD(R,x,y)}" fill="${TER[t]}" stroke="#0b111433" stroke-width="1"/>`;}
+ return{g,pos,tiles};}
+
+/* ---------- a4 · peças no mapa inteiro ---------- */
+(()=>{const R=26,M=hexMap({cols:30,rows:16,R,ox:30,oy:26,seed:4});let g=M.g;const P=(q,r)=>M.pos(q,r);
+ const put=(q,r,k,col,n)=>{const[x,y]=P(q,r);g+=`<g transform="translate(${x},${y})">${piece(k,col,30,{n})}</g>`;};
+ const ct=(q,r,l,col,f)=>{const[x,y]=P(q,r);g+=`<g transform="translate(${x},${y})">${city(l,R,{col,seed:q*3+r})}${f?fort(f,R):''}</g>`;};
+ ct(12,5,5,SEAT.azul,2);ct(20,9,4,SEAT.verde,1);ct(8,11,2,SEAT.azul);ct(25,4,3,SEAT.verde);
+ const ks=['infantaria','guarda','atiradores','cavalaria','cerco','explorador','pioneiro','enviado','escudos'];
+ ks.forEach((k,i)=>put(9+i*2,2+(i%3),k,SEAT.azul,i%4===0?3:1));ks.forEach((k,i)=>put(10+i*2,13-(i%3),k,SEAT.verde,i%3===0?2:1));
+ const[sx,sy]=P(2,8);g+=`<g transform="translate(${sx},${sy})">${ship('guerra',SEAT.verde,44)}</g>`;const[mx,my]=P(1,4);g+=`<g transform="translate(${mx},${my})">${ship('mercante',SEAT.azul,38)}</g>`;
+ const map=`<svg width="1350" height="640" viewBox="0 0 1350 640">${g}</svg>`;
+ F('a4',head('V2.2 · Teste no mapa','Mapa inteiro, zoom de jogo, depois em cinza','Hex de 52 px, peças de 30 px. Linha de cima: assento azul. Linha de baixo: assento verde-água, cor próxima de propósito.')+
+ `<div style="display:flex;gap:14px;margin-top:8px"><div style="width:660px;height:600px;overflow:hidden;border-radius:10px;border:1px solid var(--line)"><div style="transform:scale(.49);transform-origin:0 0">${map}</div></div><div class="gray" style="width:660px;height:600px;overflow:hidden;border-radius:10px;border:1px solid var(--line)"><div style="transform:scale(.49);transform-origin:0 0">${map}</div></div></div>`);
+ F('a4b',head('V2.2 · Teste no mapa','Recorte em tamanho real (100%)','Sem rótulos. Cada peça deve ser nomeada em menos de um segundo pela forma.')+`<div style="display:flex;gap:14px;margin-top:8px"><div style="width:660px;height:640px;overflow:hidden;border-radius:10px;border:1px solid var(--line)"><div style="margin:-20px 0 0 -200px">${map}</div></div><div class="gray" style="width:660px;height:640px;overflow:hidden;border-radius:10px;border:1px solid var(--line)"><div style="margin:-20px 0 0 -200px">${map}</div></div></div>`);})();
+
+/* ---------- a5 · naval ---------- */
+(()=>{const ks=Object.keys(SHIPS);
+ const rows=ks.map(k=>`<tr><td style="width:250px"><b>${SHIPS[k].name}</b><div class="dim" style="font-size:13px">${SHIPS[k].fn}</div></td><td>${sv(150,70,`<rect x="-75" y="-35" width="150" height="70" fill="${TER.SEA}"/>`+ship(k,SEAT.azul,92))}</td><td>${sv(90,54,`<rect x="-45" y="-27" width="90" height="54" fill="${TER.COAST}"/>`+ship(k,SEAT.verde,56))}</td><td class="gray">${sv(90,54,`<rect x="-45" y="-27" width="90" height="54" fill="${TER.SEA}"/>`+ship(k,SEAT.azul,56))}</td><td>${sv(60,44,`<rect x="-30" y="-22" width="60" height="44" fill="${TER.SEA}"/>`+ship(k,SEAT.terra,38))}</td></tr>`).join('');
+ F('a5',head('V2.2 · Naval','Sete cascos, sete funções, vistos de cima','<span class="tag fut">Futuro no Alpha</span> O Alpha tem uma só classe Frota e nenhuma capital costeira recruta (doc 09). Aqui fica o visual pronto; o motor não muda até a DEC-014.')+
+ `<table class="t" style="margin-top:10px"><tr><th>Navio · função visível</th><th>Foco</th><th>Jogo (56 px)</th><th>Cinza</th><th>Mínimo (38 px)</th></tr>${rows}</table>`+
+ `<div class="note">Gramática: remos = costeiro e manobra · porões quadrados = comércio · círculos no convés = vagas de transporte · esporão e escudos = combate a remo · castelos = alto-mar · portinholas = combate a distância. A proa sempre aponta para o destino.</div>`);})();
+
+/* ---------- a6 · civilizações ---------- */
+(()=>{const card=c=>`<div class="glass" style="width:212px;padding:12px 10px;display:flex;gap:8px;align-items:center">
+  ${sv(56,56,seal(c.id,SEAT.azul,22))}${sv(40,60,banner(c.id,SEAT.azul,54),'-20 -56 40 60')}
+  <div style="flex:1"><div class="disp" style="font-size:15px">${c.name}</div><div class="dim" style="font-size:12px">${SEALS[c.seal]} · ${BANNERS[c.banner]}</div>
+  ${sv(110,12,`<path d="M2,6 L108,6" ${borderStyle(c.id,SEAT.azul,2.2)[0]}/>${borderStyle(c.id,SEAT.azul,2.2)[1]?`<path d="M2,6 L108,6" ${borderStyle(c.id,SEAT.azul,2.2)[1]}/>`:''}`,'0 0 110 12')}
+  <div style="font-size:11px" class="${c.alpha?'ok':'warn'}">${c.alpha?'Alpha':'só Bíblia'} · borda ${BORDERS[c.border].toLowerCase()}</div></div></div>`;
+ F('a6',head('V2.2 · Civilizações','Identidade = emblema + selo + bandeira + padrão de borda','Todas em azul de propósito: a cor é do assento, não da civilização. Cada par (selo, bandeira) é único entre as 18; o emblema também.')+
+ `<div style="display:grid;grid-template-columns:repeat(6,212px);gap:12px;margin-top:12px">${CIVS.map(card).join('')}</div>`+
+ `<div class="note">3 selos × 6 bandeiras = 18 combinações únicas. A borda territorial usa a cor do assento com o padrão da civilização, então duas civilizações em azuis parecidos continuam separadas pela linha. Os selos procedurais da Bíblia (sigil) ficam como exploração; estes emblemas também são proposta, não arte final.</div>`);})();
+
+/* ---------- a7 · colisões ---------- */
+F('a7',head('V2.2 · Colisões','Comparação em cinza e a 14 px, medida por sobreposição','Cada emblema é desenhado num bitmap de 28 px; a tabela mostra os pares mais parecidos (interseção sobre união dos traços).')+
+ `<div style="display:flex;gap:30px;margin-top:10px"><div><div class="gray" style="display:grid;grid-template-columns:repeat(6,92px);gap:8px">${CIVS.map(c=>`<div style="text-align:center">${sv(46,46,seal(c.id,'#c8c8c8',17))}<div style="display:flex;justify-content:center;gap:6px;margin:4px 0">${sv(14,14,emblem(c.em,0,0,.55,'#ddd',1.4))}${sv(20,30,banner(c.id,'#9a9a9a',26),'-10 -27 20 30')}</div><div class="dim" style="font-size:12px">${c.name}</div></div>`).join('')}</div></div>
+ <div><table class="t" id="coll"><tr><th>Par</th><th>Semelhança</th><th>Outros canais</th><th>Veredito</th></tr></table><p class="muted" style="margin-top:12px;max-width:520px;font-size:14px">Regra: a partir de 0,45 o emblema sozinho é arriscado e o par precisa diferir em pelo menos dois de três canais (selo, bandeira, borda). Por construção nenhum par repete selo e bandeira. A medida é grosseira (todo emblema ocupa o mesmo quadro); ela ordena os pares para revisão humana, não substitui o teste com jogadores.</p></div></div>`);
+
+/* ---------- a8 · bandeira aplicada ---------- */
+(()=>{const V='valgard',T='thalos',cv=SEAT.azul,ct=SEAT.verde;
+ const box=(t,inner,w=300)=>`<div class="glass" style="width:${w}px;padding:12px 14px"><div class="eyebrow" style="font-size:11px;margin-bottom:8px">${t}</div>${inner}</div>`;
+ const cityB=sv(260,190,hexTile(84)+city(4,76,{col:cv,seed:2})+fort(2,76)+`<g transform="translate(56,-46)">${banner(V,cv,42)}</g>`,'-130 -100 260 190');
+ const sel=sv(260,150,`<rect x="-130" y="-75" width="260" height="150" fill="${TER.PLAINS}"/><circle r="27" fill="none" stroke="#f4ecd8" stroke-width="2" stroke-dasharray="5 4"/>${piece('pioneiro',cv,36)}<g transform="translate(26,-12)">${banner(V,cv,30)}</g><path d="M30,20 Q70,36 104,18" stroke="#f4ecd8" stroke-width="2" stroke-dasharray="4 5" fill="none"/><path d="${hexD(18,110,14)}" fill="none" stroke="#f4ecd8" stroke-width="2"/>`);
+ const lobby=['valgard','thalos','meridia','kor'].map((c,i)=>{const col=[cv,ct,SEAT.terra,SEAT.violeta][i];return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #22323a">${sv(30,40,banner(c,col,34),'-15 -36 30 40')}${sv(32,32,seal(c,col,12))}<div><b>${['Beto','Davi','Clara','Eva'][i]}</b> <span class="dim">· ${CIV[c].name}</span></div><span class="tag" style="margin-left:auto;${i<2?'color:var(--ok)':''}">${i<2?'pronto':'escolhendo'}</span></div>`;}).join('');
+ const dip=`<div style="display:flex;align-items:center;justify-content:space-between">${sv(60,70,banner(V,cv,56),'-30 -60 60 70')}<div style="text-align:center"><div class="disp" style="font-size:16px">Pacto de Não Agressão</div><div class="dim" style="font-size:13px">3 rodadas · proposta de Beto</div><div style="margin-top:8px;display:flex;gap:8px;justify-content:center"><span class="btn sm">Recusar</span><span class="btn sm primary">Aceitar</span></div></div>${sv(60,70,banner(T,ct,56),'-30 -60 60 70')}</div>`;
+ const rank=[['valgard',cv,'Beto',38],['thalos',ct,'Davi',35],['meridia',SEAT.terra,'Clara',29],['kor',SEAT.violeta,'Eva',22]].map(([c,col,n,p],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:5px 0"><span class="disp dim" style="width:16px">${i+1}</span><span style="width:4px;height:26px;background:${col};border-radius:2px"></span>${sv(24,32,banner(c,col,28),'-12 -30 24 32')}<span>${n}</span><span class="dim" style="font-size:13px">${CIV[c].name}</span><b class="disp" style="margin-left:auto">${p}</b></div>`).join('');
+ const cap=sv(300,190,hexTile(84)+city(3,76,{col:ct,seed:6})+`<g transform="translate(-60,-40)" opacity=".55">${banner(V,cv,40,{tilt:-38})}</g><g transform="translate(52,-44)">${banner(T,ct,46)}</g>`,'-150 -100 300 190');
+ F('a8',head('V2.2 · Bandeira aplicada','O mesmo estandarte em seis lugares','Pequeno, sempre na mesma forma; o campo leva a cor do assento, o desenho leva a civilização.')+
+ `<div style="display:grid;grid-template-columns:repeat(3,430px);gap:16px;margin-top:12px">
+  ${box('Cidade',cityB,430)}${box('Seleção',sel+'<div class="dim" style="font-size:13px;margin-top:6px">A peça selecionada mostra o estandarte; o caminho e o alvo são brancos, nunca dourados.</div>',430)}${box('Lobby',lobby,430)}
+  ${box('Diplomacia',dip,430)}${box('Ranking',rank,430)}${box('Captura',cap+'<div class="dim" style="font-size:13px">A bandeira antiga cai e esmaece; a nova sobe. Sem texto permanente.</div>',430)}</div>`);})();
+
+/* ---------- a9 · kit de civilização ---------- */
+(()=>{const c=CIV.valgard,col=SEAT.azul;
+ const cardF=(t,e)=>`<div style="width:170px;height:238px;border-radius:10px;background:var(--parch);color:var(--ink);border:2px solid #7d5c33;position:relative;overflow:hidden;box-shadow:0 6px 16px #0008"><div style="height:26px;background:#2e4a5a;color:#f4ecd8;font:600 12px Cinzel,serif;display:flex;align-items:center;padding:0 10px">Civilização</div><div style="position:absolute;right:6px;top:26px">${sv(24,32,banner('valgard',col,28),'-12 -30 24 32')}</div><div style="height:62px;margin:8px 10px;border-radius:6px;background:#d9c9a3;display:grid;place-items:center">${sv(60,60,emblem(c.em,0,0,1.6,'#2a2116',2.2))}</div><div style="padding:0 10px"><div style="font:600 14px Cinzel,serif">${t}</div><div style="font-size:12.5px;line-height:1.3;margin-top:4px">${e}</div></div><div style="position:absolute;bottom:6px;left:10px" class="tag prop">proposta</div></div>`;
+ const kv=(k,v,src)=>`<tr><th style="width:150px">${k}</th><td>${v} <span class="tag ${src==='Alpha'?'alpha':src==='Bíblia'?'':'prop'}">${src}</span></td></tr>`;
+ F('a9',head('V2.2 · Kit de Civilização','Valgard joga diferente desde a rodada 1','Exemplo completo; os 18 kits estão no doc 11 com a fonte de cada item.')+
+ `<div style="display:flex;gap:28px;margin-top:12px"><div class="glass" style="width:250px;padding:18px;text-align:center"><div style="width:110px;margin:0 auto">${sv(110,110,seal('valgard',col,44))}</div><div style="margin:6px auto 0;width:60px">${sv(60,80,banner('valgard',col,72),'-30 -74 60 80')}</div><div class="disp" style="font-size:24px;margin-top:6px">Valgard</div><div class="muted" style="font-size:14px">Guardas das passagens e construtores de refúgios</div><div class="dim" style="font-size:13px;margin-top:8px">Hexágono · Escudo · borda tracejada</div></div>
+ <div style="flex:1"><table class="t" style="width:100%">${kv('Traço','+1 alcance de suprimento em território próprio','Bíblia')}${kv('Herança inicial','1 Guarda e uma Pedreira','Bíblia')}${kv('Líder','Toren Hjalvar · Muralha Viva: +2 Força nesta rodada, 1× por Era','Alpha')}${kv('Assinatura','Guarda de Escudos: +1 GUARDA às muralhas da cidade que defende','Bíblia')}${kv('Limitação','Enviados custam +1 Influência','Bíblia')}</table>
+ <div style="display:flex;gap:20px;align-items:center;margin-top:16px">${sv(80,80,`<path d="${hexD(38)}" fill="${TER.HILLS}"/>`+piece('escudos',col,56))}${cardF('Passagem Guardada','Uma pilha em território próprio recebe +1 Força nesta rodada.')}${cardF('Refúgio da Montanha','Uma cidade em Colina ou Montanha recebe +2 de defesa nesta rodada.')}${cardF('Marco da Passagem','Reivindicar um hex nesta rodada custa −1 Influência.')}</div></div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:22px">${[['aurelia','sobra de Alimento guardada no crescimento','Celeiro Comum'],['valgard','+1 suprimento em território próprio','Guarda de Escudos'],['meridia','+1 Riqueza na 1ª oferta aceita da rodada','Caravana'],['thalos','região costeira revelada +1 Conhecimento','Infantaria Naval'],['saren','tratados aceitos +1 rodada','Enviado Senatorial'],['kor','Pedreira em Colina +1 Pedra','Engenheiros de Cerco'],['orinth','1º avanço de cada domínio −1','Astrônomo-Explorador'],['nymara','Ação cívica +1 Influência','Bardo-Enviado'],['veyra','Enviados −1 Riqueza','Embaixador Errante'],['solenne','visita em paz +1 Conhecimento','Santuário Solar'],['dravik','melhorias −1 Madeira','Aqueduto'],['elyra','região revelada +1 Conhecimento','Cartógrafa']].map(([id,tr,sg],i)=>`<div class="glass" style="padding:8px 10px;display:flex;gap:8px;align-items:center;border-radius:10px">${sv(26,34,banner(id,[SEAT.azul,SEAT.verde,SEAT.terra,SEAT.violeta][i%4],30),'-13 -32 26 34')}<div style="font-size:12.5px;line-height:1.3"><b class="disp" style="font-size:13px">${CIV[id].name}</b> <span class="dim">· ${sg}</span><div class="muted">${tr}</div></div></div>`).join('')}</div>`);})();
+
+/* ---------- a10 · cartas UX ---------- */
+(()=>{const fams=[['Estratégia','#2e4a5a'],['Estratégia','#2e4a5a'],['Civilização','#2e4a5a'],['Conselheiro','#4b3d5c'],['Estratégia','#2e4a5a']];
+ const names=['Mutirão','Forja Acesa','Passagem Guardada','Mestra de Obras','Rota Segura'];
+ const card=(i,w=120,big)=>`<div style="width:${w}px;height:${w*1.4}px;border-radius:9px;background:var(--parch);color:var(--ink);border:2px solid #7d5c33;overflow:hidden;box-shadow:0 8px 18px #000a"><div style="height:${w*.2}px;background:${fams[i][1]};color:#f4ecd8;font:600 ${w*.085}px Cinzel,serif;display:flex;align-items:center;padding:0 8px">${fams[i][0]}</div><div style="padding:8px"><div style="font:600 ${w*.11}px Cinzel,serif">${names[i]}</div>${big?'<div style="font-size:14px;margin-top:8px;line-height:1.35">Uma pilha em território próprio recebe +1 Força nesta rodada.</div><div style="margin-top:14px" class="btn sm primary">Jogar carta</div>':''}</div></div>`;
+ const fanClosed=`<div style="position:relative;height:200px">${[0,1,2,3,4].map(i=>`<div style="position:absolute;left:${20+i*26}px;top:${40+Math.abs(i-2)*4}px;transform:rotate(${(i-2)*7}deg);transform-origin:50% 120%">${card(i,90)}</div>`).join('')}</div>`;
+ const fanOpen=`<div style="position:relative;height:330px">${[0,1,3,4].map((i,j)=>`<div style="position:absolute;left:${10+j*58+(j>1?150:0)}px;top:${120+Math.abs(j-1.5)*10}px;transform:rotate(${(j-1.5)*8}deg);opacity:.85">${card(i,110)}</div>`).join('')}<div style="position:absolute;left:150px;top:0">${card(2,200,1)}</div></div>`;
+ const mob=`<div style="width:300px;height:620px;border-radius:26px;border:2px solid var(--line);overflow:hidden;position:relative;background:#71844f"><svg width="300" height="620">${hexMap({cols:7,rows:14,R:26,ox:0,oy:0,seed:9}).g}</svg><div class="glass" style="position:absolute;left:0;right:0;bottom:96px;border-radius:16px 16px 0 0;padding:10px 0 12px"><div style="width:40px;height:4px;background:var(--line);border-radius:2px;margin:0 auto 8px"></div><div style="display:flex;gap:10px;padding:0 12px;overflow:hidden">${[2,0,1,3].map(i=>card(i,96)).join('')}</div></div><div class="glass" style="position:absolute;left:0;right:0;bottom:0;height:96px;border-radius:0;padding:12px;display:flex;align-items:center;gap:10px"><div style="flex:1;font-size:14px">Cartas · 5 na mão</div><span class="btn sm">Fechar</span></div></div>`;
+ F('a10',head('V2.2 · Cartas na mesa','Leque recolhido na borda; uma carta em foco por vez','Nunca coluna vertical, nunca rolagem da página. No celular a mão vira gaveta horizontal acima da bandeja.')+
+ `<div style="display:flex;gap:40px;margin-top:16px;align-items:flex-start"><div><div class="eyebrow" style="font-size:11px">Desktop · recolhido</div>${fanClosed}<div class="dim" style="font-size:13px;width:260px;margin-top:20px">Só os topos aparecem na borda inferior esquerda. Passar o mouse levanta o leque.</div></div>
+ <div><div class="eyebrow" style="font-size:11px">Desktop · carta em foco</div>${fanOpen}<div class="dim" style="font-size:13px;width:520px">A carta focada cresce, diz o que fará e tem o único botão dourado; as outras recuam. Depois de jogada, um selo no alvo mostra o que ela fez.</div></div>
+ <div><div class="eyebrow" style="font-size:11px">Mobile · gaveta horizontal</div>${mob}</div></div>`);})();
+
+/* ---------- a11/a12 · Mesa V2.1 demo ---------- */
+function mesa(){const R=42,cv=SEAT.azul,ct=SEAT.verde,V='valgard',T='thalos';
+ const M=hexMap({cols:21,rows:14,R,ox:0,oy:40,seed:2,ter:(q,r)=>{const s=terrainAt(q,r,2);if(q<=3||(q<=5&&r>=8))return q<=2||(q<=4&&r>=9)?'SEA':'COAST';if(q===4&&r<8)return 'COAST';return s==='SEA'||s==='COAST'?'PLAINS':s;}});
+ let g=M.g;const P=M.pos;
+ // fog on the far east (unknown)
+ for(const t of M.tiles)if(t.q>=20&&t.r<9)g+=`<path d="${hexD(R,t.x,t.y)}" fill="#0b1114" opacity=".72"/>`;
+ // territories
+ const terr=(cq,cr,rad,civ,col)=>{let s='';for(const t of M.tiles){const d=Math.max(Math.abs(t.q-cq),Math.abs(t.r-cr));if(d<=rad&&t.t!=='SEA'){s+=`<path d="${hexD(R,t.x,t.y)}" fill="${col}" opacity=".1"/>`;}}
+  // outline: draw hex edges between inside and outside
+  const inside=(q,r)=>{const t=M.tiles.find(t=>t.q===q&&t.r===r);return t&&t.t!=='SEA'&&Math.max(Math.abs(q-cq),Math.abs(r-cr))<=rad;};
+  let d='';for(const t of M.tiles){if(!inside(t.q,t.r))continue;const odd=t.r&1;const nb=[[1,0],[odd?1:0,1],[odd?0:-1,1],[-1,0],[odd?0:-1,-1],[odd?1:0,-1]];const pts=A.hexPts(R,t.x,t.y);
+   nb.forEach(([dq,dr],i)=>{if(!inside(t.q+dq,t.r+dr)){const a=pts[i],b=pts[(i+1)%6];d+=`M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`;}});}
+  return s+borderStyle(civ,col,3).map(st=>`<path d="${d}" ${st}/>`).join('');};
+ g+=terr(11,4,2,V,cv)+terr(7,9,1,V,cv)+terr(16,8,2,T,ct)+terr(6,2,1,T,ct);
+ const at=(q,r,s)=>{const[x,y]=P(q,r);return `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)})">${s}</g>`;};
+ // cities
+ g+=at(11,4,city(5,R,{col:cv,seed:11})+fort(2,R)+`<g transform="translate(30,-22)">${banner(V,cv,34)}</g>`);
+ g+=at(7,9,city(2,R,{col:cv,seed:4})+`<g transform="translate(28,-20)">${banner(V,cv,30)}</g>`);
+ g+=at(16,8,city(4,R,{col:ct,seed:8})+fort(1,R)+`<g transform="translate(30,-22)">${banner(T,ct,34)}</g>`);
+ g+=at(6,2,city(3,R,{col:ct,seed:3})+`<g transform="translate(28,-20)">${banner(T,ct,30)}</g>`);
+ // ships
+ g+=at(3,5,`<g transform="rotate(-20)">${ship('guerra',ct,74)}</g>`);g+=at(2,9,`<g transform="rotate(10)">${ship('mercante',cv,84)}</g>`);
+ // pieces
+ g+=at(13,5,piece('infantaria',cv,36,{n:4}));g+=at(12,6,piece('escudos',cv,36,{n:2}));
+ g+=at(14,6,piece('cavalaria',ct,36,{n:3}));
+ g+=at(18,3,piece('explorador',cv,36));g+=at(15,3,piece('enviado',cv,36));
+ // card result seal on the infantry stack
+ const[ix,iy]=P(13,5);g+=`<g transform="translate(${ix+16},${iy-20})"><rect x="-4" y="-12" width="44" height="20" rx="10" fill="#e8dbbb" stroke="#0b1114"/><text x="18" y="2" text-anchor="middle" font-family="Source Sans 3" font-weight="700" font-size="12" fill="#2a2116">+1 F</text></g>`;
+ // selected pioneer + path + target
+ const[px,py]=P(9,7),[tx,ty]=P(9,5),[mx,my]=P(9,6);
+ g+=`<path d="M${px},${py} Q${mx+16},${my} ${tx},${ty}" stroke="#f4ecd8" stroke-width="2.4" stroke-dasharray="5 6" fill="none"/><path d="${hexD(R*.86,tx,ty)}" fill="#f4ecd81c" stroke="#f4ecd8" stroke-width="2.4"/>`;
+ g+=`<circle cx="${px}" cy="${py}" r="26" fill="none" stroke="#f4ecd8" stroke-width="2.2" stroke-dasharray="5 4"/>`+at(9,7,piece('pioneiro',cv,36));
+ const seatSeal=(c,col,me,st)=>`<div style="position:relative;width:${me?38:32}px;height:${me?38:32}px">${sv(me?38:32,me?38:32,seal(c,col,me?15:12.5))}${st?`<span style="position:absolute;right:-6px;bottom:-4px;font-size:11px;background:#0f181c;border:1px solid var(--line);border-radius:8px;padding:0 4px">${st}</span>`:''}</div>`;
+ const strip=`<div class="glass" style="position:absolute;left:12px;right:12px;top:10px;height:50px;display:flex;align-items:center;gap:16px;padding:0 12px"><span style="font-size:15px">Era <b class="disp" style="color:var(--gold2)">II · Expansão</b> · Rodada 7</span><span class="tag">Planejar · 1:12</span><div style="display:flex;gap:10px;margin-left:16px">${seatSeal(V,cv,1,'✓')}${seatSeal(T,ct,0,'…')}${seatSeal('meridia',SEAT.terra,0,'✓')}</div><div style="margin-left:auto;display:flex;gap:8px"><span class="btn sm">Cofre</span><span class="btn sm">Livro</span></div></div>`;
+ const fan=`<div style="position:absolute;left:18px;bottom:-34px;width:220px;height:120px">${[0,1,2,3].map(i=>`<div style="position:absolute;left:${i*30}px;top:${Math.abs(i-1.5)*5}px;transform:rotate(${(i-1.5)*7}deg);width:84px;height:118px;border-radius:8px;background:var(--parch);border:2px solid #7d5c33;box-shadow:0 6px 14px #000a"><div style="height:18px;background:${i===2?'#4b3d5c':'#2e4a5a'};border-radius:6px 6px 0 0"></div></div>`).join('')}</div>`;
+ const tray=`<div class="glass" style="position:absolute;left:50%;transform:translateX(-50%);bottom:14px;width:560px;height:84px;display:flex;align-items:center;gap:14px;padding:0 16px">${sv(52,52,`<circle r="25" fill="#0f181c"/>`+piece('pioneiro',cv,40))}<div style="flex:1"><div class="disp" style="font-size:16px">Pioneiro</div><div class="muted" style="font-size:14px">Fundar cidade a 2 hexes · chega na próxima rodada</div></div><span class="btn sm">Cancelar</span><span class="btn primary">Mover e fundar</span></div>`;
+ return `<svg width="1440" height="900" style="position:absolute;inset:0"><rect width="1440" height="900" fill="#0b1114"/>${g}</svg>${strip}${fan}${tray}`;}
+F('a11',mesa(),'mesa');
+F('a12',`<div class="gray" style="position:absolute;inset:0">${mesa()}</div><div class="glass" style="position:absolute;right:16px;bottom:16px;width:400px;padding:14px 16px;font-size:14px"><div class="eyebrow" style="font-size:11px">Mesa em cinza</div><p style="margin-top:6px">Azul e verde-água viram o mesmo cinza. Mesmo assim: <b>Valgard</b> tem borda tracejada, selo hexagonal e bandeira em escudo; <b>Thalos</b> tem borda pontilhada, selo em losango e flâmula. As peças se leem pela forma.</p></div>`,'mesa');
+
+root.innerHTML=frames.join('');
+
+/* collision measurement */
+(function(){const N=28,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+ const mask=k=>{x.clearRect(0,0,N,N);x.save();x.translate(N/2,N/2);x.scale(N/26,N/26);x.lineWidth=2.6;x.lineCap='round';x.lineJoin='round';x.strokeStyle='#000';x.stroke(new Path2D(A.EMB[k]));x.restore();const d=x.getImageData(0,0,N,N).data;const m=new Uint8Array(N*N);for(let i=0;i<N*N;i++)m[i]=d[i*4+3]>90?1:0;return m;};
+ const ms=CIVS.map(c=>mask(c.em));const pairs=[];
+ for(let i=0;i<CIVS.length;i++)for(let j=i+1;j<CIVS.length;j++){let a=0,b=0;for(let k=0;k<N*N;k++){if(ms[i][k]&&ms[j][k])a++;if(ms[i][k]||ms[j][k])b++;}pairs.push([i,j,a/b]);}
+ pairs.sort((p,q)=>q[2]-p[2]);window.__pairs=pairs.map(([i,j,s])=>[CIVS[i].name,CIVS[j].name,+s.toFixed(2)]);
+ const t=document.getElementById('coll');
+ pairs.slice(0,8).forEach(([i,j,s])=>{const a=CIVS[i],b=CIVS[j];const d=[a.seal!==b.seal,a.banner!==b.banner,a.border!==b.border];const k=d.filter(Boolean).length;const risky=s>=.45;const ok=!risky||k>=2;
+  t.insertAdjacentHTML('beforeend',`<tr><td><span style="display:inline-flex;gap:6px;vertical-align:middle">${sv(18,18,emblem(a.em,0,0,.7,'#ddd',1.6))}${sv(18,18,emblem(b.em,0,0,.7,'#ddd',1.6))}</span> ${a.name} × ${b.name}</td><td>${s.toFixed(2)}</td><td>${['selo','bandeira','borda'].map((n,x)=>n+(d[x]?' ≠':' =')).join(' · ')}</td><td class="${ok?(risky?'warn':'ok'):'bad'}">${ok?(risky?'passa pelo conjunto':'distinto'):'redesenhar'}</td></tr>`);});})();
+</script>
+</body>
+</html>

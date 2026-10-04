@@ -21,4 +21,11 @@ Autoridade: Canonical Product Specification V4 e decisões aprovadas acima de tu
 ## Bíblia e protótipo
 
 11. [Atualização da Bíblia e sistema de ilustração](08-biblia-atualizacao-ilustracao.md) — as 28 pranchas contra a V4 (manter, atualizar, decidir, futuro), o inventário de ilustrações da Bíblia e os tamanhos na mesa; UXDEC-012 a 015. Versão visual: [biblia-proposta.html](biblia-proposta.html).
-12. [Protótipo jogável](prototype/index.html) — a Experience V2.1 com as ilustrações da Bíblia, contra duas civilizações-bot. Regras reduzidas; não substitui o motor do produto.
+12. [Protótipo jogável](prototype/index.html) — a Experience V2.1 contra duas civilizações-bot, com a arte V2.2 (cidades top-down, silhuetas, bandeiras, leque de cartas). Regras reduzidas; não substitui o motor do produto.
+
+## V2.2 · Reconciliação funcional + identidade visual
+
+13. [Reconciliação funcional](09-reconciliacao-funcional.md) — cada sistema classificado como CANÔNICO, ALPHA, CONCEITUAL, DIVERGENTE, FUTURO ou DECISÃO; lista exata do que falta; Explorador, Pioneiro e Enviado; migração de “Colono”.
+14. [Identidade visual na mesa](10-identidade-visual-v22.md) — cidade top-down A/B, fortificação como overlay, atlas de peças e naval, civilização ≠ cor, bandeira aplicada, verificação em partida real; UXDEC-016 a 020.
+15. [Kit de Civilização](11-kit-de-civilizacao.md) — 12 × 18, kits com fonte marcada (Alpha, Bíblia, Proposta), 3 cartas próprias por civilização, auditoria das famílias de cartas.
+16. [Conceitos V2.2](concepts/v22-identity.html) — 13 pranchas 1440×900 (`a1`–`a12`), incluindo a demonstração na Mesa V2.1 em cor e em cinza. Arte compartilhada em [`concepts/art-v22.js`](concepts/art-v22.js).

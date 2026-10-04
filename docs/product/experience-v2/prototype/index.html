@@ -111,7 +111,27 @@ button{font:inherit;color:inherit}
 .die{width:34px;height:34px;border-radius:7px;background:var(--parch);color:var(--ink);display:grid;place-items:center;font:700 11px var(--body)}
 .toast{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:46;padding:10px 16px;border-radius:12px;font-size:14px}
 .chron{font-family:var(--chron);font-size:18px}
+.hand{position:absolute;left:46px;bottom:calc(-86px + env(safe-area-inset-bottom,0px));width:270px;height:176px;z-index:19;transition:bottom .18s}
+.hand:hover,.hand.has-focus,.hand:focus-within{bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.hcard{position:absolute;left:calc(var(--i) * 34px);bottom:0;width:118px;height:166px;border-radius:9px;background:var(--parch,#e8dbbb);color:#2a2116;border:2px solid #7d5c33;display:flex;flex-direction:column;text-align:left;padding:0;overflow:hidden;transform:rotate(calc(var(--a) * 6deg));transform-origin:50% 140%;box-shadow:0 6px 16px #000a;cursor:pointer;transition:transform .15s,opacity .15s}
+.hcard .hd{background:#2e4a5a;color:#f4ecd8;font:600 10px var(--display);letter-spacing:.12em;text-transform:uppercase;padding:5px 8px}
+.hcard .nm{font:600 13.5px var(--display);padding:7px 8px 3px;line-height:1.2}
+.hcard .tx{font-size:12px;padding:0 8px;color:#4a3d2a;line-height:1.3}
+.hand:hover .hcard{transform:rotate(calc(var(--a) * 8deg)) translateY(-6px)}
+.hand .hcard.focus{transform:translateY(-34px) scale(1.14);z-index:2;outline:2px solid #e7c98a}
+.hand.has-focus .hcard:not(.focus){opacity:.72}
+.hplay{position:absolute;left:0;bottom:calc(100% + 46px);width:270px;padding:12px 14px;border-radius:12px;display:flex;flex-direction:column;gap:6px;font-size:14px;align-items:flex-start}
+.handbtn{display:none}
 @media (max-width:760px){
+  .hand,.hand:hover,.hand.has-focus,.hand:focus-within{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .hand{display:none;left:0;right:0;width:auto;height:auto;padding:12px;gap:10px;overflow-x:auto;overflow-y:visible;background:linear-gradient(180deg,rgba(25,37,43,.97),rgba(18,27,32,.97));border-top:1px solid #33474f;border-radius:16px 16px 0 0}
+  .hand.open{display:flex}
+  .hand .hcard,.hand:hover .hcard{position:relative;left:auto;flex:0 0 118px;transform:none}
+  .hand .hcard.focus{transform:none;outline:2px solid #e7c98a}
+  .hplay{position:fixed;left:8px;right:8px;width:auto;bottom:calc(330px + env(safe-area-inset-bottom,0px))}
+  .hand.open+.handbtn{bottom:calc(284px + env(safe-area-inset-bottom,0px))}
+  .handbtn{display:inline-flex;position:absolute;left:8px;bottom:calc(84px + env(safe-area-inset-bottom,0px));height:40px;padding:0 14px;border-radius:20px;align-items:center;font:600 14px var(--body,inherit);color:#eee8da;z-index:21}
+
   .strip{gap:6px;padding:5px 6px}.hide-s{display:none!important}.strip .chip b.name{display:none}.strip .chip{padding:0 9px}.seal{width:28px;height:28px}.seals{gap:4px}.when{font-size:13px}.when b{font-size:14px}.mpill{margin-left:3px;padding:0 6px}
   .banner{left:8px;right:8px;transform:none;max-width:none}
   .card{left:8px!important;right:8px;width:auto!important;top:auto!important;bottom:calc(84px + env(safe-area-inset-bottom,0px));max-height:55%}
@@ -125,6 +145,7 @@ button{font:inherit;color:inherit}
 
 <div id="app"></div>
 
+<script src="../concepts/art-v22.js"></script>
 <script>
 /* ======================= Bible illustrations (Ages of Hegemony concept bible) ======================= */
 let gid=0;
@@ -173,6 +194,12 @@ const rxi=(i,s=18)=>`<svg width="${s}" height="${s}" viewBox="-12 -12 24 24" ari
 const RES=[['food','Alimento','#a3c97a'],['wood','Madeira','#c79b62'],['stone','Pedra','#b7b0a2'],['metal','Metal','#9fb6c4'],['wealth','Riqueza','#e7c98a'],['knowledge','Conhecimento','#9fc0e6'],['influence','Influência','#d0a6d6']];
 const RN=Object.fromEntries(RES.map(([k,n])=>[k,n]));
 const ERAS=['Fundação','Expansão','Civilização','Impérios','Potências','Ascensão'];
+/* V2.2 table art (concepts/art-v22.js): top-down cities, family silhouettes, banners. Shape says what, seat color says whose. */
+const PK={infantaria:'infantaria',arqueiros:'atiradores',cavalaria:'cavalaria',guarda:'guarda',explorador:'explorador',pioneiro:'pioneiro'};
+function cityGlyph(l,s=64,stroke='#6ca7d9'){return{svg:`<svg width="${s}" height="${s}" viewBox="${-s/2} ${-s/2} ${s} ${s}" aria-hidden="true">${AOH.city(l,s/2.08,{col:stroke,seed:l*5})}</svg>`,w:s,h:s};}
+function mini(n,c='#6ca7d9',s=64){const k=PK[n]||n;if(!AOH.PIECES[k])return '';return `<svg width="${s}" height="${s}" viewBox="${-s/2} ${-s/2} ${s} ${s}" aria-hidden="true">${AOH.piece(k,c,s*.88)}</svg>`;}
+const cidOf=id=>P_(id).cid||({A:'aurelia',V:'valgard',M:'meridia'})[id];
+const nameSeed=n=>[...n].reduce((a,ch)=>a+ch.charCodeAt(0),0);
 const LEVELS=[['Posto',2],['Aldeia',4],['Vila',6],['Cidade',8],['Grande Cidade',11],['Metrópole',14],['Metrópole Imperial',18]];
 const TERR={PLAINS:{n:'Planície',c:'#71844f',y:{food:2},cost:1},FOREST:{n:'Floresta',c:'#3f6148',y:{wood:2},cost:1},HILLS:{n:'Colinas',c:'#857c68',y:{stone:2},cost:2,def:1},MOUNTAINS:{n:'Montanha',c:'#646d69',y:{stone:1,metal:1},cost:3,def:2},COAST:{n:'Costa',c:'#3f6d7c',y:{food:1,wealth:1},cost:1},SEA:{n:'Mar',c:'#264a5c',y:{food:1},cost:99}};
 const UNITS={
@@ -208,9 +235,9 @@ const CARDS=[['Reservas Coordenadas','+2 Alimento agora','food',2],['Feira Extra
 const EVENTS=[['Safra Abundante','food',2],['Encontro de Feiras','wealth',2],['Perguntas do Céu','knowledge',2],['Vozes nas Praças','influence',2],['Ofícios em Migração','wood',2]];
 const PULSES=[['Chuvas de Retorno','food',1],['Ventos de Travessia','wealth',1],['Instrumentos Recuperados','knowledge',1],['Escassez de Madeira','wood',-1],['Pressão nas Rotas','wealth',-1]];
 const CIVS=[
-  {id:'A',civ:'Aurélia',name:'Você',c:'#e0bd78',em:'espiga',city:['Aurora','Travessia','Porto Claro','Vale Dourado','Campos Altos']},
-  {id:'V',civ:'Valgard',name:'Beto',c:'#7cc0d6',em:'passo',city:['Fronteira','Passo Norte','Refúgio','Muralha Alta','Gélida']},
-  {id:'M',civ:'Merídia',name:'Clara',c:'#d090a8',em:'ondas',city:['Brisa','Margem','Câmbio','Enseada','Mercês']},
+  {id:'A',civ:'Aurélia',cid:'aurelia',name:'Você',c:'#6ca7d9',em:'espiga',city:['Aurora','Travessia','Porto Claro','Vale Dourado','Campos Altos']},
+  {id:'V',civ:'Valgard',cid:'valgard',name:'Beto',c:'#5cb3a5',em:'passo',city:['Fronteira','Passo Norte','Refúgio','Muralha Alta','Gélida']},
+  {id:'M',civ:'Merídia',cid:'meridia',name:'Clara',c:'#d48a6a',em:'ondas',city:['Brisa','Margem','Câmbio','Enseada','Mercês']},
 ];
 const POST=['Assalto','Manobra','Defesa'];// Assalto vence Manobra, Manobra vence Defesa, Defesa vence Assalto
 const beats=(a,b)=>(a==='Assalto'&&b==='Manobra')||(a==='Manobra'&&b==='Defesa')||(a==='Defesa'&&b==='Assalto');
@@ -532,7 +559,7 @@ function renderMap(){
     if(t.t==='HILLS')g+=`<path opacity=".55" d="M${x-10},${y+5} Q${x-5},${y-5} ${x},${y+5} Q${x+5},${y-5} ${x+10},${y+5}" fill="none" stroke="#5f5848" stroke-width="2"/>`;
     if(t.t==='MOUNTAINS')g+=`<path opacity=".6" d="M${x-10},${y+7} L${x},${y-9} L${x+10},${y+7}Z" fill="#4b524f"/>`;
     if(!vis)g+=`<path d="${hexPath(x,y,HR*.97)}" fill="#0b1114" opacity=".55" pointer-events="none"/>`;
-    if(reach&&reach.has(k))g+=`<path d="${hexPath(x,y,HR*.86)}" fill="#e7c98a22" stroke="#e7c98a" stroke-width="1.5" stroke-dasharray="4 3" pointer-events="none"/>`;
+    if(reach&&reach.has(k))g+=`<path d="${hexPath(x,y,HR*.86)}" fill="#f4ecd822" stroke="#f4ecd8" stroke-width="1.5" stroke-dasharray="4 3" pointer-events="none"/>`;
     if(targets&&targets.has(k))g+=`<path d="${hexPath(x,y,HR*.86)}" fill="#e59a8633" stroke="#e59a86" stroke-width="2.5" pointer-events="none"/>`;
   }
   // borders with seat pattern
@@ -540,30 +567,31 @@ function renderMap(){
   const edge=[[0,1],[5,0],[4,5],[3,4],[2,3],[1,2]];
   for(const t of Object.values(S.tiles)){if(!t.owner||!p.known[key(t.q,t.r)])continue;const[x,y]=hexXY(t);const c=P_(t.owner).c;
     NB.forEach(([dq,dr],i)=>{const n=T(t.q+dq,t.r+dr);if(n&&n.owner===t.owner)return;const[a,b]=edge[i];const pt=j=>{const an=Math.PI/180*(60*j-30);return[x+HR*Math.cos(an),y+HR*Math.sin(an)];};const p1=pt(a),p2=pt(b);
-      g+=`<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="#0b1114" stroke-width="4.5" stroke-linecap="round" pointer-events="none"/><line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="${c}" stroke-width="2.6" stroke-dasharray="${dash[t.owner]}" stroke-linecap="round" pointer-events="none"/>`;});}
+      const L=`x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" pointer-events="none"`;g+=`<line ${L} stroke="#0b1114" stroke-opacity=".6" stroke-width="4.5" stroke-linecap="round"/>`+AOH.borderStyle(cidOf(t.owner),c,2.6).map(st=>`<line ${L} ${st}/>`).join('');});}
   // planned orders
-  for(const o of S.orders.filter(o=>o.owner==='A'&&(o.type==='move'||o.type==='attack'))){const a=hexXY(S.tiles[o.from]),b=hexXY(S.tiles[o.to]);g+=`<path d="M${a[0]},${a[1]} L${b[0]},${b[1]}" stroke="${o.type==='attack'?'#e59a86':'#e7c98a'}" stroke-width="3" stroke-dasharray="8 6" fill="none" marker-end="url(#arr${o.type==='attack'?'R':'G'})" pointer-events="none"/>`;}
+  for(const o of S.orders.filter(o=>o.owner==='A'&&(o.type==='move'||o.type==='attack'))){const a=hexXY(S.tiles[o.from]),b=hexXY(S.tiles[o.to]);g+=`<path d="M${a[0]},${a[1]} L${b[0]},${b[1]}" stroke="${o.type==='attack'?'#e59a86':'#f4ecd8'}" stroke-width="3" stroke-dasharray="8 6" fill="none" marker-end="url(#arr${o.type==='attack'?'R':'G'})" pointer-events="none"/>`;}
   // replay highlight
   const hl=UI.replay&&UI.replay.steps[UI.replay.i]?UI.replay.steps[UI.replay.i].items.filter(it=>it.where&&p.known[key(it.where.q,it.where.r)]):[];
   for(const it of hl){const[x,y]=hexXY(it.where);g+=`<circle cx="${x}" cy="${y}" r="${HR*1.1}" fill="none" stroke="#e8dbbb" stroke-width="3" pointer-events="none"/>`;}
   // cities (Bible skyline glyph, size by level)
-  for(const c of S.cities){const k=key(c.q,c.r);if(!p.known[k])continue;const[x,y]=hexXY(c);const l=level(c);const col=P_(c.owner).c;const s=46+l*7;const gl=cityGlyph(l,s,col,'#26343b');
+  for(const c of S.cities){const k=key(c.q,c.r);if(!p.known[k])continue;const[x,y]=hexXY(c);const l=level(c);const col=P_(c.owner).c;
     const noAct=c.owner==='A'&&S.moment==='Planejar'&&!S.orders.some(o=>o.type==='urban'&&o.city===c.id);
-    if(noAct)g+=`<circle cx="${x}" cy="${y-4}" r="${HR*.95}" fill="none" stroke="#e5bf72" stroke-width="2.2" stroke-dasharray="5 4" pointer-events="none"/>`;
-    g+=`<path d="${hexPath(x,y,HR*.78)}" fill="#0b1114" opacity=".45" pointer-events="none"/><g transform="translate(${x-gl.w/2},${y-gl.h+10})" pointer-events="none">${gl.svg}</g>`;
-    g+=`<text x="${x}" y="${y+28}" text-anchor="middle" font-family="Cinzel,serif" font-size="11" fill="#f2e8cf" stroke="#0b1114" stroke-width="3" paint-order="stroke" pointer-events="none">${c.capital?'★ ':''}${c.name}</text>`;
-    g+=`<g transform="translate(${x+gl.w/2},${y-gl.h+8})" pointer-events="none"><circle r="8" fill="#0b1114" stroke="${col}"/><text y="4" text-anchor="middle" font-size="10" font-weight="700" fill="${col}">${l}</text></g>`;}
+    const fl=c.districts.filter(d=>DISTRICTS[d].def).length;
+    g+=`<g transform="translate(${x},${y})" pointer-events="none">${AOH.city(l,HR*.97,{col,seed:nameSeed(c.name)})}${fl?AOH.fort(Math.min(5,fl),HR*.97):''}<g transform="translate(${HR*.6},${-HR*.42})">${AOH.banner(cidOf(c.owner),col,20)}</g></g>`;
+    g+=`<text x="${x}" y="${y+HR+9}" text-anchor="middle" font-family="Cinzel,serif" font-size="11" fill="#f2e8cf" stroke="#0b1114" stroke-width="3" paint-order="stroke" pointer-events="none">${c.capital?'★ ':''}${c.name}</text>`;
+    g+=`<g transform="translate(${x-HR*.62},${y-HR*.5})" pointer-events="none"><circle r="7.5" fill="#0b1114" stroke="${noAct?'#e5bf72':col}" stroke-width="${noAct?2.4:1.5}"/>${noAct?`<circle r="10.5" fill="none" stroke="#e5bf72" stroke-width="1.4" stroke-dasharray="3 2.4"/>`:''}<text y="3.6" text-anchor="middle" font-size="10" font-weight="700" fill="#f4ecd8">${l}</text></g>`;}
   // stacks (Bible miniatures)
   const stacks={};for(const u of S.units){const k=key(u.q,u.r);if(!p.vis[k])continue;(stacks[k+'|'+u.owner]=stacks[k+'|'+u.owner]||[]).push(u);}
-  for(const[k,us] of Object.entries(stacks)){const t=S.tiles[k.split('|')[0]];const[x,y]=hexXY(t);const owner=us[0].owner;const col=P_(owner).c;const fam=us.slice().sort((a,b)=>UNITS[b.kind].str-UNITS[a.kind].str)[0].kind;const onCity=cityAt(t);
-    const ox=onCity?-HR*1.05:0,oy=onCity?16:-4;const selk=UI.sel&&UI.sel.type==='stack'&&UI.sel.k===k.split('|')[0]&&owner==='A';
-    if(selk)g+=`<circle cx="${x+ox}" cy="${y+oy}" r="18" fill="#e7c98a33" stroke="#e7c98a" stroke-width="2" pointer-events="none"/>`;
-    g+=`<g transform="translate(${x+ox-18},${y+oy-34})" pointer-events="none">${mini(fam,col,36)}</g>`;
-    if(us.length>1||true)g+=`<g transform="translate(${x+ox+11},${y+oy-18})" pointer-events="none"><circle r="8" fill="${col}"/><text y="4" text-anchor="middle" font-size="10" font-weight="700" fill="#111">${us.length}</text></g>`;}
-  if(UI.sel&&UI.sel.type==='tile'){const t=S.tiles[UI.sel.k];const[x,y]=hexXY(t);g+=`<path d="${hexPath(x,y,HR*.97)}" fill="none" stroke="#e7c98a" stroke-width="3" pointer-events="none"/>`;}
+  for(const[k,us] of Object.entries(stacks)){const t=S.tiles[k.split('|')[0]];const[x,y]=hexXY(t);const owner=us[0].owner;const col=P_(owner).c;const mil=us.filter(u=>UNITS[u.kind].str>0),civ=[...new Set(us.filter(u=>!UNITS[u.kind].str).map(u=>u.kind))];const fam=mil.length?mil.slice().sort((a,b)=>UNITS[b.kind].str-UNITS[a.kind].str)[0].kind:civ[0];const side=mil.length?civ:civ.slice(1);const onCity=cityAt(t);
+    const ox=onCity?-HR*.95:0,oy=onCity?HR*.55:0;const selk=UI.sel&&UI.sel.type==='stack'&&UI.sel.k===k.split('|')[0]&&owner==='A';
+    if(selk)g+=`<circle cx="${x+ox}" cy="${y+oy}" r="20" fill="none" stroke="#f4ecd8" stroke-width="2.2" stroke-dasharray="5 4" pointer-events="none"/>`;
+    g+=`<g transform="translate(${x+ox},${y+oy})" pointer-events="none">${AOH.piece(PK[fam],col,30,{n:mil.length||us.filter(u=>u.kind===fam).length})}</g>`;
+    // civil pieces ride beside the stack, never hidden under the army
+    side.forEach((k,i)=>{g+=`<g transform="translate(${x+ox-16-i*15},${y+oy-13})" pointer-events="none">${AOH.piece(PK[k],col,18)}</g>`;});}
+  if(UI.sel&&UI.sel.type==='tile'){const t=S.tiles[UI.sel.k];const[x,y]=hexXY(t);g+=`<path d="${hexPath(x,y,HR*.97)}" fill="none" stroke="#f4ecd8" stroke-width="3" pointer-events="none"/>`;}
   const W=HR*SQ*(COLS+ROWS/2)+120,H=HR*1.5*ROWS+120;
   $('#map').setAttribute('width',W);$('#map').setAttribute('height',H);
-  $('#map').innerHTML=`<defs><marker id="arrG" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#e7c98a"/></marker><marker id="arrR" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#e59a86"/></marker></defs>${g}`;
+  $('#map').innerHTML=`<defs><marker id="arrG" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#f4ecd8"/></marker><marker id="arrR" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="#e59a86"/></marker></defs>${g}`;
   applyView();
 }
 function applyView(){$('#map').style.transform=`translate(${view.x}px,${view.y}px) scale(${view.z})`;}
@@ -592,7 +620,7 @@ function renderTray(){
   if(S.moment==='Resultado'){const r=UI.replay;const s=r.steps[r.i];
     return `<div class="tray glass brz" style="max-width:min(900px,calc(100% - 20px));flex-wrap:wrap"><span class="bud">Resultado · etapa ${r.i+1} de ${r.steps.length}</span><span style="font-size:14px;flex:1;min-width:0">${s?`<b class="gold">${s.t}</b> · ${s.items.slice(0,2).map(i=>i.msg).join(' ')}${s.items.length>2?` <span class="dim">+${s.items.length-2}</span>`:''}`:'Nada visível para você nesta rodada.'}</span><button class="btn ghost sm" data-act="skip">Pular</button><button class="btn primary" data-act="next" style="border-radius:24px">${r.i<r.steps.length-1?'Continuar ›':'Planejar a próxima rodada ›'}</button></div>`;}
   const u=used(p),b=budget(p);const noAct=S.cities.filter(c=>c.owner==='A'&&!S.orders.some(o=>o.type==='urban'&&o.city===c.id));
-  const cardOpen=!!UI.card||!!UI.welcome;
+  const cardOpen=!!UI.card||!!UI.welcome||UI.hfocus!=null;
   const fichas=S.orders.filter(o=>o.owner==='A').map(o=>`<span class="ficha">${orderLabel(o)}<button data-cancel="${o.id}" aria-label="Cancelar ${orderLabel(o)}" ${p.ready?'disabled':''}>✕</button></span>`).join('');
   if(p.ready)return `<div class="tray glass brz"><span class="bud">Ações<b>${u} / ${b}</b></span><span class="note" style="color:#9ec4a2">Você confirmou ✓ · aguardando ${S.players.filter(x=>!x.ready).map(x=>x.name).join(', ')}</span><button class="btn" data-act="unready" style="border-radius:24px">Voltar a planejar</button></div>`;
   return `<div class="tray glass brz"><span class="bud">Ações<b>${u} / ${b}</b></span><div class="fichas">${fichas}</div>${noAct.length?`<span class="note">${noAct.length} cidade(s) sem ação urbana</span>`:''}<button class="btn ${cardOpen?'':'primary'}" data-act="confirm" style="border-radius:24px" ${S.paused?'disabled':''}>Confirmar planejamento ›</button></div>`;
@@ -607,7 +635,7 @@ function renderCard(){
     const more=c.more;const alt=[opts.find(o=>o.id==='construir'&&!o.block)||opts.find(o=>o.id==='construir'),opts.find(o=>o.id==='recrutar'&&o.param==='infantaria')].filter(Boolean);
     return `<div class="card glass brz" style="${cardPos(t)}"><button class="x" data-act="close" aria-label="Fechar">✕</button>
       <div class="eyebrow">Cidade${city.capital?' · capital':''}</div><h3>${city.name}</h3>
-      <div style="display:flex;gap:12px;align-items:flex-end">${cityGlyph(l,58,'#e0bd78').svg}<div class="rel" style="margin:0"><span>Nível ${l} · ${LEVELS[l-1][0]}</span><span>${city.pop}/${popCap(city)} habitantes</span><span>${f.short?'<span class="warn">sem crescimento: Alimento curto</span>':rounds?`cresce em ≈ ${rounds} rodada(s)`:city.pop>=popCap(city)?'no teto: construa um distrito':'sem sobra para crescer'}</span></div></div>
+      <div style="display:flex;gap:12px;align-items:flex-end">${cityGlyph(l,58,P_(city.owner).c).svg}<div class="rel" style="margin:0"><span>Nível ${l} · ${LEVELS[l-1][0]}</span><span>${city.pop}/${popCap(city)} habitantes</span><span>${f.short?'<span class="warn">sem crescimento: Alimento curto</span>':rounds?`cresce em ≈ ${rounds} rodada(s)`:city.pop>=popCap(city)?'no teto: construa um distrito':'sem sobra para crescer'}</span></div></div>
       ${city.districts.length?`<div style="display:flex;gap:6px;margin:8px 0">${city.districts.map(d=>`<span class="chip" style="min-height:30px;cursor:default" title="${DISTRICTS[d].eff}">${ic(DISTRICTS[d].icon,16)}${DISTRICTS[d].n}</span>`).join('')}</div>`:''}
       ${unitsAt(t,'A').length?`<div class="effect">Peças nesta cidade: clique de novo na cidade para comandá-las.</div>`:''}<div class="hr"></div>
       ${has?`<div class="eyebrow">Ação desta rodada</div><div style="margin:6px 0 10px">${orderLabel(has)}</div><button class="btn" data-cancel="${has.id}" style="width:100%" ${p.ready?'disabled':''}>Desfazer</button>`:
@@ -615,7 +643,7 @@ function renderCard(){
        <div class="effect">${prod.why}</div>
        <div class="alts">${alt.map(o=>`<button class="btn sm" data-urban="${o.id}" data-param="${o.param}" ${o.block||p.ready?'disabled':''} title="${o.block||fmt(o.cost)}">${o.n.split(' · ')[0]}${o.id==='recrutar'?' Infantaria':' '+(o.n.split(' · ')[1]||'')}</button>`).join('')}</div>
        <button class="link more" data-act="more">${more?'Menos ações ▴':`Mais ações (${opts.length-1-alt.length}) ▾`}</button>
-       ${more?`<div class="list">${opts.slice(1).filter(o=>!alt.includes(o)).map(o=>`<button class="opt" data-urban="${o.id}" data-param="${o.param||''}" ${o.block||p.ready?'disabled':''}><div style="flex:1"><b style="font-size:14px">${o.n}</b><small>${o.eff||''}${o.cost?` · custo ${fmt(o.cost)}`:''}${o.block?` · ${o.block}`:''}</small></div>${o.id==='recrutar'?mini(o.param,'#e0bd78',22):''}</button>`).join('')}</div>`:''}`}
+       ${more?`<div class="list">${opts.slice(1).filter(o=>!alt.includes(o)).map(o=>`<button class="opt" data-urban="${o.id}" data-param="${o.param||''}" ${o.block||p.ready?'disabled':''}><div style="flex:1"><b style="font-size:14px">${o.n}</b><small>${o.eff||''}${o.cost?` · custo ${fmt(o.cost)}`:''}${o.block?` · ${o.block}`:''}</small></div>${o.id==='recrutar'?mini(o.param,me().c,22):''}</button>`).join('')}</div>`:''}`}
     </div>`;}
   if(c.type==='stack'){const t=S.tiles[c.k];const us=unitsAt(t,'A');if(!us.length)return '';const from=c.k;const existing=S.orders.find(o=>o.owner==='A'&&o.from===from&&o.type!=='urban');
     const kinds=Object.entries(us.reduce((m,u)=>(m[u.kind]=(m[u.kind]||0)+1,m),{}));const str=us.reduce((s,u)=>s+UNITS[u.kind].str,0);
@@ -635,10 +663,15 @@ function renderCard(){
       <div class="alts">${dominant!=='move'?`<button class="btn sm" data-stack="move" ${p.ready?'disabled':''}>Mover</button>`:''}${dominant!=='attack'&&tg.length?`<button class="btn sm" data-stack="attack">Atacar</button>`:''}</div>
       ${canFound?'<div class="effect">Fundar consome o Pioneiro e cria uma cidade (+2 Prestígio).</div>':tg.length?'':'<div class="effect">Sem alvos em guerra ao alcance.</div>'}`;
     return `<div class="card glass brz" style="${cardPos(t)}"><button class="x" data-act="close" aria-label="Fechar">✕</button><div class="eyebrow">Suas peças · ${key(t.q,t.r)}</div><h3>${us.length} peça(s) · Força ${str}</h3>
-      <div style="display:flex;gap:10px;margin:6px 0 10px;flex-wrap:wrap">${kinds.map(([k,n])=>`<div style="text-align:center;font-size:12px">${mini(k,'#e0bd78',30)}<div>${UNITS[k].n} ×${n}</div></div>`).join('')}</div>${body}</div>`;}
+      <div style="display:flex;gap:10px;margin:6px 0 10px;flex-wrap:wrap">${kinds.map(([k,n])=>`<div style="text-align:center;font-size:12px">${mini(k,me().c,30)}<div>${UNITS[k].n} ×${n}</div></div>`).join('')}</div>${body}</div>`;}
   if(c.type==='tile'){const t=S.tiles[c.k];const y=TERR[t.t];return `<div class="card glass" style="${cardPos(t)}"><button class="x" data-act="close" aria-label="Fechar">✕</button><div class="eyebrow">Hex ${c.k}</div><h3>${y.n}</h3><div class="rel"><span>Rende ${fmtGain(y.y)}</span><span>${y.cost>50?'intransitável':'movimento '+y.cost}</span>${y.def?`<span>defesa +${y.def}</span>`:''}<span>${t.owner?'território de '+P_(t.owner).civ:'sem dono'}</span></div></div>`;}
   return '';
 }
+function renderHand(){const p=me();if(!p||S.winner||!p.hand.length)return '';
+  const can=S.moment==='Planejar'&&p.cardsPlayed<2&&!p.ready,n=p.hand.length,fi=UI.hfocus!=null&&p.hand[UI.hfocus]!=null?UI.hfocus:null;
+  const cards=p.hand.map((ci,i)=>{const c=CARDS[ci];return `<button class="hcard${fi===i?' focus':''}" style="--i:${i};--a:${i-(n-1)/2}" data-hfocus="${i}" aria-pressed="${fi===i}" aria-label="${c[0]}: ${c[1]}"><span class="hd">Estratégia</span><span class="nm">${c[0]}</span><span class="tx">${c[1]}</span></button>`;}).join('');
+  const f=fi!=null?CARDS[p.hand[fi]]:null;
+  return `<div class="hand${UI.handOpen?' open':''}${f?' has-focus':''}" role="group" aria-label="Mão de cartas">${cards}${f?`<div class="hplay glass brz"><b class="disp">${f[0]}</b><span>${f[1]}</span><button class="btn primary sm" data-card="${fi}" ${can?'':'disabled'}>Jogar carta</button><span class="dim" style="font-size:12px">${can?`${2-p.cardsPlayed} de 2 nesta rodada · ação livre`:'Só no Planejar, até 2 por rodada'}</span></div>`:''}</div><button class="handbtn glass" data-act="hand" aria-expanded="${!!UI.handOpen}">Cartas · ${n}</button>`;}
 function renderCofre(){if(!UI.cofre)return '';const p=me();const f=growthForecast(p);
   return `<div class="cofre glass brz"><div class="eyebrow" style="margin-bottom:6px">Cofre · 7 recursos</div>${RES.map(([k,n,col])=>`<div class="resrow"><span style="color:${col}">${n}</span><b>${p.res[k]}</b></div>`).join('')}
   <div class="hr"></div><div style="font-size:13px" class="muted">Se todas as cidades Produzirem: +${f.produced} Alimento; população e peças comem ${f.eat}. ${f.short?'<span class="warn">Falta Alimento: ninguém cresce.</span>':`Sobra ${f.surplus}, dividida entre as cidades que podem crescer.`}</div>
@@ -663,9 +696,9 @@ function renderBook(){
   const tabs=[['atlas','Atlas de peças'],['teia','Teia'],['diplo','Diplomacia'],['cartas','Cartas'],['eras','Eras e Hegemonia'],['cronica','Crônica'],['comp','Compêndio']];
   let body='';
   if(tab==='atlas'){body=`<p class="muted" style="margin-top:0">As peças da Bíblia, como aparecem na mesa. A cidade muda de desenho a cada nível; cada família de peça tem sua miniatura, na cor do dono.</p>
-    <div class="eyebrow">Cidades · sete níveis</div><div style="display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 18px">${LEVELS.map(([n,h],i)=>`<div style="text-align:center">${cityGlyph(i+1,48+i*10,'#e0bd78','#26343b').svg}<div style="font-size:13px"><b>${i+1} · ${n}</b></div><div class="dim" style="font-size:12px">${h}+ habitantes</div></div>`).join('')}</div>
-    <div class="eyebrow">Peças</div><div style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 18px">${Object.entries(UNITS).map(([k,u])=>`<div style="text-align:center;width:96px">${mini(k,'#e0bd78',56)}<div style="font-size:13px"><b>${u.n}</b></div><div class="dim" style="font-size:12px">${u.str?'Força '+u.str+' · ':''}mov ${u.mov}</div></div>`).join('')}</div>
-    <div class="eyebrow">Na cor de cada civilização</div><div style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 18px">${S.players.map(x=>`<div style="text-align:center">${mini('infantaria',x.c,48)}<div style="font-size:12px">${emb(x.em,x.c,16)} ${x.civ}</div></div>`).join('')}</div>
+    <div class="eyebrow">Cidades · sete níveis</div><div style="display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 18px">${LEVELS.map(([n,h],i)=>`<div style="text-align:center">${cityGlyph(i+1,48+i*10,me().c).svg}<div style="font-size:13px"><b>${i+1} · ${n}</b></div><div class="dim" style="font-size:12px">${h}+ habitantes</div></div>`).join('')}</div>
+    <div class="eyebrow">Peças</div><div style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 18px">${Object.entries(UNITS).map(([k,u])=>`<div style="text-align:center;width:96px">${mini(k,me().c,56)}<div style="font-size:13px"><b>${u.n}</b></div><div class="dim" style="font-size:12px">${u.str?'Força '+u.str+' · ':''}mov ${u.mov}</div></div>`).join('')}</div>
+    <div class="eyebrow">Na cor de cada assento</div><div style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 18px">${S.players.map(x=>`<div style="text-align:center">${mini('infantaria',x.c,48)}<div style="font-size:12px">${emb(x.em,x.c,16)} ${x.civ}</div></div>`).join('')}</div>
     <div class="eyebrow">Distritos</div><div style="display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 18px">${Object.values(DISTRICTS).map(d=>`<div class="tile" style="width:180px"><div style="color:#e7c98a">${ic(d.icon,32)}</div><b>${d.n}</b><div class="dim" style="font-size:12.5px">${d.eff}</div></div>`).join('')}</div>`;}
   if(tab==='teia'){body=`<p class="muted" style="margin-top:0">Pesquisar usa a ação urbana de uma cidade. Em cor: o que você pode pesquisar agora.</p><div class="grid2">${[0,1,2].map(e=>`<div class="tile"><div class="eyebrow">Era ${['I','II','III'][e]} · ${ERAS[e]}</div><div class="list">${TEIA.filter(n=>n[2]===e).map(n=>{const done=p.research.includes(n[0]),avail=!done&&n[2]<=p.era;return `<div class="opt" style="cursor:default;opacity:${done||avail?1:.45};${done?'border-color:#7d5c33':''}"><div style="flex:1"><b style="font-size:14px">${done?'✓ ':''}${n[1]}</b><small>${n[3]} · ${n[5]} · ${fmt(n[4])}</small></div></div>`;}).join('')}</div></div>`).join('')}</div><p class="dim" style="font-size:13px">Eras IV–VI: a Teia completa da Bíblia (40 avanços, convergências e exclusões) entra numa versão futura.</p>`;}
   if(tab==='diplo'){body=`<div class="grid2">${S.players.filter(x=>x.id!=='A').map(o=>{const contact=S.contact['A'+o.id];const war=atWar('A',o.id);const tr=S.treaties.filter(t=>[t.a,t.b].includes(o.id)&&[t.a,t.b].includes('A'));return `<div class="tile"><div style="display:flex;gap:10px;align-items:center">${seal(o)}<div><b>${o.name} · ${o.civ}</b><div class="dim" style="font-size:13px">${!contact?'sem contato':war?'<span class="bad">em guerra</span>':'paz'} · Prestígio ${o.prestige}</div></div></div>
@@ -689,7 +722,7 @@ function renderFinal(){if(!UI.final)return '';const rank=[...S.players].sort((a,
 function renderHome(){
   const saves=loadSaves();
   return `<div class="home"><div class="wrap"><div><div class="eyebrow">Ages of Hegemony · protótipo jogável da Experience V2.1</div><h1>Suas campanhas</h1><p class="muted" style="font-size:17px;max-width:44ch">Uma mesa de estratégia contra duas civilizações (Valgard e Merídia). Planeje, confirme e veja o resultado sobre o mapa. As mesas guardadas continuam de onde pararam.</p><div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap"><button class="btn primary" data-act="newgame">Preparar uma mesa</button></div>
-  <div style="display:flex;gap:14px;align-items:flex-end;margin-top:26px;flex-wrap:wrap" aria-hidden="true">${[1,3,5,7].map(l=>cityGlyph(l,40+l*8,'#c9a45c','#1d2a30').svg).join('')}${['infantaria','cavalaria','arqueiros'].map(k=>mini(k,'#e0bd78',40)).join('')}</div><div class="tile" style="margin-top:18px"><div class="eyebrow">Como se joga</div><ol style="font-size:14px;line-height:1.6;padding-left:18px;margin:8px 0 0"><li>Clique numa cidade com anel âmbar e escolha a ação urbana (Produzir é o dominante).</li><li>Clique nas suas peças para mover, fundar cidade ou atacar quem está em guerra com você.</li><li>Confirme. O Resultado mostra cada etapa no mapa.</li><li>Cresça, pesquise, avance de era e termine a rodada 15 com o maior Prestígio.</li></ol></div></div>
+  <div style="display:flex;gap:14px;align-items:flex-end;margin-top:26px;flex-wrap:wrap" aria-hidden="true">${[1,3,5,7].map(l=>cityGlyph(l,40+l*8,'#6ca7d9').svg).join('')}${['infantaria','cavalaria','arqueiros'].map(k=>mini(k,'#6ca7d9',40)).join('')}</div><div class="tile" style="margin-top:18px"><div class="eyebrow">Como se joga</div><ol style="font-size:14px;line-height:1.6;padding-left:18px;margin:8px 0 0"><li>Clique numa cidade com anel âmbar e escolha a ação urbana (Produzir é o dominante).</li><li>Clique nas suas peças para mover, fundar cidade ou atacar quem está em guerra com você.</li><li>Confirme. O Resultado mostra cada etapa no mapa.</li><li>Cresça, pesquise, avance de era e termine a rodada 15 com o maior Prestígio.</li></ol></div></div>
   <div><div class="eyebrow" style="margin-bottom:10px">Mesas em andamento · ${saves.length}</div><div class="list">${saves.length?saves.map(s=>`<div class="tcard glass ${s===saves[0]?'brz':''}"><div><div class="disp gold" style="font-size:20px">${s.name}</div><div class="muted" style="font-size:14px">Era ${['I','II','III','IV','V','VI'][s.era]} · ${ERAS[s.era]} · Rodada ${s.round} · guardada ${new Date(s.savedAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div><div style="display:flex;gap:6px;margin:10px 0">${CIVS.map(c=>`<span class="seal" style="--c:${c.c};cursor:default">${emb(c.em,c.c,18)}</span>`).join('')}</div><div style="font-size:14px">Prestígio ${s.prestige} · Valgard e Merídia aguardando</div></div><button class="btn ${s===saves[0]?'primary':''}" data-resume="${s.id}">Continuar</button></div>`).join(''):`<div class="tile"><b>Nenhuma mesa guardada ainda.</b><div class="muted" style="font-size:14px;margin-top:4px">Use “Guardar a mesa e continuar depois” no menu do brasão durante a partida.</div></div>`}</div></div></div></div>`;
 }
 function render(){
@@ -697,7 +730,7 @@ function render(){
   if(!$('#mapwrap')){$('#app').innerHTML=`<div id="mapwrap"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg></div><div id="ui"></div>`;bindMap();setTimeout(()=>{const cap=S.cities.find(c=>c.owner==='A');if(cap)centerOn(cap,innerWidth<760?1:1.35);},0);}
   document.body.classList.toggle('paused',!!S.paused);
   renderMap();
-  $('#ui').innerHTML=renderStrip()+renderBanner()+renderTray()+renderCard()+renderCofre()+renderMenu()+renderRxRing()+renderBook()+renderBattle()+renderWelcome()+renderFinal()+(UI.toast?`<div class="toast glass brz" role="status">${UI.toast}</div>`:'')+(UI.absentOpts?renderAbsentOpts():'');
+  $('#ui').innerHTML=renderStrip()+renderBanner()+renderTray()+renderHand()+renderCard()+renderCofre()+renderMenu()+renderRxRing()+renderBook()+renderBattle()+renderWelcome()+renderFinal()+(UI.toast?`<div class="toast glass brz" role="status">${UI.toast}</div>`:'')+(UI.absentOpts?renderAbsentOpts():'');
 }
 function renderAbsentOpts(){const a=P_(S.absent?S.absent.who:'V');return `<div class="cofre glass brz" style="left:50%;right:auto;transform:translateX(-50%);top:124px;width:360px"><div class="eyebrow" style="margin-bottom:6px">Opções · ${a.name}</div><div class="list"><button class="opt" data-act="wait"><div><b>Aguardar mais</b><small>O banner recolhe para o selo de ${a.name}.</small></div></button><button class="opt" data-act="pause"><div><b>Pedir pausa da mesa</b></div></button><button class="opt" disabled><div><b style="color:#e59a86">Remover ${a.name} da mesa…</b><small>Disponível após 10 min ausente, por votação dos presentes (UXDEC-003). Pede confirmação de 2 s e permite desfazer.</small></div></button></div></div>`;}
 let toastT;function toast(m){UI.toast=m;render();clearTimeout(toastT);toastT=setTimeout(()=>{UI.toast=null;render();},2600);}
@@ -759,7 +792,9 @@ document.addEventListener('click',e=>{
   if(d.event){const ev=S.event.card;if(d.event==='res')gain(p,{[ev[1]]:ev[2]});else p.prestige+=1;S.event.answered.push('A');}
   if(d.prop){const pr=UI.pending.shift();if(d.prop==='yes'){S.treaties.push({a:'A',b:pr.from,type:'trade',until:S.round+3});log(`Você aceitou o Acordo comercial com ${P_(pr.from).civ}.`);setTimeout(()=>showRx(pr.from,3),300);}else log(`Você recusou a proposta de ${P_(pr.from).civ}.`);}
   if(d.dip){if(d.dip==='war'){addOrder({owner:'A',type:'war',target:d.who});}else addOrder({owner:'A',type:'treaty',kind:d.dip,target:d.who});}
-  if(d.card!==undefined){const ci=p.hand[+d.card];const c=CARDS[ci];p.hand.splice(+d.card,1);S.discard.push(ci);p.cardsPlayed++;
+  if(d.hfocus!==undefined){UI.hfocus=UI.hfocus===+d.hfocus?null:+d.hfocus;}
+  if(d.act==='hand'){UI.handOpen=!UI.handOpen;UI.hfocus=null;}
+  if(d.card!==undefined){UI.hfocus=null;const ci=p.hand[+d.card];const c=CARDS[ci];p.hand.splice(+d.card,1);S.discard.push(ci);p.cardsPlayed++;
     if(c[2]==='actions')p.bonus.actions+=c[3];else if(c[2]==='str')p.bonus.str+=c[3];else if(c[2]==='mov')p.bonus.mov+=c[3];else if(c[2]==='build')gain(p,{wood:2,stone:2});else gain(p,{[c[2]]:c[3]});toast(`${c[0]}: ${c[1]}.`);}
   if(d.act==='pause'){S.paused=true;UI.menu=false;UI.absentOpts=false;botTimers.forEach(clearTimeout);}
   if(d.act==='resume'){S.paused=false;scheduleBots();}
