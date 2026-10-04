@@ -4,7 +4,7 @@ import { AlphaHttp } from '../apps/server/src/alpha-http.js';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
-import { connectAlphaContext } from './alpha-fixture.js';
+import { connectAlphaContext, muteTour } from './alpha-fixture.js';
 
 const shots = process.env.UX_SHOTS_DIR ?? 'docs/evidence/alpha-ux-round-1/after';
 const origin = 'http://127.0.0.1:3107';
@@ -15,7 +15,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
   const http = new AlphaHttp(new AlphaGameService(repository), new GuestSessions('ux-round-1-secret-'.repeat(4)), origin, false);
   const a = await browser.newContext({ viewport: { width: 1440, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
   const b = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  await connectAlphaContext(a, http); await connectAlphaContext(b, http);
+  await connectAlphaContext(a, http);await muteTour(a); await connectAlphaContext(b, http);await muteTour(b);
   const pa = await a.newPage(), pb = await b.newPage(); pa.setDefaultTimeout(15000); pb.setDefaultTimeout(15000);
   await mkdir(shots, { recursive: true });
   try {

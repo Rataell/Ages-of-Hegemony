@@ -6,7 +6,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { runScriptedMatch } from '../tests/alpha-match-scenario.js';
-import { connectAlphaContext, openArea, toMap } from './alpha-fixture.js';
+import { connectAlphaContext, openArea, toMap, muteTour } from './alpha-fixture.js';
 
 test('authoritative battle dice, retreat and Hegemony finish appear in both browser perspectives',async({browser})=>{
   test.setTimeout(90000);
@@ -28,7 +28,7 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
   const evidence='docs/evidence/playable-alpha-v1';await mkdir(evidence,{recursive:true});
   try{
     for(const [i,context] of contexts.entries()){
-      await connectAlphaContext(context,http);
+      await connectAlphaContext(context,http);await muteTour(context);
       await context.addCookies([{name:'aoh_alpha_session',value:identities[i]!.token,url:origin,httpOnly:true,sameSite:'Strict'}]);
       const page=await context.newPage();page.setDefaultTimeout(15000);pages.push(page);
       await page.goto(`/alpha?game=${room.id}`);

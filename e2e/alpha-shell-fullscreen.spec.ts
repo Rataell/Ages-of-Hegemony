@@ -6,7 +6,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { runScriptedMatch } from '../tests/alpha-match-scenario.js';
-import { connectAlphaContext, openArea, toMap } from './alpha-fixture.js';
+import { connectAlphaContext, openArea, toMap, muteTour } from './alpha-fixture.js';
 
 // The Mesa (alpha-mesa-design-system): during gameplay the desktop is the table: map, strip, tray, card and Livro, never a long page.
 // The scripted match has a ten-piece army and full hands, so the side panels have enough content to overflow at 1366x768.
@@ -70,7 +70,7 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await mkdir(shots, { recursive: true });
   try {
-    await connectAlphaContext(context, http);
+    await connectAlphaContext(context, http);await muteTour(context);
     await context.addCookies([{ name: 'aoh_alpha_session', value: identity.token, url: origin, httpOnly: true, sameSite: 'Strict' }]);
     const page = await context.newPage(); page.setDefaultTimeout(15000);
     await page.goto(`/alpha?game=${beforeAttack!.gameId}`);

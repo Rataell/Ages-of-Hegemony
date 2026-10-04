@@ -11,6 +11,7 @@ import { LeaveGame } from './alpha-leave';
 import { AlphaGuide } from './alpha-guide';
 import { AttackPreview, POSTURES, postureText } from './alpha-combat';
 import { AlphaHand } from './alpha-hand';
+import { AlphaTour } from './alpha-tour';
 import { AmbitionChooser, AlphaCards, AlphaCity, AlphaDiplomacy, AlphaInstitutions, AlphaReports, AlphaUrban } from './alpha-panels';
 
 export type AlphaSend=(command:Record<string,unknown>)=>Promise<boolean>;
@@ -36,7 +37,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const game=room.game!,player=game.view.player,civ=player.civilization,identity=CIVILIZATIONS.find(c=>c.id===game.self.civilization);
   const [tab,setTab]=useState('world'),[inspector,setInspector]=useState<Inspector>('city'),[selected,setSelected]=useState<string|null>(civ.cities[0]?.hexId??null),[selectedCity,setSelectedCity]=useState(civ.cities[0]?.id??''),[focus,setFocus]=useState<string|null>(civ.cities[0]?.hexId??null);
   const [units,setUnits]=useState<string[]>([]),[path,setPath]=useState<string[]>([]),[pathMode,setPathMode]=useState(false),[rotation,setRotation]=useState(0),[working,setWorking]=useState(false),[worked,setWorked]=useState<string[]>([]),[name,setName]=useState('Novo Horizonte'),[posture,setPosture]=useState('ASSAULT');
-  const [cardFocus,setCardFocus]=useState(false),[cofreOpen,setCofreOpen]=useState(false),[panels,setPanels]=useState(loadPanels),[dismissedResolution,setDismissedResolutionState]=useState(()=>{try{return Number(sessionStorage.getItem(`aoh-resolution-seen-${room.id}`)??0);}catch{return 0;}}),[finaleClosed,setFinaleClosed]=useState(false),[checkOpen,setCheckOpen]=useState(false),[guideOpen,setGuideOpen]=useState(false),[ambitionsLater,setAmbitionsLaterState]=useState(()=>{try{return sessionStorage.getItem(`aoh-ambitions-later-${room.id}`)==='1';}catch{return false;}});
+  const [tour,setTour]=useState<'tour'|'tips'|null>(null),[cardFocus,setCardFocus]=useState(false),[cofreOpen,setCofreOpen]=useState(false),[panels,setPanels]=useState(loadPanels),[dismissedResolution,setDismissedResolutionState]=useState(()=>{try{return Number(sessionStorage.getItem(`aoh-resolution-seen-${room.id}`)??0);}catch{return 0;}}),[finaleClosed,setFinaleClosed]=useState(false),[checkOpen,setCheckOpen]=useState(false),[guideOpen,setGuideOpen]=useState(false),[ambitionsLater,setAmbitionsLaterState]=useState(()=>{try{return sessionStorage.getItem(`aoh-ambitions-later-${room.id}`)==='1';}catch{return false;}});
   /** A round's results are shown once per browser session, not again on every reload. */
   const setDismissedResolution=(round:number)=>{setDismissedResolutionState(round);try{sessionStorage.setItem(`aoh-resolution-seen-${room.id}`,String(round));}catch{/* storage blocked: shown again after reload */}};
   const setAmbitionsLater=(later:boolean)=>{setAmbitionsLaterState(later);try{sessionStorage.setItem(`aoh-ambitions-later-${room.id}`,later?'1':'0');}catch{/* storage blocked: the choice lasts until reload */}};
@@ -149,7 +150,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       <div className="alpha-strip-tools">
         <button type="button" className="aoh-btn is-sm" aria-expanded={cofreOpen} onClick={()=>setCofreOpen(!cofreOpen)}>Cofre</button>
         <button type="button" className="aoh-btn is-sm alpha-livro-button" aria-expanded={tab!=='world'} onClick={()=>setTab(tab==='world'?'council':'world')}>Livro{livroAlert&&<span className="alpha-tab-alert" aria-hidden="true"/>}</button>
-        <button type="button" className="aoh-btn is-sm is-ghost alpha-guide-button" onClick={()=>setGuideOpen(true)}>Como jogar</button>
+        <button type="button" className="aoh-btn is-sm is-ghost alpha-guide-button" onClick={()=>setTour('tips')}>Dicas</button><button type="button" className="aoh-btn is-sm is-ghost alpha-guide-button" onClick={()=>setGuideOpen(true)}>Como jogar</button>
         <LeaveGame joinCode={room.joinCode} onLeave={onLeave}/>
         <label className="alpha-theme">Tema <select value={theme} onChange={e=>onTheme(e.target.value)}><option value="SYSTEM">Sistema</option><option value="DARK">Escuro</option><option value="LIGHT">Claro</option></select></label>
       </div>
@@ -157,6 +158,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
     {replay&&<section className="alpha-resolution-phase" role="status" aria-label="Resolvendo a rodada"><p className="eyebrow">RESOLVENDO A RODADA {replay.round}</p><h2>Resultados autorizados</h2><ol>{replay.resolution.map(event=><li key={event.id}><b>{text(event.type)}</b><span>{event.message}</span></li>)}</ol><button className="primary" onClick={()=>setDismissedResolution(replay.round)}>Continuar</button></section>}
     {ambitionsPending&&!ambitionsLater&&!replay&&<div className="alpha-modal-backdrop"><section className="alpha-modal" role="dialog" aria-modal="true" aria-labelledby="alpha-ambitions-title"><p className="eyebrow">ANTES DO PRIMEIRO PLANEJAMENTO</p><AmbitionChooser game={game} locked={locked} send={send}/><button type="button" onClick={()=>setAmbitionsLater(true)}>Ver o mapa primeiro</button><button type="button" onClick={()=>{setAmbitionsLater(true);setGuideOpen(true);}}>Como jogar</button></section></div>}
     {guideOpen&&<AlphaGuide game={game} onClose={()=>setGuideOpen(false)}/>}
+    {!game.winner&&!(ambitionsPending&&!ambitionsLater)&&<AlphaTour game={game} roomId={room.id} open={tour} onOpenChange={setTour}/>}
     {conflictCall&&<section className="alpha-conflict-call" role="alert" aria-label="Conflitos da rodada"><p className="eyebrow">CONFLITOS DA RODADA {game.view.round}</p><h2>{game.incomingAttacks.length?'Sua civilização está sendo atacada':'Seu ataque aguarda reações'}</h2>
       {game.incomingAttacks.map(a=><p key={`${a.attackerId}-${a.target}`}><b>{game.players.find(p=>p.id===a.attackerId)?.name}</b> ataca suas posições em <b>{a.target}</b>.</p>)}
       {game.self.orders.filter(o=>o.type==='ATTACK').map(o=><p key={o.id}>Seu ataque em <b>{o.type==='ATTACK'?o.target:''}</b> é resolvido depois das reações.</p>)}

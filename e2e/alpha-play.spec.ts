@@ -5,7 +5,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { hexDistance, visibleHexIds } from '@aoh/game-engine';
-import { connectAlphaContext, openArea, toMap } from './alpha-fixture.js';
+import { connectAlphaContext, openArea, toMap, muteTour } from './alpha-fixture.js';
 
 // Browser integration uses the real HTTP/service/engine code with the explicit test repository.
 // PostgreSQL durability and deployed-network E2E remain separate mandatory release gates.
@@ -13,7 +13,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
   const origin='http://127.0.0.1:3107',repository=new InMemoryAlphaRepository(),service=new AlphaGameService(repository);
   const http=new AlphaHttp(service,new GuestSessions('browser-test-secret-'.repeat(4)),origin,false);
   const a=await browser.newContext({viewport:{width:1440,height:900}}),b=await browser.newContext({viewport:{width:1440,height:900}});
-  await connectAlphaContext(a,http);await connectAlphaContext(b,http);const pa=await a.newPage(),pb=await b.newPage();
+  await connectAlphaContext(a,http);await muteTour(a);await connectAlphaContext(b,http);await muteTour(b);const pa=await a.newPage(),pb=await b.newPage();
   pa.setDefaultTimeout(15000);pb.setDefaultTimeout(15000);
   for(const context of [a,b])await context.addInitScript(()=>{
     const w=window as unknown as {__alphaErrors:string[]};w.__alphaErrors=[];

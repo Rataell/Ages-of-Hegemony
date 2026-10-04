@@ -28,3 +28,6 @@ export async function toMap(page:import('@playwright/test').Page){
   const livro=page.getByRole('dialog',{name:'Livro'});
   if(await livro.isVisible())await livro.getByRole('button',{name:'Voltar ao mapa',exact:true}).click();
 }
+
+/** Test harnesses: silence the first-run tour and tips in this browser context. */
+export async function muteTour(context:BrowserContext){await context.addInitScript(()=>{try{localStorage.setItem('aoh-tour-off','1');}catch{/* no storage */}});}

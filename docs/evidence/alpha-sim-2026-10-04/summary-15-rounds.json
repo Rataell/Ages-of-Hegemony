@@ -1,0 +1,330 @@
+{
+ "summary": {
+  "round": 8,
+  "era": "EXPANSION",
+  "winner": null,
+  "standings": [],
+  "wars": [],
+  "treaties": [],
+  "battles": 0,
+  "cities": [
+   {
+    "cityId": "capital-1",
+    "hexId": "3,6",
+    "ownerId": "player-1",
+    "level": 2,
+    "capital": true,
+    "fortification": {
+     "level": "PALISADE",
+     "state": "INTACT"
+    },
+    "blockaded": false
+   },
+   {
+    "cityId": "city-player-1-55",
+    "hexId": "5,6",
+    "ownerId": "player-1",
+    "level": 1,
+    "capital": false,
+    "fortification": {
+     "level": "PALISADE",
+     "state": "INTACT"
+    },
+    "blockaded": false
+   }
+  ],
+  "units": "1EXPLORER,1GUARD,1COASTAL_VESSEL,1INFANTRY,1INFANTRY",
+  "prestige": [
+   "Jogador A:16",
+   "Jogador B:8"
+  ],
+  "research": 1
+ },
+ "coverage": {
+  "ADVANCE_ERA": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "BUILD_ROAD": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "CANCEL_ORDER": {
+   "ok": 1,
+   "fail": 0,
+   "last": ""
+  },
+  "CHOOSE_AMBITIONS": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "CIVILIZATION_ABILITY": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "DECLARE_WAR": {
+   "ok": 0,
+   "fail": 1,
+   "last": "RULE_FAILURE: Estabeleça contato antes de negociar ou declarar guerra."
+  },
+  "DISEMBARK": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "EMBARK": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "HIRE_ADVISOR": {
+   "ok": 1,
+   "fail": 1,
+   "last": "RULE_FAILURE: Recursos insuficientes para esta ação."
+  },
+  "LEADER_ABILITY": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "MANAGE:ASSIGN_POPULATION": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "MANAGE:ASSIGN_WORKED_HEXES": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "MANAGE:CLAIM_HEX": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "MANAGE:IMPROVE_HEX": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "MANAGE:SPECIALIZE_CITY": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "PLAY_CARD": {
+   "ok": 2,
+   "fail": 4,
+   "last": "RULE_FAILURE: Carta fora da mão, do momento permitido ou do limite por rodada."
+  },
+  "PROPOSE_TRADE": {
+   "ok": 0,
+   "fail": 1,
+   "last": "RULE_FAILURE: Estabeleça contato antes de negociar."
+  },
+  "PROPOSE_TREATY": {
+   "ok": 0,
+   "fail": 1,
+   "last": "RULE_FAILURE: Estabeleça contato antes de negociar ou declarar guerra."
+  },
+  "QUEUE_ORDER:EXPLORE": {
+   "ok": 10,
+   "fail": 1,
+   "last": "ACTION_LIMIT: Sem ações principais disponíveis nesta rodada."
+  },
+  "QUEUE_ORDER:MOVE": {
+   "ok": 33,
+   "fail": 3,
+   "last": "ACTION_LIMIT: Sem ações principais disponíveis nesta rodada."
+  },
+  "READY": {
+   "ok": 15,
+   "fail": 0,
+   "last": ""
+  },
+  "SETTLE": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "SET_DEFENSE_POSTURE": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "UNREADY": {
+   "ok": 1,
+   "fail": 0,
+   "last": ""
+  },
+  "URBAN_ACTION:BUILD": {
+   "ok": 6,
+   "fail": 0,
+   "last": ""
+  },
+  "URBAN_ACTION:PRODUCE": {
+   "ok": 5,
+   "fail": 0,
+   "last": ""
+  },
+  "URBAN_ACTION:PROMOTE_MOOD": {
+   "ok": 2,
+   "fail": 0,
+   "last": ""
+  },
+  "URBAN_ACTION:RECRUIT": {
+   "ok": 5,
+   "fail": 0,
+   "last": ""
+  },
+  "URBAN_ACTION:RESEARCH": {
+   "ok": 2,
+   "fail": 1,
+   "last": "RULE_FAILURE: Este avanço já está planejado em outra cidade nesta rodada."
+  },
+  "WORLD_CHOICE": {
+   "ok": 8,
+   "fail": 0,
+   "last": ""
+  }
+ },
+ "errors": [],
+ "log": [
+  "A CHOOSE_AMBITIONS ok",
+  "A WORLD_CHOICE ok",
+  "A URBAN_ACTION:RECRUIT ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "B CHOOSE_AMBITIONS ok",
+  "B WORLD_CHOICE ok",
+  "B URBAN_ACTION:PRODUCE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE RULE_FAILURE: Limite de pilha atingido em 13,6: Civis 1/2, as 2 peças não cabem.",
+  "B QUEUE_ORDER:EXPLORE ok",
+  "A READY ok",
+  "B READY ok",
+  "A WORLD_CHOICE ok",
+  "A SET_DEFENSE_POSTURE ok",
+  "A PLAY_CARD RULE_FAILURE: Carta fora da mão, do momento permitido ou do limite por rodada.",
+  "A URBAN_ACTION:RECRUIT ok",
+  "A MANAGE:CLAIM_HEX ok",
+  "A PROPOSE_TREATY RULE_FAILURE: Estabeleça contato antes de negociar ou declarar guerra.",
+  "A QUEUE_ORDER:EXPLORE ok",
+  "A QUEUE_ORDER:EXPLORE ok",
+  "A QUEUE_ORDER:EXPLORE ok",
+  "A QUEUE_ORDER:EXPLORE ok",
+  "B WORLD_CHOICE ok",
+  "B SET_DEFENSE_POSTURE ok",
+  "B PLAY_CARD ok",
+  "B URBAN_ACTION:RECRUIT ok",
+  "B MANAGE:CLAIM_HEX ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "A READY ok",
+  "B READY ok",
+  "A CIVILIZATION_ABILITY ok",
+  "A URBAN_ACTION:BUILD ok",
+  "A MANAGE:IMPROVE_HEX ok",
+  "A PROPOSE_TRADE RULE_FAILURE: Estabeleça contato antes de negociar.",
+  "A EMBARK ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ACTION_LIMIT: Sem ações principais disponíveis nesta rodada.",
+  "B CIVILIZATION_ABILITY ok",
+  "B URBAN_ACTION:BUILD ok",
+  "B MANAGE:IMPROVE_HEX ok",
+  "B SETTLE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:EXPLORE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "A READY ok",
+  "A UNREADY ok",
+  "A READY ok",
+  "B READY ok",
+  "A WORLD_CHOICE ok",
+  "A ADVANCE_ERA ok",
+  "A LEADER_ABILITY ok",
+  "A PLAY_CARD RULE_FAILURE: Carta fora da mão, do momento permitido ou do limite por rodada.",
+  "A URBAN_ACTION:RESEARCH ok",
+  "A MANAGE:ASSIGN_WORKED_HEXES ok",
+  "A DISEMBARK ok",
+  "A SETTLE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:EXPLORE ACTION_LIMIT: Sem ações principais disponíveis nesta rodada.",
+  "B WORLD_CHOICE ok",
+  "B ADVANCE_ERA ok",
+  "B LEADER_ABILITY ok",
+  "B PLAY_CARD ok",
+  "B URBAN_ACTION:RESEARCH ok",
+  "B URBAN_ACTION:RESEARCH RULE_FAILURE: Este avanço já está planejado em outra cidade nesta rodada.",
+  "B MANAGE:ASSIGN_WORKED_HEXES ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "A READY ok",
+  "B READY ok",
+  "A HIRE_ADVISOR RULE_FAILURE: Recursos insuficientes para esta ação.",
+  "A URBAN_ACTION:BUILD ok",
+  "A URBAN_ACTION:BUILD ok",
+  "A MANAGE:ASSIGN_POPULATION ok",
+  "A EMBARK ok",
+  "A QUEUE_ORDER:EXPLORE ok",
+  "A QUEUE_ORDER:EXPLORE ok",
+  "A QUEUE_ORDER:EXPLORE ok",
+  "B HIRE_ADVISOR ok",
+  "B URBAN_ACTION:BUILD ok",
+  "B URBAN_ACTION:BUILD ok",
+  "B MANAGE:ASSIGN_POPULATION ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B CANCEL_ORDER ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "A READY ok",
+  "B READY ok",
+  "A WORLD_CHOICE ok",
+  "A PLAY_CARD RULE_FAILURE: Carta fora da mão, do momento permitido ou do limite por rodada.",
+  "A URBAN_ACTION:PRODUCE ok",
+  "A URBAN_ACTION:PRODUCE ok",
+  "A MANAGE:SPECIALIZE_CITY ok",
+  "A DISEMBARK ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ACTION_LIMIT: Sem ações principais disponíveis nesta rodada.",
+  "B WORLD_CHOICE ok",
+  "B PLAY_CARD RULE_FAILURE: Carta fora da mão, do momento permitido ou do limite por rodada.",
+  "B URBAN_ACTION:PROMOTE_MOOD ok",
+  "B URBAN_ACTION:PROMOTE_MOOD ok",
+  "B MANAGE:SPECIALIZE_CITY ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "A READY ok",
+  "B READY ok",
+  "A URBAN_ACTION:RECRUIT ok",
+  "A URBAN_ACTION:RECRUIT ok",
+  "A BUILD_ROAD ok",
+  "A DECLARE_WAR RULE_FAILURE: Estabeleça contato antes de negociar ou declarar guerra.",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:EXPLORE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "A QUEUE_ORDER:MOVE ok",
+  "B URBAN_ACTION:PRODUCE ok",
+  "B URBAN_ACTION:PRODUCE ok",
+  "B BUILD_ROAD ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "B QUEUE_ORDER:MOVE ok",
+  "A READY ok",
+  "B READY ok"
+ ]
+}
