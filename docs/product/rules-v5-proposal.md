@@ -1,8 +1,8 @@
-# Ages of Hegemony — Regras V5.1a FINAL (CANONICAL BASELINE)
+# Ages of Hegemony — Regras V5.1b (CANONICAL BASELINE)
 
-Data: 2026-10-04. **V5.1 aprovada como base; V5.1a é a correção final antes do engine** (Capacidade como potência da ativação, redistribuição no Planejamento, mobilização, Capacidade efetiva, N7 só na Era VII, Administração sem carga zero, nomes de recursos por extenso). Nada implementado no engine ainda. Tudo aqui é conteúdo original de AoH; referências externas valem só como princípio de design (ordens limitadas, um mundo que reage, eras que escalam).
+Data: 2026-10-04. **V5.1b fecha combate, Ressonância/eventos, Virada de Era, ameaças, descobertas, Governo e evolução militar sobre a V5.1a aprovada** (economia, cidade, população e interface intactas). V5.1a foi a correção final da base (Capacidade como potência da ativação, redistribuição no Planejamento, mobilização, Capacidade efetiva, N7 só na Era VII, Administração sem carga zero, nomes de recursos por extenso). Nada implementado no engine ainda. Tudo aqui é conteúdo original de AoH; referências externas valem só como princípio de design (ordens limitadas, um mundo que reage, eras que escalam).
 
-A V5.1 reconcilia a V5 com o documento antigo ("Ages of Hegemony.html", a Bíblia) e o canvas. A direção da V5 fica: 7 Eras, 5 rodadas por Era, 5 Ordens, 8 recursos, limites 15/10, Ânimo como estado social principal, 18 civilizações, Líderes, Manobras, Ambições, Pulso/Pressão, Encontros, Hegemonia na Era VII, UX V2.2. O que a V5.1 recupera da Bíblia e o que descarta está no §20.
+A V5.1 reconcilia a V5 com o documento antigo ("Ages of Hegemony.html", a Bíblia) e o canvas. A direção da V5 fica: 7 Eras, 5 rodadas por Era, 5 Ordens, 8 recursos, limites 15/10, Ânimo como estado social principal, 18 civilizações, Líderes, Manobras, Ambições, Pulso/Ressonância, Encontros, Hegemonia na Era VII, UX V2.2. O que a V5.1 recupera da Bíblia e o que descarta está no §20.
 
 A proposta visual está em [`experience-v2/concepts/v5-proposal.html`](experience-v2/concepts/v5-proposal.html) (19 pranchas) e no artifact publicado.
 
@@ -193,6 +193,20 @@ Estados: **Próspera** (+1 Capacidade na primeira ativação da rodada) · **Est
 | Carraca | 4 Madeira 2 Metal 1 Riqueza | 7 | IV | Navegação Oceânica |
 | Fragata | 3 Madeira 3 Metal 1 Riqueza | 7 | V | Balística |
 
+**Tabela militar (V5.1b).** Poder base por família e a assinatura memorável de cada uma (uma só):
+
+| Família | Poder | Assinatura | Grau II | Grau III |
+|---|---|---|---|---|
+| Infantaria | 2 | **Linha**: cada Guarda do dado cancela 1 Impacto inimigo | Linha cancela 2 | Linha também vale quando ataca |
+| Guarda | 2 | **Muro**: +1 ao defender cidade própria; nunca retira de cidade com fortificação íntegra | +1 também em Colina/Montanha | Muro +2 na cidade |
+| Arqueiros | 2 | **Salva**: um Comando do dado vira +1 Poder antes do choque | duas Salvas | Salva ignora fortificação |
+| Cavalaria | 3 | **Flanco**: um Comando do dado vale +1 em Planície; move 2 | move 3 | Flanco +2 e vale em Colina |
+| Cerco | 1 (campo) | **Brecha**: +2 contra cidade fortificada e um Comando abre 1 passo de Integridade | Brecha abre 2 passos | Brecha ignora Paliçada e Muralha |
+| Frota | 3 | **Abordagem**: um Comando bloqueia o porto inimigo após a vitória | transporta 3 | Abordagem captura Mercante |
+| Embarcação Costeira | — | não militar no corte inicial (explora, transporta 1) | — | — |
+
+Atiradores = Arqueiros Grau I com Metalurgia; Arcabuzeiros = Arqueiros Grau III com Pólvora; Galera de Guerra/Fragata = Frota Grau II/III; Artilharia = Cerco Grau III com Artilharia. A peça física é a mesma em todos os Graus: 1/2/3 marcas discretas na base. Os Graus vêm da Teia (§12b).
+
 Manutenção: 1 Alimento por 2 peças militares; navios 1 Riqueza; civis nada.
 
 **Melhorias:** Fazenda 1 Madeira · Serraria 1 Madeira · Pedreira 2 Madeira · Mina 2 Madeira 1 Riqueza (Metalurgia) · Pesqueiro 1 Madeira 1 Riqueza · Estrada 1 Madeira 1 Pedra · Irrigação 2 Madeira 1 Pedra (Irrigação, Era II) · Depósito 2 Madeira 1 Pedra (Logística).
@@ -210,6 +224,18 @@ Manutenção: 1 Alimento por 2 peças militares; navios 1 Riqueza; civis nada.
 **Cartas:** Manobras 0–3 recursos; Reações 0–1; Líder sem custo (passiva) e poder 1×/Era sem custo; Ambições sem custo.
 
 **Teia:** patamar I 2 Conhecimento · II 3 Conhecimento · III 4 Conhecimento · IV 5 Conhecimento · V 6 Conhecimento · VI 7 Conhecimento · VII 8 Conhecimento. Convergências: custo do patamar +2 Conhecimento. Herança: tabela do §13.
+
+## 11b. Combate: um choque tático
+
+Uma batalha resolve **um** choque; não há rodadas repetidas obrigatórias. Quem perde recua; quem quer insistir ataca de novo na rodada seguinte.
+
+1. **Posturas.** O atacante declara Assalto, Manter ou Manobra; o defensor escolheu a sua em segredo (Ação livre, pode mudar a cada rodada). Círculo: Assalto vence Manobra, Manobra vence Manter, Manter vence Assalto; vencer o círculo dá +1. Cada postura potencializa uma face: Assalto → Impacto, Manter → Guarda, Manobra → Manobra.
+2. **Cada peça militar** soma seu Poder base, rola **1 dado AoH** — Impacto, Impacto, Guarda, Manobra, Comando, Vazio — e aplica a assinatura da família. Impacto +1 (+2 potencializado); Guarda cancela 1 Impacto inimigo (2 potencializada); Manobra +1 (+2 potencializada); Comando ativa a assinatura (Flanco, Salva, Brecha, Abordagem); Vazio nada.
+3. **Somam-se** terreno (defensor em Colina +1, Montanha +2), fortificação íntegra (+1 a +5 por nível; danificada vale metade; brechada zero), suprimento (sem suprimento −2), tecnologia (Grau e avanços com Força), Líder (poder 1×/Era) e **no máximo 1 Reação por lado** (carta Reação, 0–1 recurso).
+4. **Margem** = ataque − defesa. |margem| ≤ 1: choque sangrento, cada lado com 2+ peças perde 1, o atacante recua. 2–4: o perdedor perde 1 peça e recua. ≥ 5: o perdedor perde 2 peças e recua, o vencedor avança para o hex. Baixas escolhidas pelo dono, Cerco por último. Entrar numa cidade é sempre ataque; vitória ≥ 5 contra cidade sem Guarda viva captura.
+5. **Fortificação** absorve: a primeira Brecha bem-sucedida reduz 1 passo de Integridade em vez de matar; Governar repara.
+
+Simulação (§19): forças iguais 3v3 empatam 57% e decidem 43%; 6v6 decide 54%; Cavalaria+Arqueiros contra Infantaria em Planície vencem 37% (77% se o defensor errar a postura); Fortaleza sem Cerco cai 26%, com 1 Cerco 51%; sem suprimento o atacante perde 70%.
 
 ## 12. Teia Civilizacional (40 avanços + 10 Convergências = 50)
 
@@ -288,6 +314,21 @@ Memória do Mundo ★ (Hegemonia Cultural) é o efeito de Renascimento + Pacto d
 
 Na UI, o Livro mostra só o patamar atual e o próximo; linhas iluminam o alcançável; as Convergências aparecem entre as colunas que ligam; a Herança da civilização aparece ligada ao avanço que a abre (§13).
 
+## 12b. Evolução militar: Graus I / II / III
+
+Cada família tem três Graus, desbloqueados pela Teia; o Grau nunca é só +1 Poder, ele aprofunda a assinatura (§11). Toda peça já em campo sobe de Grau no momento do avanço; não há peça nova.
+
+| Família | Grau II abre com | Grau III abre com |
+|---|---|---|
+| Infantaria | Treino de Manobras | Ferro |
+| Guarda | Fortificação | Defesa Profunda |
+| Arqueiros | Metalurgia (Atiradores) | Pólvora (Arcabuzeiros) |
+| Cavalaria | Guerra de Movimento | Doutrina Naval + Guerra de Movimento |
+| Cerco | Engenharia | Artilharia |
+| Frota | Arquitetura Naval (Galera de Guerra) | Balística (Fragata) |
+
+Tecnologia militar transforma uma destas coisas, nunca só o número: combate (assinatura), formação (Exército 7/8), mobilidade (Cavalaria move 3), cerco (passos de Brecha), suprimento (Logística, Depósito) ou comando (Comando Coordenado: a Reação não gasta a carta).
+
 ## 13. Avanços de Herança (18 civilizações × 3 = 54, fora dos 50)
 
 Cada civilização tem 3 Heranças. Cada uma depende de um avanço universal, tem Era mínima, custa Conhecimento (+1 recurso temático) e é opcional. Visualmente, aparece na Teia como um ramo lateral saindo do avanço que a exige, na cor da civilização.
@@ -306,7 +347,7 @@ Custo por Era mínima: I–II 3 Conhecimento · III–IV 5 Conhecimento · V–V
 | Infantaria Naval | Arquitetura Naval | III | 5 Conhecimento 1 Metal | Infantaria desembarca sem penalidade anfíbia |
 | Rede de Faróis | Navegação Oceânica | IV | 5 Conhecimento 1 Pedra | Farol custa −2; portos dão visão 2 no mar; bloqueio contra Thalos exige 2 navios |
 
-Thalos e as demais civilizações do roster canônico (18, DEC-011) seguem o mesmo molde (uma Herança cedo, uma média, uma tardia; cada uma pendurada num avanço de domínio diferente). Qualquer civilização pode ignorar sua Herança e investir só na Teia.
+Thalos e as demais civilizações do roster canônico (18, DEC-011) seguem o mesmo molde (uma Herança cedo, uma média, uma tardia; cada uma pendurada num avanço de domínio diferente). Qualquer civilização pode ignorar sua Herança e investir só na Teia. Herança não é automática: o avanço universal só a abre; o jogador escolhe pesquisar, paga Conhecimento e recebe o efeito. Pesquisar uma Herança consome 1 marcador de Ressonância (§18), como qualquer avanço.
 
 ## 14. Modelo de civilização
 
@@ -327,7 +368,7 @@ A habilidade 1×/Era da civilização (Bíblia) **sai**: o único poder 1×/Era 
 
 ## 16. Governos (7)
 
-Mesmo orçamento de poder: cada governo tem 2 vantagens e 1 limitação, todas escritas em Ânimo, Administração, economia, pesquisa, guerra, diplomacia, Ordens ou custos. Nenhuma usa Estabilidade/Coesão. Trocar: **Ordem Influência** + Influência (4 na Era I–III, 6 depois) + avanço exigido; a capital fica Abalada por 1 rodada. Todos começam em Conselho (forma inicial, fora dos 7).
+Mesmo orçamento de poder: cada governo tem 2 vantagens e 1 limitação, todas escritas em Ânimo, Administração, economia, pesquisa, guerra, diplomacia, Ordens ou custos. Nenhuma usa Estabilidade/Coesão. Adotar ou reformar: só na **Virada de Era** (passo 5), no máximo **1 reforma por Era**, com **Ordem Influência reservada na última rodada da Era**, pré-requisito de Teia, Era mínima quando houver e custo de Influência (4 até a Era III, 6 depois); a capital fica Abalada na primeira rodada da nova Era. Todos começam em Conselho (forma inicial, fora dos 7). A UI mostra o botão de reforma só na última rodada da Era e lista apenas os governos elegíveis.
 
 | Governo | Abre com | Vantagens | Limitação |
 |---|---|---|---|
@@ -347,15 +388,24 @@ Mesmo orçamento de poder: cada governo tem 2 vantagens e 1 limitação, todas e
 | Líderes | persistentes, 1 por jogador |
 | Manobras | mão máx. 5, começa com 3, +1 por Era; tags Ação / Tática / Reação; 1 proativa + 1 Reação por rodada; não substituem Ordens salvo texto explícito |
 | Ambições | 3 → escolhe 2; máx. 2 ativas; 2/3/4 Prestígio; máx. 1 pontuada por Era; troca 1 não concluída na passagem de Era |
-| Pulso do Mundo | 1 obrigatório no início de cada Era + Pressão |
+| Pulso do Mundo | 1 obrigatório na Virada de Era (global) |
+| Repercussão | gerada pela Ressonância de cada civilização (3 avanços) |
 | Encontros | gerados pela exploração; escolha com 2 opções |
 | Obras de Legado | projetos únicos, fora da mão |
 
-## 18. Pressão, Pulso e Teia
+## 18. Ressonância, Repercussão e Pulso
 
-- **Pressão decide QUANDO.** Começa em 0 na partida e **não zera na Virada de Era**: o Pulso obrigatório da Virada não toca a Pressão; o valor restante atravessa a mudança de Era. Soma: fundação de cidade +1 · declaração de guerra +2 · captura de cidade +2 · Elevar a N5+ +1 · Convergência +1 · Obra concluída +2 · Encontro extraordinário +1. **Limiar = 4 + 2 × jogadores** (2j = 8, 4j = 12, 6j = 16). Ao atingir o limiar: Pulso adicional imediato e só então Pressão volta a 0. Esperado: 1 Pulso extra a cada 2–3 rodadas em mesa ativa, nunca toda rodada.
-- **Pulso decide O QUÊ.** A carta é condicional: diz a quem se aplica e oferece escolha. Exemplos: **Seca Regional** (cidades sem Irrigação: −2 Alimento; com Irrigação: −1; com Agrário: nada) · **Colheita Farta** (cada Fazenda +1; Celeiro guarda além do limite nesta rodada) · **Epidemia** (cidades N4+ sem Saneamento: −1 habitante; com Saneamento: −1 Ânimo) · **Migração** (+1 Disponível na cidade de maior Ânimo de cada jogador; sem Alimento para o sustento, −1 Ânimo) · **Rotas Instáveis** (rotas sem Farol/Estrada rendem 0) · **Descoberta Partilhada** (quem tem Academia ganha 2 Conhecimento; os outros, 1 Conhecimento).
-- **Teia e infraestrutura decidem COMO.** Todo Pulso tem uma linha "mitigado por" com um avanço ou edifício. É assim que a tecnologia protege.
+**Não existe mais contador de Pressão.** A função "o mundo reage ao que você faz" passa à **Ressonância**: cada civilização tem **3 marcadores ◆ ◆ ◆**.
+
+- Ao concluir **qualquer** avanço — universal, Convergência ou Herança — a civilização consome 1 marcador e registra o domínio do avanço.
+- Quando o **terceiro** é consumido: resolve-se uma **Repercussão** daquela civilização e os três marcadores voltam.
+- A categoria da Repercussão responde ao que a civilização produziu: dos três domínios registrados, o mais frequente define a família principal (2 em 3), o segundo define a cor; empate total (3 domínios diferentes) sorteia entre os três com o RNG privado. Exemplo: Troca + Troca + Governo → Repercussão econômica com tom social (um mercado que ferve, uma guilda que exige voz).
+- Famílias de Repercussão (uma por domínio): **Saber** (descoberta partilhada, dissidência de mestres), **Terra e Mar** (safra, maré, migração), **Pedra e Metal** (acidente de forja, corrida armamentista, bando atraído pelo metal), **Governo** (reforma exigida, revolta, aliança oferecida), **Troca** (boom, quebra, piratas na rota). Toda carta diz a quem se aplica e oferece uma escolha; toda carta tem a linha "mitigado por" (avanço, Governo ou infraestrutura) e algumas uma linha "aproveitado por".
+- Ritmo (§19): a 1 avanço a cada 2 rodadas, cada civilização sofre 1 Repercussão a cada ~6 rodadas; mesa de 4 vê ~0,7 por rodada.
+
+**Pulso do Mundo** é outra coisa: evento **global e obrigatório** na Virada de Era (passo 3), um por Era, sete por partida. Condicional como antes (Seca Regional, Colheita Farta, Epidemia, Migração, Rotas Instáveis, Descoberta Partilhada) com "mitigado por". O Pulso pode também criar Acampamentos (§21b) e fazer crescer os existentes.
+
+Nunca se misturam: Repercussão nasce dos avanços de **uma** civilização; Pulso nasce do calendário para **todas**.
 
 ## 19. Simulação (modelo matemático, 35 rodadas)
 
@@ -399,19 +449,67 @@ Elevações da capital (V5.1): N2 r2, N3 r11, N4 r18, N5 r21, N6 r24, N7 r28. Cu
 
 **G. Recrutamento por Soldados:** uma Vila (6 hab.) com 2 Soldados recruta 2 peças por ativação e fica em 4 habitantes, abaixo do mínimo da Vila: não cresce até repor. Isso dá peso real a cada recrutamento, sem baixar o nível.
 
+**H. Combate V5.1b** (`docs/product/sim/v51b-combate.py`, 4000 choques cada; margens 2/5):
+
+| Choque | ataque vence | defesa vence | impasse | margem ≥ 5 |
+|---|---|---|---|---|
+| 1v1 Infantaria I | 0% | 28% | 72% | 0% |
+| 3v3 Infantaria I | 14% | 29% | 57% | 1% |
+| 6v6 Infantaria I | 31% | 23% | 46% | 6% |
+| Inf+Cav+Arq vs 3 Inf, Assalto × Manter | 37% | 7% | 56% | 2% |
+| mesmo, defensor em Manobra | 77% | 1% | 23% | 17% |
+| 3 Inf III vs 3 Inf I | 14% | 28% | 58% | 1% |
+| 4 Inf vs 2 Guarda + Paliçada | 65% | 1% | 34% | 12% |
+| 4 Inf vs 2 Guarda + Fortaleza | 26% | 18% | 56% | 1% |
+| 3 Inf + Cerco vs Fortaleza | 51% | 5% | 44% | 6% |
+| 3 Inf + 2 Cerco vs Cidadela | 87% | 0% | 13% | 38% |
+| 3 Inf sem suprimento vs 3 Inf | 1% | 70% | 28% | 13% |
+| 3 Inf vs 2 Inf em Colina | 46% | 5% | 50% | 3% |
+
+Leitura: defender compensa em forças iguais; postura certa vale mais que um Grau; Fortaleza exige Cerco; Cidadela exige 2; sem suprimento não se ataca. Graus I→III ainda são sutis em 3v3 (14% em ambos): os Graus mudam identidade, não a curva — confirmar em playtest.
+
+**I. Ressonância, Pulsos e bandos** (`docs/product/sim/v51b-ressonancia-bandos.py`): a 1 avanço/2 rodadas, 6 Repercussões por civilização em 35 rodadas (1 a cada ~6); mesa de 2: 12 no total (0,3/rodada), 4: 24 (0,7), 6: 36 (1,0). Pulsos: 7 por partida. Bandos (Acampamento no Pulso com 60%, Repercussão 25%, 1 hex/rodada): primeiro ataque bárbaro na rodada 5–6 em qualquer mesa; sem ninguém eliminá-los, 7 (2j) a 13 (6j) Acampamentos vivos no fim — a recompensa única e a Ameaça crescente é que fazem valer a pena limpar a fronteira.
+
 ## 20. O que a V5.1 recupera e o que descarta da Bíblia
 
 **Recuperado (rebalanceado):** nível de cidade por habitantes + custo de desenvolvimento + avanço da Teia (§4); Capacidade separada de especialização, 8 distritos e vagas por nível (§5); papéis de população com "Disponível" (§6); recrutamento com Soldados (§6); cadeias e bifurcações da Teia (Escrita→Matemática→Filosofia Natural→Método Experimental→Laboratório; Navegação Costeira→Cartografia→Arquitetura Naval→Navegação Oceânica; Agricultura→Irrigação→Rotação→Agronomia; Alvenaria→Engenharia→Fortificação; Metalurgia→Ferro→Pólvora→Artilharia; Troca→Moeda→Mercado→Banco), Convergências nomeadas (Academias Cívicas, Manufaturas Técnicas, Balística, Renascimento) e escolhas OU (Centralização/Federalização, Defesa Profunda/Guerra de Movimento, Autossuficiência/Economia Comercial) (§12); Herança 3 por civ dependente de avanço universal (§13); modelo de civilização com Inclinação, Traço, Componente assinatura, Limitação (§14); infraestrutura que sobe armazém com teto (§9); suprimento por nível com manutenção fora do raio (§8); 7 governos com vantagem/limitação (§16); Pulso condicional mitigado por tecnologia (§18).
 
 **Descartado:** barra de Estabilidade; contador de Coesão; Desenvolvimento 1–5; 7 ações urbanas independentes (as cidades usam só as 5 ações da Ordem Cidade); Pulso toda rodada; Legado Cultural 0–40 (Cultura é recurso); três rodadas obrigatórias de combate; contratos e crédito cedo demais (crédito só com Banco, Era V); Cultura/Prestígio/Legado fazendo o mesmo trabalho (Cultura = recurso, Prestígio = pontuação, Legado = Obras); habilidade 1×/Era da civilização (vai para o Líder).
 
-## 21. Exploração
+## 21. Descobertas
 
-Mundo gerado por seed, oculto. Região = 7 hexes. Explorador adjacente escolhe **qual Região oculta** revelar (direção); o conteúdo é o real da seed; sem rotação. Avanços dão prévia (bioma, recurso, costa, perigo). Descoberta narrativa gera Encontro. Explorador, Pioneiro e Enviado mantêm papéis separados.
+Mundo inteiro pré-gerado pela seed, oculto. Região = 7 hexes. O Explorador escolhe **qual fronteira/Região** investigar; nunca escolhe o conteúdo nem gira a Região depois de revelada. Uma Região pode conter: **Vestígio** (ruína: Conhecimento ou Cultura, às vezes um mapa), **Jazida** (Metal ou Pedra rara), **Passagem** (atalho entre regiões: estrada natural), **Ancoradouro** (porto natural), **Povo Independente**, **Perigo** (fera, pântano, tempestade: pode custar uma peça), **Acampamento Bárbaro** (§21b) ou outro ponto especial autoral. Descoberta narrativa gera **Encontro** (pergaminho com duas escolhas). Avanços dão informação parcial antes de explorar (Matemática: bioma; Método Experimental: perigo e costa; Cartografia em navio: costa a 2). Explorador, Pioneiro e Enviado mantêm papéis separados.
 
-## 22. Passagem de Era
+## 21b. Bandos de fronteira e Piratas
 
-Após a 5ª rodada: efeitos de fim de Era → pontuar no máx. 1 Ambição → poder do Líder recupera → mão +1 Manobra (até 5), Reações descartadas voltam ao baralho → mudança de Governo permitida se elegível (Ordem Influência na primeira rodada da Era, custa Influência) → efeitos "por Era" → abre patamar da Teia → Pulso obrigatório (não altera a Pressão) → Era seguinte.
+Princípio: **surgem → crescem → movem → atacam**. Tudo determinístico sobre o RNG privado da partida.
+
+- **Surgimento.** Um Pulso, uma Repercussão (Pedra e Metal, Troca) ou um Encontro pode criar um **Acampamento** com um grupo inicial numa fronteira elegível: hex não reivindicado a 3–5 hexes de alguma cidade, fora da visão de todos no momento. Nunca adjacente a uma cidade.
+- **Ameaça I / II / III.** Composição por Era e terreno: I = 2 Infantaria (Poder 4); II = 3 Infantaria + 1 Arqueiros, Cavalaria em vez de Arqueiros a partir da Era III (Poder 8); III = 4 Infantaria + Cavalaria + Cerco a partir da Era V (Poder 13). Em Colina/Montanha o bando ganha a defesa do terreno como qualquer peça.
+- **Crescimento.** No Pulso de Virada de Era, cada Acampamento vivo sobe 1 Ameaça (máx. III) se nenhuma peça de jogador estiver a 2 hexes.
+- **Movimento e alvo** (passo 4 da Virada e em toda rodada ímpar): o bando escolhe o alvo deterministicamente: 1) acessível por terra; 2) cidade mais próxima; 3) menor defesa (Guarda + fortificação); 4) maior valor econômico (nível + distritos) como desempate. Move 1 hex por rodada rumo ao alvo (2 com Cavalaria na Ameaça II+).
+- **No caminho** pode: atacar peças, bloquear a coleta de um hex (o hex não é trabalhado enquanto ocupado), pilhar uma melhoria (vira terreno simples), cortar estrada/rota (suspensa enquanto ocupada), matar civis expostos (Explorador/Pioneiro/Enviado sem escolta).
+- **Combate** usa o mesmo motor dos jogadores (§11b); o bando está sempre em Assalto.
+- **Recompensa** ao eliminar o Acampamento: uma única vez por Acampamento (Ameaça I: 2 Riqueza; II: 3 Riqueza + 1 Prestígio; III: 4 Riqueza + 2 Prestígio + 1 Encontro). Bandos derrotados em campo não dão nada: sem farming.
+- Bandos e Acampamentos são atacáveis no Alpha com a Ordem Expedição normal.
+
+**Piratas** seguem a mesma arquitetura no mar, com comportamento próprio: surgem em fronteiras marítimas ou numa rota marítima ativa (Repercussão de Troca, Pulso Rotas Instáveis); alvo: 1) rota marítima mais rica; 2) porto mais próximo; 3) porto com menos Frotas. Bloqueiam a rota enquanto estiverem nela, pilham o porto (−2 Riqueza ao dono) e combatem Frotas; nunca desembarcam. Eliminar o Ancoradouro pirata: 3 Riqueza + 1 Prestígio, uma vez.
+
+## 22. Virada de Era
+
+Depois da 5ª rodada, nesta ordem, um painel com um CTA por passo:
+
+1. Sustento e efeitos pendentes (Manutenção da rodada 5, efeitos "fim de Era").
+2. Pontuar no máximo 1 Ambição.
+3. **Pulso do Mundo** global (obrigatório).
+4. **Ameaças do Mundo** agem: Acampamentos crescem, bandos e piratas escolhem alvo e movem.
+5. Reforma de Governo, se elegível (máx. 1 por Era, Ordem Influência reservada na rodada 5).
+6. Recuperar o poder do Líder.
+7. Renovar Manobras (+1, até 5; Reações voltam ao baralho) e Ambições (trocar 1 não concluída).
+8. Liberar o próximo patamar da Teia.
+9. Avançar a Era (todas as civilizações juntas).
+
+Hegemonia continua como na V5.1a (§23).
 
 ## 23. Hegemonia (Era VII)
 
@@ -446,7 +544,9 @@ Explorar Região +1 · fundar cidade +1 · cidade atinge N4 +1, N6 +2, N7 +3 · 
 | Teia 40+10 com OU | identidade por caminho | que tronco seguir; qual lado da escolha | grafo | Livro mostra só o patamar atual + próximo; Convergências entre colunas; OU como carta dupla |
 | Herança paga | assimetria opcional | investir na identidade ou não | 54 nós | 3 ramos na cor da civ saindo do avanço que os abre |
 | Suprimento por nível | guerra longe exige cidade grande | onde apoiar a campanha | raio | halo de suprimento ao selecionar exército; peças fora com borda tracejada |
-| Pressão / Pulso condicional | mundo reage e tecnologia protege | agir e provocar Pulso | medidor extra | barra fina na Faixa; a carta de Pulso mostra "mitigado por" |
+| Ressonância ◆◆◆ / Repercussão | o que você pesquisa volta para você | pesquisar agora ou guardar o 3º marcador | dois eventos | três losangos no selo da civ; a carta de Repercussão mostra "mitigado por" |
+| Pulso por Era | o mundo muda junto | — | — | pergaminho na Virada de Era |
+| Bandos / Piratas | fronteira viva | limpar ou fortificar | IA | Acampamento com Ameaça I/II/III no mapa; rota de alvo tracejada quando visível |
 | Governos 7 | estilo com custo | trocar ou não | 8 textos | Livro·Conselho mostra só o atual e os elegíveis |
 | Hegemonia 3 requisitos | corrida clara | qual caminho | 6×3 | Livro·Hegemonia mostra só os 2 caminhos mais próximos |
 
@@ -456,9 +556,13 @@ Explorar Região +1 · fundar cidade +1 · cidade atinge N4 +1, N6 +2, N7 +3 · 
 2. Elevar N7 (Era VII + Saneamento + Metrópoles do Mundo + 10 Madeira): confirmar raridade (meta: ≤ 1 por jogador na rodada 35).
 3. Rendimento dos papéis (1 por par) vs Capacidade: no modelo, Riqueza e Conhecimento enchem o Cofre nas Eras III–IV; talvez 1 por 3 Mercadores.
 4. Sustento militar 1 por 2 peças e atrito −1 Força: testar com exércitos de 6–8.
-5. Limiar de Pressão 4 + 2 × jogadores com os novos gatilhos (Elevar N5+, Convergência).
+5. Ressonância: 3 marcadores (ritmo de Repercussão) e o peso da família principal (2 em 3) na escolha da carta.
 6. Pesos das escolhas OU (Centralização/Federalização etc.) e das 7 limitações de governo: orçamento igual no papel, não na mesa.
 7. Alcance de suprimento 1 + teto(N/2) em mapas de 4–6 jogadores (distâncias menores).
 8. Custo das Convergências (+2 Conhecimento) vs ritmo de 1 avanço a cada 2 rodadas.
 9. Capacidade Administrativa base 2 + capital 1: se mesas de 2 expandirem além de 7 cidades, a fórmula pode precisar de +1 por Era.
 10. Governar com alcance = Capacidade: testar se recuperar vários níveis de Ânimo numa ativação banaliza o Ânimo.
+
+## 27. V5.1a → V5.1b (o que mudou)
+
+Combate fechado como um choque tático com dado AoH, posturas circulares, margem 2/5 e no máximo 1 Reação por lado (§11b); tabela militar com Poder base e uma assinatura por família (§11); Graus I/II/III pela Teia (§12b); **Pressão removida** e substituída pela Ressonância de 3 marcadores com Repercussão por civilização, Pulso só na Virada de Era (§18); Virada de Era em 9 passos com Ameaças do Mundo (§22); Governo só na Virada, 1 reforma por Era (§16); Descobertas com tipos de ponto (§21); Bandos de fronteira e Piratas (§21b); Herança consome Ressonância (§13). Economia, cidade, população e interface da V5.1a intactas. Nada da referência externa é copiado: nomes, árvore, custos, matemática (nenhuma soma ÷ 5, nenhuma rodada obrigatória), ícones, bárbaros e líderes são autorais.
