@@ -3,7 +3,7 @@ import { type AlphaResourcePool, type AlphaState } from '@aoh/game-domain';
 import { advanceAfterReady, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, TRADE_DEFAULT_PRESTIGE } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 
-const pool = (values: Partial<AlphaResourcePool>): AlphaResourcePool => ({ food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0, ...values });
+const pool = (values: Partial<AlphaResourcePool>): AlphaResourcePool => ({ food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0, culture: 0, ...values });
 function setup(): AlphaState {
   const state = beginAlphaPlanning(createAlphaGame({ gameId: 'trade', seed: 9, preset: 'QUICK', players: [{ id: 'p1', name: 'Ana' }, { id: 'p2', name: 'Beto' }, { id: 'p3', name: 'Caio' }] }));
   for (const player of state.players) { player.ambitionsChosen = true; player.contacts = state.players.map(other => other.playerId).filter(id => id !== player.playerId); player.resources = pool({ food: 10, wood: 6, stone: 6, wealth: 10, knowledge: 5, influence: 5 }); }

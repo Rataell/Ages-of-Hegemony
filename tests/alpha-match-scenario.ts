@@ -15,7 +15,7 @@ export function scriptedMatchSetup():AlphaState {
   if(!initial.ok)throw new Error(initial.error.message);const migrated=migrateSnapshotV3ToV4(initial.value);if(!migrated.ok)throw new Error(migrated.error.message);
   const state=migrated.value,p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');state.rules=alphaRules('EPIC');state.core.config.administrativeRules.baseCapacity=50;
   state.rules.roundLimit=100;
-  Object.assign(state.rules.balance.baseStorage,{foodCapacity:1000,woodCapacity:1000,stoneCapacity:1000,metalCapacity:1000,wealthCapacity:1000});
+  for(const key of Object.keys(state.rules.balance.limits.base)){Object.assign(state.rules.balance.limits.base,{[key]:1000});Object.assign(state.rules.balance.limits.hardCap,{[key]:1000});}
   state.players[0]!.civilization='aurelia';state.players[1]!.civilization='valgard';
   state.players.forEach(p=>p.knownHexIds=state.core.map.map(t=>t.id));
   state.regions=[{id:'demonstration-region',templateId:'homeland-1',hexIds:['0,0','1,0','1,-1','0,-1','-1,0','-1,1','0,1'].map(id=>HexIdSchema.parse(id)),rotation:0,revealedBy:[]}];

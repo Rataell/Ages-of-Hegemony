@@ -139,7 +139,7 @@ export function productionOutput(state: AlphaState, actor: PlayerId, cityId: str
   return { output, metal, onProduce: recurringAmounts(state, actor, 'ON_PRODUCE', cityId) };
 }
 // Legacy "materials" contributions are summed before the split into Madeira and Pedra, so alone they read as both.
-const RESOURCE_LABEL: Record<string, string> = { food: 'Alimentos', materials: 'Madeira/Pedra', wood: 'Madeira', stone: 'Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', metal: 'Metal' };
+const RESOURCE_LABEL: Record<string, string> = { food: 'Alimentos', materials: 'Madeira/Pedra', wood: 'Madeira', stone: 'Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura', metal: 'Metal' };
 /** A credited legacy pool as the seven resources it becomes. */
 const credited = (pool: ResourcePool): Record<string, number> => legacyToAlphaResources(pool);
 const listOf = (pool: Record<string, number>) => Object.entries(pool).filter(([, amount]) => amount > 0).map(([key, amount]) => `+${amount} ${RESOURCE_LABEL[key]}`).join(', ');
@@ -271,7 +271,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
     case 'PROMOTE_MOOD': {
       rejectExtras(command, []);
       if (meta.mood >= balance.promoteMoodCeiling) throw new Error('O investimento público não eleva o ânimo além do limite; outras ações são necessárias.');
-      alphaPay(state, actor, { food: 0, wood: 0, stone: 0, metal: 0, wealth: balance.publicInvestmentCost, knowledge: 0, influence: 0 });
+      alphaPay(state, actor, { ...emptyAlphaResourcePool(), wealth: balance.publicInvestmentCost });
       meta.mood += 1;
       message = `${city.name} recebeu investimento público; o ânimo melhorou.`;
       break;

@@ -114,19 +114,34 @@ describe('metal production', () => {
 });
 
 describe('storage capacity', () => {
-  it('scales base capacity with cities and building bonuses', () => {
+  it('starts at the base limit per civilization and adds each infrastructure once (canon §9)', () => {
     const state = created();
     const base = alphaStorageCapacity(state, p1);
-    expect(base.foodCapacity).toBe(state.rules.balance.baseStorage.foodCapacity + leaderStorageBonus(state, p1, 'food'));
-    state.cities.find(c => c.currentOwnerId === p1)!.buildings.push('GRANARY', 'WAREHOUSE');
+    expect(base.food).toBe(state.rules.balance.limits.base.FOOD + leaderStorageBonus(state, p1, 'food'));
+    expect(base.knowledge).toBe(state.rules.balance.limits.base.KNOWLEDGE + leaderStorageBonus(state, p1, 'knowledge'));
+    const mine = state.cities.filter(c => c.currentOwnerId === p1);
+    mine[0]!.buildings.push('GRANARY', 'WAREHOUSE', 'GRANARY');
     const after = alphaStorageCapacity(state, p1);
-    expect(after.foodCapacity).toBe(base.foodCapacity + state.rules.balance.storagePerBuilding.GRANARY);
-    expect(after.woodCapacity).toBe(base.woodCapacity + state.rules.balance.storagePerBuilding.WAREHOUSE);
+    expect(after.food).toBe(base.food + 5);
+    expect(after.wood).toBe(base.wood + 5);
+    expect(after.stone).toBe(base.stone + 5);
+  });
+
+  it('never exceeds the hard cap (30 for materials, 20 for civilizational resources)', () => {
+    const state = created();
+    const city = state.cities.find(c => c.currentOwnerId === p1)!;
+    city.buildings.push('GRANARY', 'ARCHIVE', 'ACADEMY');
+    city.level = 'METROPOLIS';
+    for (const other of state.cities.filter(c => c.currentOwnerId === p1 && c !== city)) other.level = 'METROPOLIS';
+    const cap = alphaStorageCapacity(state, p1);
+    expect(cap.knowledge).toBe(20);
+    expect(cap.food).toBeLessThanOrEqual(30);
+    expect(cap.culture).toBe(state.rules.balance.limits.base.CULTURE + 3);
   });
 
   it('discards overflow from an action-time gain and records it', () => {
     const state = created();
-    const cap = alphaStorageCapacity(state, p1).foodCapacity;
+    const cap = alphaStorageCapacity(state, p1).food;
     const events = state.events.length;
     alphaGain(state, p1, { food: 500 });
     expect(pool(state).food).toBe(cap);
@@ -144,15 +159,17 @@ describe('storage capacity', () => {
     const state = created();
     const cap = alphaStorageCapacity(state, p1);
     alphaGainLegacy(state, p1, { materials: 500 });
-    expect(pool(state).wood).toBe(cap.woodCapacity);
-    expect(pool(state).stone).toBe(cap.stoneCapacity);
+    expect(pool(state).wood).toBe(cap.wood);
+    expect(pool(state).stone).toBe(cap.stone);
   });
 
-  it('never caps knowledge or influence', () => {
+  it('caps knowledge, influence and culture at their limit too', () => {
     const state = created();
-    alphaGain(state, p1, { knowledge: 900, influence: 900 });
-    expect(pool(state).knowledge).toBeGreaterThan(900);
-    expect(pool(state).influence).toBeGreaterThan(900);
+    const cap = alphaStorageCapacity(state, p1);
+    alphaGain(state, p1, { knowledge: 900, influence: 900, culture: 900 });
+    expect(pool(state).knowledge).toBe(cap.knowledge);
+    expect(pool(state).influence).toBe(cap.influence);
+    expect(pool(state).culture).toBe(cap.culture);
   });
 
   it('records maintenance discards in the round report and keeps its arithmetic', () => {
@@ -163,7 +180,7 @@ describe('storage capacity', () => {
     const report = after.roundReports.find(r => r.playerId === p1)!;
     expect(report.discarded.food).toBeGreaterThan(0);
     expect(report.discarded.materials).toBeGreaterThan(0);
-    expect(report.closing.food).toBeLessThanOrEqual(cap.foodCapacity);
+    expect(report.closing.food).toBeLessThanOrEqual(cap.food);
     expect(after.events.some(e => e.type === 'STORAGE_DISCARD' && e.audience?.includes(p1))).toBe(true);
     expect(AlphaStateSchema.safeParse(after).success).toBe(true);
   });
@@ -177,6 +194,7 @@ describe('storage capacity', () => {
   it('uses one central balance for the cap and metal rate', () => {
     const balance = alphaRules('STANDARD').balance;
     expect(balance.metalPerMine).toBe(1);
-    expect(balance.baseStorage.metalCapacity).toBeGreaterThan(0);
+    expect(balance.limits.base.METAL).toBe(10);
+    expect(balance.limits.hardCap.METAL).toBe(20);
   });
 });

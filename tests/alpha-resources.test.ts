@@ -27,7 +27,7 @@ describe('seven-resource authority', () => {
 
   it('never invents a metal requirement for generic material costs', () => {
     expect(alphaCost({ food: 0, materials: 8, wealth: 0, knowledge: 0, influence: 0 })).toMatchObject({ wood: 4, stone: 4, metal: 0 });
-    const available = { food: 0, wood: 1, stone: 2, metal: 0, wealth: 0, knowledge: 0, influence: 0 };
+    const available = { food: 0, wood: 1, stone: 2, metal: 0, wealth: 0, knowledge: 0, influence: 0, culture: 0 };
     const taken = alphaCost({ food: 0, materials: 5, wealth: 0, knowledge: 0, influence: 0 }, available);
     expect(taken.wood + taken.stone + taken.metal).toBe(5);
     expect(taken.stone).toBe(2);

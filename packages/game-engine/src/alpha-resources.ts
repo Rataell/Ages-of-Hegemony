@@ -1,6 +1,6 @@
 import {
   ALPHA_RESOURCE_KEYS, RESOURCE_KEYS, alphaToLegacyResources, emptyAlphaResourcePool, legacyToAlphaResources,
-  type AlphaResourcePool, type AlphaState, type PlayerId, type ResourcePool, type RoundLedger,
+  type AlphaResourceKey, type AlphaResourcePool, type AlphaResourceType, type AlphaState, type PlayerId, type ResourcePool, type RoundLedger,
 } from '@aoh/game-domain';
 import { sum } from './arithmetic.js';
 import { leaderStorageBonus } from './alpha-leaders.js';
@@ -20,7 +20,7 @@ export function alphaCost(cost: ResourcePool | AlphaResourcePool, available?: Al
     metal = Math.min(cost.materials - wood - stone, available.metal);
     wood += cost.materials - wood - stone - metal;
   }
-  return { food: cost.food, wood, stone, metal, wealth: cost.wealth, knowledge: cost.knowledge, influence: cost.influence };
+  return { food: cost.food, wood, stone, metal, wealth: cost.wealth, knowledge: cost.knowledge, influence: cost.influence, culture: 0 };
 }
 
 const zeroPool = (): ResourcePool => ({ food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 });
@@ -112,27 +112,29 @@ export function alphaGain(state: AlphaState, actor: PlayerId, gain: Partial<Alph
   if (options.enforceStorage ?? true) enforceStorageRecorded(state, actor);
 }
 
-export function alphaStorageCapacity(state: AlphaState, actor: PlayerId) {
+/** Resource key → the balance's resource type. */
+const TYPE_OF: Record<AlphaResourceKey, AlphaResourceType> = { food: 'FOOD', wood: 'WOOD', stone: 'STONE', metal: 'METAL', wealth: 'WEALTH', knowledge: 'KNOWLEDGE', influence: 'INFLUENCE', culture: 'CULTURE' };
+
+/**
+ * Storage limit per resource for one civilization (canon §9): base 15/10, +5 per infrastructure (one of each counts, the
+ * Armazém raises Madeira and Pedra), +3 on everything from the first Metrópole, the leader's passive, never above the hard cap 30/20.
+ */
+export function alphaStorageCapacity(state: AlphaState, actor: PlayerId): Record<AlphaResourceKey, number> {
   const cities = state.cities.filter(city => city.currentOwnerId === actor);
-  const base = state.rules.balance.baseStorage;
-  const capacity = {
-    foodCapacity: base.foodCapacity * Math.max(1, cities.length),
-    woodCapacity: base.woodCapacity * Math.max(1, cities.length),
-    stoneCapacity: base.stoneCapacity * Math.max(1, cities.length),
-    metalCapacity: base.metalCapacity * Math.max(1, cities.length),
-    wealthCapacity: base.wealthCapacity * Math.max(1, cities.length),
-  };
+  const { base, hardCap, metropolisBonus } = state.rules.balance.limits;
+  const capacity = Object.fromEntries(ALPHA_RESOURCE_KEYS.map(key => [key, base[TYPE_OF[key]]])) as Record<AlphaResourceKey, number>;
+  const counted = new Set<string>();
   for (const city of cities) for (const building of city.buildings) {
-    const amount = state.rules.balance.storagePerBuilding[building];
-    if (building === 'GRANARY') capacity.foodCapacity += amount;
-    else if (building === 'TREASURY' || building === 'BANK') capacity.wealthCapacity += amount;
-    else if (building === 'WAREHOUSE') { capacity.woodCapacity += amount; capacity.stoneCapacity += amount; capacity.metalCapacity += amount; }
+    if (counted.has(building)) continue;
+    const bonus = state.rules.balance.storagePerBuilding[building];
+    if (!bonus) continue;
+    counted.add(building);
+    const key = ALPHA_RESOURCE_KEYS.find(candidate => TYPE_OF[candidate] === bonus.resource)!;
+    capacity[key] += bonus.amount;
+    if (building === 'WAREHOUSE') capacity.stone += bonus.amount;
   }
-  capacity.foodCapacity += leaderStorageBonus(state, actor, 'food');
-  capacity.woodCapacity += leaderStorageBonus(state, actor, 'wood');
-  capacity.stoneCapacity += leaderStorageBonus(state, actor, 'stone');
-  capacity.metalCapacity += leaderStorageBonus(state, actor, 'metal');
-  capacity.wealthCapacity += leaderStorageBonus(state, actor, 'wealth');
+  if (cities.some(city => ['METROPOLIS', 'IMPERIAL_METROPOLIS'].includes(city.level))) for (const key of ALPHA_RESOURCE_KEYS) capacity[key] += metropolisBonus;
+  for (const key of ALPHA_RESOURCE_KEYS) capacity[key] = Math.min(hardCap[TYPE_OF[key]], capacity[key] + leaderStorageBonus(state, actor, key));
   return capacity;
 }
 
@@ -141,10 +143,9 @@ export function enforceStorage(state: AlphaState, actor: PlayerId): AlphaResourc
   if (!player) return emptyAlphaResourcePool();
   const capacity = alphaStorageCapacity(state, actor);
   const discarded = emptyAlphaResourcePool();
-  const pairs = [['food', 'foodCapacity'], ['wood', 'woodCapacity'], ['stone', 'stoneCapacity'], ['metal', 'metalCapacity'], ['wealth', 'wealthCapacity']] as const;
-  for (const [resource, limit] of pairs) {
-    discarded[resource] = Math.max(0, player.resources[resource] - capacity[limit]);
-    player.resources[resource] -= discarded[resource];
+  for (const key of ALPHA_RESOURCE_KEYS) {
+    discarded[key] = Math.max(0, player.resources[key] - capacity[key]);
+    player.resources[key] -= discarded[key];
   }
   return discarded;
 }

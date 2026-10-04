@@ -8,6 +8,7 @@ const paths: Record<string, string> = {
   wealth: 'M12 2L22 12L12 22L2 12ZM12 7V17M8 12H16',
   knowledge: 'M12 6Q7 2 2 5V20Q7 17 12 21Q17 17 22 20V5Q17 2 12 6V21',
   influence: 'M12 22V3M4 5H20L17 13H7ZM7 20H17',
+  culture: 'M4 20H20M6 20V9L12 4L18 9V20M10 20V14H14V20',
 };
 /**
  * `caps` adds a warehouse gauge under each stored resource (exact numbers in the tooltip); a full store is flagged because new income is discarded.

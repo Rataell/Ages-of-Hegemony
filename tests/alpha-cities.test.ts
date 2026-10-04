@@ -7,6 +7,8 @@ function setup():AlphaState {
     map:Array.from({length:10},(_,q)=>({id:`${q},0`,q,r:0,terrain:'PLAINS'})),
     initialCities:[{id:'c1',ownerId:'p1',hexId:'0,0',name:'Um'},{id:'c2',ownerId:'p2',hexId:'4,0',name:'Dois'},{id:'c3',ownerId:'p2',hexId:'8,0',name:'Três'}]});
   if(!core.ok)throw new Error(core.error.message);const migrated=migrateSnapshotV3ToV4(core.value);if(!migrated.ok)throw new Error(migrated.error.message);
+  // Seeds above the canon limits: this scenario tests capture, not storage.
+  for(const key of Object.keys(migrated.value.rules.balance.limits.base)){Object.assign(migrated.value.rules.balance.limits.base,{[key]:100});Object.assign(migrated.value.rules.balance.limits.hardCap,{[key]:100});}
   const state=beginAlphaPlanning(migrated.value),city=state.core.players[1]!.civilization.cities[0]!;
   const assigned=applyAlphaCommand(state,state.players[1]!.playerId,{type:'MANAGE',expectedVersion:state.version,command:{type:'ASSIGN_POPULATION',playerId:state.players[1]!.playerId,cityId:city.id,workers:city.workers,expectedVersion:state.core.version}});
   if(!assigned.ok)throw new Error(assigned.error.message);return assigned.value;

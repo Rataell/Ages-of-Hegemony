@@ -6,7 +6,7 @@ import type { AlphaSend } from './alpha-board';
 import { bannerArt } from './table-art';
 
 type Game = NonNullable<AlphaRoomView['game']>;
-const RESOURCE: Record<string, string> = { food: 'Alimento', materials: 'Madeira/Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência' };
+const RESOURCE: Record<string, string> = { food: 'Alimento', materials: 'Madeira/Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
 export function effectText(effect: AlphaEffect | null): string {
   if (!effect) return '';
   if (effect.kind === 'PRODUCTION') return `+${effect.amount} ${RESOURCE[effect.resource] ?? effect.resource}`;

@@ -95,10 +95,10 @@ describe('urban actions: PRODUCE', () => {
   it('discards what does not fit and records the discard', () => {
     const state = urban();
     const cap = alphaStorageCapacity(state, p1);
-    pool(state).food = cap.foodCapacity;
+    pool(state).food = cap.food;
     state.core.players[0]!.resources = alphaToLegacyResources(pool(state));
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
-    expect(pool(after).food).toBe(cap.foodCapacity);
+    expect(pool(after).food).toBe(cap.food);
     const ledger = after.roundLedgers.find(l => l.playerId === p1)!;
     expect(ledger.discarded.food).toBe(ledger.production.food);
     expect(after.events.some(e => e.type === 'STORAGE_DISCARD')).toBe(true);
@@ -137,7 +137,7 @@ describe('urban actions: BUILD', () => {
     coreCity(state).districts.push({ type: 'AGRARIAN', builtRound: 1 });
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'BUILD', build: { kind: 'BUILDING', building: 'GRANARY' } });
     expect(meta(after).buildings).toContain('GRANARY');
-    expect(alphaStorageCapacity(after, p1).foodCapacity).toBeGreaterThan(alphaStorageCapacity(state, p1).foodCapacity);
+    expect(alphaStorageCapacity(after, p1).food).toBeGreaterThan(alphaStorageCapacity(state, p1).food);
   });
 
   it('refuses a build it cannot afford without changing anything', () => {
@@ -322,6 +322,7 @@ describe('urban actions: SUPPORT_TRADE and CIVIC_ACTION', () => {
     let state = urban();
     const target = c2;
     occupyCity(state, p1, target as never);
+    for(const key of Object.keys(state.rules.balance.limits.base)){Object.assign(state.rules.balance.limits.base,{[key]:100});Object.assign(state.rules.balance.limits.hardCap,{[key]:100});}
     alphaGain(state, p1, { influence: 32 });
     expect(state.cities.find(c => c.cityId === target)).toMatchObject({ status: 'OCCUPIED', integration: 0, currentOwnerId: p1 });
     setAlphaPhase(state,'PLANNING');state = completeRound(state);setAlphaPhase(state,'URBAN_ACTIONS');state.cities.forEach(city=>{city.urbanActionsUsed=0;});

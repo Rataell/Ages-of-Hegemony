@@ -1,7 +1,7 @@
 import { ADVANCEMENTS, ALPHA_RESOURCE_KEYS, type AlphaState, type PlannedAction, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 
 /** Player-facing names for resolution messages. Events are read as written, so they never carry enum identifiers. */
-const RESOURCE_NAMES: Record<string, string> = { food: 'Alimento', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência' };
+const RESOURCE_NAMES: Record<string, string> = { food: 'Alimento', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
 const DISTRICT_NAMES: Record<string, string> = { AGRARIAN: 'Agrário', COMMERCIAL: 'Comercial', ACADEMIC: 'Acadêmico', ADMINISTRATIVE: 'Administrativo', MILITARY: 'Militar', INDUSTRIAL: 'Industrial', CULTURAL: 'Cultural', MARITIME: 'Marítimo' };
 const BUILDING_NAMES: Record<string, string> = { GRANARY: 'Celeiro', MARKET: 'Mercado', LIBRARY: 'Biblioteca', ARCHIVE: 'Arquivo', BARRACKS: 'Quartel', WORKSHOP: 'Oficina', CULTURAL_CENTER: 'Centro cultural' };
 

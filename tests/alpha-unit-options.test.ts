@@ -65,8 +65,9 @@ describe('per-piece order options', () => {
   it('projects options and warehouse limits only for the viewer', () => {
     const state = setup(), view = alphaPlayerView(state, PlayerIdSchema.parse('p1'))!;
     expect(Object.keys(view.unitOptions).every(id => state.units.find(unit => unit.id === id)?.ownerId === 'p1')).toBe(true);
-    expect(view.storage.foodCapacity).toBeGreaterThan(0);
-    expect(view.storage).toHaveProperty('metalCapacity');
+    expect(view.storage.food).toBeGreaterThan(0);
+    expect(view.storage).toHaveProperty('metal');
+    expect(view.storage).toHaveProperty('culture');
   });
 });
 

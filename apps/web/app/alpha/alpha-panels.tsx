@@ -31,7 +31,7 @@ export function AlphaCity({game,city,locked,manage}:Panel&{city:CityState;manage
   </section>;
 }
 
-const RESOURCE_TEXT:Record<string,string>={food:'Alimentos',wood:'Madeira',stone:'Pedra',metal:'Metal',wealth:'Riqueza',knowledge:'Conhecimento',influence:'Influência'};
+const RESOURCE_TEXT:Record<string,string>={food:'Alimentos',wood:'Madeira',stone:'Pedra',metal:'Metal',wealth:'Riqueza',knowledge:'Conhecimento',influence:'Influência', culture: 'Cultura'};
 const costText=(cost:Record<string,number>)=>{const parts=Object.entries(cost).filter(([,amount])=>amount>0).map(([key,amount])=>`${amount} ${RESOURCE_TEXT[key]??key}`);return parts.length?parts.join(' · '):'Sem custo';};
 type UrbanOption=AlphaPlayerView['urban']['research'][number];
 const optionKey=(o:UrbanOption)=>JSON.stringify([o.action,o.build??null,o.unit??null,o.advancementId??null]);

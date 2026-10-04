@@ -11,6 +11,8 @@ function setup(): AlphaState {
     players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }, { id: 'p3', name: 'Três' }],
   }));
   state.players[0]!.knownHexIds = state.core.map.map(tile => tile.id);
+  // Seeds above the canon limits: this scenario tests the trade, not storage.
+  for(const key of Object.keys(state.rules.balance.limits.base)){Object.assign(state.rules.balance.limits.base,{[key]:100});Object.assign(state.rules.balance.limits.hardCap,{[key]:100});}
   Object.assign(state.players[0]!.resources, { food: 20, wood: 20, stone: 20, metal: 5, wealth: 20, knowledge: 20, influence: 20 });
   return state;
 }

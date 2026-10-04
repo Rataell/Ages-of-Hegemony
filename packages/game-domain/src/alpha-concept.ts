@@ -16,8 +16,11 @@ export const AlphaRoundPhaseSchema = z.enum([
 ]);
 export type AlphaRoundPhase = z.infer<typeof AlphaRoundPhaseSchema>;
 
-export const ALPHA_RESOURCE_KEYS = ['food', 'wood', 'stone', 'metal', 'wealth', 'knowledge', 'influence'] as const;
-export const AlphaResourceTypeSchema = z.enum(['FOOD', 'WOOD', 'STONE', 'METAL', 'WEALTH', 'KNOWLEDGE', 'INFLUENCE']);
+/** The eight resources of V5.1a (canon §3): four materials limited at 15 and four civilizational ones limited at 10. */
+export const ALPHA_RESOURCE_KEYS = ['food', 'wood', 'stone', 'metal', 'wealth', 'knowledge', 'influence', 'culture'] as const;
+export type AlphaResourceKey = (typeof ALPHA_RESOURCE_KEYS)[number];
+export const AlphaResourceTypeSchema = z.enum(['FOOD', 'WOOD', 'STONE', 'METAL', 'WEALTH', 'KNOWLEDGE', 'INFLUENCE', 'CULTURE']);
+export type AlphaResourceType = z.infer<typeof AlphaResourceTypeSchema>;
 export const AlphaResourcePoolSchema = z.strictObject({
   food: N,
   wood: N,
@@ -26,9 +29,11 @@ export const AlphaResourcePoolSchema = z.strictObject({
   wealth: N,
   knowledge: N,
   influence: N,
+  /** Cultura is a resource since V5.1a; matches saved before it read as 0. */
+  culture: N.default(0),
 });
 export type AlphaResourcePool = z.infer<typeof AlphaResourcePoolSchema>;
-export const emptyAlphaResourcePool = (): AlphaResourcePool => ({ food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 });
+export const emptyAlphaResourcePool = (): AlphaResourcePool => ({ food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0, culture: 0 });
 export const legacyToAlphaResources = (pool: ResourcePool): AlphaResourcePool => ({
   food: pool.food,
   wood: Math.ceil(pool.materials / 2),
@@ -37,6 +42,7 @@ export const legacyToAlphaResources = (pool: ResourcePool): AlphaResourcePool =>
   wealth: pool.wealth,
   knowledge: pool.knowledge,
   influence: pool.influence,
+  culture: 0,
 });
 /** What a gain written in a legacy resource credits in the seven resources (legacy "materials" splits as above). */
 export const alphaGainOf = (resource: keyof ResourcePool, amount: number): AlphaResourcePool =>
@@ -207,8 +213,10 @@ export const AlphaBalanceSchema = z.strictObject({
   cityActions: P,
   wealthConversionRate: z.literal(2),
   wealthMaterialCostPercentMax: z.literal(50),
-  baseStorage: z.strictObject({ foodCapacity: P, woodCapacity: P, stoneCapacity: P, metalCapacity: P, wealthCapacity: P }),
-  storagePerBuilding: z.record(AlphaBuildingSchema, N),
+  /** Storage limits per civilization (canon §3, §9): base per resource, the hard cap infrastructure can never exceed, and the bonus a Metrópole (N6+) adds to every limit. */
+  limits: z.strictObject({ base: z.record(AlphaResourceTypeSchema, P), hardCap: z.record(AlphaResourceTypeSchema, P), metropolisBonus: N }),
+  /** Limit raised by each infrastructure (one of each counts per civilization), by resource. */
+  storagePerBuilding: z.record(AlphaBuildingSchema, z.strictObject({ resource: AlphaResourceTypeSchema, amount: P }).nullable()),
   overflowRule: z.literal('DISCARD_AFTER_ACTION'),
   publicInvestmentCost: P,
   moodEffects: z.array(z.strictObject({ productionPercent: z.number().int().min(-100).max(100), stabilityDelta: z.number().int().min(-10).max(10) })).length(7),
@@ -236,17 +244,26 @@ export const AlphaBalanceSchema = z.strictObject({
 export type AlphaBalance = z.infer<typeof AlphaBalanceSchema>;
 
 export function alphaBalance(): AlphaBalance {
-  const storage = Object.fromEntries(AlphaBuildingSchema.options.map(building => [building, 0])) as Record<z.infer<typeof AlphaBuildingSchema>, number>;
-  storage.GRANARY = 10;
-  storage.WAREHOUSE = 10;
-  storage.TREASURY = 10;
-  storage.BANK = 20;
+  const storage = Object.fromEntries(AlphaBuildingSchema.options.map(building => [building, null])) as Record<z.infer<typeof AlphaBuildingSchema>, { resource: z.infer<typeof AlphaResourceTypeSchema>; amount: number } | null>;
+  storage.GRANARY = { resource: 'FOOD', amount: 5 };
+  storage.WAREHOUSE = { resource: 'WOOD', amount: 5 }; // the Armazém also raises Pedra: see alphaStorageCapacity
+  storage.TREASURY = { resource: 'WEALTH', amount: 5 };
+  storage.BANK = { resource: 'WEALTH', amount: 5 };
+  storage.FOUNDRY = { resource: 'METAL', amount: 5 };
+  storage.ARCHIVE = { resource: 'KNOWLEDGE', amount: 5 };
+  storage.ACADEMY = { resource: 'KNOWLEDGE', amount: 5 };
+  storage.CHANCELLERY = { resource: 'INFLUENCE', amount: 5 };
+  storage.THEATER = { resource: 'CULTURE', amount: 5 };
   return AlphaBalanceSchema.parse({
     label: 'ALPHA',
     cityActions: 1,
     wealthConversionRate: 2,
     wealthMaterialCostPercentMax: 50,
-    baseStorage: { foodCapacity: 20, woodCapacity: 15, stoneCapacity: 15, metalCapacity: 10, wealthCapacity: 25 },
+    limits: {
+      base: { FOOD: 15, WOOD: 15, STONE: 15, WEALTH: 15, METAL: 10, KNOWLEDGE: 10, INFLUENCE: 10, CULTURE: 10 },
+      hardCap: { FOOD: 30, WOOD: 30, STONE: 30, WEALTH: 30, METAL: 20, KNOWLEDGE: 20, INFLUENCE: 20, CULTURE: 20 },
+      metropolisBonus: 3,
+    },
     storagePerBuilding: storage,
     overflowRule: 'DISCARD_AFTER_ACTION',
     publicInvestmentCost: 3,

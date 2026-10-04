@@ -1,4 +1,4 @@
-import { LEADERS, leaderStateFor, type AlphaLeader, type AlphaState, type LeaderPassive, type PlayerId } from '@aoh/game-domain';
+import { LEADERS, leaderStateFor, type AlphaLeader, type AlphaState, type LeaderPassive, type PlayerId, type AlphaResourceKey } from '@aoh/game-domain';
 import { alphaEvent } from './alpha-events.js';
 
 /** The leader of a player's civilization, or null before a civilization is chosen. */
@@ -16,7 +16,7 @@ function passive<K extends LeaderPassive['kind']>(state: AlphaState, actor: Play
   return effect && effect.kind === kind ? effect as Extract<LeaderPassive, { kind: K }> : null;
 }
 /** Extra storage capacity from the leader's passive, for one stored resource. */
-export function leaderStorageBonus(state: AlphaState, actor: PlayerId, resource: 'food' | 'wood' | 'stone' | 'metal' | 'wealth'): number {
+export function leaderStorageBonus(state: AlphaState, actor: PlayerId, resource: AlphaResourceKey): number {
   const effect = passive(state, actor, 'STORAGE');
   return effect && effect.resource === resource ? effect.amount : 0;
 }

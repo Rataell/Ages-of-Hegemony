@@ -57,8 +57,8 @@ export const LEGAL_COMMANDS: Readonly<Record<AlphaRoundPhase, ReadonlySet<Comman
   END_ROUND: new Set(),
 };
 
-const PULSE_RESOURCE_NAMES = { FOOD: 'Alimento', WOOD: 'Madeira', STONE: 'Pedra', METAL: 'Metal', WEALTH: 'Riqueza', KNOWLEDGE: 'Conhecimento', INFLUENCE: 'Influência' } as const;
-const RESOURCE_OF_MODULE = { FOOD: 'food', WOOD: 'wood', STONE: 'stone', METAL: 'metal', WEALTH: 'wealth', KNOWLEDGE: 'knowledge', INFLUENCE: 'influence' } as const;
+const PULSE_RESOURCE_NAMES = { FOOD: 'Alimento', WOOD: 'Madeira', STONE: 'Pedra', METAL: 'Metal', WEALTH: 'Riqueza', KNOWLEDGE: 'Conhecimento', INFLUENCE: 'Influência', CULTURE: 'Cultura' } as const;
+const RESOURCE_OF_MODULE = { FOOD: 'food', WOOD: 'wood', STONE: 'stone', METAL: 'metal', WEALTH: 'wealth', KNOWLEDGE: 'knowledge', INFLUENCE: 'influence', CULTURE: 'culture' } as const;
 
 function viewersAt(state:AlphaState,hexId:string,always:readonly PlayerId[]=[]):PlayerId[]{
   return state.players.map(player=>player.playerId).filter(playerId=>always.includes(playerId)||visibleHexIds(state,playerId).has(hexId));
