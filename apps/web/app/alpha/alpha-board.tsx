@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ALPHA_CARDS, CIVILIZATIONS, civilizationKit, stackCategory, stackViewVerdict } from '@aoh/game-domain';
+import { ALPHA_CARDS, CIVILIZATIONS, WORLD_PULSE_CARDS, civilizationKit, stackCategory, stackViewVerdict } from '@aoh/game-domain';
 import { seatColor } from './table-art';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import { HexMap } from '../play/hex-map';
@@ -135,7 +135,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       <ResourceDisplay values={game.self.resources} caps={{food:game.storage.foodCapacity,wood:game.storage.woodCapacity,stone:game.storage.stoneCapacity,metal:game.storage.metalCapacity,wealth:game.storage.wealthCapacity}}/>
       <div className={`admin ${over?'warning':''}`}><small>Administração</small><b>{civ.administrativeLoad} / {civ.administrativeCapacity}{over&&<strong className="alpha-admin-flag">Sobre-extensão</strong>}</b><meter min={0} max={Math.max(civ.administrativeCapacity,civ.administrativeLoad,1)} value={civ.administrativeLoad}/></div>
       <div className="admin"><small>Ações principais</small><b>{game.actions.used} / {game.actions.limit}</b><small>{game.actions.reserved} planejadas · {game.self.prestige} Prestígio</small></div>
-      <div className="round-label"><small>{text(game.self.era)}</small><b>Rodada {game.view.round} / {game.rules.roundLimit}</b><span>{replay?'RESOLVENDO A RODADA':text(game.phase)}</span></div>
+      <div className="round-label"><small>{text(game.self.era)}</small><b>Rodada {game.view.round} / {game.rules.roundLimit}</b><span>{replay?'RESOLVENDO A RODADA':text(game.phase)}</span>{game.worldPulse&&(()=>{const card=WORLD_PULSE_CARDS.find(c=>c.id===game.worldPulse!.id),module=card?.modules[0],RES:Record<string,string>={FOOD:'Alimento',WOOD:'Madeira',STONE:'Pedra',METAL:'Metal',WEALTH:'Riqueza',KNOWLEDGE:'Conhecimento',INFLUENCE:'Influência'};const effect=module?.resource?`${module.amount>0?'+':''}${module.amount} ${RES[module.resource]??module.resource} para todos`:'sem efeito nos recursos';return <small className={`alpha-pulse tone-${game.worldPulse!.type}`} title="Pulso do mundo desta rodada: automático, vale para todas as civilizações">Pulso: {game.worldPulse!.name} · {effect}</small>;})()}</div>
     </header>
     <nav className="main-nav" aria-label="Áreas da civilização">{TABS.map(([key,title])=><button key={key} aria-current={tab===key?'page':undefined} aria-describedby={tabAlerts[key]?`alpha-alert-${key}`:undefined} onClick={()=>setTab(key)}>{title}{tabAlerts[key]&&<span className="alpha-tab-alert" aria-hidden="true" title={tabAlerts[key]}/>}</button>)}{TABS.filter(([key])=>tabAlerts[key]).map(([key])=><span key={key} id={`alpha-alert-${key}`} className="alpha-sr-only">{tabAlerts[key]}</span>)}{tools}</nav>
     {replay&&<section className="alpha-resolution-phase" role="status" aria-label="Resolvendo a rodada"><p className="eyebrow">RESOLVENDO A RODADA {replay.round}</p><h2>Resultados autorizados</h2><ol>{replay.resolution.map(event=><li key={event.id}><b>{text(event.type)}</b><span>{event.message}</span></li>)}</ol><button className="primary" onClick={()=>setDismissedResolution(replay.round)}>Continuar</button></section>}

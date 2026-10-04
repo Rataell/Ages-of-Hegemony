@@ -50,7 +50,7 @@ A coluna **Ação** termina com o estado: FEITO (commit) · PRÓXIMO · ABERTO �
 | GR-18 | Líderes | Habilidade de Era de Kor e Elyra com efeito real (hoje coesão sem efeito) | ✗ | — | — | ◐ | alpha-leaders | sim (inerte) | P1 | GR-16 (Kor), DEC-022 | BLOQUEADO: só com reparo decidido (Kor) ou Coesão com efeito (DEC-022); o orçamento de líderes não permite inventar outro efeito |
 | GR-19 | Povos | Proteger tem efeito | ✗ | — | ✓ | ✓ | alpha-independents | sim (inerte) | P1 | P1-7 | ABERTO |
 | GR-20 | Bandos | Bandos podem ser combatidos e enfraquecem | ✗ | — | ✓ | ✓ | alpha-raids | não | P2 | — | ABERTO |
-| GR-21 | Pulso | Pulsos “Bandos em marcha” e “Refugiados” têm efeito; Pulso atual visível | ◐ | ✓ | ✓ | ✗ | alpha-phases | parcial | P2 | DEC-017 | ABERTO |
+| GR-21 | Pulso | Pulsos “Bandos em marcha” e “Refugiados” têm efeito; Pulso atual visível | ◐ | ✓ | ✓ | ✓ | alpha-phases | sim | P2 | DEC-017 | Pulso da rodada no topo, com efeito e “sem efeito nos recursos” quando nulo · FEITO · efeito dos dois pulsos nulos · BLOQUEADO (DEC-017) |
 | GR-22 | Melhorias | Features de terreno geradas (Rio, Fértil, Madeira, Pedra, Pesca); Pesqueiro construível | ✓ (Pesca, Madeira, Fértil, Pedra, Metal; Rio não) | — | ✓ | ✓ | alpha-features | sim | P1 | — | Uma feature de cada tipo por região, autorada pelo modelo e girada com ela · FEITO · Rio · ABERTO |
 | GR-23 | Edifícios | Armazém, Tesouro, Banco, Porto, Estaleiro, Farol construíveis | ✗ (7 de 29) | — | ✓ | ◐ | alpha-urban | não | P1 | DEC-013; naval (Porto) | ABERTO |
 | GR-24 | **Naval** | Core planejado: recrutar, mover no mar, embarcar, desembarcar, transportar, ocupação hostil, combate, afundar, bloqueio, porto, fog | ◐ (Frota move e luta) | ✓ | ✓ | ◐ | alpha-military | **não** (capital nunca costeira) | **P1** | DEC-014 | Vertical slice no motor: porto = cidade na Costa ou vizinha à água (a capital costeira recruta), Frota lançada na água vizinha, carga com vagas (Frota 3; Cavalaria e Cerco ocupam 2), combate e naufrágio com resgate, bloqueio, carga oculta para rivais · FEITO · UI de embarque/desembarque e carga no mapa · FEITO · playtest na Era II · PRÓXIMO |
@@ -65,7 +65,7 @@ A coluna **Ação** termina com o estado: FEITO (commit) · PRÓXIMO · ABERTO �
 | GR-33 | Cultura | Presença com efeito além da Hegemonia; Coesão | ◐ | ✓ | ✓ | ✓ | alpha-culture | sim | P2 | DEC-016, DEC-022 | BLOQUEADO |
 | GR-34 | Mesa viva | Presença, pausa, suspender, retomar no servidor | ✗ | ✗ | ✗ | ✗ | — | não | P2 | UXDEC-001…008 | ABERTO |
 | GR-35 | Unidades | Escalas, Modernização, unidades assinatura no motor | ✗ | — | — | ✗ | — | não | P2 | DEC-014, GR-05 | ABERTO |
-| GR-36 | Testes | Comandos sem teste: HIRE_ADVISOR, BUILD_ROAD, EMBARGO | ✓ | ✓ | ✓ | ✓ | ✗ | sim | P3 | — | ABERTO |
+| GR-36 | Testes | Comandos sem teste: HIRE_ADVISOR, BUILD_ROAD, EMBARGO | ✓ | ✓ | ✓ | ✓ | ◐ (alpha-untested-commands) | sim | P3 | — | HIRE_ADVISOR e BUILD_ROAD · FEITO · EMBARGO depende da DEC-015 · BLOQUEADO |
 | GR-37 | Layout | Mesa V2.1 (mapa protagonista, Cofre, Livro, um CTA, 1366×768) no produto | — | — | — | ◐ (Conselho/Inspetor/abas) | e2e | sim | P2 | — | Progressivo; manter o que já funciona · ABERTO |
 
 ## Ordem de execução

@@ -414,3 +414,6 @@ button.alpha-card { text-align: left; }
 }
 .alpha-recommended { border-color: #f4ecd8; }
 .alpha-recommended[aria-pressed="true"] { box-shadow: inset 0 0 0 1px #f4ecd8; }
+.alpha-pulse { display: block; font-size: 11px; color: var(--text-muted, #b3c0bd); max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alpha-pulse.tone-NEGATIVE { color: #e5b3a5; }
+.alpha-pulse.tone-POSITIVE { color: #9ec4a2; }
