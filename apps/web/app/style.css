@@ -1,52 +1,4 @@
-:root {
-  color-scheme: dark;
-  --background: #10191d;
-  --surface: #162228;
-  --surface-elevated: #1e2e35;
-  --surface-highest: #283d47;
-  --border: #32444b;
-  --border-subtle: #223238;
-  --border-accent: #c5a46a;
-  --text-primary: #eee9dd;
-  --text-secondary: #abb8b6;
-  --text-muted: #788987;
-  --accent: #c5a46a;
-  --accent-hover: #dbb779;
-  --accent-bright: #f0cf8d;
-  --danger: #ee9a86;
-  --danger-bg: #401f19;
-  --success: #9ec4a2;
-  --warning: #e5bf72;
-  --warning-bg: #3d3118;
-  --food: #b2cf87;
-  --materials: #cbb69a;
-  --wood: #c69a68;
-  --stone: #aeb7b8;
-  --metal: #9fb7c5;
-  --wealth: #e6c173;
-  --knowledge: #94bed2;
-  --influence: #c4a7d4;
-  --civ-1: #6ca7d9;
-  --civ-2: #d48a6a;
-  --civ-3: #5cb3a5;
-  --civ-4: #a691d6;
-  --civ-5: #a9bf6a;
-  --civ-6: #c9889f;
-  --plains: #77885b;
-  --forest: #436349;
-  --hills: #7c7766;
-  --mountains: #5c6360;
-  --coast: #416874;
-  --sea: #274450;
-  --unknown: #37413f;
-  --map-ground: #121c20;
-  --map-ink: #f2ece0;
-  --shadow: 0 16px 48px #00000080;
-  --shadow-sm: 0 4px 12px #00000050;
-  --serif: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --radius: 5px;
-}
+/* Tokens come from the design system: apps/web/app/design/tokens.json -> tokens.css (imported in layout.tsx). */
 
 * {
   box-sizing: border-box;
@@ -57,7 +9,7 @@ body {
   background-color: var(--background);
   color: var(--text-primary);
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }

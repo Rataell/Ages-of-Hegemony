@@ -1,0 +1,48 @@
+/* AoH design system — component classes (Experience V2.1 Mesa). Colors and type come only from tokens.css. */
+
+.aoh-glass { background: linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 95%, transparent), color-mix(in srgb, var(--surface) 95%, transparent)); border: 1px solid var(--border); box-shadow: var(--shadow), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 6%, transparent); color: var(--text-primary); }
+.aoh-parchment { background: var(--parchment); color: var(--parchment-ink); border: 1px solid var(--bronze); box-shadow: var(--shadow); }
+.aoh-eyebrow { font: 700 11px/14px var(--font-body); letter-spacing: .18em; text-transform: uppercase; color: var(--accent); }
+.aoh-parchment .aoh-eyebrow { color: var(--bronze); }
+.aoh-display { font-family: var(--font-display); letter-spacing: .04em; }
+.aoh-numeral { font: 600 16px var(--font-display); color: var(--accent-bright); }
+
+/* Buttons: one gold per state (UXDEC-020). */
+.aoh-btn { height: 40px; padding: 0 16px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-elevated); color: var(--text-primary); font: 600 14px var(--font-body); display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); white-space: nowrap; cursor: pointer; }
+.aoh-btn:hover:not(:disabled) { background: var(--surface-highest); }
+.aoh-btn:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+.aoh-btn:disabled { opacity: .5; cursor: not-allowed; }
+.aoh-btn.is-primary { background: linear-gradient(180deg, var(--accent-hover), var(--accent)); color: var(--on-accent); border-color: var(--border-accent); }
+.aoh-btn.is-ghost { background: transparent; }
+.aoh-btn.is-sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.aoh-btn.is-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+.aoh-btn.is-round { border-radius: var(--radius-pill); }
+
+/* Chips and tags. */
+.aoh-chip { display: inline-flex; align-items: center; gap: var(--space-2); height: 34px; padding: 0 var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--well); color: var(--text-primary); white-space: nowrap; font-size: 13px; }
+.aoh-chip b { font: 600 15px var(--font-display); color: var(--accent-bright); }
+.aoh-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; border: 1px solid var(--border); border-radius: 10px; padding: 1px 8px; color: var(--text-secondary); }
+.aoh-tag.is-ok { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, var(--border)); }
+.aoh-tag.is-warn { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 40%, var(--border)); }
+
+/* Seal of a seat: civilization emblem in the seat color, ready state below, presence dot. */
+.aoh-seal { position: relative; width: 34px; height: 34px; border-radius: var(--radius-pill); display: grid; place-items: center; background: var(--well); border: 2px solid var(--seat, var(--border)); }
+.aoh-seal.is-self { width: 38px; height: 38px; }
+.aoh-seal .st { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); font-size: 10px; line-height: 12px; min-width: 14px; text-align: center; border-radius: 6px; background: var(--background); color: var(--success); font-weight: 700; }
+
+/* Strip (Faixa): the only always-visible chrome on top. */
+.aoh-strip { display: flex; align-items: center; gap: var(--space-3); height: var(--strip-height); padding: 0 var(--space-3); border-radius: var(--radius-panel); }
+
+/* Tray (Bandeja): planning summary and the single dominant action. */
+.aoh-tray { display: flex; align-items: center; gap: var(--space-3); min-height: 56px; max-height: var(--tray-height); padding: 6px 8px 6px 20px; border-radius: var(--radius-pill); }
+.aoh-tray .bud { font-size: 12px; color: var(--text-muted); }
+.aoh-tray .bud b { font: 700 20px var(--font-display); color: var(--accent-bright); margin-left: 4px; }
+
+/* Context card (Cartão): beside the selection. */
+.aoh-card { border-radius: var(--radius-panel); padding: var(--space-4) 18px; width: min(360px, calc(100vw - 24px)); }
+.aoh-card h3 { margin: 0; font: 600 20px var(--font-display); color: var(--accent-bright); }
+
+/* Cofre (popover) and Livro (sheet over the map). */
+.aoh-popover { border-radius: var(--radius-panel); padding: var(--space-4); }
+.aoh-sheet { border-radius: var(--radius-panel); padding: var(--space-4) var(--space-6); }
+.aoh-scrim { background: color-mix(in srgb, var(--background) 70%, transparent); }

@@ -27,7 +27,7 @@ test('local visual loop, authoritative feedback, map crash regression and visual
   await page.goto('/');
   await page.getByRole('button', { name: 'Nova Partida', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Aurélia', exact: true }).first()).toBeVisible();
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 25, 29)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(11, 17, 20)');
 
   // PRIORITY 0 REGRESSION TEST: Aggressive map pointer interaction & bounds leaving
   const map = page.locator('svg.world-map');

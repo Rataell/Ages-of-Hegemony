@@ -1,31 +1,4 @@
-:root[data-alpha-theme='LIGHT'] {
-  color-scheme: light;
-  --background: #e9e7df;
-  --surface: #f3f1e9;
-  --surface-elevated: #fcfaf2;
-  --surface-highest: #dddacb;
-  --border: #b0afa1;
-  --border-subtle: #cccabe;
-  --text-primary: #24322f;
-  --text-secondary: #4d5e58;
-  --text-muted: #60746b;
-  --accent: #85602c;
-  --accent-hover: #c5a46a;
-  --danger: #9a3527;
-  --danger-bg: #f2d9d2;
-  --success: #305f3c;
-  --warning: #805900;
-  --warning-bg: #f0e1b8;
-  --food: #3f6622;
-  --materials: #715c39;
-  --wood: #80562f;
-  --stone: #596566;
-  --metal: #456475;
-  --wealth: #825d12;
-  --knowledge: #285b75;
-  --influence: #735681;
-  --shadow: 0 12px 30px #24322f20;
-}
+/* The light theme is defined by the design system (tokens.json, theme "light"). */
 .alpha-shell { min-height: 100vh; }
 .alpha-shell h1, .alpha-shell h2, .alpha-shell h3 { font-family: var(--serif); font-weight: 500; }
 .alpha-shell label { display: flex; flex-direction: column; gap: 6px; }
@@ -85,7 +58,7 @@ button.alpha-card { text-align: left; }
 @media(max-width:650px) { .alpha-entry { display: block; padding: 24px 18px; } .alpha-entry-forms { margin-top: 28px; padding: 18px; } .alpha-masthead { padding: 14px; gap: 8px; } .alpha-wordmark { font-size: 11px; letter-spacing: .08em; } .alpha-masthead > small { font-size: 10px; } .alpha-lobby,.alpha-panel { padding: 18px 12px; } .alpha-intro h1 { font-size: 48px; } }
 
 .alpha-urban { display: grid; gap: 10px; padding: 14px 0; }
-.alpha-produce { padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-raised, transparent); }
+.alpha-produce { padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-elevated); }
 .alpha-urban-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; }
 .alpha-urban-pick[data-blocked="true"] { opacity: 0.62; }
 .alpha-urban-pick[aria-pressed="true"] { outline: 2px solid var(--accent, currentColor); }
@@ -264,7 +237,7 @@ button.alpha-card { text-align: left; }
 }
 
 /* One block per order the selected pieces can actually give on the chosen hex. */
-.alpha-order-choice { margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border-subtle); border-left: 3px solid var(--gold, #c5a46a); border-radius: 4px; background: rgba(197, 164, 106, 0.05); }
+.alpha-order-choice { margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border-subtle); border-left: 3px solid var(--mark); border-radius: 4px; background: var(--surface-elevated); }
 .alpha-order-choice h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-primary); }
 .alpha-order-choice p { margin: 0 0 8px; font-size: 13px; color: var(--text-secondary); }
 .alpha-order-choice details { margin-top: 8px; font-size: 12px; }
