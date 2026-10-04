@@ -40,6 +40,8 @@ export const AlphaRulesSchema = z.strictObject({
   milestones:z.array(AlphaEraMilestoneSchema).min(1),
   planningSeconds: z.union([z.literal(0), z.literal(180), z.literal(300), z.literal(480), z.literal(3600), z.literal(14400), z.literal(28800)]),
   worldPreset: MapPresetSchema,
+  /** Playtest only: the whole map and every piece are visible to everyone. Never on for a real match. */
+  revealMap: z.boolean().default(false),
   balance: AlphaBalanceSchema,
   combat: CombatConfigSchema,
 });
