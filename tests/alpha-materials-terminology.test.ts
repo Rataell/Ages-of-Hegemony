@@ -22,7 +22,7 @@ describe('"Materiais" is not shown as a resource', () => {
 
   it.each(CIVILIZATIONS.filter(civilization => civilization.passives.some(effect => effect.kind === 'PRODUCTION' && effect.resource === 'materials')).map(civilization => civilization.id))('keeps urban options and the player view free of Materiais for %s', civilization => {
     const state = game(civilization);
-    state.players[0]!.era = 'HEGEMONY';
+    state.players[0]!.era = 'ASCENSION';
     const options = urbanOptions(state, p1);
     const texts = [...Object.values(options.cities).flat(), ...options.research].map(option => option.effect);
     for (const text of texts) expect(text).not.toMatch(/Materiais/);

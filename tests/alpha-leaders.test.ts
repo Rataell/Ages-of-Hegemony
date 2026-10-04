@@ -209,7 +209,8 @@ describe('Era reset', () => {
     expect(sameEra.players[0]!.era).toBe('FOUNDATION');
     expect(sameEra.players[0]!.leader!.eraAbilityUsed).toBe(true);
     expect(ability(sameEra)).toMatchObject({ ok: false });
-    const advanced = must(sameEra, p1, { type: 'ADVANCE_ERA' });
+    sameEra.rules.roundsPerEra = 2;
+    const advanced = completeRound(sameEra);
     expect(advanced.players[0]!.era).toBe('EXPANSION');
     expect(advanced.players[0]!.leader).toEqual({ leaderId: 'leader-hartvig-drell', eraAbilityUsed: false });
     expect(ability(advanced).ok).toBe(true);

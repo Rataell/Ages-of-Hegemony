@@ -1,5 +1,6 @@
 import type { AlphaEffect } from './alpha-institutions.js';
-import { emptyResourcePool, type Era, type ResourcePool } from './core.js';
+import { emptyResourcePool, type ResourcePool } from './core.js';
+import type { AlphaEra as Era } from './alpha-concept.js';
 export type ObjectiveMetric='cities'|'territory'|'research'|'districts'|'routes'|'treaties'|'victories'|'culture';
 export interface AlphaCard {id:string;family:'WORLD_EVENT'|'STRATEGY'|'AMBITION'|'ADVISOR'|'GREAT_PROJECT';name:string;era:Era;timing:'MAINTENANCE'|'PLANNING'|'REACTION'|'END_ROUND';effect:AlphaEffect|null;reminder:string;objective?:{metric:ObjectiveMetric;threshold:number;prestige:number}}
 export interface GreatProject {id:string;name:string;era:Era;district:'AGRARIAN'|'COMMERCIAL'|'ACADEMIC'|'ADMINISTRATIVE'|'MILITARY'|'INDUSTRIAL'|'CULTURAL';cost:ResourcePool;effect:AlphaEffect;prestige:number;path:'SCIENTIFIC'|'POLITICAL'|'ECONOMIC'|'CULTURAL'|'MILITARY'|'TERRITORIAL'}

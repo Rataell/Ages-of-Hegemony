@@ -41,7 +41,7 @@ async function completeHttpMatch(playerCount: 2 | 4 | 6) {
   }
   current = (await call({ operation: 'lobby', gameId: current.id, payload: { type: 'START', expectedVersion: current.version } }, cookies[0])).view;
 
-  for (let round = 1; round <= 9; round++) {
+  for (let round = 1; round <= 21; round++) {
     for (let index = 0; index < playerCount; index++) {
       let view = await read(current.id, cookies[index]!);
       if (!view.game!.self.ambitionsChosen) await call({ operation: 'command', gameId: current.id, payload: { type: 'CHOOSE_AMBITIONS', expectedVersion: view.game!.version, cardIds: view.game!.self.ambitions.slice(0, 2) } }, cookies[index]);
@@ -54,14 +54,14 @@ async function completeHttpMatch(playerCount: 2 | 4 | 6) {
     }
     const aggregate = (await repository.find(current.id))!.game!;
     expect(aggregate.players.every(player => player.plannedActions.length === 0)).toBe(true);
-    expect(aggregate.core.round).toBe(Math.min(round + 1, 9));
+    expect(aggregate.core.round).toBe(Math.min(round + 1, 21));
   }
 
   const aggregate = (await repository.find(current.id))!.game!;
   expect(aggregate.core.status).toBe('FINISHED');
-  expect(aggregate.core.round).toBe(9);
+  expect(aggregate.core.round).toBe(21);
   expect(aggregate.winner).not.toBeNull();
-  expect(aggregate.roundReports).toHaveLength(playerCount * 9);
+  expect(aggregate.roundReports).toHaveLength(playerCount * 21);
   expect(AlphaStateSchema.safeParse(aggregate).success).toBe(true);
 }
 

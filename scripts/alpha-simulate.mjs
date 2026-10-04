@@ -24,7 +24,6 @@ async function plan(p, round) {
   const r = await room(p), g = r.game, id = selfId(r);
   if (!g.self.ambitionsChosen && g.self.ambitions.length >= 2) await cmd(p, { type: 'CHOOSE_AMBITIONS', cardIds: g.self.ambitions.slice(0, 2) });
   if (g.worldEvent && g.worldDecisionPending) await cmd(p, { type: 'WORLD_CHOICE', choice: round % 2 ? 'RESOURCE' : 'PRESTIGE' });
-  if (g.milestones?.canAdvance) await cmd(p, { type: 'ADVANCE_ERA' });
   if (round === 2) await cmd(p, { type: 'SET_DEFENSE_POSTURE', posture: 'HOLD' });
   if (round === 3 && g.self.abilityRound !== g.view.round) await cmd(p, { type: 'CIVILIZATION_ABILITY' });
   if (round === 4 && g.self.leader && !g.self.leader.eraAbilityUsed) await cmd(p, { type: 'LEADER_ABILITY' });

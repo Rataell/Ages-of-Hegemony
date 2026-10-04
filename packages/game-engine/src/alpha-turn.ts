@@ -5,7 +5,7 @@ import { applyCommand } from './engine.js';
 import { validateMilitaryOrder } from './alpha-military.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
-import { advanceEra, civilizationAbility } from './alpha-institutions.js';
+import { civilizationAbility } from './alpha-institutions.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
 import { manageCard, playCivilizationCard } from './alpha-cards.js';
@@ -144,15 +144,14 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       const where=state.units.find(unit=>unit.id===command.unitIds[0])!.hexId;
       resolutionEvent(state,{type:'MOVEMENT',actorId:actor,visibleTo:[actor],message:command.type==='EMBARK'?`${command.unitIds.length} peça(s) embarcada(s) em ${where}.`:`${command.unitIds.length} peça(s) desembarcada(s) em ${where}.`,hexId:where,unitIds:[...command.unitIds]});
       alphaEvent(state,'ACTION_COMPLETED',command.type==='EMBARK'?'Peças embarcadas.':'Peças desembarcadas.',[actor]);
-    } else if(command.type==='BUILD_ROAD'||command.type==='ADVANCE_ERA'||command.type==='CIVILIZATION_ABILITY') {
-      if(command.type==='ADVANCE_ERA'){advanceEra(state,actor);resolutionEvent(state,{type:'ADVANCE',actorId:actor,visibleTo:null,message:'Civilização avançou de era.',unitIds:[]});}
-      else if(command.type==='CIVILIZATION_ABILITY')civilizationAbility(state,actor);
+    } else if(command.type==='BUILD_ROAD'||command.type==='CIVILIZATION_ABILITY') {
+      if(command.type==='CIVILIZATION_ABILITY')civilizationAbility(state,actor);
       else {
         const tile=state.core.map.find(t=>t.id===command.hexId&&t.ownerId===actor);
         if(!tile||state.roads.includes(tile.id))throw new Error('Construa estrada em território próprio sem estrada.');
         alphaPay(state,actor,kitWorksCost(state,actor,state.rules.roadCost));state.roads.push(tile.id);
       }
-      alphaEvent(state,'ACTION_COMPLETED',({BUILD_ROAD:'Estrada construída.',ADVANCE_ERA:'Nova era alcançada.',CIVILIZATION_ABILITY:'Habilidade civilizacional utilizada.'})[command.type],[actor]);
+      alphaEvent(state,'ACTION_COMPLETED',({BUILD_ROAD:'Estrada construída.',CIVILIZATION_ABILITY:'Habilidade civilizacional utilizada.'})[command.type],[actor]);
     }
     if(actionClass==='MAIN')chargeMainAction(state,actor,reservedMainAction?'RESERVE':'COMMIT');
     refreshHegemony(state);

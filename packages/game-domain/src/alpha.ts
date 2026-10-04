@@ -8,7 +8,7 @@ import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
 import { civilizationKit } from './alpha-civilization-kits.js';
 import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
-  ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
+  ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, LegacyAlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
   BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, RaidBandSchema, TacticalFaceSchema,
   TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, legacyToAlphaResources, type AlphaRoundPhase,
 } from './alpha-concept.js';
@@ -25,6 +25,8 @@ export type HegemonyPath = z.infer<typeof HegemonyPathSchema>;
 export const HegemonyDeclarationSchema = z.strictObject({path:HegemonyPathSchema,declaredRound:P,qualifiedSince:P.nullable()});
 export const AlphaRulesSchema = z.strictObject({
   preset: AlphaPresetSchema, roundLimit: P, baseCommandPoints: P,
+  /** Rounds in each of the seven Eras (canon §1: 5 by default, 3–7 configurable). Matches saved before V5.1a read 5. */
+  roundsPerEra: P.default(5),
   /** New matches use one fixed action limit. Missing means a legacy match keeps its command-capacity modifiers. */
   actionsPerRound: z.number().int().min(5).max(10).optional(),
   hegemonyHoldRounds: P, handLimit: P, advisorLimit: P, unitLimit: P,
@@ -34,7 +36,7 @@ export const AlphaRulesSchema = z.strictObject({
   /** Classes added later (e.g. COASTAL_VESSEL) are filled from the catalogue, so older saved matches stay valid. */
   units:z.preprocess(value=>value&&typeof value==='object'?{...alphaUnitCatalog(),...value}:value,z.record(AlphaUnitClassSchema,UnitCatalogEntrySchema)),
   movementCosts:z.record(z.enum(['UNKNOWN','PLAINS','FOREST','HILLS','MOUNTAINS','COAST','SEA']),P), supplyRadius:P,
-  milestones:z.array(AlphaEraMilestoneSchema).length(5),
+  milestones:z.array(AlphaEraMilestoneSchema).min(1),
   planningSeconds: z.union([z.literal(0), z.literal(180), z.literal(300), z.literal(480), z.literal(3600), z.literal(14400), z.literal(28800)]),
   worldPreset: MapPresetSchema,
   balance: AlphaBalanceSchema,
@@ -42,7 +44,8 @@ export const AlphaRulesSchema = z.strictObject({
 });
 export type AlphaRules = z.infer<typeof AlphaRulesSchema>;
 export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED', actionsPerRound = 7): AlphaRules {
-  return AlphaRulesSchema.parse({ preset, roundLimit: { QUICK: 9, STANDARD: 15, EPIC: 20 }[preset], baseCommandPoints: 4, actionsPerRound,
+  const roundsPerEra = { QUICK: 3, STANDARD: 5, EPIC: 7 }[preset];
+  return AlphaRulesSchema.parse({ preset, roundLimit: AlphaEraSchema.options.length * roundsPerEra, roundsPerEra, baseCommandPoints: 4, actionsPerRound,
     hegemonyHoldRounds: 2, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
     integrationCost:{food:0,materials:0,wealth:0,knowledge:0,influence:3},occupationStabilityPenalty:15,
     hegemonyRequirements:{
@@ -93,7 +96,7 @@ export const PlannedActionSchema = z.discriminatedUnion('type',[
 ]);
 export type PlannedAction=z.infer<typeof PlannedActionSchema>;
 const StrategicPlayerSchema = z.strictObject({
-  playerId: PlayerIdSchema, civilization: IdentifierSchema.nullable(), era: AlphaEraSchema,
+  playerId: PlayerIdSchema, civilization: IdentifierSchema.nullable(), era: LegacyAlphaEraSchema,
   resources:AlphaResourcePoolSchema.default(emptyAlphaResourcePool), legacyCulturalTrack:N.default(0),
   spentCommands: N, ready: z.boolean(), prestige: N, research: z.array(IdentifierSchema),
   hand: z.array(IdentifierSchema), ambitions: z.array(IdentifierSchema), completedAmbitions: z.array(IdentifierSchema), advisors: z.array(IdentifierSchema),
@@ -108,7 +111,7 @@ const StrategicPlayerSchema = z.strictObject({
   hegemony:HegemonyDeclarationSchema.nullable(),
   ambitionsChosen:z.boolean(),cardsPlayed:N,
   /** Own civilization cards played, one entry per card and Era (each unlocked card is playable once per Era). */
-  civilizationCardsPlayed:z.array(z.strictObject({cardId:IdentifierSchema,era:AlphaEraSchema})).default([]),temporaryEffects:z.array(z.strictObject({source:IdentifierSchema,effect:AlphaEffectSchema,round:P})),
+  civilizationCardsPlayed:z.array(z.strictObject({cardId:IdentifierSchema,era:LegacyAlphaEraSchema})).default([]),temporaryEffects:z.array(z.strictObject({source:IdentifierSchema,effect:AlphaEffectSchema,round:P})),
 });
 export const AlphaEventSchema = z.strictObject({
   id: IdentifierSchema, round: P, type: IdentifierSchema,
@@ -227,7 +230,7 @@ export const AlphaStateSchema = z.strictObject({
   }
   for (const player of state.players) {
     if(new Set(player.influencedCities).size!==player.influencedCities.length||player.influencedCities.some(id=>!cities.some(c=>c.id===id))||player.foreignInfluence!==player.influencedCities.length)fail('Invalid foreign influence');
-    if(player.hegemony&&(player.era!=='HEGEMONY'||player.hegemony.declaredRound>state.core.round||(player.hegemony.qualifiedSince!==null&&(player.hegemony.qualifiedSince<player.hegemony.declaredRound||player.hegemony.qualifiedSince>state.core.round))))fail('Invalid hegemony declaration');
+    if(player.hegemony&&(player.era!=='ASCENSION'||player.hegemony.declaredRound>state.core.round||(player.hegemony.qualifiedSince!==null&&(player.hegemony.qualifiedSince<player.hegemony.declaredRound||player.hegemony.qualifiedSince>state.core.round))))fail('Invalid hegemony declaration');
     if(player.civilization!==null&&!CIVILIZATIONS.some(c=>c.id===player.civilization))fail('Unknown civilization');
     if(player.leader!==null&&LEADERS.find(l=>l.id===player.leader!.leaderId)?.civilizationId!==player.civilization)fail('Leader must belong to the player civilization');
     if(player.research.some(id=>!ADVANCEMENTS.some(a=>a.id===id)))fail('Unknown advancement');
@@ -270,7 +273,6 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('RESPOND_TREATY'),expectedVersion:N,treatyId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('END_TREATY'),expectedVersion:N,treatyId:IdentifierSchema}),
   z.strictObject({type:z.literal('DECLARE_WAR'),expectedVersion:N,planId:IdentifierSchema.optional(),targetId:PlayerIdSchema}),
-  z.strictObject({type:z.literal('ADVANCE_ERA'),expectedVersion:N}),
   z.strictObject({type:z.literal('CIVILIZATION_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('LEADER_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('SET_DEFENSE_POSTURE'),expectedVersion:N,posture:BattlePostureSchema}),
@@ -292,7 +294,7 @@ export type ActionClass = z.infer<typeof ActionClassSchema>;
 export const ACTION_CLASS = {
   URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
   SETTLE:'MAIN', DECLARE_HEGEMONY:'FREE', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
-  BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN', ADVANCE_ERA:'MAIN',
+  BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
   CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
   CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;

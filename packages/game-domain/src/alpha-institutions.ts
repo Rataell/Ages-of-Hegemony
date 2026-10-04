@@ -16,7 +16,7 @@ export type AlphaEffect=z.infer<typeof AlphaEffectSchema>;
 export const AdvancementSchema=z.strictObject({id:z.string(),name:z.string(),domain:CivilizationDomainSchema,era:AlphaEraSchema,cost:ResourcePoolSchema,
   prerequisites:z.array(z.string()),excludes:z.array(z.string()),convergence:z.boolean(),effect:AlphaEffectSchema});
 export type Advancement=z.infer<typeof AdvancementSchema>;
-const domains=CivilizationDomainSchema.options;const eras=AlphaEraSchema.options.filter(era=>era!=='HEGEMONY');
+const domains=CivilizationDomainSchema.options;const eras=AlphaEraSchema.options.slice(0,5);
 const names=[
   ['Registros de Sinais','Observação das Estações','Assembleias de Bairro','Pactos de Reciprocidade','Celeiros de Reserva','Pesos de Troca','Formações de Guarda','Sinais de Patrulha','Narrativas Comuns','Ritos de Acolhida'],
   ['Mapas de Referência','Cálculo de Colheitas','Centralização do Conselho','Federação dos Distritos','Ofícios Cooperados','Contabilidade de Rotas','Treino de Manobras','Logística de Campanha','Casas de Memória','Festivais de Encontro'],

@@ -34,7 +34,7 @@ export function hegemonyProgress(state:AlphaState,actor:PlayerId) {
 
 export function declareHegemony(state:AlphaState,actor:PlayerId,path:HegemonyPath):void {
   const player=state.players.find(p=>p.playerId===actor)!;
-  if(player.era!=='HEGEMONY')throw new Error('A declaração de Hegemonia requer a Era VI, Ascensão.');
+  if(player.era!=='ASCENSION')throw new Error('A declaração de Hegemonia requer a Era VII, Ascensão.');
   if(player.hegemony)throw new Error('Sua civilização já escolheu um caminho hegemônico.');
   player.hegemony={path,declaredRound:state.core.round,qualifiedSince:null};
 }

@@ -1,6 +1,7 @@
-import { ADVANCEMENTS, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, GREAT_PROJECTS, ALPHA_RESOURCE_KEYS, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type EffectTiming, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { ADVANCEMENTS, eraForRound, eraNumeral, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, GREAT_PROJECTS, ALPHA_RESOURCE_KEYS, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type EffectTiming, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { alphaCanAfford, alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { sum } from './arithmetic.js';
+import { alphaEvent } from './alpha-events.js';
 import { cardEffects } from './alpha-cards.js';
 import { kitAdvancementCost } from './alpha-kits.js';
 export function institutionEffects(state:AlphaState,actor:PlayerId):AlphaEffect[] {
@@ -71,7 +72,7 @@ export function researchAdvancement(state:AlphaState,actor:PlayerId,id:string):v
   alphaPay(state,actor,kitAdvancementCost(state,actor,node));player.research.push(id);player.prestige++;
 }
 export interface EraMilestoneCriterion {key:AlphaMilestoneCriterion;current:number;minimum:number;met:boolean}
-/** Progress toward the next era: which criteria are met, which are missing and how many are needed. */
+/** Era progress (canon §1, §22): Eras pass by the calendar, `rules.roundsPerEra` rounds each. The old criteria stay as a read-only report. */
 export function eraMilestones(state:AlphaState,actor:PlayerId) {
   const player=state.players.find(p=>p.playerId===actor)!;const core=state.core.players.find(p=>p.id===actor)!;
   const stage=AlphaEraSchema.options.indexOf(player.era);const required=state.rules.milestones[stage]??null;
@@ -82,12 +83,19 @@ export function eraMilestones(state:AlphaState,actor:PlayerId) {
     const minimum=key==='government'?1:required[key];return {key,current:current[key],minimum,met:current[key]>=minimum};
   }):[];
   const satisfied=criteria.filter(c=>c.met).length;const needed=required?Math.min(required.requiredCriteria,criteria.length):0;
-  return {current,required,criteria,satisfied,needed,total:criteria.length,missing:criteria.filter(c=>!c.met).map(c=>c.key),canAdvance:required!==null&&satisfied>=needed,next:AlphaEraSchema.options[stage+1]??null};
+  const next=AlphaEraSchema.options[stage+1]??null;
+  const roundsPerEra=state.rules.roundsPerEra;
+  const roundsUntilNext=next===null?null:Math.max(0,(stage+1)*roundsPerEra-state.core.round+1);
+  return {current,required,criteria,satisfied,needed,total:criteria.length,missing:criteria.filter(c=>!c.met).map(c=>c.key),canAdvance:false,next,roundsPerEra,roundsUntilNext};
 }
-export function advanceEra(state:AlphaState,actor:PlayerId):void {
-  const milestones=eraMilestones(state,actor);if(!milestones.next)throw new Error('Sua civilização já está na última era, Ascensão.');
-  if(!milestones.canAdvance)throw new Error(`Cumpra ao menos ${milestones.needed} dos ${milestones.total} critérios para avançar de era (${milestones.satisfied} cumpridos).`);
-  const player=state.players.find(p=>p.playerId===actor)!;player.era=milestones.next;player.prestige+=2;if(player.leader)player.leader.eraAbilityUsed=false;
+/** Passagem de Era: at the first round of a new Era every civilization moves together; the Leader's power returns. */
+export function passEraByCalendar(state:AlphaState):void {
+  const era=eraForRound(state.core.round,state.rules.roundsPerEra);
+  for(const player of state.players){
+    if(player.era===era||AlphaEraSchema.options.indexOf(player.era)>AlphaEraSchema.options.indexOf(era))continue;
+    player.era=era;if(player.leader)player.leader.eraAbilityUsed=false;
+    alphaEvent(state,'ERA_ADVANCED',`Era ${eraNumeral(era)} começou.`,[player.playerId]);
+  }
 }
 export function civilizationAbility(state:AlphaState,actor:PlayerId):void {
   const player=state.players.find(p=>p.playerId===actor)!;const civ=CIVILIZATIONS.find(c=>c.id===player.civilization);

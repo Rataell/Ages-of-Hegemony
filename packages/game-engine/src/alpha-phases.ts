@@ -16,7 +16,7 @@ import { exploreRegion, refreshKnowledge, resolveRaidBands, visibleHexIds } from
 import { validateMilitaryOrder } from './alpha-military.js';
 import { resolveBattle } from './alpha-combat.js';
 import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
-import { applyRecurringEffects } from './alpha-institutions.js';
+import { applyRecurringEffects, passEraByCalendar } from './alpha-institutions.js';
 import { performUrbanAction } from './alpha-urban.js';
 import { kitFoodUpkeep } from './alpha-kits.js';
 
@@ -40,7 +40,7 @@ type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
   'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'PLAY_CIVILIZATION_CARD', 'HIRE_ADVISOR',
   'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'BUILD_ROAD',
-  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY', 'EMBARK', 'DISEMBARK',
+  'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY', 'EMBARK', 'DISEMBARK',
   'CONTEST_PRESENCE',
   'INDEPENDENT_ACTION',
   'PROPOSE_TRADE', 'RESPOND_TRADE',
@@ -97,6 +97,7 @@ export function openRound(state: AlphaState): void {
   if (state.phase !== 'WORLD_PULSE') throw new Error('Uma rodada só abre a partir do Pulso do mundo.');
   state.roundLedgers = state.roundLedgers.filter(ledger => ledger.round >= state.core.round);
   for (const player of state.players) { player.ready = false; player.spentCommands = 0; player.orders = []; player.plannedActions=[]; ledgerOf(state, player.playerId); }
+  passEraByCalendar(state);
   maintainCards(state);
   drawWorldPulse(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'ROUND_START');

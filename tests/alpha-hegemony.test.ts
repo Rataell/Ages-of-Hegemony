@@ -7,7 +7,7 @@ import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 function setup():AlphaState {
   const state=beginAlphaPlanning(createAlphaGame({gameId:'hegemony-test',seed:81,preset:'QUICK',players:[{id:'p1',name:'Um'},{id:'p2',name:'Dois'}]}));
   for(const player of state.players){
-    player.era='HEGEMONY';
+    player.era='ASCENSION';
     state.cards.discarded.push(player.ambitions.pop()!);player.ambitionsChosen=true;
   }
   // A narrow configurable scenario isolates consolidation from unrelated development costs.
@@ -25,7 +25,7 @@ describe('hegemony declaration and uninterrupted consolidation',()=>{
   it('requires the sixth era, Hegemony, and permits one public path only',()=>{
     const state=setup(),actor=state.players[0]!.playerId;state.players[0]!.era='FOUNDATION';
     expect(applyAlphaCommand(state,actor,{type:'DECLARE_HEGEMONY',path:'CULTURAL',expectedVersion:0}).ok).toBe(false);
-    state.players[0]!.era='HEGEMONY';const declared=declare(state);
+    state.players[0]!.era='ASCENSION';const declared=declare(state);
     expect(declared.players[0]!.hegemony).toEqual({path:'CULTURAL',declaredRound:1,qualifiedSince:1});
     expect(applyAlphaCommand(declared,actor,{type:'DECLARE_HEGEMONY',path:'MILITARY',expectedVersion:declared.version}).ok).toBe(false);
     expect(state.players[0]!.hegemony).toBeNull();

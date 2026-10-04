@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ALPHA_CARDS, CIVILIZATIONS, WORLD_PULSE_CARDS, civilizationKit, stackCategory, stackViewVerdict } from '@aoh/game-domain';
+import { ALPHA_CARDS, ALPHA_ERA_NUMERALS, AlphaEraSchema, CIVILIZATIONS, WORLD_PULSE_CARDS, civilizationKit, stackCategory, stackViewVerdict } from '@aoh/game-domain';
 import { emblemArt, sealArt, seatColor } from './table-art';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import { HexMap } from '../play/hex-map';
@@ -89,7 +89,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const tabAlerts:Record<string,string|undefined>={
     cards:worldChoice?'Evento mundial aguarda sua escolha':undefined,
     diplomacy:incomingProposals?`${incomingProposals} proposta(s) aguardam resposta`:undefined,
-    era:game.milestones.canAdvance&&game.phase==='PLANNING'?'Você já pode avançar de era':undefined,
+    era:game.milestones.roundsUntilNext===1&&game.phase==='PLANNING'?'Última rodada da Era':undefined,
   };
   /** What a confirmation would leave undone: a city without its action produces nothing; idle pieces and spare actions are just reminders. */
   const orderedNow=new Set(game.self.orders.flatMap(o=>'unitIds' in o?o.unitIds:'unitId' in o?[o.unitId]:[]));
@@ -137,7 +137,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
     const next=on?[...new Set([...units,...ids])]:units.filter(id=>!ids.includes(id));
     setUnits(next);setFocus(hexId);setSelected(hexId);follow(hexId,next.length);
   }
-  const ERA_NUMERAL=['I','II','III','IV','V','VI'],eraNumeral=ERA_NUMERAL[['FOUNDATION','EXPANSION','CIVILIZATION','EMPIRES','ASCENSION','HEGEMONY'].indexOf(game.self.era)]??'';
+  const eraNumeral=ALPHA_ERA_NUMERALS[AlphaEraSchema.options.indexOf(game.self.era)]??'';
   const seatOf=(id:string)=>{const index=Math.max(0,game.players.findIndex(p=>p.id===id)),kit=civilizationKit(game.players[index]?.civilization);return {color:seatColor(index),mark:kit?.mark??null};};
   const self=seatOf(room.selfPlayerId),livroAlert=Object.values(tabAlerts).some(Boolean);
   const shortage=game.cityDetails.some(c=>c.growth.civilization.shortage);

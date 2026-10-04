@@ -14,7 +14,7 @@ export function scriptedMatchSetup():AlphaState {
   });
   if(!initial.ok)throw new Error(initial.error.message);const migrated=migrateSnapshotV3ToV4(initial.value);if(!migrated.ok)throw new Error(migrated.error.message);
   const state=migrated.value,p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');state.rules=alphaRules('EPIC');state.core.config.administrativeRules.baseCapacity=50;
-  state.rules.roundLimit=100;
+  state.rules.roundLimit=100;state.rules.roundsPerEra=1;
   for(const key of Object.keys(state.rules.balance.limits.base)){Object.assign(state.rules.balance.limits.base,{[key]:1000});Object.assign(state.rules.balance.limits.hardCap,{[key]:1000});}
   state.players[0]!.civilization='aurelia';state.players[1]!.civilization='valgard';
   state.players.forEach(p=>p.knownHexIds=state.core.map.map(t=>t.id));
@@ -95,9 +95,8 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   for(const [cityId,hexIds] of Object.entries(claims))for(const hexId of hexIds)manage({type:'CLAIM_HEX',cityId,hexId});
   manage({type:'IMPROVE_HEX',hexId:'1,0',improvement:'FARM'});
   submit(p1,{type:'MANAGE',command:{type:'ASSIGN_WORKED_HEXES',playerId:p1,cityId:CityIdSchema.parse('c1-0'),hexIds:['1,0'],expectedVersion:state.core.version}});
-  perform({type:'ADVANCE_ERA'});urbanAct('RESEARCH',{advancementId:'adv-2-1-2'});round();perform({type:'ADVANCE_ERA'});
+  urbanAct('RESEARCH',{advancementId:'adv-2-1-2'});round();
   perform({type:'BUILD_PROJECT',projectId:'archive-of-horizons',cityId:'c1-0'});
-  perform({type:'ADVANCE_ERA'});perform({type:'ADVANCE_ERA'});perform({type:'ADVANCE_ERA'});
   submit(p1,{type:'DECLARE_HEGEMONY',path:'TERRITORIAL'});
   while(state.core.status==='ACTIVE'){checkpoint?.('beforeEndRound',structuredClone(state));round();}
   return {state,trace};

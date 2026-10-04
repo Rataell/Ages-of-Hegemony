@@ -33,8 +33,9 @@ describe('explicit alpha aggregate migration', () => {
     expect(AlphaStateSchema.safeParse({ ...result.value, initiative: ['p1','p1'] }).success).toBe(false);
     expect(AlphaStateSchema.safeParse({ ...result.value, core: { ...result.value.core, status: 'FINISHED' } }).success).toBe(false);
   });
-  it('provides configurable game length presets without changing the legacy economy', () => {
-    expect(['QUICK','STANDARD','EPIC'].map(p => alphaRules(p as 'QUICK'|'STANDARD'|'EPIC').roundLimit)).toEqual([9,15,20]);
+  it('provides configurable game length presets: seven Eras of 3 / 5 / 7 rounds', () => {
+    expect(['QUICK','STANDARD','EPIC'].map(p => alphaRules(p as 'QUICK'|'STANDARD'|'EPIC').roundLimit)).toEqual([21,35,49]);
+    expect(['QUICK','STANDARD','EPIC'].map(p => alphaRules(p as 'QUICK'|'STANDARD'|'EPIC').roundsPerEra)).toEqual([3,5,7]);
     expect(alphaRules().baseCommandPoints).toBe(4);
   });
 });
@@ -78,12 +79,12 @@ describe('v4 to v5 migration', () => {
     expect(migrated.units.filter(u => u.kind === 'PIONEER')).toHaveLength(source.units.filter(u => u.kind === 'PIONEER').length);
   });
 
-  it('keeps a declared Hegemony era and lifts an undeclared one to Ascension', () => {
+  it('reads the old sixth Era HEGEMONY as Ascensão (Era VII) whether or not Hegemony was declared', () => {
     const declared = toV4Snapshot(made()) as { players: { era: string; hegemony: unknown }[] };
     declared.players[0]!.era = 'HEGEMONY'; declared.players[0]!.hegemony = { path: 'TERRITORIAL', declaredRound: 1, qualifiedSince: null };
     declared.players[1]!.era = 'HEGEMONY'; declared.players[1]!.hegemony = null;
     const migrated = ok(declared);
-    expect(migrated.players[0]!.era).toBe('HEGEMONY');
+    expect(migrated.players[0]!.era).toBe('ASCENSION');
     expect(migrated.players[0]!.hegemony).toEqual({ path: 'TERRITORIAL', declaredRound: 1, qualifiedSince: null });
     expect(migrated.players[1]!.era).toBe('ASCENSION');
   });

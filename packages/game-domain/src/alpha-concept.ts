@@ -1,8 +1,16 @@
 import { z } from 'zod';
 import { CityIdSchema, HexIdSchema, IdentifierSchema, NonNegativeIntegerSchema as N, PlayerIdSchema, PositiveIntegerSchema as P, ResourcePoolSchema, type ResourcePool } from './core.js';
 
-export const AlphaEraSchema = z.enum(['FOUNDATION', 'EXPANSION', 'CIVILIZATION', 'EMPIRES', 'ASCENSION', 'HEGEMONY']);
+/** The seven Eras of V5.1a (canon §1). Hegemony is not an Era: Era VII only opens the Declaration. */
+export const AlphaEraSchema = z.enum(['FOUNDATION', 'EXPANSION', 'CONSOLIDATION', 'CIVILIZATION', 'EMPIRES', 'POWERS', 'ASCENSION']);
 export type AlphaEra = z.infer<typeof AlphaEraSchema>;
+export const ALPHA_ERA_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'] as const;
+export const eraNumeral = (era: AlphaEra): string => ALPHA_ERA_NUMERALS[AlphaEraSchema.options.indexOf(era)]!;
+export const eraIndex = (era: AlphaEra): number => AlphaEraSchema.options.indexOf(era);
+/** Eras pass by the calendar: `roundsPerEra` rounds each, the last Era absorbing any extra rounds. */
+export const eraForRound = (round: number, roundsPerEra: number): AlphaEra => AlphaEraSchema.options[Math.min(AlphaEraSchema.options.length - 1, Math.floor((Math.max(1, round) - 1) / Math.max(1, roundsPerEra)))]!;
+/** Saved matches from before V5.1a stored the sixth Era as HEGEMONY; it reads as Ascensão. */
+export const LegacyAlphaEraSchema = z.preprocess(value => value === 'HEGEMONY' ? 'ASCENSION' : value, AlphaEraSchema);
 
 export const AlphaRoundPhaseSchema = z.enum([
   'WORLD_PULSE',

@@ -42,8 +42,7 @@ export const supplyReach = (level: CityLevel): number => 1 + Math.ceil((levelInd
 
 /**
  * Elevar (canon §4): population minimum, development cost, Web advance, Era minimum. N7 needs Saneamento and the Convergence,
- * in Era VII. Until the 7-Era structure lands (task D7) the canon Eras map onto the current six: III Consolidação and
- * IV Civilização both read as CIVILIZATION, VI Potências as EMPIRES, VII Ascensão as ASCENSION.
+ * in Era VII.
  */
 export const ElevateRequirementSchema = z.strictObject({
   to: CityLevelSchema, minPopulation: z.number().int().positive(), cost: AlphaResourcePoolSchema,
@@ -54,7 +53,7 @@ const cost = (values: Partial<AlphaResourcePool>): AlphaResourcePool => ({ ...em
 export const ELEVATE_TABLE: readonly ElevateRequirement[] = [
   { to: 'HAMLET', minPopulation: 4, cost: cost({ wood: 3 }), advances: ['web-agriculture'], era: 'FOUNDATION' },
   { to: 'VILLAGE', minPopulation: 6, cost: cost({ wood: 4, stone: 2 }), advances: ['web-masonry'], era: 'EXPANSION' },
-  { to: 'CITY', minPopulation: 8, cost: cost({ wood: 5, stone: 3, wealth: 2 }), advances: ['web-engineering'], era: 'CIVILIZATION' },
+  { to: 'CITY', minPopulation: 8, cost: cost({ wood: 5, stone: 3, wealth: 2 }), advances: ['web-engineering'], era: 'CONSOLIDATION' },
   { to: 'GREAT_CITY', minPopulation: 11, cost: cost({ wood: 6, stone: 5, wealth: 3, knowledge: 2 }), advances: ['web-urbanism'], era: 'CIVILIZATION' },
   { to: 'METROPOLIS', minPopulation: 14, cost: cost({ wood: 8, stone: 6, wealth: 5, knowledge: 3 }), advances: ['web-sanitation'], era: 'EMPIRES' },
   { to: 'IMPERIAL_METROPOLIS', minPopulation: 18, cost: cost({ wood: 10, stone: 8, wealth: 8, knowledge: 4 }), advances: ['web-sanitation', 'web-world-metropolises'], era: 'ASCENSION' },
