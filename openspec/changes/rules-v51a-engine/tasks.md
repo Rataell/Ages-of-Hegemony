@@ -1,0 +1,21 @@
+# Tasks
+
+- [ ] D1 8 resources (`culture`), limits 15/10, hard caps 30/20, Cofre math
+- [ ] D2 city ladder: built level, population roles, effective Capacity, Elevar table (cost, advance, Era)
+- [ ] D3 districts (8) with slots per level, building families, costs from canon §11
+- [ ] D4 administration formula (load 1/2, capacity 2 + capital + Administrativo + Chancelaria + government + Web)
+- [ ] D5 Web 40 + 10 Convergences (prerequisites, OU exclusions, unlocks) and Heritage 18 × 3
+- [ ] D6 Orders (5) and commands: ELEVATE, REDISTRIBUTE, DEMOBILIZE, ADOPT_GOVERNMENT via Influência
+- [ ] E1 planning counts Orders by type; 5 per round
+- [ ] E2 Produzir: centre + Capacity hexes by Produtores; role yields
+- [ ] E3 Elevar
+- [ ] E4 redistribution during planning, locked on READY
+- [ ] E5 sustenance 1 per 2, Crescer 3 Alimento, famine
+- [ ] E6 mobilization/demobilization; effective Capacity
+- [ ] E7 storage with infrastructure and hard caps
+- [ ] E8 research universal + Heritage with unlock gates
+- [ ] E9 administration and Sobre-extensão (Ânimo, no 2nd activation)
+- [ ] E10 Governar with Capacity reach
+- [ ] S1 projection + privacy test
+- [ ] W1 tray 5 Orders · W2 seal N·Capacidade · W3 roles strip · W4 Elevar card · W5 Cofre 8 · W6 Teia 40+10+Herança · W7 Ânimo/Admin feedback
+- [ ] R1 Leaders · R2 Manobras · R3 Ambições · R4 Pressão/Pulso · R5 Governos · R6 Hegemonia Era VII · R7 combat/naval/diplomacy reconciliation
