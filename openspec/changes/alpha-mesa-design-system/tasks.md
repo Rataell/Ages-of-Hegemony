@@ -6,7 +6,7 @@
 
 ## B. Type and base
 - [x] B1 Load Cinzel, Source Sans 3 and Cormorant Garamond once in `layout.tsx`; `style.css` imports `design/tokens.css` instead of its own `:root`; gate: typecheck, e2e fullscreen.
-- [ ] B2 Remove literal colors from the Alpha CSS in favour of tokens; gate: test from A1 extended to literals in `alpha.css`.
+- [~] B2 Remove literal colors from the Alpha CSS in favour of tokens; gate: test from A1 extended to literals in `alpha.css`.
 
 ## C. Mesa shell
 - [x] C1 Strip replaces `.top-bar` + `.main-nav`; gate: e2e updated, fullscreen at 1366/1440/1920.
@@ -21,7 +21,7 @@
 - [x] E1 Card hosting city, territory and military bodies beside the selection; Council contents moved; gate: e2e plays a round through the card.
 
 ## F. Lobby and entry
-- [ ] F1 Entry and lobby restyled with the system; gate: e2e lobby + screenshots.
+- [x] F1 Entry and lobby restyled with the system; gate: e2e lobby + screenshots.
 
 ## G. Mobile
 - [ ] G1 Sheets for card and Livro, drawer for the hand, no page scroll at 390×844; gate: e2e mobile.

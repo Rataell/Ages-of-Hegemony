@@ -419,7 +419,8 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-livro-button .alpha-tab-alert, .alpha-livro-tabs .alpha-tab-alert { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--warning); }
 .alpha-livro-tabs button { position: relative; }
 
-.alpha-mesa .alpha-tray { position: absolute; z-index: 20; left: 50%; transform: translateX(-50%); bottom: 12px; max-width: calc(100% - 24px); width: max-content; }
+/* The tray sits bottom-right, under the card column, so the hand fan keeps the bottom-left corner. */
+.alpha-mesa .alpha-tray { position: absolute; z-index: 20; right: 12px; bottom: 12px; max-width: calc(100% - 24px); width: max-content; }
 .alpha-tray .alpha-action-queue, .alpha-tray .alpha-resolution-log { position: relative; }
 .alpha-tray summary { cursor: pointer; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
 .alpha-tray .advance-phase-btn { border-radius: var(--radius-pill); height: 44px; padding: 0 20px; font-weight: 600; }
@@ -434,7 +435,7 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-mesa .alpha-context .alpha-panel-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-top: 10px; scrollbar-width: thin; }
 .alpha-mesa .alpha-context-open { position: absolute; z-index: 15; right: 12px; top: calc(10px + var(--strip-height) + 10px); }
 
-.alpha-mesa .alpha-livro { position: absolute; z-index: 25; left: 12px; right: 12px; top: calc(10px + var(--strip-height) + 10px); bottom: calc(12px + var(--tray-height) + 12px); display: flex; flex-direction: column; }
+.alpha-mesa .alpha-livro { background: var(--surface); position: absolute; z-index: 25; left: 12px; right: 12px; top: calc(10px + var(--strip-height) + 10px); bottom: calc(12px + var(--tray-height) + 12px); display: flex; flex-direction: column; }
 .alpha-livro-tabs { display: flex; gap: 4px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); overflow-x: auto; flex: none; }
 .alpha-livro-tabs > button { flex: none; }
 .alpha-livro-tabs button[aria-current='page'] { border-color: var(--mark); color: var(--text-primary); background: var(--surface-highest); }
@@ -451,8 +452,9 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-cofre-facts dd.warning { color: var(--warning); }
 
 @media (max-width: 900px) {
-  .alpha-mesa .alpha-strip { overflow-x: auto; scrollbar-width: none; }
-  .alpha-strip-civ small, .alpha-strip-tools .alpha-guide-button { display: none; }
+  .alpha-mesa .alpha-strip { overflow-x: auto; scrollbar-width: none; gap: 8px; }
+  .alpha-strip-civ small, .alpha-strip-civ h1, .alpha-strip-tools .alpha-guide-button, .alpha-strip-when .aoh-tag, .alpha-strip-when .era-name { display: none; }
+  .alpha-strip-when { font-size: 12px; flex: none; }
   .alpha-mesa .alpha-context { top: auto; left: 8px; right: 8px; width: auto; max-height: 52%; bottom: calc(12px + var(--tray-height) + 8px); }
   .alpha-mesa .alpha-context-open { top: auto; bottom: calc(12px + var(--tray-height) + 8px); right: 8px; }
   .alpha-mesa .alpha-livro { left: 6px; right: 6px; }

@@ -22,8 +22,9 @@ const PANELS_KEY='aoh-alpha-panels';
 function loadPanels():{council:boolean;inspector:boolean}{
   // Without a saved choice, narrow desktops (e.g. 1366×768) start with the Council folded so the atlas leads; pieces can be
   // picked on the map itself.
-  const narrow=typeof window!=='undefined'&&window.innerWidth<1400;
-  try{const stored=localStorage.getItem(PANELS_KEY);if(stored===null)return {council:!narrow,inspector:true};const raw=JSON.parse(stored) as Record<string,unknown>;return {council:raw.council!==false,inspector:raw.inspector!==false};}catch{return {council:!narrow,inspector:true};}
+  // On phones the context card starts closed (it would cover half the map); touching the map opens it.
+  const narrow=typeof window!=='undefined'&&window.innerWidth<1400,phone=typeof window!=='undefined'&&window.innerWidth<760;
+  try{const stored=localStorage.getItem(PANELS_KEY);if(stored===null)return {council:!narrow,inspector:!phone};const raw=JSON.parse(stored) as Record<string,unknown>;return {council:raw.council!==false,inspector:raw.inspector!==false};}catch{return {council:!narrow,inspector:!phone};}
 }
 const PRESENCE_LEVEL:Record<string,string>={CONTACT:'contato',ROOTED:'enraizada',PREDOMINANT:'predominante'};
 const PEOPLE_ACTIONS:Record<string,string>={TRADE:'Comerciar',NEGOTIATE:'Negociar',INFLUENCE:'Influenciar',PROTECT:'Proteger',INTEGRATE:'Integrar',CONQUER:'Conquistar'};
@@ -125,6 +126,8 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   };
   function select(id:string){
     setSelected(id);const target=civ.cities.find(c=>c.hexId===id);if(target)setSelectedCity(target.id);
+    // Touching the map brings its card back if it was closed.
+    if(!panels.inspector)setPanels(old=>({...old,inspector:true}));
     if(pathMode)setPath(old=>[...old,id]);if(working&&(mapData.workable as string[]).includes(id))setWorked(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id]);
     // A hex holding own pieces (outside a city) opens the military inspector with that stack ready to select.
     follow(id,units.length>0||(!civ.cities.some(c=>c.hexId===id)&&ownUnits.some(u=>u.hexId===id))?1:0);
@@ -140,7 +143,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   return <>
     <header className="alpha-strip alpha-player-board aoh-strip aoh-glass">
       <div className="alpha-strip-civ">{self.mark&&<svg width="34" height="34" viewBox="-17 -17 34 34" aria-hidden="true" dangerouslySetInnerHTML={{__html:sealArt(self.mark,self.color,13)}}/>}<div><h1>{identity?.name??player.name}</h1><small>{player.name}</small></div></div>
-      <div className="alpha-strip-when"><span>Era <b className="aoh-numeral">{eraNumeral} · {text(game.self.era)}</b> · Rodada <b className="aoh-numeral">{game.view.round} / {game.rules.roundLimit}</b></span><span className={`aoh-tag${replay?' is-warn':''}`}>{replay?'Resolvendo a rodada':text(game.phase)}{room.deadline&&` · até ${new Date(room.deadline).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}</span></div>
+      <div className="alpha-strip-when"><span>Era <b className="aoh-numeral">{eraNumeral}<span className="era-name"> · {text(game.self.era)}</span></b> · Rodada <b className="aoh-numeral">{game.view.round} / {game.rules.roundLimit}</b></span><span className={`aoh-tag${replay?' is-warn':''}`}>{replay?'Resolvendo a rodada':text(game.phase)}{room.deadline&&` · até ${new Date(room.deadline).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}</span></div>
       <ol className="alpha-strip-seals" aria-label="Iniciativa">{game.initiative.map(id=>{const seat=seatOf(id),who=game.players.find(p=>p.id===id);return <li key={id} className={`aoh-seal${id===room.selfPlayerId?' is-self':''}`} style={{['--seat' as string]:seat.color}} title={`${who?.name??''} · ${CIVILIZATIONS.find(c=>c.id===who?.civilization)?.name??''}${who?.ready?' · pronto':''}`}>{seat.mark&&<svg width="22" height="22" viewBox="-12 -12 24 24" aria-hidden="true" dangerouslySetInnerHTML={{__html:emblemArt(seat.mark.emblem,0,0,.75,seat.color,2)}}/>}<span className="alpha-sr-only">{who?.name}</span>{game.phase==='PLANNING'&&<span className="st">{who?.ready?'✓':'…'}</span>}</li>;})}</ol>
       {(over||shortage)&&<span className="aoh-chip alpha-strip-alert">{over?'Sobre-extensão':'Alimento curto'}</span>}
       <div className="alpha-strip-tools">
