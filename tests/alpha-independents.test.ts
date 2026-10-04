@@ -44,7 +44,8 @@ describe('independent peoples', () => {
   });
 
   it('negotiates, influences, protects and integrates a friendly people into a valid city', () => {
-    let state = setup(); const peopleId = state.independents[0]!.id;
+    // Six Influência Orders in one round: this scenario tests the people, not the Order budget.
+    let state = setup(); state.rules.actionsPerRound = 6; const peopleId = state.independents[0]!.id;
     state = act(state, peopleId, 'NEGOTIATE');
     expect(state.independents[0]!.attitude).toBe('FRIENDLY');
     for (let index = 0; index < INDEPENDENT_RULES.integrateInfluence; index++) state = act(state, peopleId, 'INFLUENCE');

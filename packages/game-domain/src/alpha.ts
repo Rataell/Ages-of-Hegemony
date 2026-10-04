@@ -28,8 +28,8 @@ export const AlphaRulesSchema = z.strictObject({
   preset: AlphaPresetSchema, roundLimit: P, baseCommandPoints: P,
   /** Rounds in each of the seven Eras (canon §1: 5 by default, 3–7 configurable). Matches saved before V5.1a read 5. */
   roundsPerEra: P.default(5),
-  /** New matches use one fixed action limit. Missing means a legacy match keeps its command-capacity modifiers. */
-  actionsPerRound: z.number().int().min(5).max(10).optional(),
+  /** Orders per round (canon §1: 5 by default, 3–6 configurable). Matches saved with the old 7-action economy read 6. */
+  actionsPerRound: z.preprocess(value => typeof value === 'number' ? Math.min(6, Math.max(3, value)) : value, z.number().int().min(3).max(6).optional()),
   hegemonyHoldRounds: P, handLimit: P, advisorLimit: P, unitLimit: P,
   integrationCost:ResourcePoolSchema,occupationStabilityPenalty:N,
   hegemonyRequirements:z.record(HegemonyPathSchema,z.array(z.strictObject({metric:HegemonyMetricSchema,minimum:P})).min(3)),
@@ -44,7 +44,7 @@ export const AlphaRulesSchema = z.strictObject({
   combat: CombatConfigSchema,
 });
 export type AlphaRules = z.infer<typeof AlphaRulesSchema>;
-export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED', actionsPerRound = 7): AlphaRules {
+export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED', actionsPerRound = 5): AlphaRules {
   const roundsPerEra = { QUICK: 3, STANDARD: 5, EPIC: 7 }[preset];
   return AlphaRulesSchema.parse({ preset, roundLimit: AlphaEraSchema.options.length * roundsPerEra, roundsPerEra, baseCommandPoints: 4, actionsPerRound,
     hegemonyHoldRounds: 2, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
@@ -99,7 +99,10 @@ export type PlannedAction=z.infer<typeof PlannedActionSchema>;
 const StrategicPlayerSchema = z.strictObject({
   playerId: PlayerIdSchema, civilization: IdentifierSchema.nullable(), era: LegacyAlphaEraSchema,
   resources:AlphaResourcePoolSchema.default(emptyAlphaResourcePool), legacyCulturalTrack:N.default(0),
-  spentCommands: N, ready: z.boolean(), prestige: N,
+  spentCommands: N,
+  /** Orders already committed this round, by type (canon §2). Reserved orders are typed from the queue itself. */
+  ordersSpent: z.record(z.enum(['CITY', 'EXPEDITION', 'ADVANCE', 'INFLUENCE', 'LEGACY']), N).default({ CITY: 0, EXPEDITION: 0, ADVANCE: 0, INFLUENCE: 0, LEGACY: 0 }),
+  ready: z.boolean(), prestige: N,
   /** Researched Web and Heritage ids. Pre-V5.1a `adv-*` ids are read as their closest Web node. */
   research: z.preprocess(value => Array.isArray(value) && value.some(id => typeof id === 'string' && id.startsWith('adv-')) ? migrateResearch(value as string[]) : value, z.array(IdentifierSchema)),
   hand: z.array(IdentifierSchema), ambitions: z.array(IdentifierSchema), completedAmbitions: z.array(IdentifierSchema), advisors: z.array(IdentifierSchema),
@@ -291,17 +294,39 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('UNREADY'), expectedVersion: N }),
 ]);
 export type AlphaCommand = z.infer<typeof AlphaCommandSchema>;
+/** The five Orders of V5.1a (canon §2). An Order authorizes an action; it never pays its cost. Types may repeat. */
+export const AlphaOrderTypeSchema = z.enum(['CITY', 'EXPEDITION', 'ADVANCE', 'INFLUENCE', 'LEGACY']);
+export type AlphaOrderType = z.infer<typeof AlphaOrderTypeSchema>;
+export const ORDER_NAMES: Record<AlphaOrderType, string> = { CITY: 'Cidade', EXPEDITION: 'Expedição', ADVANCE: 'Avanço', INFLUENCE: 'Influência', LEGACY: 'Legado' };
+export const emptyOrderCount = (): Record<AlphaOrderType, number> => ({ CITY: 0, EXPEDITION: 0, ADVANCE: 0, INFLUENCE: 0, LEGACY: 0 });
+/** Which Order a strategic order in the private queue occupies. */
+export const orderTypeForOrder = (order: StrategicOrder): AlphaOrderType => order.type === 'TRADE' || order.type === 'INFLUENCE' ? 'INFLUENCE' : 'EXPEDITION';
+/** Which Order a planned action occupies (research is an Avanço Order even though it travels as an urban action). */
+export const orderTypeForPlanned = (action: PlannedAction): AlphaOrderType => action.type === 'URBAN_ACTION' ? (action.action === 'RESEARCH' ? 'ADVANCE' : 'CITY') : 'INFLUENCE';
 export const ActionClassSchema = z.enum(['MAIN', 'FREE', 'REACTION']);
 export type ActionClass = z.infer<typeof ActionClassSchema>;
 /** Exhaustive command classification shared by engine, projection and UI. Contextual exceptions stay in actionClassForCommand. */
 export const ACTION_CLASS = {
   URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
-  SETTLE:'MAIN', DECLARE_HEGEMONY:'FREE', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
+  SETTLE:'MAIN', DECLARE_HEGEMONY:'MAIN', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
   CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
   CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
 
+/** The Order a MAIN command consumes, or null for free actions. Government adoption travels through MANAGE and is an Influência Order (canon §16). */
+export function orderTypeForCommand(command:AlphaCommand,phase?:AlphaRoundPhase):AlphaOrderType|null {
+  if(actionClassForCommand(command,phase)!=='MAIN')return null;
+  switch(command.type){
+    case 'URBAN_ACTION':return command.action==='RESEARCH'?'ADVANCE':'CITY';
+    case 'QUEUE_ORDER':return orderTypeForOrder(command.order);
+    case 'SETTLE':case 'EMBARK':case 'DISEMBARK':return 'EXPEDITION';
+    case 'MANAGE':return command.command.type==='ADOPT_GOVERNMENT'?'INFLUENCE':'CITY';
+    case 'BUILD_ROAD':return 'CITY';
+    case 'BUILD_PROJECT':case 'DECLARE_HEGEMONY':case 'CIVILIZATION_ABILITY':return 'LEGACY';
+    default:return 'INFLUENCE';
+  }
+}
 export function actionClassForCommand(command:AlphaCommand,phase?:AlphaRoundPhase):ActionClass {
   if(command.type==='PLAY_CARD'&&phase==='CONFLICTS')return 'REACTION';
   if(command.type==='MANAGE'&&['ASSIGN_POPULATION','ASSIGN_WORKED_HEXES'].includes(command.command.type))return 'FREE';

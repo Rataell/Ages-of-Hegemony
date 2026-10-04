@@ -1,5 +1,5 @@
 import { proposeTrade, respondTrade } from './alpha-trade.js';
-import { AlphaCommandSchema, AlphaStateSchema, actionClassForCommand, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { AlphaCommandSchema, AlphaStateSchema, actionClassForCommand, orderTypeForCommand, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { err, ok, type Result } from '@aoh/shared';
 import { applyCommand } from './engine.js';
 import { validateMilitaryOrder } from './alpha-military.js';
@@ -153,7 +153,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       }
       alphaEvent(state,'ACTION_COMPLETED',({BUILD_ROAD:'Estrada construída.',CIVILIZATION_ABILITY:'Habilidade civilizacional utilizada.'})[command.type],[actor]);
     }
-    if(actionClass==='MAIN')chargeMainAction(state,actor,reservedMainAction?'RESERVE':'COMMIT');
+    if(actionClass==='MAIN')chargeMainAction(state,actor,reservedMainAction?'RESERVE':'COMMIT',orderTypeForCommand(command,state.phase));
     refreshHegemony(state);
     state.version++;
     const output=AlphaStateSchema.safeParse(state);

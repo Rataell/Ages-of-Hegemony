@@ -23,7 +23,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
   const evidence='docs/evidence/playable-alpha-v1',actionEvidence='docs/evidence/alpha-round-action-economy';await Promise.all([mkdir(evidence,{recursive:true}),mkdir(actionEvidence,{recursive:true})]);
   try{
     await pa.goto('/alpha');await pa.getByLabel('Seu nome',{exact:true}).fill('Ana');await pa.getByRole('combobox',{name:'Tema',exact:true}).selectOption('DARK');await pa.screenshot({path:`${evidence}/1440-home.png`,caret:'initial'});
-    await expect(pa.getByLabel('Ações por rodada')).toHaveValue('7');
+    await expect(pa.getByLabel('Ordens por rodada')).toHaveValue('5');
     for(const [width,height] of [[1366,768],[1440,900],[1920,1080]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${actionEvidence}/${width}x${height}-create.png`,caret:'initial'});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.setViewportSize({width:1440,height:900});
     await pa.getByLabel('Seu nome',{exact:true}).fill('Ana');await pa.getByRole('button',{name:'Criar partida',exact:true}).click();
@@ -53,7 +53,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     }
     await pa.screenshot({path:`${evidence}/1440-card-hand.png`});
     await toMap(pa);
-    const actionCounter=pa.locator('.alpha-tray .bud');await expect(actionCounter).toContainText('Ações');await expect(actionCounter).toContainText('0 / 7');
+    const actionCounter=pa.locator('.alpha-tray .bud');await expect(actionCounter).toContainText('Ordens');await expect(actionCounter).toContainText('0 / 5');
     for(const [width,height] of [[1366,768],[1440,900],[1920,1080]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${actionEvidence}/${width}x${height}-counter.png`});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.setViewportSize({width:1440,height:900});
     await openArea(pa,'Conselho');await expect(pa.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(new URL(pa.url()).searchParams.get('game')!))!.game!.version}`);await toMap(pa);
@@ -102,7 +102,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(detailA).toContainText('Custo: Sem custo');await expect(detailA).toContainText('Ações planejáveis da cidade: 1');await expect(detailA).toContainText('Requisitos: atendidos');
     await detailA.getByRole('button',{name:'Planejar ação urbana'}).click();
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 0 / 1');
-    await expect(pa.locator('.alpha-action-queue')).toContainText('Ações planejadas 1 / 7');
+    await expect(pa.locator('.alpha-action-queue')).toContainText('Ordens planejadas 1 / 5');
     // With its one action planned, the city shows that plan instead of the full menu, and offers to swap it.
     const plannedCard=urbanA.getByRole('article',{name:'Ação planejada'});
     await expect(plannedCard).toContainText('Nesta rodada: Produzir');
@@ -171,7 +171,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
       const queued=await service.command({guestId:raw.seats[0]!.guestId},gameId,{type:'QUEUE_ORDER',expectedVersion:beforeMove.version,order:{id:'e2e-hidden-move',type:'MOVE',unitIds:[explorer.id],path:[target.id]}},Date.now());
       expect(queued.ok).toBe(true);
     }
-    await Promise.all([pa.reload(),pb.reload()]);await expect(pa.locator('.alpha-action-queue')).toContainText('Ações planejadas 2 / 7');
+    await Promise.all([pa.reload(),pb.reload()]);await expect(pa.locator('.alpha-action-queue')).toContainText('Ordens planejadas 2 / 5');
     await confirm(pa,'Confirmar planejamento');await pa.reload();await expect(pa.getByRole('button',{name:'Aguardando outras pessoas',exact:true})).toBeVisible();
     await pb.getByRole('button',{name:/Escolher produzir/}).click();
     await pb.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();

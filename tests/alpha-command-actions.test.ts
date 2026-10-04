@@ -4,7 +4,7 @@ import { alphaActionCapacity, alphaClaimOptions, applyAlphaCommand, beginAlphaPl
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 
 const p1 = PlayerIdSchema.parse('p1');
-function setup(actionsPerRound = 7): AlphaState {
+function setup(actionsPerRound = 5): AlphaState {
   const state = beginAlphaPlanning(createAlphaGame({ gameId: 'command', seed: 4, preset: 'QUICK', actionsPerRound, players: [{ id: 'p1', name: 'Ana', civilization: 'meridia' }, { id: 'p2', name: 'Beto' }] }));
   for (const player of state.players) player.ambitionsChosen = true;
   return state;
@@ -22,10 +22,10 @@ describe('+Ações principais (Comando) modifiers raise the round limit', () => 
   it('adds hired advisors permanently; Web nodes unlock things and never add actions (canon V5.1a)', () => {
     const state = setup();
     state.players[0]!.research.push('web-writing', 'web-codes');
-    expect(alphaActionCapacity(state, p1)).toBe(7);
+    expect(alphaActionCapacity(state, p1)).toBe(5);
     state.players[0]!.advisors.push('advisor-15');
-    expect(alphaActionCapacity(state, p1)).toBe(8);
-    expect(alphaPlayerView(state, p1)!.actions.limit).toBe(8);
+    expect(alphaActionCapacity(state, p1)).toBe(6);
+    expect(alphaPlayerView(state, p1)!.actions.limit).toBe(6);
   });
 
   it('adds a played strategy card for this round only, once', () => {
@@ -33,10 +33,10 @@ describe('+Ações principais (Comando) modifiers raise the round limit', () => 
     state.cards.strategyDeck = state.cards.strategyDeck.filter(id => id !== commandCard.id);
     state.players[0]!.hand = [commandCard.id];
     state = must(state, { type: 'PLAY_CARD', cardId: commandCard.id });
-    expect(alphaActionCapacity(state, p1)).toBe(7 + 2);
+    expect(alphaActionCapacity(state, p1)).toBe(5 + 2);
     for (const id of ['p1', 'p2']) state = must(state, { type: 'READY' }, id);
     expect(state.core.round).toBe(2);
-    expect(alphaActionCapacity(state, p1)).toBe(7);
+    expect(alphaActionCapacity(state, p1)).toBe(5);
   });
 
   it('lets the extra actions actually be spent, and refuses beyond the raised limit', () => {
@@ -58,9 +58,9 @@ describe('+Ações principais (Comando) modifiers raise the round limit', () => 
     expect(applyAlphaCommand(state, p1, { type: 'BUILD_ROAD', expectedVersion: state.version, hexId: roadHex })).toMatchObject({ ok: false, error: { code: 'ACTION_LIMIT' } });
   });
 
-  it('applies the government command delta (Confederação −1) and never goes below zero', () => {
+  it('ignores the legacy government command delta: Orders are fixed per match (canon V5.1a §1)', () => {
     const state = setup(5);
     state.core.players[0]!.civilization.government = 'CONFEDERATION' as never;
-    expect(alphaActionCapacity(state, p1)).toBe(4);
+    expect(alphaActionCapacity(state, p1)).toBe(5);
   });
 });

@@ -44,10 +44,10 @@ describe('creation options match the schemas', () => {
     expect(CreateAlphaRoomSchema.parse(create()).worldPreset).toBe('MIXED');
   });
 
-  it('accepts only 5 to 10 main actions, defaults to 7, and classifies every command', () => {
-    expect(CreateAlphaRoomSchema.parse(create()).actionsPerRound).toBe(7);
-    for (const actionsPerRound of [5,6,7,8,9,10]) expect(CreateAlphaRoomSchema.safeParse(create({ actionsPerRound })).success).toBe(true);
-    for (const actionsPerRound of [4,11]) expect(CreateAlphaRoomSchema.safeParse(create({ actionsPerRound })).success).toBe(false);
+  it('accepts only 3 to 6 Orders, defaults to 5, and classifies every command', () => {
+    expect(CreateAlphaRoomSchema.parse(create()).actionsPerRound).toBe(5);
+    for (const actionsPerRound of [3,4,5,6]) expect(CreateAlphaRoomSchema.safeParse(create({ actionsPerRound })).success).toBe(true);
+    for (const actionsPerRound of [2,7]) expect(CreateAlphaRoomSchema.safeParse(create({ actionsPerRound })).success).toBe(false);
     const commandTypes=AlphaCommandSchema.options.map(option=>option.shape.type.value).sort();
     expect(Object.keys(ACTION_CLASS).sort()).toEqual(commandTypes);
   });

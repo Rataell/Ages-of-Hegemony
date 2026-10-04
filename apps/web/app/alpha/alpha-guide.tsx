@@ -18,7 +18,7 @@ export function AlphaGuide({ game, onClose }: { game: AlphaPlayerView; onClose: 
       <p>Prestígio vem de explorar regiões (+1), pesquisar (+1), avançar de era (+2), escolher Prestígio em eventos mundiais (+1), cumprir ambições secretas e concluir Grandes Projetos.</p>
       <h3>A rodada</h3>
       <ol>
-        <li><b>Planejamento</b> — todos decidem ao mesmo tempo e em segredo. Você reserva até {game.actions.limit} ações principais e confirma.</li>
+        <li><b>Planejamento</b> — todos decidem ao mesmo tempo e em segredo. Você usa até {game.actions.limit} Ordens (Cidade, Expedição, Avanço, Influência, Legado; tipos podem repetir) e confirma.</li>
         <li><b>Resolução</b> — quando todos confirmam, tudo se resolve por iniciativa: ações das cidades, exploração e movimento, diplomacia, conflitos e manutenção.</li>
         <li><b>Resultados</b> — o painel mostra o que você pôde ver acontecer. A iniciativa gira a cada rodada.</li>
       </ol>

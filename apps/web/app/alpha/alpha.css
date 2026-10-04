@@ -482,3 +482,9 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 @media (prefers-reduced-motion: no-preference) { .alpha-tour-card { animation: alpha-tour-in .18s ease-out; } @keyframes alpha-tour-in { from { opacity: 0; transform: translateY(6px); } } }
 /* Inside the Mesa's card, shared inspectors offer their decisions without gold (UXDEC-020). */
 .alpha-mesa .alpha-context button.primary:not(:disabled) { background: var(--surface-highest); color: var(--text-primary); border-color: var(--mark); }
+
+/* The five Orders in the tray (canon §2): a chip per type, filled when at least one Order of that type is in use. */
+.alpha-orders{display:inline-flex;gap:4px;align-items:center}
+.alpha-order-chip{font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);border-radius:10px;padding:1px 7px;color:var(--text-muted);display:inline-flex;gap:4px;align-items:center}
+.alpha-order-chip.is-used{color:var(--text-primary);border-color:var(--accent-bright);background:var(--surface-highest)}
+.alpha-order-chip b{font-weight:700;color:var(--accent-bright)}

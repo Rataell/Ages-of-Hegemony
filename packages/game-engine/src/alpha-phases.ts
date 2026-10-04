@@ -2,7 +2,7 @@ import { settleTradeOffers } from './alpha-trade.js';
 import { growCity, growthShares } from './alpha-growth.js';
 import { TREATY_NAMES, battleMessage, lossesMessage, orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
-  ALPHA_CARDS, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources, cityLevelForPopulation,
+  ALPHA_CARDS, emptyOrderCount, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources, cityLevelForPopulation,
   type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlannedAction, type PlayerId, type RoundPhase, type StrategicOrder,
 } from '@aoh/game-domain';
 import { clampStability, deriveAdministration, governmentStabilityDelta, multiply, populationCap, refreshAdministration, sum } from './civilization.js';
@@ -96,7 +96,7 @@ function drawWorldPulse(state: AlphaState): void {
 export function openRound(state: AlphaState): void {
   if (state.phase !== 'WORLD_PULSE') throw new Error('Uma rodada só abre a partir do Pulso do mundo.');
   state.roundLedgers = state.roundLedgers.filter(ledger => ledger.round >= state.core.round);
-  for (const player of state.players) { player.ready = false; player.spentCommands = 0; player.orders = []; player.plannedActions=[]; ledgerOf(state, player.playerId); }
+  for (const player of state.players) { player.ready = false; player.spentCommands = 0; player.ordersSpent = emptyOrderCount(); player.orders = []; player.plannedActions=[]; ledgerOf(state, player.playerId); }
   passEraByCalendar(state);
   maintainCards(state);
   drawWorldPulse(state);
