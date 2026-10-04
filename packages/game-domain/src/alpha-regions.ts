@@ -1,4 +1,8 @@
 import type { TerrainType } from './core.js';
+/** Terrain features a region template places (METAL is the deposit, handled apart). */
+export type TemplateFeature = 'FISH' | 'TIMBER' | 'FERTILE' | 'STONE';
+const FEATURE_TERRAINS: Record<TemplateFeature, readonly TerrainType[]> = { FISH: ['COAST', 'SEA'], TIMBER: ['FOREST'], FERTILE: ['PLAINS', 'FOREST', 'HILLS'], STONE: ['HILLS', 'MOUNTAINS'] };
+export const featureFits = (feature: TemplateFeature, terrain: TerrainType) => FEATURE_TERRAINS[feature].includes(terrain);
 export interface RegionTemplate { id:string;name:string;kind:'HOMELAND'|'FRONTIER';terrain:readonly TerrainType[] }
 // Positions: center, E, NE, NW, W, SW, SE. Every template is authored content.
 const patterns:readonly (readonly TerrainType[])[]=[
@@ -35,16 +39,32 @@ export function templateMetalDeposit(template: RegionTemplate): number | null {
   return hill >= 0 ? hill : null;
 }
 
+/**
+ * Authored resources of a region, at most one of each: fish on its first coast, timber in its first forest, fertile soil on its
+ * first plain outside the centre, stone on its first hill or mountain that does not hold the metal deposit. This is what makes
+ * fisheries, farms on fertile soil, lumber camps and quarries meaningful choices instead of empty catalogue entries.
+ */
+export function templateFeatures(template: RegionTemplate): (TemplateFeature | null)[] {
+  const deposit = templateMetalDeposit(template), out: (TemplateFeature | null)[] = template.terrain.map(() => null);
+  const first = (test: (terrain: TerrainType, index: number) => boolean) => template.terrain.findIndex((terrain, index) => out[index] === null && test(terrain, index));
+  const place = (feature: TemplateFeature, index: number) => { if (index >= 0) out[index] = feature; };
+  place('FISH', first(terrain => terrain === 'COAST'));
+  place('TIMBER', first(terrain => terrain === 'FOREST'));
+  place('FERTILE', first((terrain, index) => terrain === 'PLAINS' && index > 0));
+  place('STONE', first((terrain, index) => (terrain === 'HILLS' || terrain === 'MOUNTAINS') && index !== deposit));
+  return out;
+}
+
 /** The authored position that lands on region position `index` under `rotation` sixth-turns (the center never moves). */
 export function rotatedTemplateIndex(index: number, rotation: number): number {
   return index === 0 ? 0 : 1 + (index - 1 + rotation) % 6;
 }
 
 /** The template at each region position under a rotation. Terrain and the metal deposit move together, by the same index. */
-export function rotatedRegionContent(template: RegionTemplate, rotation: number): { terrain: TerrainType; deposit: boolean }[] {
-  const deposit = templateMetalDeposit(template);
+export function rotatedRegionContent(template: RegionTemplate, rotation: number): { terrain: TerrainType; deposit: boolean; feature: TemplateFeature | null }[] {
+  const deposit = templateMetalDeposit(template), features = templateFeatures(template);
   return template.terrain.map((_, index) => {
     const source = rotatedTemplateIndex(index, rotation);
-    return { terrain: template.terrain[source]!, deposit: source === deposit };
+    return { terrain: template.terrain[source]!, deposit: source === deposit, feature: features[source] ?? null };
   });
 }

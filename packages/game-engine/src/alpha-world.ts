@@ -1,4 +1,4 @@
-import { REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
+import { featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
@@ -36,7 +36,8 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
       if(preset==='CONTINENTAL'&&terrain==='SEA')terrain=(p.q+p.r+input.seed)%2===0?'PLAINS':'COAST';
       if(preset==='ARCHIPELAGO'&&!activeHome&&terrain!=='MOUNTAINS'&&(Math.abs(p.q*17+p.r*31+input.seed)%5)<2)terrain='SEA';
       if(preset==='INLAND_SEA'&&!activeHome&&q>=2&&q<=3&&r>=1&&r<=3)terrain=i===0?'SEA':'COAST';
-      map.push({...p,id:hexId(p),terrain,features:content[i]!.deposit&&holdsMetal(terrain)?['METAL']:[]});
+      const feature=content[i]!.feature;
+      map.push({...p,id:hexId(p),terrain,features:[...(content[i]!.deposit&&holdsMetal(terrain)?['METAL']:[]),...(feature&&featureFits(feature,terrain)?[feature]:[])]});
     });
   }
   // Region centres are three hexes apart and touch through a two-hex neck. One SEA neck can otherwise split the
@@ -122,7 +123,8 @@ export function rotatedRegionTiles(state:AlphaState,region:AlphaState['regions']
   return region.hexIds.map((id,i)=>{
     const tile=state.core.map.find(t=>t.id===id)!;
     const terrain=tile.terrain===before[i]!.terrain?after[i]!.terrain:tile.terrain;
-    return {terrain,features:[...tile.features.filter(feature=>feature!=='METAL'),...(after[i]!.deposit&&holdsMetal(terrain)?['METAL' as const]:[])]};
+    const authored=new Set<string>(['METAL','FISH','TIMBER','FERTILE','STONE']),feature=after[i]!.feature;
+    return {terrain,features:[...tile.features.filter(item=>!authored.has(item)),...(after[i]!.deposit&&holdsMetal(terrain)?['METAL' as const]:[]),...(feature&&featureFits(feature,terrain)?[feature]:[])]};
   });
 }
 export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {

@@ -18,7 +18,7 @@ function harbour() {
   const worked = new Set(state.core.players.flatMap(p => p.civilization.cities.flatMap(c => c.workedHexIds)));
   const coast = around(state, capital.hexId).find(id => !worked.has(id) && !state.core.players.some(p => p.civilization.cities.some(c => c.hexId === id)))!;
   const sea = around(state, coast).find(id => id !== capital.hexId && !worked.has(id) && !around(state, capital.hexId).includes(id) && !state.core.players.some(p => p.civilization.cities.some(c => c.hexId === id)))!;
-  for (const id of [coast, sea]) { const t = tile(state, id); t.ownerId = null; t.controllerCityId = null; t.improvement = null; }
+  for (const id of [coast, sea]) { const t = tile(state, id); t.ownerId = null; t.controllerCityId = null; t.improvement = null; t.features = []; }
   tile(state, coast).terrain = 'COAST'; tile(state, sea).terrain = 'SEA';
   state.units = state.units.filter(unit => ![coast, sea].includes(unit.hexId));
   for (const player of state.players) for (const id of [coast, sea]) if (!player.knownHexIds.includes(id as never)) player.knownHexIds.push(id as never);

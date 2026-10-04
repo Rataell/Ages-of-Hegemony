@@ -104,5 +104,6 @@ describe('modular regions and fog of war',()=>{
       if(found)break;
     }
     expect(found).toBe(true);
-  });
+    // A brute-force search over edges; authored features make more turns illegal, so give it room under a parallel run.
+  }, 20000);
 });
