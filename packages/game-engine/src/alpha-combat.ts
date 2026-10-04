@@ -9,6 +9,7 @@ import { strengthSources } from './alpha-institutions.js';
 import { canEnter, unitSupply, validateMilitaryOrder } from './alpha-military.js';
 import { visibleHexIds } from './alpha-world.js';
 import { stackBlock, stackRoom } from './alpha-stack.js';
+import { settleCargo } from './alpha-naval.js';
 import { alphaEvent } from './alpha-events.js';
 
 type Order = Extract<StrategicOrder, { type: 'ATTACK' }>;
@@ -38,7 +39,8 @@ function sidesOf(state: AlphaState, actor: PlayerId, order: Order): Sides {
   const attackers = state.units.filter(unit => order.unitIds.includes(unit.id)).sort(byId);
   const city = cityAt(state, order.target);
   const defenderId = state.units.find(unit => unit.hexId === order.target && unit.ownerId !== actor)?.ownerId ?? city!.ownerId;
-  const defenders = state.units.filter(unit => unit.hexId === order.target && unit.ownerId === defenderId).sort(byId);
+  // Cargo does not fight at sea; it shares its fleet's fate (see settleCargo).
+  const defenders = state.units.filter(unit => unit.hexId === order.target && unit.ownerId === defenderId && !unit.carrierId).sort(byId);
   const tile = state.core.map.find(candidate => candidate.id === order.target)!;
   return { attackerId: actor, defenderId, attackers, defenders, city, meta: city ? state.cities.find(candidate => candidate.cityId === city.id) : undefined, terrain: tile.terrain, hexId: order.target };
 }
@@ -55,6 +57,7 @@ function staticSide(state: AlphaState, sides: Sides, attacking: boolean) {
   const terrain = units.reduce((total, unit) => total + state.rules.units[unit.kind].terrainModifiers[sides.terrain as keyof typeof state.rules.units.INFANTRY.terrainModifiers], 0);
   const landform = attacking ? 0 : sides.terrain === 'HILLS' ? config.hillDefense : sides.terrain === 'MOUNTAINS' ? config.mountainDefense : 0;
   push(modifiers, 'Terreno', terrain + landform);
+  if (attacking && units.some(unit => unit.carrierId)) push(modifiers, 'Desembarque anfíbio', -1);
   if (sides.city) {
     const side = attacking ? 'ATTACK' : 'DEFENSE';
     const cityBonus = units.reduce((total, unit) => total + (cityModifierSide(unit.kind, state.rules.units[unit.kind]) === side ? state.rules.units[unit.kind].cityModifier : 0), 0);
@@ -232,7 +235,7 @@ export function resolveBattleWithFaces(state: AlphaState, actor: PlayerId, order
   if (attackerWins) {
     // Stack limits: only as many pieces as fit advance, in id order; the rest keep their hex.
     const { fits, stays } = stackRoom(state, actor, attackers, order.target);
-    fits.forEach(unit => { unit.hexId = order.target; });
+    fits.forEach(unit => { unit.hexId = order.target; unit.carrierId = null; });
     if (stays.length) alphaEvent(state, 'STACK_LIMIT', `Limite de pilha em ${order.target}: ${fits.length} peças avançaram e ${stays.length} permaneceram em ${stays[0]!.hexId}.`, [actor]);
     state.players.find(player => player.playerId === actor)!.victories++;
     if (city && city.ownerId !== actor) occupyCity(state, actor, city.id);
@@ -244,4 +247,5 @@ export function resolveBattleWithFaces(state: AlphaState, actor: PlayerId, order
     attackStrength: attack.strength, defenseStrength: defend.strength, attackModifiers, defenseModifiers, attackTotal, defenseTotal,
     winnerId: attackerWins ? actor : defenderId, losses, retreat,
   });
+  settleCargo(state);
 }

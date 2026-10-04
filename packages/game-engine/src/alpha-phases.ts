@@ -10,6 +10,7 @@ import { alphaEvent, resolutionEvent } from './alpha-events.js';
 import { alphaRandomInteger } from './alpha-random.js';
 import { alphaDrain, alphaGain, alphaLose, enforceStorageRecorded, ledgerOf } from './alpha-resources.js';
 import { maintainCards, scoreAmbitions } from './alpha-cards.js';
+import { settleCargo, suspendBlockadedRoutes } from './alpha-naval.js';
 import { establishRoute, maintainTrade, manageDiplomacy, resolveInfluence, settleTreaties } from './alpha-diplomacy.js';
 import { exploreRegion, refreshKnowledge, resolveRaidBands, visibleHexIds } from './alpha-world.js';
 import { validateMilitaryOrder } from './alpha-military.js';
@@ -38,7 +39,7 @@ type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
   'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'PLAY_CIVILIZATION_CARD', 'HIRE_ADVISOR',
   'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'BUILD_ROAD',
-  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY',
+  'ADVANCE_ERA', 'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY', 'EMBARK', 'DISEMBARK',
   'CONTEST_PRESENCE',
   'INDEPENDENT_ACTION',
   'PROPOSE_TRADE', 'RESPOND_TRADE',
@@ -114,7 +115,7 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         else if (order.type === 'TRADE') establishRoute(candidate, id, order);
         else if (order.type === 'INFLUENCE') resolveInfluence(candidate, id, order);
         else validateMilitaryOrder(candidate, id, order);
-        if (order.type === 'MOVE') candidate.units.filter(unit => order.unitIds.includes(unit.id)).forEach(unit => { unit.hexId = order.path.at(-1)!; });
+        if (order.type === 'MOVE') { candidate.units.filter(unit => order.unitIds.includes(unit.id)).forEach(unit => { unit.hexId = order.path.at(-1)!; }); settleCargo(candidate); }
         if (order.type === 'ATTACK') resolveBattle(candidate, id, order);
         candidate.core.players.forEach(player => { player.civilization = refreshAdministration(player.civilization, candidate.core.config, candidate.core.map); });
         refreshKnowledge(candidate); refreshHegemony(candidate);
@@ -229,7 +230,7 @@ function maintainCivilizations(state: AlphaState): void {
 }
 
 function runMaintenance(state: AlphaState): void {
-  maintainTrade(state);
+  maintainTrade(state);suspendBlockadedRoutes(state);
   settleTradeOffers(state);
   resolveRaidBands(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'MAINTENANCE', { enforceStorage: false });

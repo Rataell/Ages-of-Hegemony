@@ -30,7 +30,8 @@ export function stackLimit(state: AlphaState, owner: PlayerId, hexId: string, ca
 }
 /** Pieces already on the hex, minus `ignore` (the ones about to move). */
 export function stackUsed(state: AlphaState, owner: PlayerId, hexId: string, category: StackCategory, ignore: ReadonlySet<string> = new Set()): number {
-  return state.units.filter(unit => unit.ownerId === owner && unit.hexId === hexId && !ignore.has(unit.id) && unitCategory(state, unit) === category).length;
+  // Cargo rides in its fleet's slots, not in the hex's land stacks.
+  return state.units.filter(unit => unit.ownerId === owner && unit.hexId === hexId && !ignore.has(unit.id) && !unit.carrierId && unitCategory(state, unit) === category).length;
 }
 const usage = (state: AlphaState, owner: PlayerId, hexId: string, category: StackCategory, ignore?: ReadonlySet<string>): StackUsage => ({ used: stackUsed(state, owner, hexId, category, ignore), limit: stackLimit(state, owner, hexId, category) });
 export const stackHex = (state: AlphaState, owner: PlayerId, hexId: string): StackHex => ({

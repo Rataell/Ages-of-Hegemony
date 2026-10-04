@@ -9,6 +9,8 @@ export const UnitCatalogEntrySchema = z.strictObject({
   /** Which side of a city battle the city modifier serves. Older snapshots omit it; see `cityModifierSide`. */
   cityModifierSide: z.enum(['ATTACK', 'DEFENSE']).optional(),
   era: AlphaEraSchema, militaryInfrastructure: z.boolean(), role: z.string().min(1).max(160),
+  /** Fleets: cargo slots offered to land pieces (DEC-014 vertical slice). Land pieces: slots they take when carried. */
+  transport: N.default(0), cargo: N.min(1).default(1),
 });
 export type UnitCatalogEntry = z.infer<typeof UnitCatalogEntrySchema>;
 const pool = (values: Partial<ReturnType<typeof emptyResourcePool>>) => ({ ...emptyResourcePool(), ...values });
@@ -22,15 +24,15 @@ export function cityModifierSide(kind: z.infer<typeof AlphaUnitClassSchema>, ent
 export function alphaUnitCatalog(): Record<z.infer<typeof AlphaUnitClassSchema>, UnitCatalogEntry> {
   const make = (name: string, cost: ReturnType<typeof pool>, movement: number, strength: number, role: string): UnitCatalogEntry => ({
     name, cost, metal: 0, movement, strength, role, upkeep: pool({ food: 1 }), domain: 'LAND', terrainModifiers: { ...terrain },
-    cityModifier: 0, era: 'FOUNDATION', militaryInfrastructure: false,
+    cityModifier: 0, era: 'FOUNDATION', militaryInfrastructure: false, transport: 0, cargo: 1,
   });
   return {
     INFANTRY: make('Infantaria', pool({ food: 1, materials: 2 }), 2, 2, 'Força equilibrada.'),
     GUARD: { ...make('Guarda', pool({ food: 1, materials: 3 }), 2, 2, 'Defesa de cidades e fortificações.'), cityModifier: 2, cityModifierSide: 'DEFENSE', militaryInfrastructure: true },
     RANGED: { ...make('Arqueiros', pool({ food: 1, materials: 2 }), 2, 1, 'Apoio tático à força principal.'), era: 'EXPANSION', militaryInfrastructure: true },
-    CAVALRY: { ...make('Cavalaria', pool({ food: 2, materials: 2, wealth: 1 }), 3, 2, 'Mobilidade e flanco.'), metal: 1, terrainModifiers: { ...terrain, PLAINS: 1 }, era: 'EXPANSION', militaryInfrastructure: true },
-    SIEGE: { ...make('Engenho de cerco', pool({ materials: 4, wealth: 1 }), 1, 1, 'Produz brechas contra fortificações.'), metal: 2, cityModifier: 3, era: 'CIVILIZATION', militaryInfrastructure: true },
-    FLEET: { ...make('Frota', pool({ materials: 3, wealth: 2 }), 3, 3, 'Combate naval, transporte, escolta e bloqueio.'), metal: 1, domain: 'SEA', era: 'EXPANSION' },
+    CAVALRY: { ...make('Cavalaria', pool({ food: 2, materials: 2, wealth: 1 }), 3, 2, 'Mobilidade e flanco.'), metal: 1, terrainModifiers: { ...terrain, PLAINS: 1 }, era: 'EXPANSION', militaryInfrastructure: true, cargo: 2 },
+    SIEGE: { ...make('Engenho de cerco', pool({ materials: 4, wealth: 1 }), 1, 1, 'Produz brechas contra fortificações.'), metal: 2, cityModifier: 3, era: 'CIVILIZATION', militaryInfrastructure: true, cargo: 2 },
+    FLEET: { ...make('Frota', pool({ materials: 3, wealth: 2 }), 3, 3, 'Combate naval, transporte, escolta e bloqueio.'), metal: 1, domain: 'SEA', era: 'EXPANSION', transport: 3 },
     EXPLORER: { ...make('Explorador', pool({ food: 1, wealth: 1 }), 3, 0, 'Exploração terrestre.'), upkeep: pool({}) },
     PIONEER: make('Pioneiro', pool({ food: 3, materials: 2 }), 2, 0, 'Fundação de cidades.'),
     ENVOY: { ...make('Enviado', pool({ wealth: 2, influence: 1 }), 3, 0, 'Diplomacia e presença cultural.'), upkeep: pool({ wealth: 1 }) },

@@ -5,6 +5,7 @@ import { institutionBonus } from './alpha-institutions.js';
 import { atWar, bordersOpen } from './alpha-diplomacy.js';
 import { leaderSupplyBonus } from './alpha-leaders.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
+import { blockadedBy, isCarried, isPort, launchHex } from './alpha-naval.js';
 
 /** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
 export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):string|null {
@@ -14,10 +15,14 @@ export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:
   const entry=state.rules.units[kind];const tile=state.core.map.find(t=>t.id===city.hexId)!;
   if(AlphaEraSchema.options.indexOf(progress.era)<AlphaEraSchema.options.indexOf(entry.era))return 'Sua civilização ainda não alcançou a era exigida.';
   if(entry.militaryInfrastructure&&!city.districts.some(d=>d.type==='MILITARY'))return 'Esta peça requer distrito Militar.';
-  if(kind==='FLEET'&&tile.terrain!=='COAST')return 'Esquadras requerem uma cidade costeira.';
+  if(kind==='FLEET'&&!isPort(state,tile.id))return 'A Frota precisa de uma cidade portuária: na Costa ou vizinha ao mar.';
+  if(kind==='FLEET'&&blockadedBy(state,tile.id,actor))return 'Porto bloqueado por uma frota inimiga.';
+  // A full coastal port still answers with its stack count, so the player sees why.
+  const spawn=kind==='FLEET'?launchHex(state,actor,tile.id)??(tile.terrain==='COAST'?city.hexId:null):city.hexId;
+  if(!spawn)return 'Não há água livre junto ao porto para lançar a Frota.';
   if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)return 'Reserva de unidades esgotada.';
-  const arriving:AlphaUnit={id:`recruit-${cityId}`,ownerId:actor,kind,hexId:city.hexId,recruitedRound:state.core.round};
-  const crowded=stackBlock(state,actor,[arriving],city.hexId,pendingArrivals(state,actor,city.hexId,''));if(crowded)return crowded;
+  const arriving:AlphaUnit={id:`recruit-${cityId}`,ownerId:actor,kind,hexId:spawn,recruitedRound:state.core.round,carrierId:null};
+  const crowded=stackBlock(state,actor,[arriving],spawn,pendingArrivals(state,actor,spawn,''));if(crowded)return crowded;
   if(!alphaCanAfford(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal)))return 'Recursos insuficientes para esta ação.';
   return null;
 }
@@ -25,7 +30,8 @@ export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:A
   const blocked=recruitBlock(state,actor,cityId,kind);if(blocked)throw new Error(blocked);
   const city=state.core.players.find(p=>p.id===actor)!.civilization.cities.find(c=>c.id===cityId)!;const entry=state.rules.units[kind];
   alphaPay(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal));
-  state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId:city.hexId,recruitedRound:state.core.round});
+  const hexId=kind==='FLEET'?launchHex(state,actor,city.hexId)!:city.hexId;
+  state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId,recruitedRound:state.core.round,carrierId:null});
 }
 export function canEnter(state:AlphaState,unit:AlphaUnit,target:HexId):boolean {
   const tile=state.core.map.find(t=>t.id===target);if(!tile)return false;
@@ -50,6 +56,8 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
   const units=order.unitIds.map(id=>state.units.find(u=>u.id===id&&u.ownerId===actor));
   if(units.some(u=>!u))throw new Error('A ordem contém uma peça que não pertence a você.');
   if(order.type==='MOVE'&&order.path.length>0&&units.some(unit=>unit!.hexId===order.path.at(-1)))throw new Error('O movimento deve terminar em outro hex.');
+  if(order.type==='MOVE'&&units.some(unit=>isCarried(unit!)))throw new Error('Peça embarcada: desembarque ou ataque a partir da frota.');
+  if(order.type==='ATTACK'&&units.some(unit=>isCarried(unit!))&&units.some(unit=>!isCarried(unit!)))throw new Error('Um ataque anfíbio parte só das peças embarcadas na mesma frota.');
   const progress=state.players.find(p=>p.playerId===actor)!;
   for(const piece of units) {
     const unit=piece!;let current=state.core.map.find(t=>t.id===unit.hexId)!;let cost=0;

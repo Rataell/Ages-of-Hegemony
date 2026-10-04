@@ -73,7 +73,9 @@ export type RoundLedger = z.infer<typeof RoundLedgerSchema>;
 export const TacticalRollSchema = z.strictObject({ unitId: IdentifierSchema, face: TacticalFaceSchema, effect: z.string().max(160).default('') });
 export const FortificationSnapshotSchema = z.strictObject({ level: FortificationLevelSchema, state: FortificationStateSchema });
 export const UnitClassSchema = AlphaUnitClassSchema;
-export const UnitSchema = z.strictObject({ id: IdentifierSchema, ownerId: PlayerIdSchema, kind: UnitClassSchema, hexId: HexIdSchema, recruitedRound: P });
+export const UnitSchema = z.strictObject({ id: IdentifierSchema, ownerId: PlayerIdSchema, kind: UnitClassSchema, hexId: HexIdSchema, recruitedRound: P,
+  /** The own fleet carrying this land piece, or null. A carried piece shares its fleet's hex and moves with it. */
+  carrierId: IdentifierSchema.nullable().optional() });
 export type AlphaUnit = z.infer<typeof UnitSchema>;
 export const StrategicOrderSchema = z.discriminatedUnion('type', [
   z.strictObject({ id: IdentifierSchema, type: z.literal('EXPLORE'), unitId: IdentifierSchema, target: HexIdSchema, rotation: z.number().int().min(0).max(5) }),
@@ -213,7 +215,13 @@ export const AlphaStateSchema = z.strictObject({
   for (const unit of state.units) {
     const tile = hexes.get(unit.hexId);
     if (!owners.has(unit.ownerId) || !tile || unit.recruitedRound > state.core.round) fail('Invalid unit owner, position or round');
-    if (tile && (unit.kind === 'FLEET' ? !['COAST','SEA'].includes(tile.terrain) : ['SEA','UNKNOWN'].includes(tile.terrain))) fail('Unit on illegal terrain');
+    const carrier = unit.carrierId ? state.units.find(candidate => candidate.id === unit.carrierId) : null;
+    if (unit.carrierId && (unit.kind === 'FLEET' || !carrier || carrier.kind !== 'FLEET' || carrier.ownerId !== unit.ownerId || carrier.hexId !== unit.hexId)) fail('Invalid carrier');
+    if (tile && (unit.kind === 'FLEET' ? !['COAST','SEA'].includes(tile.terrain) : tile.terrain === 'UNKNOWN' || (tile.terrain === 'SEA' && !carrier))) fail('Unit on illegal terrain');
+  }
+  for (const fleet of state.units.filter(unit => unit.kind === 'FLEET')) {
+    const load = state.units.filter(unit => unit.carrierId === fleet.id).reduce((total, unit) => total + (state.rules.units[unit.kind].cargo ?? 1), 0);
+    if (load > (state.rules.units.FLEET.transport ?? 0)) fail('Fleet over its transport capacity');
   }
   for (const player of state.players) {
     if(new Set(player.influencedCities).size!==player.influencedCities.length||player.influencedCities.some(id=>!cities.some(c=>c.id===id))||player.foreignInfluence!==player.influencedCities.length)fail('Invalid foreign influence');
@@ -265,6 +273,9 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('LEADER_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('SET_DEFENSE_POSTURE'),expectedVersion:N,posture:BattlePostureSchema}),
   z.strictObject({type:z.literal('BUILD_ROAD'),expectedVersion:N,hexId:HexIdSchema}),
+  /** Naval vertical slice (DEC-014): land pieces board an adjacent own fleet, or step from it to an adjacent land hex. */
+  z.strictObject({type:z.literal('EMBARK'),expectedVersion:N,unitIds:z.array(IdentifierSchema).min(1).max(6),fleetId:IdentifierSchema}),
+  z.strictObject({type:z.literal('DISEMBARK'),expectedVersion:N,unitIds:z.array(IdentifierSchema).min(1).max(6),hexId:HexIdSchema}),
   z.strictObject({ type: z.literal('MANAGE'), expectedVersion: N, command: GameCommandSchema }),
   z.strictObject({ type: z.literal('QUEUE_ORDER'), expectedVersion: N, order: StrategicOrderSchema }),
   z.strictObject({ type: z.literal('CANCEL_ORDER'), expectedVersion: N, orderId: IdentifierSchema }),
@@ -280,7 +291,7 @@ export const ACTION_CLASS = {
   URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
   SETTLE:'MAIN', DECLARE_HEGEMONY:'FREE', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN', ADVANCE_ERA:'MAIN',
-  CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
+  CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
   CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
 

@@ -9,6 +9,7 @@ import { advanceEra, civilizationAbility } from './alpha-institutions.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
 import { manageCard, playCivilizationCard } from './alpha-cards.js';
+import { disembark, embark } from './alpha-naval.js';
 import { declareHegemony, refreshHegemony } from './alpha-hegemony.js';
 import { settleWithPioneer } from './alpha-cities.js';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
@@ -136,6 +137,11 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
         else player.plannedActions.push({id:command.planId??`action-${state.version}`,type:command.type,targetId:command.targetId});
         reservedMainAction=true;alphaEvent(state,'DIPLOMACY_PLANNED','Decisão diplomática reservada.',[actor]);
       }else{manageDiplomacy(state,actor,command);alphaEvent(state,'DIPLOMACY','Decisão diplomática registrada.',[actor]);}
+    } else if(command.type==='EMBARK'||command.type==='DISEMBARK') {
+      if(command.type==='EMBARK')embark(state,actor,command.unitIds,command.fleetId);else disembark(state,actor,command.unitIds,command.hexId);
+      const where=state.units.find(unit=>unit.id===command.unitIds[0])!.hexId;
+      resolutionEvent(state,{type:'MOVEMENT',actorId:actor,visibleTo:[actor],message:command.type==='EMBARK'?`${command.unitIds.length} peça(s) embarcada(s) em ${where}.`:`${command.unitIds.length} peça(s) desembarcada(s) em ${where}.`,hexId:where,unitIds:[...command.unitIds]});
+      alphaEvent(state,'ACTION_COMPLETED',command.type==='EMBARK'?'Peças embarcadas.':'Peças desembarcadas.',[actor]);
     } else if(command.type==='BUILD_ROAD'||command.type==='ADVANCE_ERA'||command.type==='CIVILIZATION_ABILITY') {
       if(command.type==='ADVANCE_ERA'){advanceEra(state,actor);resolutionEvent(state,{type:'ADVANCE',actorId:actor,visibleTo:null,message:'Civilização avançou de era.',unitIds:[]});}
       else if(command.type==='CIVILIZATION_ABILITY')civilizationAbility(state,actor);

@@ -2437,3 +2437,5 @@ dialog h2 {
 .art-mark.tone-card .art-mark-tag { fill: #d9cdf2; }
 .art-mark-text { fill: #2a2116; font-size: 10.5px; font-weight: 700; text-anchor: middle; font-family: var(--sans, 'Source Sans 3', sans-serif); }
 .art-label text.city-name { font-family: var(--serif); font-weight: 700; font-size: 10.5px; fill: #ffffff; letter-spacing: 0.04em; text-anchor: middle; }
+.art-cargo rect { fill: #0b1114; stroke: #f4ecd8; stroke-width: 1; }
+.hex .art-cargo text { fill: #f4ecd8; font-size: 9.5px; font-weight: 700; text-anchor: middle; }

@@ -29,3 +29,4 @@ export * from './alpha-unit-options.js';
 export * from './alpha-messages.js';
 export * from './alpha-trade.js';
 export * from './alpha-growth.js';
+export * from './alpha-naval.js';

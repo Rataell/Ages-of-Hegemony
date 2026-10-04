@@ -330,15 +330,19 @@ export const HexMap = memo(function HexMap({
                 const owners = [...new Set(here.map(u => u.ownerId))].sort((a, b) => Number(b === data.view.player.id) - Number(a === data.view.player.id));
                 // On a city the pieces stand at its lower corners, so the plan stays readable; in the field they take the centre.
                 return owners.slice(0, 2).map((ownerId, slot) => {
-                  const mine = here.filter(u => u.ownerId === ownerId), color = art.seats[ownerId]?.color ?? '#9aa4a2', own = ownerId === data.view.player.id;
+                  const all = here.filter(u => u.ownerId === ownerId), color = art.seats[ownerId]?.color ?? '#9aa4a2', own = ownerId === data.view.player.id;
+                  // Cargo rides inside its fleet: the fleet is drawn, the cargo is a count on it.
+                  const cargo = all.filter(u => u.carrierId), mine = all.filter(u => !u.carrierId);
+                  if (!mine.length) return null;
                   const military = mine.filter(u => !CIVIL_PIECES.has(u.kind)), civil = [...new Set(mine.filter(u => CIVIL_PIECES.has(u.kind)).map(u => u.kind))];
-                  const lead = military.length ? [...military.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1])[0]![0] : civil[0]!;
-                  const count = military.length || mine.filter(u => u.kind === lead).length, side = military.length ? civil : civil.slice(1);
+                  const lead = military.some(u => u.kind === 'FLEET') ? 'FLEET' : military.length ? [...military.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1])[0]![0] : civil[0]!;
+                  const count = lead === 'FLEET' ? military.filter(u => u.kind === 'FLEET').length : military.length || mine.filter(u => u.kind === lead).length, side = military.length ? civil : civil.slice(1);
                   const x = city ? (slot === 0 ? -24 : 24) : owners.length > 1 ? (slot === 0 ? -20 : 20) : 0, y = city ? 22 : 0;
-                  const kinds = [...mine.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
+                  const kinds = [...all.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
                   return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={lead}>
                     <title>{own ? 'Suas peças' : `Peças de ${data.players.find(p => p.id === ownerId)?.name ?? 'outra civilização'}`}: {kinds}</title>
                     <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 30 : 38, count) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20)}</g>`).join(''))} />
+                    {cargo.length > 0 && <g transform="translate(0 -24)" className="art-cargo"><rect x="-22" y="-8" width="44" height="15" rx="7" /><text y="3">carga {cargo.length}</text></g>}
                   </g>;
                 });
               })()}

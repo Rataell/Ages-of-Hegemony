@@ -49,7 +49,8 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     finalStandings:state.winner?prestigeRanking(state).map(id=>{const progress=state.players.find(p=>p.playerId===id)!,owner=state.core.players.find(p=>p.id===id)!;return {playerId:id,name:owner.name,civilization:progress.civilization,prestige:progress.prestige,research:progress.research.length,population:owner.civilization.cities.reduce((total,city)=>total+city.population,0),wealth:progress.resources.wealth,cities:owner.civilization.cities.length,hegemony:progress.hegemony?.path??null};}):[],
     knownTerritory:known.map(t=>({id:t.id,q:t.q,r:t.r,terrain:t.terrain,features:t.features,visibility:'KNOWN' as const})),
     frontier:state.core.map.filter(t=>!progress.knownHexIds.includes(t.id)&&!visible.has(t.id)&&explored.some(k=>hexDistance(k,t)===1)).map(t=>({id:t.id,q:t.q,r:t.r,visibility:'UNKNOWN' as const})),
-    units:state.units.filter(u=>u.ownerId===actor||visible.has(u.hexId)).map(u=>({...u,supply:u.ownerId===actor?unitSupply(state,u):null})),
+    /** Rivals see a fleet, never its cargo. */
+    units:state.units.filter(u=>u.ownerId===actor||(visible.has(u.hexId)&&!u.carrierId)).map(u=>({...u,supply:u.ownerId===actor?unitSupply(state,u):null})),
     regions:state.regions.filter(r=>r.revealedBy.includes(actor)).map(r=>({id:r.id,templateId:r.templateId,hexIds:r.hexIds,rotation:r.rotation})),
     roads:state.roads.filter(id=>visible.has(id)),occupations:state.occupations.filter(o=>o.occupierId===actor||o.previousOwnerId===actor),
     treaties:state.treaties.filter(t=>t.proposerId===actor||t.recipientId===actor),tradeOffers:tradeOfferView(state,actor),wars:state.wars.filter(pair=>pair.includes(actor)),
