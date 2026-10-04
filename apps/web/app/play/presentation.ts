@@ -11,7 +11,7 @@ export const labels: Record<string, string> = {
   population: 'População', terrain: 'Terreno', feature: 'Características', improvement: 'Melhoria', district: 'Distrito', building: 'Edifício', specialization: 'Especialização', government: 'Governo', stability: 'Estabilidade',
   CRITICAL: 'Crítica', UNSTABLE: 'Instável', TENSE: 'Tensa', STABLE: 'Estável', PROSPEROUS: 'Próspera',
   VILLAGE: 'Aldeia', TOWN: 'Vila', CITY_STATE: 'Cidade-estado', HOSTILE: 'Hostil', WARY: 'Desconfiado', NEUTRAL: 'Neutro', FRIENDLY: 'Amistoso',
-  INFANTRY: 'Infantaria', GUARD: 'Guarda', RANGED: 'Arqueiros', CAVALRY: 'Cavalaria', SIEGE: 'Engenho de cerco', FLEET: 'Frota', EXPLORER: 'Explorador', PIONEER: 'Pioneiro', ENVOY: 'Emissário',
+  INFANTRY: 'Infantaria', GUARD: 'Guarda', RANGED: 'Arqueiros', CAVALRY: 'Cavalaria', SIEGE: 'Engenho de cerco', FLEET: 'Frota', EXPLORER: 'Explorador', PIONEER: 'Pioneiro', ENVOY: 'Enviado',
   PRODUCER: 'Produtor', ARTISAN: 'Artesão', MERCHANT: 'Mercador', SCHOLAR: 'Estudioso', SOLDIER: 'Soldado',
   MAINTENANCE: 'Manutenção', PLANNING: 'Planejamento', RESOLUTION: 'Resolução', REACTION: 'Reação', END_ROUND: 'Fim da rodada', FOUNDATION: 'Fundação',
 };

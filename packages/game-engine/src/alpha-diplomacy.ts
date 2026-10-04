@@ -105,8 +105,8 @@ export function validateInfluence(state:AlphaState,actor:PlayerId,order:Extract<
   const player=state.players.find(p=>p.playerId===actor)!;
   const envoy=state.units.find(u=>u.id===order.unitId&&u.ownerId===actor&&u.kind==='ENVOY');
   const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target&&c.ownerId!==actor);
-  if(!envoy||!city||!player.knownHexIds.includes(order.target))throw new Error('Escolha um Emissário próprio junto a uma cidade estrangeira conhecida.');
-  if(hexDistance(state.core.map.find(t=>t.id===envoy.hexId)!,state.core.map.find(t=>t.id===city.hexId)!)>1)throw new Error('O Emissário precisa estar na cidade ou em um hex adjacente.');
+  if(!envoy||!city||!player.knownHexIds.includes(order.target))throw new Error('Escolha um Enviado próprio junto a uma cidade estrangeira conhecida.');
+  if(hexDistance(state.core.map.find(t=>t.id===envoy.hexId)!,state.core.map.find(t=>t.id===city.hexId)!)>1)throw new Error('O Enviado precisa estar na cidade ou em um hex adjacente.');
   if(atWar(state,actor,city.ownerId))throw new Error('Uma missão de influência requer paz.');
   const meta=state.cities.find(candidate=>candidate.cityId===city.id)!;
   const civilization=culturalIdentityOf(state,actor);

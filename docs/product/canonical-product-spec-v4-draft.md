@@ -368,7 +368,7 @@ Bônus numéricos permanecem como recompensa secundária.
 | Frota | 3/3 | Costa/Mar |
 | Explorador | 3/0 | |
 | Pioneiro | 2/0 | |
-| Emissário | 3/0 | |
+| Enviado | 3/0 | |
 
 - Limite: 24 peças por civilização.
 - Guarda, Arqueiros, Cavalaria e Cerco exigem distrito Militar.
@@ -471,16 +471,16 @@ Bônus numéricos permanecem como recompensa secundária.
 
 | Conceito | O que é | Unidade | Ganha com | Gasta / perde com |
 |---|---|---|---|---|
-| **Influência** | recurso político | número sem teto | distritos e edifícios culturais, Ação cívica, cartas | reivindicar, integrar, povos, Emissário, (tratados) |
+| **Influência** | recurso político | número sem teto | distritos e edifícios culturais, Ação cívica, cartas | reivindicar, integrar, povos, Enviado, (tratados) |
 | **Cultura** | domínio temático (Teia, distritos, caminho) | — | — | — |
-| **Presença cultural** | posição de uma civilização numa cidade estrangeira | Contato → Enraizada → Predominante (3 vagas) | missão de influência do Emissário; vencer disputa | perder disputa |
+| **Presença cultural** | posição de uma civilização numa cidade estrangeira | Contato → Enraizada → Predominante (3 vagas) | missão de influência do Enviado; vencer disputa | perder disputa |
 | **Disputa cultural** | duelo 2d6 + nível + distritos Culturais (até 3) + âncora | evento | ação principal | — |
 | **Legado** (Bíblia) | trilha permanente de 0–40 com marcos | — | — | não existe no Alpha; decidir se entra (C) |
 | **Prestígio** | placar da partida | pontos | marcos e realizações | quebras e calotes |
 
 ### Alpha hoje
 
-- A presença nasce de missão de influência (Emissário vizinho, em paz).
+- A presença nasce de missão de influência (Enviado vizinho, em paz).
 - Disputa só entre duas civilizações **estrangeiras** à cidade, ou seja, **impossível em 2 jogadores**.
 - A Coesão local não tem efeito, e as habilidades Coesão +15 (Kor, Elyra) são inúteis.
 - A Hegemonia Cultural usa Influência ≥25, 2 distritos Culturais e presença em 3 cidades.

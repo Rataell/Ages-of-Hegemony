@@ -125,7 +125,7 @@ Colunas das tabelas:
 | Termo | Definição | Não significa | UI hoje | Código |
 |---|---|---|---|---|
 | **Peça** | Unidade no mapa (militar ou civil) | Habitante | Conselho "Peças" | `units` |
-| **Peça civil** | Explorador, Pioneiro, Emissário; não luta | Habitante | "Civis" | strength 0 |
+| **Peça civil** | Explorador, Pioneiro, Enviado; não luta | Habitante | "Civis" | strength 0 |
 | **Pilha** | Peças de uma civilização num hex; limites Exército 6, Civis 2, Frota 4 | Exército inteiro | "Exército 5/6" | `alpha-stack.ts` |
 | **Força** | Soma de força das peças + modificadores | Prestígio | Prévia de ataque | `strength` |
 | **Postura** | Assalto, Defesa (Manter), Manobra; ciclo de vantagem | Formação | Seletor | `BattlePostureSchema` |

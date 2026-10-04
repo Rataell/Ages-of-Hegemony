@@ -33,6 +33,6 @@ export function alphaUnitCatalog(): Record<z.infer<typeof AlphaUnitClassSchema>,
     FLEET: { ...make('Frota', pool({ materials: 3, wealth: 2 }), 3, 3, 'Combate naval, transporte, escolta e bloqueio.'), metal: 1, domain: 'SEA', era: 'EXPANSION' },
     EXPLORER: { ...make('Explorador', pool({ food: 1, wealth: 1 }), 3, 0, 'Exploração terrestre.'), upkeep: pool({}) },
     PIONEER: make('Pioneiro', pool({ food: 3, materials: 2 }), 2, 0, 'Fundação de cidades.'),
-    ENVOY: { ...make('Emissário', pool({ wealth: 2, influence: 1 }), 3, 0, 'Diplomacia e presença cultural.'), upkeep: pool({ wealth: 1 }) },
+    ENVOY: { ...make('Enviado', pool({ wealth: 2, influence: 1 }), 3, 0, 'Diplomacia e presença cultural.'), upkeep: pool({ wealth: 1 }) },
   };
 }

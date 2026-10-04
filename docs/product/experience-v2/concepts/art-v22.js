@@ -1,3 +1,4 @@
+/* global window */
 /* AoH Experience V2.2 — shared table art (concept, not product code).
  * Every function returns an SVG fragment string centered on (0,0), so the atlas,
  * the Mesa demo and the playable prototype draw the same pieces.
@@ -196,7 +197,7 @@
     carraca: { name: 'Carraca', fn: 'carga e alto-mar: castelos de proa e popa', l: 48, w: 22, bow: 12 },
     fragata: { name: 'Fragata', fn: 'combate de longo alcance: portinholas, três mastros', l: 60, w: 15, bow: 16 },
   };
-  function hull(l, w, bow, sx = 0) { const a = -l / 2, b = l / 2, h = w / 2, st = Math.min(5, w * 0.3); return `M${a + st},${-h}L${b - bow},${-h}Q${b - bow * 0.15},${-h * 0.55} ${b},0Q${b - bow * 0.15},${h * 0.55} ${b - bow},${h}L${a + st},${h}Q${a},${h} ${a},${h - st}L${a},${-h + st}Q${a},${-h} ${a + st},${-h}Z`; }
+  function hull(l, w, bow) { const a = -l / 2, b = l / 2, h = w / 2, st = Math.min(5, w * 0.3); return `M${a + st},${-h}L${b - bow},${-h}Q${b - bow * 0.15},${-h * 0.55} ${b},0Q${b - bow * 0.15},${h * 0.55} ${b - bow},${h}L${a + st},${h}Q${a},${h} ${a},${h - st}L${a},${-h + st}Q${a},${-h} ${a + st},${-h}Z`; }
   /* ship(kind, seatColor, px) — px is the hull length on the table; bow points right */
   function ship(kind, col, px = 64) {
     const S = SHIPS[kind], s = px / 64, { l, w, bow } = S, h = w / 2, deck = mix(col, '#ffffff', 0.35);
