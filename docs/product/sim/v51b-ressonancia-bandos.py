@@ -1,12 +1,19 @@
 """V5.1b: Resonance (3 markers per civilization, consumed by any advance), Pulses (one per Era), barbarian bands."""
 import random, math
 random.seed(3)
-print('A) Ressonância: 3 marcadores por civilização; Repercussão ao consumir o 3º')
-for pace in (0.5,0.6,0.75):   # advances per round (universal + Heritage)
-    adv=round(35*pace); rep=adv//3
+print('A) Ressonância: 5 encaixes por civilização; Repercussão ao registrar o 5º avanço')
+for pace in (0.5,0.6,0.75):   # advances per round (universal + Convergence + Heritage)
+    adv=round(35*pace); rep=adv//5
     print(f'  ritmo {pace} avanço/rodada → {adv} avanços em 35 rodadas → {rep} Repercussões por civilização (1 a cada {35/max(rep,1):.1f} rodadas)')
 for players in (2,4,6):
-    print(f'  mesa de {players}: {players*6} Repercussões no total (ritmo 0.5), {players*6/35:.1f} por rodada na mesa; Pulsos globais: 7 (um por Era)')
+    print(f'  mesa de {players}: {players*3} Repercussões no total (ritmo 0.5), {players*3/35:.2f} por rodada na mesa; Pulsos globais: 7 (um por Era)')
+import collections
+print('  composição dos 5 registros (pesquisa aleatória entre 5 domínios, 20000 ciclos):')
+cnt=collections.Counter()
+for _ in range(20000):
+    doms=[random.randrange(5) for _ in range(5)]; c=sorted(collections.Counter(doms).values(),reverse=True)
+    cnt['3+ de um domínio (família dominante)' if c[0]>=3 else '2+2+1 (híbrida)' if c[:2]==[2,2] else 'cinco diferentes (Confluência)' if c[0]==1 else '2+1+1+1 (família do par)']+=1
+for k,v in cnt.most_common(): print(f'    {k}: {v/200:.0f}%')
 print('\nB) Bandos de fronteira: surgem em Pulso/Repercussão/Encontro; Ameaça I/II/III; movem 1 hex/rodada rumo à cidade mais próxima acessível')
 def band_sim(players,rounds=35,trials=400,clear_rate=0.0):
     # World cap of land camps = players + 2; a spawn above the cap reinforces an eligible camp (+1 Ameaça) instead.
@@ -20,13 +27,13 @@ def band_sim(players,rounds=35,trials=400,clear_rate=0.0):
                 weak=[c for c in camps if c['threat']<3]
                 if weak: random.choice(weak)['threat']+=1; n_re+=1
         for r in range(1,rounds+1):
-            # Era Pulse: spawn 60% and ATIVAR AMEAÇAS; Repercussão per civ (~1/6 rounds): 25% SURGIR, 25% ATIVAR
+            # Era Pulse: spawn 60% and ATIVAR AMEAÇAS; Repercussão per civ (~1/10 rounds): 25% SURGIR, 25% ATIVAR
             if r%5==1:
                 if random.random()<0.6: spawn()
                 for c in camps:
                     if c['threat']<3 and random.random()<0.5: c['threat']+=1
             for _ in range(players):
-                if random.random()<(1/6):
+                if random.random()<(1/10):
                     roll=random.random()
                     if roll<0.25: spawn()
                     elif roll<0.5:

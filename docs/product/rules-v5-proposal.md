@@ -347,7 +347,7 @@ Custo por Era mínima: I–II 3 Conhecimento · III–IV 5 Conhecimento · V–V
 | Infantaria Naval | Arquitetura Naval | III | 5 Conhecimento 1 Metal | Infantaria desembarca sem penalidade anfíbia |
 | Rede de Faróis | Navegação Oceânica | IV | 5 Conhecimento 1 Pedra | Farol custa −2; portos dão visão 2 no mar; bloqueio contra Thalos exige 2 navios |
 
-Thalos e as demais civilizações do roster canônico (18, DEC-011) seguem o mesmo molde (uma Herança cedo, uma média, uma tardia; cada uma pendurada num avanço de domínio diferente). Qualquer civilização pode ignorar sua Herança e investir só na Teia. Herança não é automática: o avanço universal só a abre; o jogador escolhe pesquisar, paga Conhecimento e recebe o efeito. Pesquisar uma Herança consome 1 marcador de Ressonância (§18), como qualquer avanço.
+Thalos e as demais civilizações do roster canônico (18, DEC-011) seguem o mesmo molde (uma Herança cedo, uma média, uma tardia; cada uma pendurada num avanço de domínio diferente). Qualquer civilização pode ignorar sua Herança e investir só na Teia. Herança não é automática: o avanço universal só a abre; o jogador escolhe pesquisar, paga Conhecimento e recebe o efeito. Pesquisar uma Herança registra 1 avanço na Ressonância (§18), como qualquer avanço.
 
 ## 14. Modelo de civilização
 
@@ -393,19 +393,33 @@ Mesmo orçamento de poder: cada governo tem 2 vantagens e 1 limitação, todas e
 | Encontros | gerados pela exploração; escolha com 2 opções |
 | Obras de Legado | projetos únicos, fora da mão |
 
-## 18. Ressonância, Repercussão e Pulso
+## 18. Ressonância (5 encaixes), Repercussão e Pulso
 
-A função "o mundo reage ao que você faz" é da **Ressonância** (nenhum outro contador existe): cada civilização tem **3 marcadores ◆ ◆ ◆**.
+A função "o mundo reage ao que você faz" é da **Ressonância** (nenhum outro contador existe): cada civilização tem **5 encaixes ◆ ◆ ◆ ◆ ◆** no seu Tabuleiro da Civilização (§18b).
 
-- Ao concluir **qualquer** avanço — universal, Convergência ou Herança — a civilização consome 1 marcador e registra o domínio do avanço.
-- Quando o **terceiro** é consumido: resolve-se uma **Repercussão** daquela civilização e os três marcadores voltam.
-- A categoria da Repercussão responde ao que a civilização produziu: dos três domínios registrados, o mais frequente define a família principal (2 em 3), o segundo define a cor; empate total (3 domínios diferentes) sorteia entre os três com o RNG privado. Exemplo: Troca + Troca + Governo → Repercussão econômica com tom social (um mercado que ferve, uma guilda que exige voz).
-- Famílias de Repercussão (uma por domínio): **Saber** (descoberta partilhada, dissidência de mestres), **Terra e Mar** (safra, maré, migração), **Pedra e Metal** (acidente de forja, corrida armamentista, bando atraído pelo metal), **Governo** (reforma exigida, revolta, aliança oferecida), **Troca** (boom, quebra, piratas na rota). Toda carta diz a quem se aplica e oferece uma escolha; toda carta tem a linha "mitigado por" (avanço, Governo ou infraestrutura) e algumas uma linha "aproveitado por".
-- Ritmo (§19): a 1 avanço a cada 2 rodadas, cada civilização sofre 1 Repercussão a cada ~6 rodadas; mesa de 4 vê ~0,7 por rodada.
+- Ao concluir **qualquer** avanço — universal, Convergência ou Herança — a civilização registra 1 avanço num encaixe, com a cor do domínio. Uma Convergência ocupa **1** encaixe mas mostra os seus dois domínios (meio a meio).
+- Quando o **quinto** encaixe é preenchido: resolve-se uma **Repercussão** daquela civilização e os cinco encaixes são limpos.
+- A composição é lida visualmente, sem conta: **3 ou mais de um domínio** → família dominante daquele domínio; **2 + 2 + 1** → Repercussão híbrida entre os dois domínios dominantes; **2 + 1 + 1 + 1** → família do par, tom leve; **cinco domínios diferentes** → **Confluência**, rara (4% dos ciclos), uma Repercussão de todas as cores, sempre com uma oportunidade grande e um preço. Famílias por domínio: Saber, Terra e Mar, Pedra e Metal, Governo, Troca. Toda carta diz a quem se aplica, oferece escolha, tem "mitigado por" e por vezes "aproveitado por".
+- Ritmo (§19 I): a 1 avanço a cada 2 rodadas, 3–4 Repercussões por civilização em 35 rodadas (1 a cada ~9–12); mesa de 2: 6 no total, 4: 12, 6: 18.
+- O **marco** na Teia é permanente; o **registro** no encaixe é temporário e some no 5º. São parentes visuais (mesma cor de domínio), nunca confundíveis (cubo no nó × ficha no encaixe).
 
 **Pulso do Mundo** é outra coisa: evento **global e obrigatório** na Virada de Era (passo 3), um por Era, sete por partida. Condicional como antes (Seca Regional, Colheita Farta, Epidemia, Migração, Rotas Instáveis, Descoberta Partilhada) com "mitigado por". O Pulso pode também criar Acampamentos (§21b) e fazer crescer os existentes.
 
 Nunca se misturam: Repercussão nasce dos avanços de **uma** civilização; Pulso nasce do calendário para **todas**.
+
+## 18b. Tabuleiro da Civilização
+
+Peça central de cada jogador, pessoal, aberta sobre a Mesa (não é HUD permanente, sem scroll global) ao clicar no selo da civilização, nos encaixes de Ressonância da Faixa ou em Livro → Civilização.
+
+- **Cabeçalho:** emblema, nome, Era, Líder, Governo.
+- **A. Ressonância:** cinco encaixes grandes, preenchidos na cor do domínio; o 5º brilha.
+- **B. Teia Civilizacional:** 40 + 10 em cinco trilhas × sete Eras; cada avanço tem um pequeno encaixe quadrado; pesquisado = **cubo/marco** permanente na cor do domínio; Convergências como losangos entre trilhas; escolhas OU com borda tracejada; o alcançável agora em pergaminho.
+- **C. Herança da Civilização:** três espaços próprios (I / II / III) com estados bloqueada (cinza, mostra o avanço universal que falta), disponível (pergaminho, custo visível) e adquirida (marco da civilização). Ligação visual ao nó da Teia que a abre. Deixa óbvio: Teia universal ≠ tecnologia exclusiva da civilização.
+- **D. Identidade:** Traço passivo, Componente assinatura, Limitação.
+- **Líder:** nome, passiva resumida, poder 1×/Era com estado disponível/usado. **Governo:** nome, 2 vantagens, 1 limitação. Detalhes maiores por foco/clique.
+- Cofre continua separado; nenhuma economia aqui.
+- **Fluxo de pesquisa:** Reserva (Ordem Avanço na Bandeja) → ao resolver, o marco anima da Bandeja até o nó da Teia → o registro de Ressonância preenche o próximo encaixe → no 5º, a Repercussão abre como pergaminho e os encaixes se limpam.
+- **Na Mesa** só o resumo: civilização, Era/rodada, 5 encaixes compactos, Cofre, Livro, Ordens.
 
 ## 19. Simulação (modelo matemático, 35 rodadas)
 
@@ -469,7 +483,7 @@ Elevações da capital (V5.1): N2 r2, N3 r11, N4 r18, N5 r21, N6 r24, N7 r28. Cu
 
 Leitura: defender compensa em forças iguais; postura certa vale mais que um Grau; Fortaleza exige Cerco; Cidadela exige 2; sem suprimento não se ataca. Graus I→III ainda são sutis em 3v3 (14% em ambos): os Graus mudam identidade, não a curva — confirmar em playtest.
 
-**I. Ressonância, Pulsos e ameaças** (`docs/product/sim/v51b-ressonancia-bandos.py`): a 1 avanço/2 rodadas, 6 Repercussões por civilização em 35 rodadas (1 a cada ~6); mesa de 2: 12 no total (0,3/rodada), 4: 24 (0,7), 6: 36 (1,0). Pulsos: 7 por partida. Bandos com **limite mundial = jogadores + 2** (2p 4, 4p 6, 6p 8), surgimento no Pulso (60%) e nas Repercussões (25% SURGIR, 25% ATIVAR AMEAÇAS), 1 hex/rodada: primeiro ataque na rodada 4–6 em qualquer mesa; sem ninguém limpar, os acampamentos saturam no limite (4 / 6 / 8) com Ameaça média 2,9 e 2–3,5 surgimentos viram reforços; com os jogadores limpando metade dos acampamentos após um saque, sobram 1–2 e a Ameaça média cai a 1. Piratas: limite separado **⌈jogadores/2⌉ + 1** (2p 2, 4p 3, 6p 4).
+**I. Ressonância, Pulsos e ameaças** (`docs/product/sim/v51b-ressonancia-bandos.py`): com 5 encaixes e 1 avanço/2 rodadas, 3 Repercussões por civilização em 35 rodadas (4 a 0,6 avanço/rodada); mesa de 2: 6 no total (0,17/rodada), 4: 12 (0,34), 6: 18 (0,51). Composição com pesquisa aleatória: 2+1+1+1 38%, 3+ 29%, 2+2+1 29%, Confluência 4% (quem foca um domínio chega a 3+ quase sempre). Pulsos: 7 por partida. Bandos com limite = jogadores + 2 e surgimentos nas Repercussões mais raras: primeiro ataque na rodada 5–6; sem limpeza saturam no limite (Ameaça média 2,6–2,8); limpando metade após saque, sobram ~1 com Ameaça 1. Piratas: ⌈jogadores/2⌉ + 1.
 
 ## 20. O que a V5.1 recupera e o que descarta da Bíblia
 
@@ -547,7 +561,8 @@ Explorar Região +1 · fundar cidade +1 · cidade atinge N4 +1, N6 +2, N7 +3 · 
 | Teia 40+10 com OU | identidade por caminho | que tronco seguir; qual lado da escolha | grafo | Livro mostra só o patamar atual + próximo; Convergências entre colunas; OU como carta dupla |
 | Herança paga | assimetria opcional | investir na identidade ou não | 54 nós | 3 ramos na cor da civ saindo do avanço que os abre |
 | Suprimento por nível | guerra longe exige cidade grande | onde apoiar a campanha | raio | halo de suprimento ao selecionar exército; peças fora com borda tracejada |
-| Ressonância ◆◆◆ / Repercussão | o que você pesquisa volta para você | pesquisar agora ou guardar o 3º marcador | dois eventos | três encaixes próprios de AoH na Faixa, esvaziados um a um; a carta de Repercussão mostra "mitigado por" |
+| Ressonância ◆◆◆◆◆ / Repercussão | o que você pesquisa volta para você | pesquisar agora ou guardar o 5º encaixe | dois eventos | cinco encaixes no Tabuleiro da Civilização (compactos na Faixa); a Repercussão mostra "mitigado por" |
+| Tabuleiro da Civilização | identidade e progresso num só lugar | — | mais uma tela | abre sobre a Mesa pelo selo; Teia com cubos, Herança própria, Líder, Governo |
 | Pulso por Era | o mundo muda junto | — | — | pergaminho na Virada de Era |
 | Bandos / Piratas | fronteira viva | limpar ou fortificar | IA | Acampamento com Ameaça I/II/III no mapa; rota de alvo tracejada quando visível |
 | Governos 7 | estilo com custo | trocar ou não | 8 textos | Livro·Conselho mostra só o atual e os elegíveis |
@@ -573,3 +588,7 @@ Combate fechado como um choque tático com dado AoH, posturas circulares, Δ com
 ## 28. V5.1b → V5.1b FINAL (hotfix)
 
 Pressão removida de todo o texto e das pranchas (a Ressonância é o único sistema; o Pulso fica na Virada). Combate: Δ = Ataque − Defesa com empate tático / vitória / vitória decisiva; só o atacante avança (Δ > 0), o defensor mantém posição (Δ < 0). Eventos com ATIVAR AMEAÇAS / SURGIR AMEAÇA / REFORÇAR AMEAÇA. Limite mundial de Acampamentos = jogadores + 2 (reforço acima do limite); Piratas ⌈jogadores/2⌉ + 1. Simulações refeitas (§19 H, I). Pranchas reexportadas sem clipping.
+
+## 29. V5.1b FINAL — correção de Ressonância e Tabuleiro
+
+Ressonância passa de 3 para **5 encaixes**; composição visual (3+ dominante, 2+2+1 híbrida, 2+1+1+1 par, 5 diferentes Confluência); Convergência ocupa 1 encaixe com dois domínios. Novo **Tabuleiro da Civilização** (§18b) com Ressonância, Teia com cubos, Herança própria, Identidade, Líder e Governo; Mesa só com o resumo. Simulações refeitas (§19 I). Pranchas p19–p22 + Faixa compacta.
