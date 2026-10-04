@@ -10,6 +10,8 @@ import { CIVIL_PIECES, bannerArt, borderStrokes, cityArt, fortificationArt, piec
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
 export type MapArt = {
   seats: Record<string, { color: string; mark: CivilizationMark | null }>;
+  /** Results shown on their target: a neutral halo and a short tag (resolution events, card effects on pieces). */
+  marks?: readonly { hexId: string; label: string; tone: 'event' | 'card' | 'loss' }[];
   cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capital: boolean; fortification: { level: string; state: string } }[];
 };
 const svgFragment = (html: string) => ({ __html: html });
@@ -376,12 +378,21 @@ export const HexMap = memo(function HexMap({
             });
           });
         })()}</g>}
+        {art?.marks && <g className="art-marks" aria-hidden="true">{art.marks.map((mark, i) => {
+          const tile = tiles.find(t => t.id === mark.hexId);
+          if (!tile) return null;
+          const p = position(tile.q, tile.r), same = art.marks!.slice(0, i).filter(m => m.hexId === mark.hexId).length, w = Math.max(44, mark.label.length * 6.4 + 14);
+          return <g key={`${mark.hexId}-${i}`} transform={`translate(${p.x} ${p.y})`} className={`art-mark tone-${mark.tone}`}>
+            {same === 0 && <circle r="47" className="art-mark-halo" />}
+            <g transform={`translate(0 ${-44 - same * 17})`}><rect x={-w / 2} y="-8" width={w} height="16" rx="8" className="art-mark-tag" /><text y="4" className="art-mark-text">{mark.label}</text></g>
+          </g>;
+        })}</g>}
         {art && <g className="art-labels" aria-hidden="true">{cities.flatMap(city => {
           // City names sit above every tile, so the next row never covers them.
           const tile = tiles.find(t => t.id === city.hexId);
           if (!tile) return [];
           const p = position(tile.q, tile.r), name = `${city.id === capitalId ? '★ ' : ''}${city.name}`, natural = name.length * 6.2, fitted = Math.min(natural, 88);
-          return [<g key={city.id} transform={`translate(${p.x} ${p.y + 50})`} className="hex">
+          return [<g key={city.id} transform={`translate(${p.x} ${p.y + 50})`} className="art-label">
             <rect x={-Math.max(26, fitted / 2 + 5)} y="-7" width={Math.max(52, fitted + 10)} height="13" rx="3" className="city-banner-bg" />
             <text className="city-name art-city-name" y="3" {...(natural > fitted ? { textLength: fitted, lengthAdjust: 'spacingAndGlyphs' } : {})}>{name}</text>
           </g>];

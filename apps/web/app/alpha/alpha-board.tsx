@@ -10,6 +10,7 @@ import { ArmyList, compositionText } from './alpha-army';
 import { LeaveGame } from './alpha-leave';
 import { AlphaGuide } from './alpha-guide';
 import { AttackPreview, POSTURES, postureText } from './alpha-combat';
+import { AlphaHand } from './alpha-hand';
 import { AmbitionChooser, AlphaCards, AlphaCity, AlphaDiplomacy, AlphaInstitutions, AlphaReports, AlphaUrban } from './alpha-panels';
 
 export type AlphaSend=(command:Record<string,unknown>)=>Promise<boolean>;
@@ -30,7 +31,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const game=room.game!,player=game.view.player,civ=player.civilization,identity=CIVILIZATIONS.find(c=>c.id===game.self.civilization);
   const [tab,setTab]=useState('world'),[inspector,setInspector]=useState<Inspector>('city'),[selected,setSelected]=useState<string|null>(civ.cities[0]?.hexId??null),[selectedCity,setSelectedCity]=useState(civ.cities[0]?.id??''),[focus,setFocus]=useState<string|null>(civ.cities[0]?.hexId??null);
   const [units,setUnits]=useState<string[]>([]),[path,setPath]=useState<string[]>([]),[pathMode,setPathMode]=useState(false),[rotation,setRotation]=useState(0),[working,setWorking]=useState(false),[worked,setWorked]=useState<string[]>([]),[name,setName]=useState('Novo Horizonte'),[posture,setPosture]=useState('ASSAULT');
-  const [panels,setPanels]=useState(loadPanels),[dismissedResolution,setDismissedResolutionState]=useState(()=>{try{return Number(sessionStorage.getItem(`aoh-resolution-seen-${room.id}`)??0);}catch{return 0;}}),[finaleClosed,setFinaleClosed]=useState(false),[checkOpen,setCheckOpen]=useState(false),[guideOpen,setGuideOpen]=useState(false),[ambitionsLater,setAmbitionsLaterState]=useState(()=>{try{return sessionStorage.getItem(`aoh-ambitions-later-${room.id}`)==='1';}catch{return false;}});
+  const [cardFocus,setCardFocus]=useState(false),[panels,setPanels]=useState(loadPanels),[dismissedResolution,setDismissedResolutionState]=useState(()=>{try{return Number(sessionStorage.getItem(`aoh-resolution-seen-${room.id}`)??0);}catch{return 0;}}),[finaleClosed,setFinaleClosed]=useState(false),[checkOpen,setCheckOpen]=useState(false),[guideOpen,setGuideOpen]=useState(false),[ambitionsLater,setAmbitionsLaterState]=useState(()=>{try{return sessionStorage.getItem(`aoh-ambitions-later-${room.id}`)==='1';}catch{return false;}});
   /** A round's results are shown once per browser session, not again on every reload. */
   const setDismissedResolution=(round:number)=>{setDismissedResolutionState(round);try{sessionStorage.setItem(`aoh-resolution-seen-${room.id}`,String(round));}catch{/* storage blocked: shown again after reload */}};
   const setAmbitionsLater=(later:boolean)=>{setAmbitionsLaterState(later);try{sessionStorage.setItem(`aoh-ambitions-later-${room.id}`,later?'1':'0');}catch{/* storage blocked: the choice lasts until reload */}};
@@ -100,6 +101,17 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const conflictCall=game.phase==='CONFLICTS'&&!game.self.ready&&!game.winner&&(game.incomingAttacks.length>0||game.self.orders.some(o=>o.type==='ATTACK'));
   const latestReport=game.roundReports.at(-1),replay=!conflictCall&&!game.winner&&latestReport&&latestReport.resolution.length>0&&latestReport.round>dismissedResolution?latestReport:null;
   const resolution=latestReport?.resolution.slice(-8)??[];
+  /** Results on their targets: during the round's resolution, a halo and tag on each event's hex; while a card's round bonus
+   * lasts, a seal on the pieces it strengthens or speeds (not only a toast). */
+  const EVENT_TAG:Record<string,string>={MOVEMENT:'Movimento',EXPLORATION:'Exploração',FOUNDATION:'Fundação',PRODUCTION:'Produção',CONSTRUCTION:'Obra',RECRUITMENT:'Recrutamento',RESEARCH:'Pesquisa',TRADE:'Comércio',INFLUENCE:'Influência',COMBAT:'Combate',LOSSES:'Perdas',RETREAT:'Recuo',ADVANCE:'Avanço',FAILURE:'Não ocorreu',ROUND_EVENT:'Evento'};
+  const bonuses=game.self.temporaryEffects.filter(entry=>entry.round===game.view.round&&(entry.effect.kind==='STRENGTH'||entry.effect.kind==='MOVEMENT'));
+  const bonusTotal=(kind:string)=>bonuses.filter(entry=>entry.effect.kind===kind).reduce((total,entry)=>total+('amount' in entry.effect?entry.effect.amount:0),0);
+  const mapMarks=[
+    ...(replay?replay.resolution.filter(event=>event.hexId).map(event=>({hexId:event.hexId!,label:EVENT_TAG[event.type]??text(event.type),tone:(event.type==='LOSSES'||event.type==='FAILURE'?'loss':'event') as 'loss'|'event'})):[]),
+    ...[...new Set(ownUnits.map(u=>u.hexId))].flatMap(hexId=>{const here=ownUnits.filter(u=>u.hexId===hexId),fights=here.some(u=>(game.rules.units[u.kind]?.strength??0)>0);return [
+      ...(fights&&bonusTotal('STRENGTH')?[{hexId,label:`+${bonusTotal('STRENGTH')} Força`,tone:'card' as const}]:[]),
+      ...(bonusTotal('MOVEMENT')?[{hexId,label:`+${bonusTotal('MOVEMENT')} mov.`,tone:'card' as const}]:[])];}),
+  ];
   const mapData={view:{...game.view,era:game.self.era,visibleTerritory:[...game.view.visibleTerritory,...known,...unknown]},players:game.players,claimable:chosen.length?targetHexes:inspector==='territory'&&city?(game.claimOptions[city.id]??[]):[],workable:city?game.view.visibleTerritory.filter(t=>t.controllerCityId===city.id).map(t=>t.id):[]};
   /** The inspector follows what the player just touched, except while a map interaction is in progress. */
   const follow=(hexId:string|null,pieces:number)=>{
@@ -155,7 +167,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
         <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><p>Código para voltar: <code>{room.joinCode}</code></p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p>{feedbackUrl&&<a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a>}<p>Ambiente de teste: a partida pode ser reiniciada ou apagada.</p></details>
       </div>
       </aside>
-      <div className="world-column"><HexMap data={mapData} art={{seats:Object.fromEntries(game.players.map((p,i)=>[p.id,{color:seatColor(i),mark:civilizationKit(p.civilization)?.mark??null}])),cityMarks:game.cityMarks}} units={game.units} peoples={game.independents} raids={game.raidBands} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
+      <div className="world-column"><HexMap data={mapData} art={{seats:Object.fromEntries(game.players.map((p,i)=>[p.id,{color:seatColor(i),mark:civilizationKit(p.civilization)?.mark??null}])),cityMarks:game.cityMarks,marks:mapMarks}} units={game.units} peoples={game.independents} raids={game.raidBands} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/><AlphaHand game={game} locked={locked} send={send} seatColor={seatColor(Math.max(0,game.players.findIndex(p=>p.id===room.selfPlayerId)))} onFocus={setCardFocus}/></div>
       <aside className="context-inspector alpha-inspector" data-collapsed={!panels.inspector}>
         <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.inspector} aria-label={panels.inspector?'Recolher Inspetor':'Expandir Inspetor'} title={panels.inspector?'Recolher Inspetor':'Expandir Inspetor'} onClick={()=>togglePanel('inspector')}>{panels.inspector?'›':'‹'}</button></div>
         <div className="inspector-tabs" role="group" aria-label="Contexto">{INSPECTORS.map(([key,title])=><button key={key} aria-pressed={inspector===key} onClick={()=>setInspector(key)}>{title}{key==='military'&&game.self.orders.length>0?` · ${game.self.orders.length}`:''}</button>)}</div>
@@ -212,7 +224,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       <details className="alpha-action-queue"><summary>Ações planejadas {game.actions.reserved} / {game.actions.limit}</summary><div>{planned.map(action=><p key={action.id}><span>{action.label}</span><button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:action.id})}>Cancelar</button></p>)}{planned.length===0&&<small>Nenhuma ação reservada.</small>}</div></details>
       {resolution.length>0&&<details className="alpha-resolution-log"><summary>Última resolução</summary><ol>{resolution.map(event=><li key={event.id}>{event.message}</li>)}</ol></details>}
       <ol aria-label="Iniciativa">{game.initiative.map(id=><li key={id}>{game.players.find(p=>p.id===id)?.name}</li>)}</ol>
-      {ambitionsPending?<button className="primary advance-phase-btn" disabled={locked} onClick={()=>setAmbitionsLater(false)}>Escolher ambições</button>:<>{game.self.ready&&!game.winner&&<button className="alpha-unready" disabled={busy} title="Retira sua confirmação enquanto outras pessoas decidem" onClick={()=>void send({type:'UNREADY'})}>Voltar a planejar</button>}<button className="primary advance-phase-btn" disabled={locked} onClick={()=>{if(game.phase==='PLANNING'&&planningWarnings.length&&!checkOpen){setCheckOpen(true);return;}setCheckOpen(false);void send({type:'READY'});}}>{game.self.ready?'Aguardando outras pessoas':game.phase==='CONFLICTS'?'Passar / pronto':game.phase==='PLANNING'?'Confirmar planejamento':'Concluir fase'}</button></>}
+      {ambitionsPending?<button className="primary advance-phase-btn" disabled={locked} onClick={()=>setAmbitionsLater(false)}>Escolher ambições</button>:<>{game.self.ready&&!game.winner&&<button className="alpha-unready" disabled={busy} title="Retira sua confirmação enquanto outras pessoas decidem" onClick={()=>void send({type:'UNREADY'})}>Voltar a planejar</button>}<button className={`${cardFocus||replay?"":"primary "}advance-phase-btn`} disabled={locked} onClick={()=>{if(game.phase==='PLANNING'&&planningWarnings.length&&!checkOpen){setCheckOpen(true);return;}setCheckOpen(false);void send({type:'READY'});}}>{game.self.ready?'Aguardando outras pessoas':game.phase==='CONFLICTS'?'Passar / pronto':game.phase==='PLANNING'?'Confirmar planejamento':'Concluir fase'}</button></>}
     </footer>
   </>;
 }

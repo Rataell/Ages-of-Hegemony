@@ -1,4 +1,4 @@
-import { ALPHA_CARDS, GREAT_PROJECTS, AlphaEraSchema, type AlphaState, type PlayerId, type AlphaCommand, type AlphaEffect } from '@aoh/game-domain';
+import { ALPHA_CARDS, GREAT_PROJECTS, AlphaEraSchema, civilizationKit, type AlphaState, type PlayerId, type AlphaCommand, type AlphaEffect } from '@aoh/game-domain';
 import { alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { alphaRandomInteger } from './alpha-random.js';
 function shuffled(state:AlphaState,ids:string[]):string[]{
@@ -62,6 +62,27 @@ export function manageCard(state:AlphaState,actor:PlayerId,command:Extract<Alpha
   player.hand=player.hand.filter(id=>id!==card.id);state.cards.discarded.push(card.id);player.cardsPlayed++;
   if(card.effect?.kind==='PRODUCTION')alphaGainLegacy(state,actor,{[card.effect.resource]:card.effect.amount});
   else if(card.effect)player.temporaryEffects.push({source:card.id,effect:card.effect,round:state.core.round});
+}
+/**
+ * Civilization cards live on the civilization board: the first is available from Era I, the second from Era III, the third from
+ * Era V, and each unlocked card is playable once per Era. They share the per-round card limit with the hand.
+ */
+export function civilizationCardStatus(state:AlphaState,actor:PlayerId,cardId:string):'AVAILABLE'|'LOCKED'|'USED'|'UNKNOWN' {
+  const player=state.players.find(p=>p.playerId===actor);const card=civilizationKit(player?.civilization)?.cards.find(c=>c.id===cardId);
+  if(!player||!card)return 'UNKNOWN';
+  if(AlphaEraSchema.options.indexOf(player.era)<AlphaEraSchema.options.indexOf(card.unlockEra))return 'LOCKED';
+  return player.civilizationCardsPlayed.some(entry=>entry.cardId===card.id&&entry.era===player.era)?'USED':'AVAILABLE';
+}
+export function playCivilizationCard(state:AlphaState,actor:PlayerId,cardId:string):void {
+  const player=state.players.find(p=>p.playerId===actor)!;const card=civilizationKit(player.civilization)?.cards.find(c=>c.id===cardId);
+  const status=civilizationCardStatus(state,actor,cardId);
+  if(!card||status==='UNKNOWN')throw new Error('Esta carta não pertence ao tabuleiro da sua civilização.');
+  if(status==='LOCKED')throw new Error('Esta carta da civilização só libera numa era posterior.');
+  if(status==='USED')throw new Error('Esta carta da civilização já foi usada nesta era.');
+  if(player.cardsPlayed>=state.rules.cardsPerRound)throw new Error('Você já jogou o limite de cartas desta rodada.');
+  player.cardsPlayed++;player.civilizationCardsPlayed.push({cardId:card.id,era:player.era});
+  if(card.effect.kind==='PRODUCTION')alphaGainLegacy(state,actor,{[card.effect.resource]:card.effect.amount});
+  else player.temporaryEffects.push({source:card.id,effect:card.effect,round:state.core.round});
 }
 export function scoreAmbitions(state:AlphaState):void {
   for(const player of state.players) {

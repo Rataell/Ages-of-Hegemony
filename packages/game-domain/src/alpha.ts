@@ -5,6 +5,7 @@ import { AlphaUnitClassSchema, UnitCatalogEntrySchema, alphaUnitCatalog } from '
 import { ADVANCEMENTS, CIVILIZATIONS, AlphaEffectSchema } from './alpha-institutions.js';
 import { ALPHA_CARDS, GREAT_PROJECTS } from './alpha-cards.js';
 import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
+import { civilizationKit } from './alpha-civilization-kits.js';
 import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
   ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
@@ -102,7 +103,9 @@ const StrategicPlayerSchema = z.strictObject({
   leader:LeaderStateSchema.nullable().default(null),
   influencedCities:z.array(CityIdSchema),
   hegemony:HegemonyDeclarationSchema.nullable(),
-  ambitionsChosen:z.boolean(),cardsPlayed:N,temporaryEffects:z.array(z.strictObject({source:IdentifierSchema,effect:AlphaEffectSchema,round:P})),
+  ambitionsChosen:z.boolean(),cardsPlayed:N,
+  /** Own civilization cards played, one entry per card and Era (each unlocked card is playable once per Era). */
+  civilizationCardsPlayed:z.array(z.strictObject({cardId:IdentifierSchema,era:AlphaEraSchema})).default([]),temporaryEffects:z.array(z.strictObject({source:IdentifierSchema,effect:AlphaEffectSchema,round:P})),
 });
 export const AlphaEventSchema = z.strictObject({
   id: IdentifierSchema, round: P, type: IdentifierSchema,
@@ -219,6 +222,8 @@ export const AlphaStateSchema = z.strictObject({
     if(player.leader!==null&&LEADERS.find(l=>l.id===player.leader!.leaderId)?.civilizationId!==player.civilization)fail('Leader must belong to the player civilization');
     if(player.research.some(id=>!ADVANCEMENTS.some(a=>a.id===id)))fail('Unknown advancement');
     for(const id of player.research){const node=ADVANCEMENTS.find(a=>a.id===id);if(!node)continue;if(node.prerequisites.some(p=>!player.research.includes(p))||node.excludes.some(p=>player.research.includes(p))||AlphaEraSchema.options.indexOf(node.era)>AlphaEraSchema.options.indexOf(player.era))fail('Illegal research prerequisites, exclusion or era');}
+    const kitCards=new Set(civilizationKit(player.civilization)?.cards.map(card=>card.id)??[]);
+    if(player.civilizationCardsPlayed.some(entry=>!kitCards.has(entry.cardId))||new Set(player.civilizationCardsPlayed.map(entry=>`${entry.cardId}:${entry.era}`)).size!==player.civilizationCardsPlayed.length)fail('Invalid civilization card play');
     if(player.contacts.some(id=>!owners.has(id)||id===player.playerId)||new Set(player.contacts).size!==player.contacts.length||player.abilityRound>state.core.round)fail('Invalid contact or ability timing');
     for (const ids of [player.research, player.hand, player.ambitions, player.completedAmbitions, player.advisors, player.knownHexIds, [...player.orders.map(o => o.id),...player.plannedActions.map(action=>action.id)]]) if (new Set(ids).size !== ids.length) fail('Duplicate exclusive player item');
     if (player.knownHexIds.some(id => !hexes.has(id))) fail('Unknown knowledge coordinate');
@@ -246,6 +251,8 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('DECLARE_HEGEMONY'),expectedVersion:N,path:HegemonyPathSchema}),
   z.strictObject({type:z.literal('CHOOSE_AMBITIONS'),expectedVersion:N,cardIds:z.array(IdentifierSchema).length(2)}),
   z.strictObject({type:z.literal('PLAY_CARD'),expectedVersion:N,cardId:IdentifierSchema}),
+  /** Plays a card from the civilization board (DEC-011 kit), not from the hand. */
+  z.strictObject({type:z.literal('PLAY_CIVILIZATION_CARD'),expectedVersion:N,cardId:IdentifierSchema}),
   z.strictObject({type:z.literal('HIRE_ADVISOR'),expectedVersion:N,cardId:IdentifierSchema}),
   z.strictObject({type:z.literal('WORLD_CHOICE'),expectedVersion:N,choice:z.enum(['RESOURCE','PRESTIGE'])}),
   z.strictObject({type:z.literal('BUILD_PROJECT'),expectedVersion:N,projectId:IdentifierSchema,cityId:CityIdSchema}),
@@ -271,7 +278,7 @@ export type ActionClass = z.infer<typeof ActionClassSchema>;
 /** Exhaustive command classification shared by engine, projection and UI. Contextual exceptions stay in actionClassForCommand. */
 export const ACTION_CLASS = {
   URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
-  SETTLE:'MAIN', DECLARE_HEGEMONY:'FREE', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
+  SETTLE:'MAIN', DECLARE_HEGEMONY:'FREE', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN', ADVANCE_ERA:'MAIN',
   CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
   CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE',

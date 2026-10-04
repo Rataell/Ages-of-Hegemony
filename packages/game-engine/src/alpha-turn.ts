@@ -8,7 +8,7 @@ import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { advanceEra, civilizationAbility } from './alpha-institutions.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
-import { manageCard } from './alpha-cards.js';
+import { manageCard, playCivilizationCard } from './alpha-cards.js';
 import { declareHegemony, refreshHegemony } from './alpha-hegemony.js';
 import { settleWithPioneer } from './alpha-cities.js';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
@@ -123,6 +123,9 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     } else if(command.type==='DECLARE_HEGEMONY') {
       declareHegemony(state,actor,command.path);
       alphaEvent(state,'HEGEMONY_DECLARED','Uma civilização declarou seu caminho hegemônico.');
+    } else if(command.type==='PLAY_CIVILIZATION_CARD') {
+      playCivilizationCard(state,actor,command.cardId);
+      alphaEvent(state,'CARD_ACTION','Carta da civilização aplicada.',[actor]);
     } else if(command.type==='PLAY_CARD'||command.type==='CHOOSE_AMBITIONS'||command.type==='HIRE_ADVISOR'||command.type==='WORLD_CHOICE'||command.type==='BUILD_PROJECT') {
       manageCard(state,actor,command);
       alphaEvent(state,'CARD_ACTION','Decisão de carta ou projeto aplicada.',[actor]);
