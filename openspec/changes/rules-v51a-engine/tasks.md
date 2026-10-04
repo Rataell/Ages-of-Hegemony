@@ -5,6 +5,7 @@
 - [ ] D3 districts (8) with slots per level, building families, costs from canon §11
 - [ ] D4 administration formula (load 1/2, capacity 2 + capital + Administrativo + Chancelaria + government + Web)
 - [ ] D5 Web 40 + 10 Convergences (prerequisites, OU exclusions, unlocks) and Heritage 18 × 3
+- [ ] D7 seven Eras (I Fundação · II Expansão · III Consolidação · IV Civilização · V Impérios · VI Potências · VII Ascensão), 5 rounds each, milestones per Era
 - [ ] D6 Orders (5) and commands: ELEVATE, REDISTRIBUTE, DEMOBILIZE, ADOPT_GOVERNMENT via Influência
 - [ ] E1 planning counts Orders by type; 5 per round
 - [ ] E2 Produzir: centre + Capacity hexes by Produtores; role yields

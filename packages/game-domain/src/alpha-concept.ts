@@ -59,9 +59,15 @@ export const UrbanActionTypeSchema = z.enum(['PRODUCE', 'BUILD', 'RECRUIT', 'RES
 export const MoodStateSchema = z.enum(['REVOLTING', 'DESPONDENT', 'RESTLESS', 'SERENE', 'SATISFIED', 'PROSPEROUS', 'EXULTANT']);
 export const CityLevelSchema = z.enum(['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS']);
 export type CityLevel = z.infer<typeof CityLevelSchema>;
-/** Settlement size follows population one-for-one through the seven named Alpha levels, then stays at the cap. */
+/**
+ * Level a population supports on the V5.1a ladder (2/4/6/8/11/14/18). Kept for callers that still size a city by its people;
+ * the built level itself rises only through Elevar (alpha-city-ladder.ts).
+ */
 export function cityLevelForPopulation(population: number): CityLevel {
-  return CityLevelSchema.options[Math.min(CityLevelSchema.options.length - 1, Math.max(0, population - 1))]!;
+  const thresholds = [2, 4, 6, 8, 11, 14, 18];
+  let index = 0;
+  for (let step = 0; step < thresholds.length; step++) if (population >= thresholds[step]!) index = step;
+  return CityLevelSchema.options[index]!;
 }
 export const AlphaDistrictSchema = z.enum(['AGRARIAN', 'COMMERCIAL', 'ACADEMIC', 'ADMINISTRATIVE', 'MILITARY', 'INDUSTRIAL', 'CULTURAL', 'MARITIME']);
 export const AlphaBuildingSchema = z.enum([
