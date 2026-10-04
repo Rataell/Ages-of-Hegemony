@@ -1,7 +1,7 @@
 import type { AlphaState, AlphaUnit, PlayerId } from '@aoh/game-domain';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { canEnter } from './alpha-military.js';
-import { bordersOpen } from './alpha-diplomacy.js';
+import { enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { institutionBonus } from './alpha-institutions.js';
 import { stackBlock } from './alpha-stack.js';
 import { settleWithPioneer } from './alpha-cities.js';
@@ -54,7 +54,7 @@ function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Ma
     for (const point of hexNeighbors(current)) {
       const nextId = hexId(point), tile = byId.get(nextId);
       if (!tile || !known.has(nextId) || !canEnter(state, unit, tile.id)) continue;
-      if (!bordersOpen(state, actor, tile.ownerId) || state.units.some(other => other.hexId === nextId && other.ownerId !== actor)) continue;
+      if (!movementOpen(state, actor, tile.ownerId) || enemyCityAt(state, actor, nextId) || state.units.some(other => other.hexId === nextId && other.ownerId !== actor)) continue;
       const cost = node.cost + (state.roads.includes(tile.id) && land ? 1 : state.rules.movementCosts[tile.terrain]);
       if (cost > budget || cost >= (best.get(nextId)?.cost ?? Infinity)) continue;
       best.set(nextId, { cost, path: [...node.path, nextId] });

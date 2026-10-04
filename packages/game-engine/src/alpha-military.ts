@@ -2,7 +2,7 @@ import { AlphaEraSchema, type AlphaState, type AlphaUnit, type HexId, type Playe
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaPay } from './alpha-resources.js';
 import { institutionBonus } from './alpha-institutions.js';
-import { atWar, bordersOpen } from './alpha-diplomacy.js';
+import { atWar, enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { leaderSupplyBonus } from './alpha-leaders.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { blockadedBy, isCarried, isPort, launchHex } from './alpha-naval.js';
@@ -68,7 +68,7 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
     for(const id of path) {
       const target=state.core.map.find(t=>t.id===id);
       if(!target||!progress.knownHexIds.includes(id)||hexDistance(current,target)!==1||!canEnter(state,unit,id))throw new Error('Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.');
-      if(order.type==='MOVE'&&(!bordersOpen(state,actor,target.ownerId)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)))throw new Error('Fronteira fechada ou presença de outra civilização: use uma ordem de conflito.');
+      if(order.type==='MOVE'&&(!movementOpen(state,actor,target.ownerId)||enemyCityAt(state,actor,id)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)))throw new Error('Fronteira fechada, cidade inimiga ou presença de outra civilização: use uma ordem de conflito.');
       cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];current=target;
     }
     if(cost>state.rules.units[unit.kind].movement+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind))throw new Error('Caminho excede a mobilidade da peça.');

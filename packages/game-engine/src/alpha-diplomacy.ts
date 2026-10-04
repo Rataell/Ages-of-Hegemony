@@ -18,6 +18,15 @@ export function hasTreaty(state:AlphaState,a:PlayerId,b:PlayerId,type:AlphaState
 export function bordersOpen(state:AlphaState,actor:PlayerId,owner:PlayerId|null):boolean {
   return owner===null||owner===actor||!atWar(state,actor,owner)&&(hasTreaty(state,actor,owner,'OPEN_BORDERS')||hasTreaty(state,actor,owner,'ALLIANCE'));
 }
+/**
+ * Where an army may walk: free or own land, a partner's land under open borders or alliance, and any land of an enemy at war
+ * (GR-29: without this a city ringed by its own claims could never be reached). Entering an enemy city stays an attack, and
+ * trade keeps using bordersOpen.
+ */
+export function movementOpen(state:AlphaState,actor:PlayerId,owner:PlayerId|null):boolean {return bordersOpen(state,actor,owner)||(owner!==null&&atWar(state,actor,owner));}
+const foreignCityAt=(state:AlphaState,actor:PlayerId,hex:string)=>state.core.players.some(p=>p.id!==actor&&p.civilization.cities.some(c=>c.hexId===hex));
+/** At war, a MOVE never enters an enemy city: taking it is always an ATTACK. */
+export const enemyCityAt=(state:AlphaState,actor:PlayerId,hex:string)=>foreignCityAt(state,actor,hex)&&state.core.players.some(p=>p.id!==actor&&atWar(state,actor,p.id)&&p.civilization.cities.some(c=>c.hexId===hex));
 type DiplomaticInitiative=Extract<AlphaCommand,{type:'PROPOSE_TREATY'|'DECLARE_WAR'}>;
 
 /** Conservative reservation check. Resources stay unescrowed and every condition is checked again at resolution. */

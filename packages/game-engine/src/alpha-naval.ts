@@ -1,6 +1,6 @@
 import type { AlphaState, AlphaUnit, HexId, PlayerId } from '@aoh/game-domain';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
-import { atWar, bordersOpen } from './alpha-diplomacy.js';
+import { atWar, enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { stackBlock } from './alpha-stack.js';
 import { resolutionEvent } from './alpha-events.js';
 
@@ -72,7 +72,7 @@ export function disembarkBlock(state: AlphaState, actor: PlayerId, unitIds: read
   if (!tile || tile.terrain === 'SEA' || tile.terrain === 'UNKNOWN') return 'Desembarque em terra (Costa ou interior).';
   if (hexDistance(from, tile) > 1) return 'O desembarque é no hex da frota ou ao lado dele.';
   if (!state.players.find(p => p.playerId === actor)!.knownHexIds.includes(tile.id)) return 'Desembarque num hex conhecido.';
-  if (!bordersOpen(state, actor, tile.ownerId) || state.units.some(unit => unit.hexId === tile.id && unit.ownerId !== actor)) return 'Fronteira fechada ou presença de outra civilização: ataque a partir da frota.';
+  if (!movementOpen(state, actor, tile.ownerId) || enemyCityAt(state, actor, tile.id) || state.units.some(unit => unit.hexId === tile.id && unit.ownerId !== actor)) return 'Fronteira fechada, cidade inimiga ou presença de outra civilização: ataque a partir da frota.';
   return stackBlock(state, actor, pieces.map(unit => ({ ...unit, carrierId: null })), tile.id);
 }
 export function disembark(state: AlphaState, actor: PlayerId, unitIds: readonly string[], target: string): void {

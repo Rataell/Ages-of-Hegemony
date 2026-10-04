@@ -58,7 +58,7 @@ A coluna **Ação** termina com o estado: FEITO (commit) · PRÓXIMO · ABERTO �
 | GR-26 | Naval | Bloqueio de porto e rota | ✓ | ✓ | — | ◐ (motivo no recrutamento) | alpha-naval | Era II | P1 | GR-24 | Frota inimiga em guerra junto ao porto impede lançar frotas e suspende as rotas da cidade · FEITO · aviso visual do bloqueio no mapa · ABERTO |
 | GR-27 | Naval | Sete classes do atlas auditadas contra o cânone | — | — | — | — | — | — | P2 | GR-24 | Cristalizar depois do slice · ABERTO |
 | GR-28 | Mapa | Estradas e rotas desenhadas | ✓ | ✓ | ✓ | ✗ | — | parcial | P2 | — | ABERTO |
-| GR-29 | Guerra | Cidade cercada por território reivindicado continua atacável | ? | — | — | — | — | ? | P1 (se confirmado) | — | Teste de regressão · ABERTO |
+| GR-29 | Guerra | Cidade cercada por território reivindicado continua atacável | ✓ | — | ✓ | ✓ | alpha-war-access | sim | **P0** (confirmado) | — | Guerra abre o território do inimigo ao movimento; entrar na cidade inimiga continua sendo ataque; em paz, fronteiras seguem fechadas sem tratado · FEITO |
 | GR-30 | Diplomacia | Embargo sem aceite do alvo; PNA bloqueia guerra? | ◐ | ✓ | ✓ | ✓ | — | sim | P2 | DEC-015 | BLOQUEADO |
 | GR-31 | Eras | IDs `ASCENSION`=V e `HEGEMONY`=VI com rótulos Potências/Ascensão; métrica `eraFiveResearch` rotulada certa | ◐ | ✓ | ✓ | ◐ | alpha-milestones | sim | P3 | migração | Corrigir rótulo da métrica · ABERTO · migrar IDs depois |
 | GR-32 | Armazém | Teto civilizacional | ◐ | ✓ | ✓ | ✓ | alpha-storage-metal | sim | P2 | DEC-008 | BLOQUEADO |
