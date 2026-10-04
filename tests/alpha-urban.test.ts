@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, PlayerIdSchema, alphaToLegacyResources, cityLevelForPopulation, type AlphaState } from '@aoh/game-domain';
-import { alphaGain, alphaStorageCapacity, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, deriveCityProductionBreakdown, occupyCity, setAlphaPhase, syncCityMetadata } from '@aoh/game-engine';
+import { alphaGain, alphaStorageCapacity, applyAlphaCommand, beginAlphaPlanning, cityYield, createAlphaGame, occupyCity, setAlphaPhase, syncCityMetadata } from '@aoh/game-engine';
 import { completeRound, must } from './alpha-rounds.js';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
 const c1 = 'capital-1', c2 = 'capital-2';
 
 /** A two-player match whose PLANNING has just closed, so every city may take its urban action. */
+/** Turns one worker of the first city into a Soldado so a land piece can be mobilized. */
+function soldier(state: AlphaState): void { const city = coreCity(state); const role = (['unassigned', 'producers', 'artisans', 'merchants', 'scholars'] as const).find(key => city.workers[key] > 0)!; city.workers = { ...city.workers, [role]: city.workers[role] - 1, soldiers: city.workers.soldiers + 1 }; }
 function urban(seed = 61): AlphaState { const state=beginAlphaPlanning(createAlphaGame({ gameId: `urban-${seed}`, seed, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] }));state.players.forEach(player=>{player.ambitionsChosen=true;});setAlphaPhase(state,'URBAN_ACTIONS');state.cities.forEach(city=>{city.urbanActionsUsed=0;});return state; }
 const act = (state: AlphaState, actor = p1, cityId = c1, extra: Record<string, unknown> = {}) => applyAlphaCommand(state, actor, { type: 'URBAN_ACTION', expectedVersion: state.version, cityId, ...extra });
 const pool = (state: AlphaState, index = 0) => state.players[index]!.resources;
@@ -76,7 +78,7 @@ describe('urban actions: legality', () => {
 describe('urban actions: PRODUCE', () => {
   it('produces only when a city acts, exactly what its breakdown says, and records it', () => {
     const state = urban();
-    const expected = deriveCityProductionBreakdown(coreCity(state), state.core.players[0]!.civilization, state.core.config, state.core.map).total;
+    const expected = alphaToLegacyResources(cityYield(state, c1).output);
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
     const ledger = after.roundLedgers.find(l => l.playerId === p1)!;
     expect(ledger.production).toEqual(expected);
@@ -110,18 +112,20 @@ describe('urban actions: PRODUCE', () => {
     for (const report of after.roundReports) for (const key of ['food', 'materials', 'wealth', 'knowledge', 'influence'] as const) { expect(report.production[key]).toBe(0); expect(report.mining[key]).toBe(0); }
   });
 
-  it('scales with mood and stays zero for a revolting city', () => {
+  it('reads Capacity through Ânimo: Abalada −1 (min 1), Próspera +1 on the first activation, Revolta only Governar (canon §10)', () => {
     const state = urban();
+    meta(state).mood = 4; const stable = cityYield(state, c1).capacity;
+    meta(state).mood = 2; expect(cityYield(state, c1).capacity).toBe(Math.max(1, stable - 1));
+    meta(state).mood = 6; expect(cityYield(state, c1).capacity).toBe(stable + 1);
     meta(state).mood = 0;
-    const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
-    const ledger = after.roundLedgers.find(l => l.playerId === p1)!;
-    for (const key of ['food', 'materials', 'wealth', 'knowledge', 'influence'] as const) expect(ledger.production[key]).toBe(0);
+    expect(act(state, p1, c1, { action: 'PRODUCE' })).toMatchObject({ ok: false, error: { message: expect.stringContaining('Revolta') } });
   });
 });
 
 describe('urban actions: BUILD', () => {
   it('builds a district through the current catalog, charges it and syncs the city record', () => {
     const state = urban();
+    state.players[0]!.research.push('web-agriculture');
     const before = alphaToLegacyResources(pool(state));
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'BUILD', build: { kind: 'DISTRICT', district: 'AGRARIAN' } });
     expect(coreCity(after).districts.map(d => d.type)).toContain('AGRARIAN');
@@ -176,34 +180,38 @@ describe('urban actions: BUILD', () => {
 });
 
 describe('alpha city state', () => {
-  it('derives the seven city levels from population and refreshes metadata', () => {
+  it('never raises the built level from population: only Elevar does (canon §4)', () => {
     const state = urban();
     const city = coreCity(state);
     for (const population of [1, 2, 3, 4, 5, 6, 7, 12]) {
       city.population = population;
       syncCityMetadata(state);
-      expect(meta(state).level).toBe(cityLevelForPopulation(population));
+      expect(meta(state).level).toBe('OUTPOST');
     }
+    expect(cityLevelForPopulation(12)).toBe('GREAT_CITY');
   });
 
-  it('applies mood stability each maintenance and samples the city mood', () => {
+  it('samples the city mood each maintenance and leaves the legacy stability untouched (Ânimo is the social state)', () => {
     const state = urban();
     meta(state).mood = 6;
     const stability = coreCity(state).stability;
     setAlphaPhase(state, 'PLANNING');
     const after = completeRound(state);
-    expect(coreCity(after).stability).toBe(stability + state.rules.balance.moodEffects[6]!.stabilityDelta);
+    expect(coreCity(after).stability).toBe(stability);
     expect(after.telemetry.moodSamples).toContain(6);
-    expect(meta(after).level).toBe(cityLevelForPopulation(coreCity(after).population));
+    expect(meta(after).level).toBe('OUTPOST');
   });
 });
 
 describe('urban actions: RECRUIT', () => {
-  it('recruits a military piece and charges its catalog cost', () => {
+  it('recruits a military piece, charges its catalog cost and mobilizes one habitant (canon §6)', () => {
     const state = urban();
-    const before = alphaToLegacyResources(pool(state)), units = state.units.length;
+    soldier(state);
+    const before = alphaToLegacyResources(pool(state)), units = state.units.length, population = coreCity(state).population;
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'RECRUIT', unit: 'INFANTRY' });
     expect(after.units).toHaveLength(units + 1);
+    expect(coreCity(after).population).toBe(population - 1);
+    expect(coreCity(after).workers.soldiers).toBe(0);
     expect(alphaToLegacyResources(pool(after)).food).toBe(before.food - state.rules.units.INFANTRY.cost.food);
     expect(after.telemetry.unitRecruitment.INFANTRY).toBe(1);
   });
@@ -229,6 +237,7 @@ describe('urban actions: RECRUIT', () => {
 
   it('spends metal on advanced pieces', () => {
     const state = urban();
+    soldier(state);
     state.players[0]!.era = 'CIVILIZATION';
     coreCity(state).districts.push({ type: 'MILITARY', builtRound: 1 });
     Object.assign(pool(state), { wood: 10, stone: 10, metal: 5, wealth: 10, food: 10 });
@@ -240,6 +249,7 @@ describe('urban actions: RECRUIT', () => {
 
   it('lets wealth cover a missing metal cost only up to the substitution limit', () => {
     const state = urban();
+    soldier(state);
     state.players[0]!.era = 'CIVILIZATION';
     coreCity(state).districts.push({ type: 'MILITARY', builtRound: 1 });
     Object.assign(pool(state), { wood: 10, stone: 10, metal: 0, wealth: 30, food: 10 });

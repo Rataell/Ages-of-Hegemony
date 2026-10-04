@@ -17,11 +17,16 @@ export function scriptedMatchSetup():AlphaState {
   state.rules.roundLimit=100;state.rules.roundsPerEra=1;
   for(const key of Object.keys(state.rules.balance.limits.base)){Object.assign(state.rules.balance.limits.base,{[key]:1000});Object.assign(state.rules.balance.limits.hardCap,{[key]:1000});}
   state.players[0]!.civilization='aurelia';state.players[1]!.civilization='valgard';
+  // The script never Produces: sustenance and Crescer (canon §7) would starve eleven cities over 30 rounds without a granary of their own.
+  for(const player of state.players){player.resources.food=1000;const owner=state.core.players.find(p=>p.id===player.playerId)!;owner.resources={...owner.resources,food:1000};}
   state.players.forEach(p=>p.knownHexIds=state.core.map.map(t=>t.id));
   state.regions=[{id:'demonstration-region',templateId:'homeland-1',hexIds:['0,0','1,0','1,-1','0,-1','-1,0','-1,1','0,1'].map(id=>HexIdSchema.parse(id)),rotation:0,revealedBy:[]}];
   state.units=[{id:'pioneer',ownerId:p1,kind:'PIONEER',hexId:HexIdSchema.parse('2,0'),recruitedRound:1},
     ...Array.from({length:10},(_,i)=>({id:`army-${i}`,ownerId:p1,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('8,0'),recruitedRound:1})),
     ...Array.from({length:4},(_,i)=>({id:`defender-${i}`,ownerId:p2,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('9,0'),recruitedRound:1}))];
+  // The script builds two districts per city and recruits once: give the built levels room (canon §5) and a Soldado (canon §6).
+  for(const meta of state.cities)meta.level='CITY';
+  const first=state.core.players[0]!.civilization.cities[0]!;first.workers={...first.workers,artisans:0,soldiers:1};
   initializeAlphaCards(state);refreshKnowledge(state);return beginAlphaPlanning(AlphaStateSchema.parse(state));
 }
 
@@ -87,6 +92,7 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   const foundation=ADVANCEMENTS.filter(a=>a.era==='FOUNDATION'&&a.id!=='web-writing');
   for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length)){urbanAct('RESEARCH',{advancementId:node.id});round();}
   for(const cityId of ['c1-0','c1-1','c1-2'])for(let i=0;i<2;i++)manage({type:'DEVELOP_CITY',cityId});
+  urbanAct('RESEARCH',{advancementId:'web-codes'});round();
   for(const [cityId,district] of [['c1-0','ACADEMIC'],['c1-1','AGRARIAN'],['c1-2','COMMERCIAL'],['c1-3','CULTURAL']])urbanAct('BUILD',{build:{kind:'DISTRICT',district}},cityId);
   for(const cityId of ['c1-0','c1-1','c1-2','c1-4']){
     urbanAct('BUILD',{build:{kind:'DISTRICT',district:'ADMINISTRATIVE'}},cityId);urbanAct('BUILD',{build:{kind:'BUILDING',building:'ARCHIVE'}},cityId);
@@ -95,9 +101,8 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   for(const [cityId,hexIds] of Object.entries(claims))for(const hexId of hexIds)manage({type:'CLAIM_HEX',cityId,hexId});
   manage({type:'IMPROVE_HEX',hexId:'1,0',improvement:'FARM'});
   submit(p1,{type:'MANAGE',command:{type:'ASSIGN_WORKED_HEXES',playerId:p1,cityId:CityIdSchema.parse('c1-0'),hexIds:['1,0'],expectedVersion:state.core.version}});
-  urbanAct('RESEARCH',{advancementId:'web-irrigation'});round();
   perform({type:'BUILD_PROJECT',projectId:'archive-of-horizons',cityId:'c1-0'});
-  submit(p1,{type:'DECLARE_HEGEMONY',path:'TERRITORIAL'});
+  perform({type:'DECLARE_HEGEMONY',path:'TERRITORIAL'});
   while(state.core.status==='ACTIVE'){checkpoint?.('beforeEndRound',structuredClone(state));round();}
   return {state,trace};
 }

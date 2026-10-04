@@ -63,7 +63,8 @@ export const alphaToLegacyResources = (pool: AlphaResourcePool): ResourcePool =>
   influence: pool.influence,
 });
 
-export const UrbanActionTypeSchema = z.enum(['PRODUCE', 'BUILD', 'RECRUIT', 'RESEARCH', 'PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION']);
+/** Actions of the Cidade Order (canon §2) plus the legacy ones still routed through it until their own slices land. */
+export const UrbanActionTypeSchema = z.enum(['PRODUCE', 'BUILD', 'RECRUIT', 'RESEARCH', 'ELEVATE', 'PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION']);
 export const MoodStateSchema = z.enum(['REVOLTING', 'DESPONDENT', 'RESTLESS', 'SERENE', 'SATISFIED', 'PROSPEROUS', 'EXULTANT']);
 export const CityLevelSchema = z.enum(['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS']);
 export type CityLevel = z.infer<typeof CityLevelSchema>;
@@ -109,6 +110,8 @@ export const AlphaCitySchema = z.strictObject({
   localCohesion: N.max(100),
   culturalAnchor: IdentifierSchema.nullable(),
   urbanActionsUsed: N,
+  /** Round in which the population was last redistributed: once per city per round, during Planning (canon §6). */
+  allocationRound: N.default(0),
 });
 export type AlphaCity = z.infer<typeof AlphaCitySchema>;
 
@@ -270,7 +273,7 @@ export function alphaBalance(): AlphaBalance {
   storage.THEATER = { resource: 'CULTURE', amount: 5 };
   return AlphaBalanceSchema.parse({
     label: 'ALPHA',
-    cityActions: 1,
+    cityActions: 2,
     wealthConversionRate: 2,
     wealthMaterialCostPercentMax: 50,
     limits: {

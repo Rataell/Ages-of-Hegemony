@@ -25,7 +25,7 @@ function initialCities(core: GameState, civilizationByPlayer: Map<string, string
     foreignPresence: [],
     localCohesion: 50,
     culturalAnchor: null,
-    urbanActionsUsed: 0,
+    urbanActionsUsed: 0, allocationRound: 0,
   })));
 }
 

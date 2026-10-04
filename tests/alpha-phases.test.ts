@@ -153,6 +153,7 @@ describe('what each phase does', () => {
 
   it('validates at reservation, revalidates without escrow, and records a private resolution failure', () => {
     let state = started(88);
+    state.players[0]!.research.push('web-agriculture');
     const cityId = state.core.players[0]!.civilization.cities[0]!.id;
     state = must(state, p1, { type: 'URBAN_ACTION', planId: 'future-district', cityId, action: 'BUILD', build: { kind: 'DISTRICT', district: 'AGRARIAN' } });
     expect(state.players[0]!.plannedActions.map(action => action.id)).toContain('future-district');

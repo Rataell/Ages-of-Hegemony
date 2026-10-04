@@ -9,6 +9,8 @@ function setup():AlphaState {
     initialCities:[{id:'c1',ownerId:p1,hexId:'0,0',name:'Aurora'},{id:'c2',ownerId:p2,hexId:'4,0',name:'Merídia'}]});
   if(!core.ok)throw new Error(core.error.message);const migrated=migrateSnapshotV3ToV4(core.value);if(!migrated.ok)throw new Error(migrated.error.message);
   const state=beginAlphaPlanning(migrated.value);state.players.forEach(p=>p.knownHexIds=state.core.map.map(t=>t.id));state.wars=[[p1,p2]];
+  // A Soldado to mobilize (canon §6).
+  const capital=state.core.players[0]!.civilization.cities[0]!;capital.workers={...capital.workers,unassigned:capital.workers.unassigned+capital.workers.producers,producers:0};
   return state;
 }
 describe('alpha military pieces',()=>{

@@ -41,10 +41,13 @@ describe('authoritative alpha round reports', () => {
 
   it('records paid rather than demanded upkeep on shortage and reports final stability', () => {
     const initial = made('report-shortage');
-    initial.rules.units.PIONEER.upkeep.food = 999;
+    // Twenty land pieces eat 10 Alimento a round (canon §7); an empty store cannot pay it.
+    const owner = initial.players[0]!, hexId = initial.core.players[0]!.civilization.cities[0]!.hexId;
+    for (let i = 0; i < 20; i++) initial.units.push({ id: `hungry-${i}`, ownerId: owner.playerId, kind: 'INFANTRY', hexId, recruitedRound: 1, carrierId: null });
+    owner.resources.food = 0; initial.core.players[0]!.resources = { ...initial.core.players[0]!.resources, food: 0 };
     const state = completeRound(beginAlphaPlanning(initial));
     const report = state.roundReports[0]!;
-    expect(report.upkeepRequired.food).toBeGreaterThanOrEqual(999);
+    expect(report.upkeepRequired.food).toBeGreaterThanOrEqual(10);
     expect(report.upkeepPaid.food).toBeLessThan(report.upkeepRequired.food);
     expect(report.closing.food).toBe(0);
     expect(report.cities[0]!.stabilityAfter).toBe(state.core.players[0]!.civilization.cities[0]!.stability);

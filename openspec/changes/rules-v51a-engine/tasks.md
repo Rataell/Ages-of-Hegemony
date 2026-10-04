@@ -1,20 +1,20 @@
 # Tasks
 
-- [ ] D1 8 resources (`culture`), limits 15/10, hard caps 30/20, Cofre math
-- [ ] D2 city ladder: built level, population roles, effective Capacity, Elevar table (cost, advance, Era)
-- [ ] D3 districts (8) with slots per level, building families, costs from canon §11
+- [x] D1 8 resources (`culture`), limits 15/10, hard caps 30/20, Cofre math
+- [x] D2 city ladder: built level, population roles, effective Capacity, Elevar table (cost, advance, Era)
+- [x] D3 districts (8) with slots per level, building families, costs from canon §11
 - [ ] D4 administration formula (load 1/2, capacity 2 + capital + Administrativo + Chancelaria + government + Web)
-- [ ] D5 Web 40 + 10 Convergences (prerequisites, OU exclusions, unlocks) and Heritage 18 × 3
-- [ ] D7 seven Eras (I Fundação · II Expansão · III Consolidação · IV Civilização · V Impérios · VI Potências · VII Ascensão), 5 rounds each, milestones per Era
-- [ ] D6 Orders (5) and commands: ELEVATE, REDISTRIBUTE, DEMOBILIZE, ADOPT_GOVERNMENT via Influência
-- [ ] E1 planning counts Orders by type; 5 per round
-- [ ] E2 Produzir: centre + Capacity hexes by Produtores; role yields
-- [ ] E3 Elevar
-- [ ] E4 redistribution during planning, locked on READY
-- [ ] E5 sustenance 1 per 2, Crescer 3 Alimento, famine
-- [ ] E6 mobilization/demobilization; effective Capacity
-- [ ] E7 storage with infrastructure and hard caps
-- [ ] E8 research universal + Heritage with unlock gates
+- [x] D5 Web 40 + 10 Convergences (prerequisites, OU exclusions, unlocks) and Heritage 18 × 3
+- [x] D7 seven Eras (I Fundação · II Expansão · III Consolidação · IV Civilização · V Impérios · VI Potências · VII Ascensão), 5 rounds each, milestones per Era
+- [x] D6 Orders (5) and commands: ELEVATE, REDISTRIBUTE, DEMOBILIZE, ADOPT_GOVERNMENT via Influência
+- [x] E1 planning counts Orders by type; 5 per round
+- [x] E2 Produzir: centre + Capacity hexes by Produtores; role yields
+- [x] E3 Elevar
+- [x] E4 redistribution during planning, locked on READY
+- [x] E5 sustenance 1 per 2, Crescer 3 Alimento, famine
+- [x] E6 mobilization/demobilization; effective Capacity
+- [x] E7 storage with infrastructure and hard caps
+- [x] E8 research universal + Heritage with unlock gates
 - [ ] E9 administration and Sobre-extensão (Ânimo, no 2nd activation)
 - [ ] E10 Governar with Capacity reach
 - [ ] S1 projection + privacy test

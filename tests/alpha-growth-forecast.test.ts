@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
-import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, growthForecast, growthShares, infrastructureStats, populationCap } from '@aoh/game-engine';
-import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
+import { PlayerIdSchema, alphaToLegacyResources, populationCeiling, type AlphaResourcePool, type AlphaState } from '@aoh/game-domain';
+import { applyAlphaCommand, beginAlphaPlanning, citySustenance, createAlphaGame, growthForecast } from '@aoh/game-engine';
 
 const p1 = PlayerIdSchema.parse('p1');
 function setup(): AlphaState {
@@ -11,95 +10,110 @@ function setup(): AlphaState {
 }
 const must = (state: AlphaState, command: Record<string, unknown>, actor = 'p1') => { const r = applyAlphaCommand(state, actor as never, { ...command, expectedVersion: state.version }); if (!r.ok) throw new Error(r.error.message); return r.value; };
 const capital = (state: AlphaState) => state.core.players[0]!.civilization.cities[0]!;
+/** Seeds the stock after the round opened: the ledger's opening must move with it or the report arithmetic breaks. */
+function seed(state: AlphaState, pool: Partial<AlphaResourcePool>): void {
+  const before = alphaToLegacyResources(state.players[0]!.resources);
+  Object.assign(state.players[0]!.resources, pool);
+  const after = alphaToLegacyResources(state.players[0]!.resources);
+  state.core.players[0]!.resources = after;
+  const ledger = state.roundLedgers.find(l => l.playerId === p1);
+  if (ledger) for (const key of Object.keys(after) as (keyof typeof after)[]) ledger.opening[key] += after[key] - before[key];
+}
+const meta = (state: AlphaState) => state.cities.find(city => city.cityId === capital(state).id)!;
 /** Every own city PRODUCEs (the forecast's assumption), then the round runs to the next planning. */
 function produceRound(state: AlphaState): AlphaState {
   for (const city of state.core.players[0]!.civilization.cities) state = must(state, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
   for (const id of ['p1', 'p2']) state = must(state, { type: 'READY' }, id);
   return state;
 }
-/** What the forecast said compared with what maintenance did. */
-function expectForecastHolds(before: AlphaState, after: AlphaState) {
-  const forecast = growthForecast(before, p1).cities.find(city => city.cityId === capital(before).id)!;
-  const rules = before.core.config, city = capital(before), result = capital(after);
-  const progress = city.growthProgress + forecast.share, growth = Math.min(Math.floor(progress / forecast.threshold), rules.maxGrowthPerMaintenance, populationCap(city, rules) - city.population);
-  expect(result.population).toBe(city.population + growth);
-  expect(result.growthProgress).toBe(Math.min(forecast.threshold, progress - growth * forecast.threshold));
-  if (forecast.roundsToGrow === 1) expect(result.population).toBe(city.population + 1);
-  else expect(result.population).toBe(city.population);
-}
 
-describe('growth forecast and maintenance use one rule', () => {
-  it('projects the starting city exactly as maintenance grows it', () => {
+describe('sustenance and growth (canon V5.1a §7): forecast and maintenance use one rule', () => {
+  it('eats 1 Alimento per 2 inhabitants, rounded up', () => {
+    expect([1, 2, 3, 4, 7, 8, 11, 18].map(citySustenance)).toEqual([1, 1, 2, 2, 4, 4, 6, 9]);
     const state = setup();
     const forecast = growthForecast(state, p1);
-    const city = capital(state);
-    expect(forecast.foodEaten).toBe(city.population * state.core.config.foodPerPopulation);
-    expect(forecast.cities[0]!.threshold).toBe(infrastructureStats(city, state.core.config).growthThreshold);
-    expect(forecast.surplus).toBe(Math.max(0, forecast.foodProduced - forecast.foodEaten));
-    expectForecastHolds(state, produceRound(structuredClone(state)));
+    expect(forecast.cities[0]!.eats).toBe(citySustenance(capital(state).population));
+    expect(forecast.foodEaten).toBeGreaterThanOrEqual(forecast.cities[0]!.eats);
   });
 
-  it('counts a worked food hex: more producers raise the forecast and the real growth together', () => {
+  it('grows by one Disponível for 3 Alimento when the forecast says so, and the Posto stops at its ceiling', () => {
     const state = setup();
-    const city = capital(state);
-    const base = growthForecast(state, p1).foodProduced;
-    city.workers.producers += city.workers.scholars; city.workers.scholars = 0;
-    const forecast = growthForecast(state, p1);
-    expect(forecast.foodProduced).toBeGreaterThan(base);
-    expect(forecast.cities[0]!.share).toBe(forecast.foodProduced - forecast.foodEaten);
-    expectForecastHolds(state, produceRound(structuredClone(state)));
-  });
-
-  it('crosses the threshold from accumulated progress when the forecast says one round', () => {
-    const state = setup();
-    const city = capital(state);
-    city.workers.producers += city.workers.scholars; city.workers.scholars = 0;
-    const share = growthForecast(state, p1).cities[0]!.share;
-    expect(share).toBeGreaterThan(0);
-    city.growthProgress = infrastructureStats(city, state.core.config).growthThreshold - share;
-    expect(growthForecast(state, p1).cities[0]!.roundsToGrow).toBe(1);
-    const after = produceRound(structuredClone(state));
-    expect(capital(after).population).toBe(city.population + 1);
-    expectForecastHolds(state, after);
-  });
-
-  it('keeps accumulated progress below the threshold when the forecast says more rounds', () => {
-    const state = setup();
-    const city = capital(state);
-    city.workers.producers += city.workers.scholars; city.workers.scholars = 0;
-    city.growthProgress = 1;
+    seed(state, { food: 10 });
     const forecast = growthForecast(state, p1).cities[0]!;
+    expect(forecast.growCost).toBe(3);
+    expect(forecast.willGrow).toBe(true);
+    const before = capital(state).population;
     const after = produceRound(structuredClone(state));
-    expect(forecast.roundsToGrow).toBeGreaterThan(1);
-    expect(capital(after).growthProgress).toBe(1 + forecast.share);
-    expectForecastHolds(state, after);
+    expect(capital(after).population).toBe(before + 1);
+    expect(capital(after).workers.unassigned).toBe(capital(state).workers.unassigned + 1);
+    // Posto holds 3: the next Crescer is refused until Elevar.
+    const full = structuredClone(after); seed(full, { food: 15 });
+    const city = capital(full); city.population = populationCeiling('OUTPOST'); city.workers = { ...city.workers, unassigned: city.population - city.workers.producers - city.workers.artisans - city.workers.merchants - city.workers.scholars - city.workers.soldiers };
+    const capped = growthForecast(full, p1).cities[0]!;
+    expect(capped.capped).toBe(true);
+    expect(capped.ceiling).toBe(3);
+    expect(capital(produceRound(full)).population).toBe(3);
   });
 
-  it('forecasts no growth when the population would go hungry, as maintenance does', () => {
+  it('charges 2 Alimento where a Celeiro stands', () => {
     const state = setup();
+    meta(state).buildings.push('GRANARY');
+    expect(growthForecast(state, p1).cities[0]!.growCost).toBe(2);
+  });
+
+  it('forecasts famine when food does not cover sustenance, and maintenance takes a habitant and Ânimo', () => {
+    const state = setup();
+    seed(state, { food: 0 });
     const city = capital(state);
-    city.population += 1; city.workers.unassigned += 1;
-    state.players[0]!.resources.food = 0;
-    state.roundLedgers = state.roundLedgers.filter(ledger => ledger.round !== state.core.round);
+    city.population = 7; city.workers = { producers: 0, artisans: 0, merchants: 0, scholars: 0, soldiers: 0, unassigned: 7 }; city.workedHexIds = [];
+    meta(state).mood = 4;
     const forecast = growthForecast(state, p1);
     expect(forecast.shortage).toBe(true);
-    expect(forecast.cities[0]!.roundsToGrow).toBeNull();
-    const after = produceRound(structuredClone(state));
-    expect(capital(after).population).toBe(city.population);
+    expect(forecast.cities[0]!.willGrow).toBe(false);
+    let after = structuredClone(state);
+    for (const id of ['p1', 'p2']) after = must(after, { type: 'READY' }, id);
+    expect(capital(after).population).toBe(6);
+    expect(meta(after).mood).toBe(3);
+    expect(after.events.some(event => event.type === 'FOOD_SHORTAGE')).toBe(true);
+  });
+});
+
+describe('mobilization (canon §6) and Elevar (canon §4)', () => {
+  it('recruiting a land piece takes one habitant (Soldado first, Disponível otherwise)', () => {
+    const state = setup();
+    seed(state, { food: 10, wood: 10, stone: 10, wealth: 10 });
+    const city = capital(state);
+    city.population = 4; city.workers = { producers: 2, artisans: 0, merchants: 0, scholars: 0, soldiers: 1, unassigned: 1 };
+    const after = must(state, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'INFANTRY' });
+    let resolved = after; for (const id of ['p1', 'p2']) resolved = must(resolved, { type: 'READY' }, id);
+    expect(capital(resolved).population).toBe(3);
+    expect(capital(resolved).workers.soldiers).toBe(0);
+    expect(resolved.units.some(unit => unit.kind === 'INFANTRY' && unit.ownerId === p1)).toBe(true);
   });
 
-  it('serves the same forecast to the city panel, civilization-wide', () => {
+  it('demobilizing inside an own city returns the habitant as Disponível', () => {
     const state = setup();
-    const forecast = growthForecast(state, p1);
-    const detail = alphaPlayerView(state, p1)!.cityDetails[0]!;
-    const city = forecast.cities[0]!;
-    expect({ cityId: city.cityId, ...detail.growth }).toEqual({ ...city, civilization: { foodProduced: forecast.foodProduced, foodEaten: forecast.foodEaten, shortage: forecast.shortage, surplus: forecast.surplus } });
+    const city = capital(state);
+    state.units.push({ id: 'inf-1', ownerId: p1, kind: 'INFANTRY', hexId: city.hexId, recruitedRound: 1, carrierId: null });
+    const after = must(state, { type: 'DEMOBILIZE', unitId: 'inf-1' });
+    expect(after.units.some(unit => unit.id === 'inf-1')).toBe(false);
+    expect(capital(after).population).toBe(city.population + 1);
+    expect(capital(after).workers.unassigned).toBe(city.workers.unassigned + 1);
   });
 
-  it('splits the civilization surplus evenly between cities that can still grow, remainder first by id', () => {
+  it('Elevar needs population, cost, the Web advance and the Era; the built level then rises', () => {
     const state = setup();
-    const a = capital(state), b = { ...structuredClone(a), id: 'city-b' as never }, full = { ...structuredClone(a), id: 'city-c' as never, population: 3 };
-    const shares = growthShares([full, b, a], 3, state.core.config);
-    expect([...shares.entries()]).toEqual([[a.id, 2], ['city-b', 1]]);
+    const city = capital(state);
+    expect(meta(state).level).toBe('OUTPOST');
+    const refused = applyAlphaCommand(state, p1, { type: 'URBAN_ACTION', expectedVersion: state.version, cityId: city.id, action: 'ELEVATE' });
+    expect(refused).toMatchObject({ ok: false, error: { message: expect.stringContaining('habitantes') } });
+    city.population = 4; city.workers = { producers: 2, artisans: 0, merchants: 0, scholars: 0, soldiers: 0, unassigned: 2 };
+    expect(applyAlphaCommand(state, p1, { type: 'URBAN_ACTION', expectedVersion: state.version, cityId: city.id, action: 'ELEVATE' })).toMatchObject({ ok: false, error: { message: expect.stringContaining('web-agriculture') } });
+    state.players[0]!.research.push('web-agriculture');
+    seed(state, { wood: 3 });
+    let after = must(state, { type: 'URBAN_ACTION', cityId: city.id, action: 'ELEVATE' });
+    for (const id of ['p1', 'p2']) after = must(after, { type: 'READY' }, id);
+    expect(meta(after).level).toBe('HAMLET');
+    expect(after.players[0]!.resources.wood).toBeLessThan(3 + 10);
   });
 });

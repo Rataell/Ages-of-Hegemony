@@ -1,15 +1,14 @@
 import {
-  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, RESOURCE_KEYS, cityLevelForPopulation, emptyAlphaResourcePool, legacyToAlphaResources,
-  type AlphaCommand, type AlphaResourcePool, type AlphaState, type PlayerId, type ResourcePool,
+  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, ALPHA_RESOURCE_KEYS, elevateRequirement, emptyAlphaResourcePool, ladderStep, nextLevel,
+  type AlphaCommand, type AlphaResourcePool, type AlphaState, type PlayerId,
 } from '@aoh/game-domain';
 import { applyCommand } from './engine.js';
-import { percent } from './arithmetic.js';
-import { deriveCityProductionBreakdown } from './economy.js';
 import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
-import { advanceCost, applyRecurringEffects, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
-import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment, metalSites } from './alpha-resources.js';
+import { activationsAllowed, cityYield, districtSlots, elevateBlock, elevateCity, mobilize, moodBand } from './alpha-city.js';
+import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
+import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
 import { kitCivicInfluence, kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
 
@@ -23,7 +22,7 @@ export function syncCityMetadata(state: AlphaState): void {
     if (!city) continue;
     meta.districts = [...meta.districts.filter(item => !coreDistricts.has(item)), ...city.districts.map(item => item.type)];
     meta.buildings = [...meta.buildings.filter(item => !coreBuildings.has(item)), ...city.buildings.map(item => item.type)];
-    meta.level = cityLevelForPopulation(city.population);
+    // The built level never follows the population (canon §4): it rises only through Elevar.
   }
 }
 
@@ -44,8 +43,11 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
   const occupied = meta.status === 'OCCUPIED' || state.occupations.some(occupation => occupation.cityId === cityId);
   if (occupied && action !== 'CIVIC_ACTION') return 'Cidade ocupada: apenas a Ação Cívica de integração está disponível.';
   const planned=state.players.find(player=>player.playerId===actor)?.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.cityId===cityId).length??0;
-  if(state.phase==='PLANNING'&&planned>=state.rules.balance.cityActions)return 'Esta cidade já possui sua ação planejada para esta rodada.';
-  if (state.phase==='URBAN_ACTIONS'&&meta.urbanActionsUsed >= state.rules.balance.cityActions) return 'Esta cidade já usou sua ação urbana nesta rodada.';
+  // Two activations per round when Estável or Próspera, one when Abalada (canon §10); the second costs one Ânimo when it resolves.
+  const allowed=Math.min(state.rules.balance.cityActions,activationsAllowed(meta));
+  if(moodBand(meta.mood)==='REVOLT'&&action!=='PROMOTE_MOOD'&&action!=='CIVIC_ACTION')return 'Cidade em Revolta: só Governar (Ânimo e integração) está disponível.';
+  if(state.phase==='PLANNING'&&planned>=allowed)return allowed===1?'Esta cidade já possui sua ação planejada para esta rodada.':'Esta cidade já tem as duas ativações planejadas nesta rodada.';
+  if (state.phase==='URBAN_ACTIONS'&&meta.urbanActionsUsed >= allowed) return 'Esta cidade já usou suas ativações nesta rodada.';
   return null;
 }
 
@@ -56,15 +58,14 @@ function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: B
   if (build.kind === 'DISTRICT') {
     const entry = rules.districts[build.district];
     if (city.districts.some(item => item.type === build.district)) return 'Um distrito de cada tipo por cidade.';
-    if (city.districts.length >= (rules.districtSlots[city.development - 1] ?? 0)) return 'Sem espaço para novos distritos; desenvolva a cidade.';
-    if (city.development < entry.minimumDevelopment) return 'A cidade precisa de mais desenvolvimento para este distrito.';
+    if (city.districts.length >= districtSlots(state, cityId)) return 'Sem vagas de distrito: Eleve a cidade.';
+    if (!hasUnlock(state, actor, `district:${build.district}`)) return 'Este distrito exige um avanço da Teia.';
     return alphaCanAfford(state, actor, entry.cost) ? null : 'Recursos insuficientes para esta ação.';
   }
   if (build.kind === 'BUILDING') {
     const entry = rules.buildings[build.building];
     if (!city.districts.some(item => item.type === entry.district)) return 'O edifício exige o distrito correspondente.';
     if (city.buildings.some(item => item.type === build.building)) return 'Este edifício já existe.';
-    if (city.development < entry.minimumDevelopment) return 'A cidade precisa de mais desenvolvimento para este edifício.';
     return alphaCanAfford(state, actor, entry.cost) ? null : 'Recursos insuficientes para esta ação.';
   }
   const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
@@ -83,6 +84,7 @@ export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, a
   const balance = state.rules.balance, meta = state.cities.find(candidate => candidate.cityId === cityId)!;
   switch (action) {
     case 'PRODUCE': return null;
+    case 'ELEVATE': return elevateBlock(state, actor, cityId);
     case 'BUILD': return params.build ? buildBlock(state, actor, cityId, params.build) : 'Escolha o que construir.';
     case 'RECRUIT': return params.unit ? recruitBlock(state, actor, cityId, params.unit) : 'Escolha a peça a recrutar.';
     case 'RESEARCH': {
@@ -115,6 +117,7 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(cityMeta.fortification.level as never) + 1];
     return next ? alphaCostWithMetal(state, actor, balance.fortification[next].cost, balance.fortification[next].metal) : zero;
   }
+  if (action === 'ELEVATE') { const next = nextLevel(cityMeta?.level ?? 'OUTPOST'); return next ? elevateRequirement(next)!.cost : zero; }
   if (action === 'RECRUIT' && params.unit) { const price = kitUnitCost(state, actor, params.unit); return alphaCostWithMetal(state, actor, price.cost, price.metal); }
   if (action === 'RESEARCH' && params.advancementId) return alphaCostWithMetal(state, actor, advanceCost(state, actor, params.advancementId), 0);
   if (action === 'PROMOTE_MOOD') return { ...zero, wealth: balance.publicInvestmentCost };
@@ -122,26 +125,14 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
   return zero;
 }
 
-/** What PRODUCE would credit this city now (shared by the option text and the growth forecast). */
+/** What PRODUCE would credit this city now (canon §4–§6), shared by the option text and the growth forecast. */
 export function productionOutput(state: AlphaState, actor: PlayerId, cityId: string) {
-  const owner = state.core.players.find(player => player.id === actor)!;
-  const city = owner.civilization.cities.find(candidate => candidate.id === cityId)!, meta = state.cities.find(candidate => candidate.cityId === cityId)!;
-  const breakdown = deriveCityProductionBreakdown(city, owner.civilization, state.core.config, state.core.map);
-  const moodRate = Math.max(0, 100 + state.rules.balance.moodEffects[meta.mood]!.productionPercent);
-  const overextended = owner.civilization.administrationStatus === 'OVEREXTENDED';
-  const output = {} as ResourcePool;
-  for (const key of RESOURCE_KEYS) {
-    let value = percent(breakdown.total[key], moodRate);
-    if (overextended && key !== 'food') value = percent(value, state.core.config.administrativeRules.overextensionEconomicPercent);
-    output[key] = value;
-  }
-  const metal = metalSites(state, actor).filter(site => site.cityId === cityId).length * state.rules.balance.metalPerMine;
-  return { output, metal, onProduce: recurringAmounts(state, actor, 'ON_PRODUCE', cityId) };
+  const yields = cityYield(state, cityId);
+  const output = yields.output;
+  return { output, metal: yields.metal, capacity: yields.capacity, hexes: yields.hexes, notes: yields.notes, onProduce: recurringAmounts(state, actor, 'ON_PRODUCE', cityId) };
 }
 // Legacy "materials" contributions are summed before the split into Madeira and Pedra, so alone they read as both.
 const RESOURCE_LABEL: Record<string, string> = { food: 'Alimentos', materials: 'Madeira/Pedra', wood: 'Madeira', stone: 'Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura', metal: 'Metal' };
-/** A credited legacy pool as the seven resources it becomes. */
-const credited = (pool: ResourcePool): Record<string, number> => legacyToAlphaResources(pool);
 const listOf = (pool: Record<string, number>) => Object.entries(pool).filter(([, amount]) => amount > 0).map(([key, amount]) => `+${amount} ${RESOURCE_LABEL[key]}`).join(', ');
 
 export interface UrbanOption {
@@ -161,9 +152,11 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     const id = meta.cityId, list: UrbanOption[] = [];
     const occupied = meta.status === 'OCCUPIED';
     const produced = productionOutput(state, actor, id);
-    const yields = listOf({ ...credited(produced.output), metal: produced.metal });
+    const yields = listOf({ ...produced.output, metal: produced.output.metal + produced.metal });
     const extra = listOf(produced.onProduce);
-    list.push(option(state, actor, id, 'PRODUCE', {}, `${yields || 'Sem rendimento agora'}${extra ? ` · Bônus da produção: ${extra}` : ''}. Sem esta escolha a cidade não produz nem extrai Metal.`));
+    list.push(option(state, actor, id, 'PRODUCE', {}, `${yields || 'Sem rendimento agora'}${extra ? ` · Bônus da produção: ${extra}` : ''} · Capacidade ${produced.capacity}. Sem esta escolha a cidade não produz.`));
+    const higher = nextLevel(meta.level);
+    list.push(option(state, actor, id, 'ELEVATE', {}, higher ? `Elevar a ${higher}: Capacidade ${ladderStep(higher).capacity}, ${ladderStep(higher).slots} vaga(s), suprimento ${ladderStep(higher).supplyReach}` : 'Nível máximo'));
     for (const district of DistrictTypeSchema.options) list.push(option(state, actor, id, 'BUILD', { build: { kind: 'DISTRICT', district } }, `Novo distrito${listOf(territory.districts[district].production) ? ` · ${listOf(territory.districts[district].production)}` : ''}`));
     for (const building of BuildingTypeSchema.options) list.push(option(state, actor, id, 'BUILD', { build: { kind: 'BUILDING', building } }, `Novo edifício${listOf(territory.buildings[building].production) ? ` · ${listOf(territory.buildings[building].production)}` : ''}`));
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
@@ -215,13 +208,12 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
     case 'PRODUCE': {
       rejectExtras(command, []);
       const { output, metal } = productionOutput(state, actor, city.id);
-      alphaGainLegacy(state, actor, output, { category: 'production' });
+      alphaGain(state, actor, output, { category: 'production' });
       applyRecurringEffects(state, actor, 'ON_PRODUCE', { cityId: city.id });
       if (metal > 0) alphaGain(state, actor, { metal }, { category: 'mining' });
       const kitBonus = kitProduceBonus(state, actor, city.id);
       if (kitBonus.food || kitBonus.stone) alphaGain(state, actor, { food: kitBonus.food, stone: kitBonus.stone }, { category: 'production' });
-      const gained = legacyToAlphaResources(output);
-      for (const key of Object.keys(gained) as (keyof typeof gained)[]) telemetry.productionByResource[key] += gained[key];
+      for (const key of ALPHA_RESOURCE_KEYS) telemetry.productionByResource[key] = (telemetry.productionByResource[key] ?? 0) + output[key];
       telemetry.productionByResource.metal += metal;
       message = `${city.name} produziu recursos${metal > 0 ? ` e ${metal} de Metal` : ''}.`;
       break;
@@ -251,10 +243,17 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       }
       break;
     }
+    case 'ELEVATE': {
+      rejectExtras(command, []);
+      const level = elevateCity(state, actor, city.id);
+      message = `${city.name} foi elevada a ${level}.`;
+      break;
+    }
     case 'RECRUIT': {
       rejectExtras(command, ['unit']);
       if (!command.unit) throw new Error('Escolha a peça a recrutar.');
       recruitUnit(state, actor, city.id, command.unit);
+      mobilize(state, city.id, command.unit);
       telemetry.unitRecruitment[command.unit] = (telemetry.unitRecruitment[command.unit] ?? 0) + 1;
       message = `${city.name} recrutou uma peça.`;
       break;
@@ -310,6 +309,8 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
     }
   }
   meta.urbanActionsUsed += 1;
+  // The second activation of the round costs one Ânimo (canon §10).
+  if (meta.urbanActionsUsed === 2) meta.mood = Math.max(0, meta.mood - 1);
   telemetry.actionsByType[command.action] = (telemetry.actionsByType[command.action] ?? 0) + 1;
   alphaEvent(state, 'URBAN_ACTION', message, [actor]);
 }

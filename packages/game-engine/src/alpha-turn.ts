@@ -6,6 +6,7 @@ import { validateMilitaryOrder } from './alpha-military.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { civilizationAbility } from './alpha-institutions.js';
+import { demobilize } from './alpha-city.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
 import { manageCard, playCivilizationCard } from './alpha-cards.js';
@@ -45,13 +46,17 @@ const PHASE_LABEL: Record<AlphaState['phase'], string> = {
 };
 
 /** Authenticated actor is separate from command JSON. No repository or network in this reducer. */
+/** The legacy Desenvolvimento caps never bind an alpha city: population is bounded by the built level (alpha-city-ladder). */
+export function liftLegacyCityCaps(state: AlphaState): void {
+  state.core.config.developmentPopulationCaps = [20, 20, 20, 20, 20];
+}
 export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unknown): Result<AlphaState, AlphaError> {
   const validated = AlphaStateSchema.safeParse(input);
   if (!validated.success) return err({ code:'INVALID_STATE', message:'Estado alpha inválido.' });
   const parsed = AlphaCommandSchema.safeParse(raw);
   if (!parsed.success) return err({ code:'INVALID_INPUT', message:'Comando inválido.' });
   const state = validated.data; const command = parsed.data;
-  ensureLeaders(state);
+  ensureLeaders(state); liftLegacyCityCaps(state);
   if (command.expectedVersion !== state.version) return err({ code:'VERSION_CONFLICT', message:'A partida mudou. Atualize antes de confirmar novamente.' });
   if (state.version === Number.MAX_SAFE_INTEGER) return err({ code:'NUMERIC_OVERFLOW', message:'Limite de versões atingido.' });
   if (state.core.status !== 'ACTIVE') return err({ code:'NOT_ACTIVE', message:'Esta partida já terminou.' });
@@ -69,6 +74,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if (command.command.playerId !== actor) return err({ code:'FORBIDDEN', message:'Você só pode comandar sua própria civilização.' });
       if (command.command.type === 'BUILD_DISTRICT' || command.command.type === 'BUILD_BUILDING') return err({ code:'USE_URBAN_ACTION', message:'Construa pela ação urbana Construir.' });
       const management=command.command;
+      if(management.type==='ASSIGN_POPULATION'){const meta=state.cities.find(c=>c.cityId===management.cityId);if(meta&&meta.allocationRound===state.core.round)throw new Error('A população desta cidade já foi redistribuída nesta rodada.');if(meta)meta.allocationRound=state.core.round;}
       const occupied=state.occupations.some(o=>('cityId' in management&&management.type!=='FOUND_CITY'&&management.cityId===o.cityId)||('hexId' in management&&state.core.map.find(t=>t.id===management.hexId)?.controllerCityId===o.cityId));
       if(occupied)throw new Error('Integre a cidade ocupada antes de administrar seus territórios e construções.');
       const pay=alphaResourcePayment(state);
@@ -139,6 +145,9 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
         else player.plannedActions.push({id:command.planId??`action-${state.version}`,type:command.type,targetId:command.targetId});
         reservedMainAction=true;alphaEvent(state,'DIPLOMACY_PLANNED','Decisão diplomática reservada.',[actor]);
       }else{manageDiplomacy(state,actor,command);alphaEvent(state,'DIPLOMACY','Decisão diplomática registrada.',[actor]);}
+    } else if(command.type==='DEMOBILIZE') {
+      const cityId=demobilize(state,actor,command.unitId);
+      alphaEvent(state,'DEMOBILIZED',`Peça desmobilizada em ${cityId}: um habitante Disponível voltou à cidade.`,[actor]);
     } else if(command.type==='EMBARK'||command.type==='DISEMBARK') {
       if(command.type==='EMBARK')embark(state,actor,command.unitIds,command.fleetId);else disembark(state,actor,command.unitIds,command.hexId);
       const where=state.units.find(unit=>unit.id===command.unitIds[0])!.hexId;
@@ -157,7 +166,9 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     refreshHegemony(state);
     state.version++;
     const output=AlphaStateSchema.safeParse(state);
-    return output.success ? ok(output.data) : err({ code:'INVALID_STATE', message:'A decisão violaria uma regra de integridade.' });
+    if(output.success)return ok(output.data);
+    const issue=output.error.issues[0];
+    return err({ code:'INVALID_STATE', message:`A decisão violaria uma regra de integridade${issue?` (${issue.path.join('.')}: ${issue.message})`:''}.` });
   } catch (error: unknown) {
     const message=error instanceof Error ? error.message : 'A decisão não pôde ser concluída.';
     return err({ code:message==='Sem ações principais disponíveis nesta rodada.'?'ACTION_LIMIT':'RULE_FAILURE', message });

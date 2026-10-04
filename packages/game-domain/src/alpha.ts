@@ -191,7 +191,7 @@ export const AlphaStateSchema = z.strictObject({
     if(!owners.has(report.playerId)||report.round>state.core.round)fail('Invalid round report');
     for(const key of ['food','materials','wealth','knowledge','influence'] as const){
       const expected=report.opening[key]+report.institutions[key]+report.trade[key]+report.mining[key]+report.production[key]+report.other[key]+(report.economy?.netChange[key]??0)-report.losses[key]-report.expenses[key]-report.upkeepPaid[key]-report.discarded[key];
-      if(expected!==report.closing[key]||report.upkeepPaid[key]>report.upkeepRequired[key])fail('Round report arithmetic mismatch');
+      if(expected!==report.closing[key]||report.upkeepPaid[key]>report.upkeepRequired[key])fail(`Round report arithmetic mismatch (${report.playerId} ${key}: expected ${expected}, closing ${report.closing[key]}, upkeep ${report.upkeepPaid[key]}/${report.upkeepRequired[key]})`);
     }
   }
   const cardZones=[...state.cards.worldDeck,...state.cards.strategyDeck,...state.cards.ambitionDeck,...state.cards.advisorDeck,...state.cards.discarded,...state.cards.advisorMarket,...(state.cards.worldEvent?[state.cards.worldEvent]:[]),...state.players.flatMap(p=>[...p.hand,...p.ambitions,...p.advisors])];
@@ -284,6 +284,8 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('SET_DEFENSE_POSTURE'),expectedVersion:N,posture:BattlePostureSchema}),
   z.strictObject({type:z.literal('BUILD_ROAD'),expectedVersion:N,hexId:HexIdSchema}),
   /** Naval vertical slice (DEC-014): land pieces board an adjacent own fleet, or step from it to an adjacent land hex. */
+  /** Demobilization (canon §6): a land piece inside an own city returns as one Disponível. */
+  z.strictObject({type:z.literal('DEMOBILIZE'),expectedVersion:N,unitId:IdentifierSchema}),
   z.strictObject({type:z.literal('EMBARK'),expectedVersion:N,unitIds:z.array(IdentifierSchema).min(1).max(6),fleetId:IdentifierSchema}),
   z.strictObject({type:z.literal('DISEMBARK'),expectedVersion:N,unitIds:z.array(IdentifierSchema).min(1).max(6),hexId:HexIdSchema}),
   z.strictObject({ type: z.literal('MANAGE'), expectedVersion: N, command: GameCommandSchema }),
@@ -310,7 +312,7 @@ export const ACTION_CLASS = {
   URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
   SETTLE:'MAIN', DECLARE_HEGEMONY:'MAIN', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
-  CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
+  CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', DEMOBILIZE:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
   CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
 
@@ -320,7 +322,7 @@ export function orderTypeForCommand(command:AlphaCommand,phase?:AlphaRoundPhase)
   switch(command.type){
     case 'URBAN_ACTION':return command.action==='RESEARCH'?'ADVANCE':'CITY';
     case 'QUEUE_ORDER':return orderTypeForOrder(command.order);
-    case 'SETTLE':case 'EMBARK':case 'DISEMBARK':return 'EXPEDITION';
+    case 'SETTLE':case 'EMBARK':case 'DISEMBARK':case 'DEMOBILIZE':return 'EXPEDITION';
     case 'MANAGE':return command.command.type==='ADOPT_GOVERNMENT'?'INFLUENCE':'CITY';
     case 'BUILD_ROAD':return 'CITY';
     case 'BUILD_PROJECT':case 'DECLARE_HEGEMONY':case 'CIVILIZATION_ABILITY':return 'LEGACY';

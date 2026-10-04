@@ -94,14 +94,14 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await toMap(pb);
     await phase(pa,'Planejamento');
     const urbanA=pa.locator('.alpha-urban'),urbanB=pb.locator('.alpha-urban');
-    await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 1');
+    await expect(urbanA).toContainText('Ações planejáveis da cidade: 2 / 2');
     // PRODUCE is an explicit planned choice, with cost, effect and remaining actions shown before confirmation.
     await expect(urbanA.locator('.alpha-produce')).toContainText('Sem esta escolha a cidade não produz');
     await urbanA.getByRole('button',{name:'Escolher produzir'}).click();
     const detailA=pa.locator('.alpha-urban-detail');
-    await expect(detailA).toContainText('Custo: Sem custo');await expect(detailA).toContainText('Ações planejáveis da cidade: 1');await expect(detailA).toContainText('Requisitos: atendidos');
+    await expect(detailA).toContainText('Custo: Sem custo');await expect(detailA).toContainText('Ações planejáveis da cidade: 2');await expect(detailA).toContainText('Requisitos: atendidos');
     await detailA.getByRole('button',{name:'Planejar ação urbana'}).click();
-    await expect(urbanA).toContainText('Ações planejáveis da cidade: 0 / 1');
+    await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
     await expect(pa.locator('.alpha-action-queue')).toContainText('Ordens planejadas 1 / 5');
     // With its one action planned, the city shows that plan instead of the full menu, and offers to swap it.
     const plannedCard=urbanA.getByRole('article',{name:'Ação planejada'});
@@ -109,19 +109,19 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(urbanA.getByRole('button',{name:'Escolher produzir'})).toHaveCount(0);
     await plannedCard.screenshot({path:`${actionEvidence}/1440x900-city-refusal.png`});
     await plannedCard.getByRole('button',{name:'Trocar ação',exact:true}).click();
-    await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 1');
+    await expect(urbanA).toContainText('Ações planejáveis da cidade: 2 / 2');
     await urbanA.getByRole('button',{name:'Escolher produzir'}).click();
     await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
-    await expect(urbanA).toContainText('Ações planejáveis da cidade: 0 / 1');
+    await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
     // The other player deliberately does not produce this round.
-    await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 1');
+    await expect(urbanB).toContainText('Ações planejáveis da cidade: 2 / 2');
     // The starting Explorer leaves the capital: a highlighted reachable hex offers the move with its path already chosen.
     await openArea(pa,'Conselho');await pa.locator('.alpha-army').first().getByRole('button',{name:'Explorador ×1'}).click();await toMap(pa);
     await pa.locator('svg.world-map g.hex.eligible:not([aria-label^="Desconhecido"])').first().click();
     await pa.getByRole('button',{name:'Reservar movimento',exact:true}).click();
     await expect(pa.locator('.alpha-order')).toContainText('Movimento · Explorador ×1');
     await pa.getByRole('button',{name:'Cidade',exact:true}).click();
-    await pa.reload();await expect(pa.locator('.alpha-urban')).toContainText('Ações planejáveis da cidade: 0 / 1');
+    await pa.reload();await expect(pa.locator('.alpha-urban')).toContainText('Ações planejáveis da cidade: 1 / 2');
     await bothConfirm('Confirmar planejamento','2 / 9');
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
     {
@@ -136,13 +136,13 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await pa.getByRole('button',{name:/^Recrutar Explor/i}).click();
     await expect(pa.locator('.alpha-urban-detail')).toContainText('Custo:');await expect(pa.locator('.alpha-urban-detail')).toContainText('Efeito:');
     await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
-    await expect(urbanA).toContainText('Ações planejáveis da cidade: 0 / 1');
+    await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
     // Valgard's page is still on the old version here: the build recovers on its own and must not show a conflict.
     await pb.locator('.alpha-urban summary').filter({hasText:'Construir'}).click();
     await pb.getByRole('button',{name:/^Distrito Agr/i}).click();
     await expect(pb.locator('.alpha-urban-detail')).toContainText('Custo:');
     await pb.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
-    await expect(urbanB).toContainText('Ações planejáveis da cidade: 0 / 1');
+    await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 2');
     {
       const planned=await game();
       // Only the starting Explorer exists until the planned recruitment resolves.

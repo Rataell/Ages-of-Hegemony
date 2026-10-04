@@ -7,6 +7,7 @@ import { leaderSupplyBonus } from './alpha-leaders.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { blockadedBy, isCarried, isPort, launchHex } from './alpha-naval.js';
 import { kitMovement, kitSupplyBonus, kitUnitCost } from './alpha-kits.js';
+import { mobilizationBlock } from './alpha-city.js';
 
 /** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
 export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):string|null {
@@ -27,7 +28,7 @@ export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:
   const crowded=stackBlock(state,actor,[arriving],spawn,pendingArrivals(state,actor,spawn,''));if(crowded)return crowded;
   const price=kitUnitCost(state,actor,kind);
   if(!alphaCanAfford(state,actor,alphaCostWithMetal(state,actor,price.cost,price.metal)))return 'Recursos insuficientes para esta ação.';
-  return null;
+  return mobilizationBlock(state,cityId,kind);
 }
 export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):void {
   const blocked=recruitBlock(state,actor,cityId,kind);if(blocked)throw new Error(blocked);

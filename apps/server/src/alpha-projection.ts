@@ -38,7 +38,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
       projects:Object.fromEntries(GREAT_PROJECTS.map(project=>[project.id,displayCost(project.cost)])),
     },
     milestones:eraMilestones(state,actor),
-    cityDetails:economic.player.civilization.cities.map(c=>({id:c.id,category:stabilityCategory(c.stability,state.core.config),growthThreshold:infrastructureStats(c,state.core.config).growthThreshold,growth:(g=>({producedFood:g.producedFood,share:g.share,growthProgress:g.growthProgress,threshold:g.threshold,capped:g.capped,roundsToGrow:g.roundsToGrow,civilization:{foodProduced:growth.foodProduced,foodEaten:growth.foodEaten,shortage:growth.shortage,surplus:growth.surplus}}))(growth.cities.find(g=>g.cityId===c.id)!),production:deriveCityProductionBreakdown(c,economic.player.civilization,state.core.config,state.core.map)})),
+    cityDetails:economic.player.civilization.cities.map(c=>({id:c.id,category:stabilityCategory(c.stability,state.core.config),growthThreshold:infrastructureStats(c,state.core.config).growthThreshold,growth:(g=>({producedFood:g.producedFood,eats:g.eats,growCost:g.growCost,ceiling:g.ceiling,capped:g.capped,willGrow:g.willGrow,civilization:{foodProduced:growth.foodProduced,foodEaten:growth.foodEaten,shortage:growth.shortage,surplus:growth.surplus}}))(growth.cities.find(g=>g.cityId===c.id)!),production:deriveCityProductionBreakdown(c,economic.player.civilization,state.core.config,state.core.map)})),
     roundReports:state.roundReports.filter(r=>r.playerId===actor),
     hegemony:hegemonyProgress(state,actor),
     declarations:state.players.filter(p=>p.hegemony!==null).map(p=>({playerId:p.playerId,...p.hegemony})),

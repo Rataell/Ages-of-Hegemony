@@ -1,11 +1,11 @@
 import { settleTradeOffers } from './alpha-trade.js';
-import { growCity, growthShares } from './alpha-growth.js';
+import { canGrow, citySustenance, growCost, militaryUpkeep, replaceCity } from './alpha-city.js';
 import { TREATY_NAMES, battleMessage, lossesMessage, orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
-  ALPHA_CARDS, emptyOrderCount, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources, cityLevelForPopulation,
+  ALPHA_CARDS, emptyOrderCount, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources,
   type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlannedAction, type PlayerId, type RoundPhase, type StrategicOrder,
 } from '@aoh/game-domain';
-import { clampStability, deriveAdministration, governmentStabilityDelta, multiply, populationCap, refreshAdministration, sum } from './civilization.js';
+import { deriveAdministration, refreshAdministration } from './civilization.js';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
 import { alphaRandomInteger } from './alpha-random.js';
 import { alphaDrain, alphaGain, alphaLose, enforceStorageRecorded, ledgerOf } from './alpha-resources.js';
@@ -40,7 +40,7 @@ type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
   'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'PLAY_CIVILIZATION_CARD', 'HIRE_ADVISOR',
   'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'BUILD_ROAD',
-  'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY', 'EMBARK', 'DISEMBARK',
+  'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY', 'EMBARK', 'DISEMBARK', 'DEMOBILIZE',
   'CONTEST_PRESENCE',
   'INDEPENDENT_ACTION',
   'PROPOSE_TRADE', 'RESPOND_TRADE',
@@ -160,7 +160,7 @@ function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['ty
         performUrbanAction(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'URBAN_ACTION'}>);
         alphaEvent(candidate,action.action,`Ação planejada executada: ${action.action}.`,[actor]);
         const city=candidate.core.players.flatMap(player=>player.civilization.cities).find(item=>item.id===action.cityId)!;
-        const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',PROMOTE_MOOD:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT'} as const)[action.action];
+        const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',ELEVATE:'CONSTRUCTION',PROMOTE_MOOD:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT'} as const)[action.action];
         const visibleTo=action.action==='BUILD'?viewersAt(candidate,city.hexId,[actor]):[actor];
         resolutionEvent(candidate,{type,actorId:actor,visibleTo,message:urbanActionMessage(state,candidate,actor,action,city.name),hexId:city.hexId,cityId:city.id,unitIds:[]});
       }else{
@@ -183,52 +183,67 @@ function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['ty
  * Upkeep, population food and growth, stability and storage. Growth is fed only by food produced this round by PRODUCE, so a
  * civilization that never produces never grows. Nothing is credited to a city here.
  */
+/**
+ * Sustenance, growth, military upkeep and Ânimo (canon §7, §10). Each city eats 1 Alimento per 2 inhabitants; a city that
+ * cannot be fed loses one inhabitant (Disponível first, Soldado last) and one Ânimo. Then each city below its level's
+ * ceiling may Crescer for 3 Alimento (2 with Celeiro), biggest first, once per round. Pieces cost 1 Alimento per 2 land
+ * pieces and 1 Riqueza per ship. Estabilidade is no longer touched: Ânimo is the social state.
+ */
 function maintainCivilizations(state: AlphaState): void {
-  const rules = state.core.config;
   for (const owner of state.core.players) {
     const ledger = ledgerOf(state, owner.id);
     const zero = { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 };
-    // Population eats first, then pieces are maintained.
-    const required = multiply(sum(owner.civilization.cities.map(city => city.population)), rules.foodPerPopulation);
-    ledger.upkeepRequired.food += required;
-    const eaten = alphaDrain(state, owner.id, { ...zero, food: required }, 'upkeepPaid').food;
-    const shortage = eaten < required;
-    if (shortage) alphaEvent(state, 'FOOD_SHORTAGE', `Faltaram ${required - eaten} Alimentos para a população. Estabilidade reduzida.`, [owner.id]);
-
-    const surplus = shortage ? 0 : Math.max(0, ledger.production.food - required);
-    // The same rule feeds the forecast players see (alpha-growth.ts).
-    const shares = growthShares(owner.civilization.cities, surplus, rules);
-    let cities = owner.civilization.cities.map(city => {
-      if (shortage || city.population >= populationCap(city, rules)) return { ...city, workers: { ...city.workers } };
-      const { population, growthProgress, growth } = growCity(city, shares.get(city.id) ?? 0, rules);
-      if (growth > 0) alphaEvent(state, 'POPULATION_GROWN', `${city.name} cresceu para ${population} de população.`, [owner.id]);
-      return { ...city, population, growthProgress, workers: { ...city.workers, unassigned: sum([city.workers.unassigned, growth]) } };
-    });
-    const overextended = deriveAdministration({ ...owner.civilization, cities }, rules, state.core.map).administrationStatus === 'OVEREXTENDED';
-    if (overextended) alphaEvent(state, 'ADMINISTRATIVE_OVEREXTENSION', 'A administração está sobrecarregada; a estabilidade cai.', [owner.id]);
-
-    const upkeep = { ...zero };
-    for (const unit of state.units.filter(candidate => candidate.ownerId === owner.id)) for (const key of RESOURCE_KEYS) upkeep[key] += state.rules.units[unit.kind].upkeep[key];
-    upkeep.food += kitFoodUpkeep(state, owner.id);
+    const progress = state.players.find(player => player.playerId === owner.id)!;
+    const metas = state.cities.filter(meta => meta.currentOwnerId === owner.id);
+    // Sustenance, city by city, the capital first; the capital is the last to go hungry.
+    const order = [...owner.civilization.cities].sort((a, b) => Number(b.id === owner.civilization.capitalCityId) - Number(a.id === owner.civilization.capitalCityId));
+    let shortage = false;
+    for (const city of order) {
+      const required = citySustenance(city.population);
+      ledger.upkeepRequired.food += required;
+      const eaten = alphaDrain(state, owner.id, { ...zero, food: required }, 'upkeepPaid').food;
+      if (eaten >= required) continue;
+      shortage = true;
+      const meta = metas.find(candidate => candidate.cityId === city.id);
+      const current = owner.civilization.cities.find(candidate => candidate.id === city.id)!;
+      if (current.population > 1) {
+        const workers = { ...current.workers };
+        const victim = (['unassigned', 'producers', 'artisans', 'merchants', 'scholars', 'soldiers'] as const).find(role => workers[role] > 0)!;
+        workers[victim] -= 1;
+        replaceCity(state, city.id, { ...current, population: current.population - 1, workers });
+      }
+      if (meta) meta.mood = Math.max(0, meta.mood - 1);
+      alphaEvent(state, 'FOOD_SHORTAGE', `${city.name} passou fome: faltaram ${required - eaten} Alimento. A cidade perde um habitante e Ânimo.`, [owner.id]);
+    }
+    // Crescer: only cities fed this round, biggest first, one habitant each.
+    if (!shortage) {
+      const fed = [...owner.civilization.cities].sort((a, b) => b.population - a.population);
+      for (const city of fed) {
+        const meta = metas.find(candidate => candidate.cityId === city.id);
+        if (!meta || meta.status === 'OCCUPIED' || !canGrow(meta, city)) continue;
+        const cost = growCost(state, city.id);
+        if (progress.resources.food < cost) continue;
+        alphaDrain(state, owner.id, { ...zero, food: cost }, 'expenses');
+        const current = owner.civilization.cities.find(candidate => candidate.id === city.id)!;
+        replaceCity(state, city.id, { ...current, population: current.population + 1, workers: { ...current.workers, unassigned: current.workers.unassigned + 1 } });
+        alphaEvent(state, 'POPULATION_GROWN', `${city.name} cresceu para ${current.population + 1} habitantes.`, [owner.id]);
+      }
+    }
+    // Military upkeep: 1 Alimento per 2 land pieces (plus kit extras), 1 Riqueza per ship.
+    const military = militaryUpkeep(state, owner.id);
+    const upkeep = { ...zero, food: military.food + kitFoodUpkeep(state, owner.id), wealth: military.wealth };
     for (const key of RESOURCE_KEYS) ledger.upkeepRequired[key] += upkeep[key];
     const paid = alphaDrain(state, owner.id, upkeep, 'upkeepPaid');
     const unitShortage = RESOURCE_KEYS.some(key => paid[key] < upkeep[key]);
-    if (unitShortage) alphaEvent(state, 'UPKEEP_SHORTAGE', 'Faltaram recursos para manter as peças. Estabilidade das cidades reduzida em 5.', [owner.id]);
-
-    cities = cities.map(city => {
-      const meta = state.cities.find(candidate => candidate.cityId === city.id);
-      const moodDelta = meta ? state.rules.balance.moodEffects[meta.mood]!.stabilityDelta : 0;
-      const delta = sum([governmentStabilityDelta(city, owner.civilization, rules), moodDelta, shortage ? -rules.shortageStabilityPenalty : 0, overextended ? -rules.administrativeRules.overextensionStabilityPenalty : 0, unitShortage ? -5 : 0]);
-      return { ...city, stability: clampStability(sum([city.stability, delta])) };
-    });
-    for (const city of cities) {
-      const meta = state.cities.find(candidate => candidate.cityId === city.id);
-      if (!meta) continue;
-      meta.level = cityLevelForPopulation(city.population);
-      state.telemetry.moodSamples.push(meta.mood);
+    if (unitShortage) {
+      for (const meta of metas) meta.mood = Math.max(0, meta.mood - 1);
+      alphaEvent(state, 'UPKEEP_SHORTAGE', 'Faltaram recursos para manter as peças. Ânimo das cidades −1.', [owner.id]);
     }
-    owner.civilization = refreshAdministration({ ...owner.civilization, cities }, rules, state.core.map);
-    alphaEvent(state, 'UPKEEP', `Manutenção: ${required + upkeep.food} Alimentos e ${upkeep.wealth} Riqueza.`, [owner.id]);
+    const overextended = deriveAdministration(owner.civilization, state.core.config, state.core.map).administrationStatus === 'OVEREXTENDED';
+    if (overextended) alphaEvent(state, 'ADMINISTRATIVE_OVEREXTENSION', 'A administração está sobrecarregada.', [owner.id]);
+    for (const meta of metas) state.telemetry.moodSamples.push(meta.mood);
+    owner.civilization = refreshAdministration(owner.civilization, state.core.config, state.core.map);
+    alphaEvent(state, 'UPKEEP', `Manutenção: ${ledger.upkeepRequired.food} Alimento e ${upkeep.wealth} Riqueza.`, [owner.id]);
   }
 }
 
