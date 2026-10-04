@@ -9,16 +9,16 @@
 - [ ] B2 Remove literal colors from the Alpha CSS in favour of tokens; gate: test from A1 extended to literals in `alpha.css`.
 
 ## C. Mesa shell
-- [ ] C1 Strip replaces `.top-bar` + `.main-nav`; gate: e2e updated, fullscreen at 1366/1440/1920.
-- [ ] C2 Tray replaces the bottom bar; one gold; gate: e2e asserts one enabled `.primary` per state.
-- [ ] C3 Map full-bleed (no Council column); gate: map width ≥ 75% of the viewport at 1366×768.
+- [x] C1 Strip replaces `.top-bar` + `.main-nav`; gate: e2e updated, fullscreen at 1366/1440/1920.
+- [x] C2 Tray replaces the bottom bar; one gold; gate: e2e asserts one enabled `.primary` per state.
+- [x] C3 Map full-bleed (no Council column); gate: map width ≥ 75% of the viewport at 1366×768.
 
 ## D. Cofre and Livro
-- [ ] D1 Cofre popover from the strip (resources, caps, forecast); gate: e2e opens and closes it.
-- [ ] D2 Livro overlay hosting the five areas; Esc and "Voltar ao mapa" close it; gate: e2e visits every area.
+- [x] D1 Cofre popover from the strip (resources, caps, forecast); gate: e2e opens and closes it.
+- [x] D2 Livro overlay hosting the five areas; Esc and "Voltar ao mapa" close it; gate: e2e visits every area.
 
 ## E. Contextual card
-- [ ] E1 Card hosting city, territory and military bodies beside the selection; Council contents moved; gate: e2e plays a round through the card.
+- [x] E1 Card hosting city, territory and military bodies beside the selection; Council contents moved; gate: e2e plays a round through the card.
 
 ## F. Lobby and entry
 - [ ] F1 Entry and lobby restyled with the system; gate: e2e lobby + screenshots.

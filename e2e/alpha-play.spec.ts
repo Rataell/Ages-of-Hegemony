@@ -5,7 +5,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { hexDistance, visibleHexIds } from '@aoh/game-engine';
-import { connectAlphaContext } from './alpha-fixture.js';
+import { connectAlphaContext, openArea, toMap } from './alpha-fixture.js';
 
 // Browser integration uses the real HTTP/service/engine code with the explicit test repository.
 // PostgreSQL durability and deployed-network E2E remain separate mandatory release gates.
@@ -42,21 +42,21 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');await expect(pb.locator('.alpha-player-board h1')).toHaveText('Valgard');
     for(const page of [pa,pb]){
       const currentId=new URL(page.url()).searchParams.get('game')!;
-      const current=(await repository.find(currentId))!;
-      await expect(page.locator('.alpha-about')).toContainText(`Versão ${current.game!.version}`);
       // Secret ambitions are the first decision: the board opens on them until both are chosen.
       const dialog=page.getByRole('dialog',{name:'Escolha duas ambições secretas'});await expect(dialog).toBeVisible();
       const choices=dialog.getByRole('checkbox');
       await choices.nth(0).check();await choices.nth(1).check();await expect(choices.nth(2)).toBeDisabled();await dialog.getByRole('button',{name:'Confirmar duas ambições',exact:true}).click();
       await expect(dialog).toHaveCount(0);
-      await page.getByRole('button',{name:'Cartas & Projetos',exact:true}).click();
+      // The match details live in the Livro's Conselho; the version is the one the board opened with.
+      await openArea(page,'Conselho');await expect(page.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(currentId))!.game!.version}`);
+      await openArea(page,'Cartas & Projetos');
     }
     await pa.screenshot({path:`${evidence}/1440-card-hand.png`});
-    await pa.getByRole('button',{name:'Mundo',exact:true}).click();
-    const actionCounter=pa.locator('.admin').filter({hasText:'Ações principais'});await expect(actionCounter).toContainText('Ações principais');await expect(actionCounter).toContainText('0 / 7');
+    await toMap(pa);
+    const actionCounter=pa.locator('.alpha-tray .bud');await expect(actionCounter).toContainText('Ações');await expect(actionCounter).toContainText('0 / 7');
     for(const [width,height] of [[1366,768],[1440,900],[1920,1080]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${actionEvidence}/${width}x${height}-counter.png`});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.setViewportSize({width:1440,height:900});
-    await expect(pa.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(new URL(pa.url()).searchParams.get('game')!))!.game!.version}`);
+    await openArea(pa,'Conselho');await expect(pa.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(new URL(pa.url()).searchParams.get('game')!))!.game!.version}`);await toMap(pa);
     await pa.getByLabel('Produtores',{exact:true}).fill('1');await pa.getByLabel('Artesãos',{exact:true}).fill('1');await pa.getByLabel('Estudiosos',{exact:true}).fill('0');
     await pa.getByRole('button',{name:'Aplicar distribuição'}).click();
     await pa.locator('svg.world-map [role=button]').filter({has:pa.locator('title')}).first().focus();
@@ -80,7 +80,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     if(projected.ok)expect(projected.value.game!.self.ambitions.some(id=>privateB.includes(id))).toBe(false);
     await pa.reload();await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');
     await expect(pa.locator('html')).toHaveAttribute('data-alpha-theme','DARK');
-    const phase=async(page:typeof pa,text:string)=>expect(page.locator('.alpha-round-bar')).toContainText(text);
+    const phase=async(page:typeof pa,text:string)=>expect(page.locator('.alpha-strip-when')).toContainText(text);
     const game=async()=>(await repository.find(gameId))!.game!;
     // Confirming may first list what is left undone (idle pieces, a city without action); the player confirms anyway.
     const confirm=async(page:typeof pa,label:string)=>{await page.getByRole('button',{name:label,exact:true}).click();const anyway=page.getByRole('button',{name:'Confirmar mesmo assim',exact:true});if(await anyway.isVisible().catch(()=>false))await anyway.click();};
@@ -91,7 +91,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     }
     // Round 1 - every strategic decision is private until both players close planning.
     await pa.reload();await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');
-    await pb.getByRole('button',{name:'Mundo',exact:true}).click();
+    await toMap(pb);
     await phase(pa,'Planejamento');
     const urbanA=pa.locator('.alpha-urban'),urbanB=pb.locator('.alpha-urban');
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 1');
@@ -116,7 +116,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     // The other player deliberately does not produce this round.
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 1');
     // The starting Explorer leaves the capital: a highlighted reachable hex offers the move with its path already chosen.
-    await pa.locator('.alpha-army').first().getByRole('button',{name:'Explorador ×1'}).click();
+    await openArea(pa,'Conselho');await pa.locator('.alpha-army').first().getByRole('button',{name:'Explorador ×1'}).click();await toMap(pa);
     await pa.locator('svg.world-map g.hex.eligible:not([aria-label^="Desconhecido"])').first().click();
     await pa.getByRole('button',{name:'Reservar movimento',exact:true}).click();
     await expect(pa.locator('.alpha-order')).toContainText('Movimento · Explorador ×1');
@@ -157,7 +157,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     }
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
     // Round 3 - research survives reconnect; Ana's move is visible only to Ana because Beto cannot see its destination.
-    await pa.getByRole('button',{name:'Teia Civilizacional',exact:true}).click();
+    await openArea(pa,'Teia Civilizacional');
     const node=pa.locator('.alpha-research-grid article').filter({hasText:'Sem pré-requisitos de pesquisa.'}).first();
     await expect(node).toContainText('Custo:');
     await node.getByRole('button',{name:'Pesquisar (ação urbana)'}).click();
@@ -182,8 +182,8 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(replayB).not.toContainText('moveu-se');
     await pa.screenshot({path:`${actionEvidence}/1440x900-resolution-ana.png`});await pb.screenshot({path:`${actionEvidence}/1440x900-resolution-beto.png`});
     await replayA.getByRole('button',{name:'Continuar'}).click();await replayB.getByRole('button',{name:'Continuar'}).click();
-    for(const [tab,file] of [['Teia Civilizacional','research'],['Diplomacia','diplomacy'],['Eras & Hegemonia','hegemony'],['Crônicas','round-report']] as const){await pa.getByRole('button',{name:tab,exact:true}).click();await pa.screenshot({path:`${evidence}/1440-${file}.png`});}
-    await pa.getByRole('button',{name:'Mundo',exact:true}).click();
+    for(const [tab,file] of [['Teia Civilizacional','research'],['Diplomacia','diplomacy'],['Eras & Hegemonia','hegemony'],['Crônicas','round-report']] as const){await openArea(pa,tab);await pa.screenshot({path:`${evidence}/1440-${file}.png`});}
+    await toMap(pa);
     for(const [width,height] of [[1440,900],[1280,800],[1024,768],[768,1024],[390,844]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${evidence}/${width}x${height}-world-dark.png`});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.getByRole('combobox',{name:'Tema',exact:true}).selectOption('LIGHT');await pa.screenshot({path:`${evidence}/390-world-light.png`});
     expect(errors).toEqual([]);

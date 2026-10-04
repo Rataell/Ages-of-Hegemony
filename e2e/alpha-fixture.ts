@@ -16,3 +16,15 @@ export async function connectAlphaContext(context:BrowserContext,http:AlphaHttp)
   await context.route('**/api/alpha?*',handle);
   await context.route('**/api/alpha',handle);
 }
+
+/** Mesa shell: the areas live in the Livro over the map. Opens it if needed and picks an area. */
+export async function openArea(page:import('@playwright/test').Page,name:string){
+  const livro=page.getByRole('dialog',{name:'Livro'});
+  if(!(await livro.isVisible()))await page.getByRole('button',{name:'Livro',exact:true}).click();
+  await livro.getByRole('button',{name,exact:true}).click();
+}
+/** Closes the Livro and returns to the map, if it is open. */
+export async function toMap(page:import('@playwright/test').Page){
+  const livro=page.getByRole('dialog',{name:'Livro'});
+  if(await livro.isVisible())await livro.getByRole('button',{name:'Voltar ao mapa',exact:true}).click();
+}

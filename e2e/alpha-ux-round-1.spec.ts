@@ -101,19 +101,17 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     await pa.getByRole('button', { name: 'Centralizar', exact: true }).click();
     expect((await fill()).width).toBeCloseTo(before.width, 1);
 
-    // Council and inspector fold away on desktop and give the room to the atlas.
+    // Mesa: the map is the whole table; the context card floats over it and closes away.
     const stageWidth = async () => (await pa.locator('.map-stage').boundingBox())!.width;
-    const normal = await stageWidth();
-    await pa.getByRole('button', { name: 'Recolher Conselho', exact: true }).click();
-    await pa.getByRole('button', { name: 'Recolher Inspetor', exact: true }).click();
-    await expect(pa.getByRole('button', { name: 'Expandir Conselho', exact: true })).toHaveAttribute('aria-expanded', 'false');
-    expect(await stageWidth()).toBeGreaterThan(normal + 300);
+    expect(await stageWidth()).toBeGreaterThan(1440 * 0.95);
+    await pa.getByRole('button', { name: 'Fechar cartão', exact: true }).click();
+    await expect(pa.getByRole('button', { name: 'Abrir cartão', exact: true })).toBeVisible();
     await pa.screenshot({ path: `${shots}/1440x900-panels-collapsed.png` });
     await pa.setViewportSize({ width: 1920, height: 1080 }); await pa.waitForTimeout(250);
     await pa.screenshot({ path: `${shots}/1920x1080-panels-collapsed.png` });
     await pa.setViewportSize({ width: 1440, height: 900 });
-    await pa.getByRole('button', { name: 'Expandir Conselho', exact: true }).click(); await pa.getByRole('button', { name: 'Expandir Inspetor', exact: true }).click();
-    expect(await stageWidth()).toBeCloseTo(normal, -1);
+    await pa.getByRole('button', { name: 'Abrir cartão', exact: true }).click();
+    await expect(pa.getByRole('complementary', { name: 'Cartão do contexto' })).toBeVisible();
 
     // Leaving a running match forgets it in this browser only; the code brings the person back to the same match.
     const running = (await repository.find(roomId))!;

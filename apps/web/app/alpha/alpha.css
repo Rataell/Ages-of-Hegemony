@@ -362,7 +362,7 @@ button.alpha-card { text-align: left; }
 .alpha-kit-planned { opacity: .7; font-size: 12px; }
 @media (max-width: 760px) { .alpha-roster { grid-template-columns: 1fr; } .alpha-roster-detail { order: -1; } }
 /* Card fan on the table (approved): collapsed at the map edge, lifted on hover/click, one card in focus; drawer on phones. */
-.alpha-hand-fan { position: absolute; left: 64px; bottom: -92px; width: 300px; height: 190px; z-index: 6; transition: bottom .18s ease; }
+.alpha-hand-fan { position: absolute; left: 96px; bottom: -92px; width: 300px; height: 190px; z-index: 6; transition: bottom .18s ease; }
 .alpha-hand-fan:hover, .alpha-hand-fan.has-focus, .alpha-hand-fan:focus-within { bottom: 12px; }
 .alpha-hand-card { position: absolute; left: calc(var(--i) * 30px); bottom: 0; width: 112px; height: 160px; padding: 0; border-radius: 9px; border: 2px solid #7d5c33; background: #e8dbbb; color: #2a2116; display: flex; flex-direction: column; text-align: left; overflow: hidden; transform: rotate(calc(var(--a) * 6deg)); transform-origin: 50% 140%; box-shadow: 0 6px 16px #000a; transition: transform .15s ease, opacity .15s ease; }
 .alpha-hand-card .hd { display: flex; justify-content: space-between; align-items: center; background: #2e4a5a; color: #f4ecd8; font: 600 10px var(--serif, Georgia), serif; letter-spacing: .1em; text-transform: uppercase; padding: 4px 7px; min-height: 22px; }
@@ -390,3 +390,75 @@ button.alpha-card { text-align: left; }
 .alpha-pulse-chip { position: absolute; z-index: 4; left: 18px; top: 40px; max-width: min(420px, 60%); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(18, 28, 33, .88); font-size: 12px; color: var(--text-muted, #b3c0bd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 .alpha-pulse-chip.tone-NEGATIVE { color: #e5b3a5; }
 .alpha-pulse-chip.tone-POSITIVE { color: #9ec4a2; }
+
+/* ===== Experience V2.1 Mesa (alpha-mesa-design-system C–E): map full-bleed, strip on top, tray below, card, Livro, Cofre. ===== */
+html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden; }
+.alpha-mesa { position: relative; height: 100dvh; overflow: hidden; background: var(--map-ground); color: var(--text-primary); font-family: var(--font-body); }
+.alpha-mesa .alpha-table, .alpha-mesa .world-column { position: absolute; inset: 0; }
+.alpha-mesa .world-column { display: block; background: var(--map-ground); }
+.alpha-mesa .map-stage { position: absolute; inset: 0; min-height: 0; background: radial-gradient(ellipse at 50% 50%, var(--surface-elevated), var(--map-ground) 85%); }
+.alpha-mesa .world-map { width: 100%; height: 100%; }
+.alpha-mesa .map-heading, .alpha-mesa .map-legend { display: none; }
+.alpha-mesa .map-tools { bottom: calc(12px + var(--tray-height) + 40px); left: 16px; right: auto; }
+/* The round's results dock on the left, so the context card on the right stays usable while reading them. */
+.alpha-mesa .alpha-resolution-phase { inset: calc(10px + var(--strip-height) + 10px) auto auto 12px; width: min(380px, calc(100vw - 24px)); max-height: calc(100dvh - var(--strip-height) - var(--tray-height) - 60px); border-radius: var(--radius-panel); z-index: 22; }
+.alpha-mesa .alpha-pulse-chip { top: calc(10px + var(--strip-height) + 10px); left: 16px; }
+
+.alpha-mesa .alpha-strip { position: absolute; z-index: 20; top: 10px; left: 12px; right: 12px; min-width: 0; }
+.alpha-strip-civ { display: flex; gap: 8px; align-items: center; min-width: 0; flex: none; }
+.alpha-strip-civ svg { flex: none; }
+.alpha-mesa .alpha-strip-civ h1 { margin: 0; font: 600 16px/1.1 var(--font-display); letter-spacing: .04em; white-space: nowrap; }
+.alpha-strip-civ small { display: block; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.alpha-strip-when { display: flex; gap: 10px; align-items: center; white-space: nowrap; font-size: 13px; color: var(--text-secondary); min-width: 0; }
+.alpha-strip-seals { display: flex; gap: 6px; align-items: center; margin: 0; padding: 0; list-style: none; }
+.alpha-strip-alert { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 40%, var(--border)); }
+.alpha-strip-tools { margin-left: auto; display: flex; gap: 6px; align-items: center; flex: none; }
+.alpha-strip-tools .alpha-theme { font-size: 11px; color: var(--text-muted); }
+.alpha-strip-tools .alpha-theme select { width: auto; padding: 3px 6px; font-size: 12px; }
+.alpha-livro-button { position: relative; }
+.alpha-livro-button .alpha-tab-alert, .alpha-livro-tabs .alpha-tab-alert { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--warning); }
+.alpha-livro-tabs button { position: relative; }
+
+.alpha-mesa .alpha-tray { position: absolute; z-index: 20; left: 50%; transform: translateX(-50%); bottom: 12px; max-width: calc(100% - 24px); width: max-content; }
+.alpha-tray .alpha-action-queue, .alpha-tray .alpha-resolution-log { position: relative; }
+.alpha-tray summary { cursor: pointer; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+.alpha-tray .advance-phase-btn { border-radius: var(--radius-pill); height: 44px; padding: 0 20px; font-weight: 600; }
+.alpha-tray .advance-phase-btn.primary { background: linear-gradient(180deg, var(--accent-hover), var(--accent)); color: var(--on-accent); border-color: var(--border-accent); }
+.alpha-tray .alpha-ready-check { position: absolute; bottom: calc(100% + 12px); right: 0; width: min(380px, 90vw); padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); box-shadow: var(--shadow-lg); }
+
+.alpha-mesa .alpha-context { position: absolute; z-index: 15; right: 12px; top: calc(10px + var(--strip-height) + 10px); bottom: calc(12px + var(--tray-height) + 12px); display: flex; flex-direction: column; padding: 10px 12px; width: min(380px, calc(100vw - 24px)); }
+.alpha-context-head { display: flex; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+.alpha-context-head .inspector-tabs { display: flex; gap: 4px; flex: 1; }
+.alpha-context-head .inspector-tabs button { flex: 1; padding: 6px 8px; font-size: 13px; }
+.alpha-context-head .inspector-tabs button[aria-pressed='true'] { border-color: var(--mark); color: var(--text-primary); }
+.alpha-mesa .alpha-context .alpha-panel-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-top: 10px; scrollbar-width: thin; }
+.alpha-mesa .alpha-context-open { position: absolute; z-index: 15; right: 12px; top: calc(10px + var(--strip-height) + 10px); }
+
+.alpha-mesa .alpha-livro { position: absolute; z-index: 25; left: 12px; right: 12px; top: calc(10px + var(--strip-height) + 10px); bottom: calc(12px + var(--tray-height) + 12px); display: flex; flex-direction: column; }
+.alpha-livro-tabs { display: flex; gap: 4px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); overflow-x: auto; flex: none; }
+.alpha-livro-tabs > button { flex: none; }
+.alpha-livro-tabs button[aria-current='page'] { border-color: var(--mark); color: var(--text-primary); background: var(--surface-highest); }
+.alpha-livro-close { margin-left: auto; }
+.alpha-mesa .alpha-livro .alpha-tab-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-top: 14px; }
+.alpha-council-book { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; align-items: start; }
+.alpha-council-book section { min-width: 0; }
+
+.alpha-mesa .alpha-cofre { position: absolute; z-index: 30; right: 12px; top: calc(10px + var(--strip-height) + 8px); width: min(460px, calc(100% - 24px)); }
+.alpha-cofre .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.alpha-cofre-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin: 12px 0 0; }
+.alpha-cofre-facts dt { font-size: 11px; color: var(--text-muted); }
+.alpha-cofre-facts dd { margin: 0; font-weight: 600; }
+.alpha-cofre-facts dd.warning { color: var(--warning); }
+
+@media (max-width: 900px) {
+  .alpha-mesa .alpha-strip { overflow-x: auto; scrollbar-width: none; }
+  .alpha-strip-civ small, .alpha-strip-tools .alpha-guide-button { display: none; }
+  .alpha-mesa .alpha-context { top: auto; left: 8px; right: 8px; width: auto; max-height: 52%; bottom: calc(12px + var(--tray-height) + 8px); }
+  .alpha-mesa .alpha-context-open { top: auto; bottom: calc(12px + var(--tray-height) + 8px); right: 8px; }
+  .alpha-mesa .alpha-livro { left: 6px; right: 6px; }
+  .alpha-mesa .alpha-tray { left: 8px; right: 8px; transform: none; width: auto; justify-content: space-between; gap: 8px; padding-left: 12px; }
+  .alpha-tray .alpha-resolution-log { display: none; }
+}
+/* The context card's own decisions: clearly offered, never gold (the tray keeps the one gold). */
+.alpha-mesa button.alpha-recommended:not(:disabled) { border-color: var(--mark); background: var(--surface-highest); color: var(--text-primary); font-weight: 600; }
+.alpha-tray-ready { font-size: 12px; color: var(--text-muted); white-space: nowrap; }

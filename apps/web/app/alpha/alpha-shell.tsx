@@ -73,7 +73,7 @@ export default function AlphaShell(){
   }
   const lobby=(payload:Record<string,unknown>)=>request({operation:'lobby',gameId:room!.id,payload:{...payload,expectedVersion:room!.version}});
   const playing=Boolean(room?.game);
-  return <main className={`alpha-shell${playing?' game-shell alpha-game':''}`} aria-busy={busy}>
+  return <main className={`alpha-shell${playing?' alpha-game alpha-mesa':''}`} aria-busy={busy}>
     {!playing&&<header className="alpha-masthead"><a href="/alpha" className="alpha-wordmark"><span aria-hidden="true">AH</span> AGES OF HEGEMONY</a><small>TEST BUILD · Alpha v0.1 em desenvolvimento</small><label>Tema <select value={theme??'SYSTEM'} onChange={e=>setTheme(e.target.value)}><option value="SYSTEM">Sistema</option><option value="DARK">Escuro</option><option value="LIGHT">Claro</option></select></label></header>}
     {error&&<div role="alert" className="alpha-error">{error}<button onClick={()=>setError('')} aria-label="Fechar mensagem">×</button></div>}
     {!room?<section className="alpha-entry"><div className="alpha-intro"><p className="eyebrow">UMA CIVILIZAÇÃO COMEÇA COM UMA MESA</p><h1>Horizontes por<br/>construir.</h1><p>Escolha uma civilização. Compartilhe um convite. Transforme decisões em história.</p><p>Teste online para 2 a 6 pessoas. Sem inteligência artificial. Esta versão ainda está em integração.</p><p role="note" className="alpha-test-notice"><b>Ambiente de teste · Alpha v0.1.</b> Partidas podem ser reiniciadas ou apagadas durante o teste. Use apenas um apelido; não informe dados pessoais.{feedbackUrl&&<> <a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a></>}</p>{process.env.NODE_ENV!=='production'&&<a href="/">Abrir experiência local existente</a>}</div>
