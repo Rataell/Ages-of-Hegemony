@@ -78,7 +78,6 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   applyCivilizationHeritage(state);initializeAlphaCards(state);return AlphaStateSchema.parse(state);
 }
 export function visibleHexIds(state:AlphaState,actor:PlayerId):Set<string> {
-  if(state.rules.revealMap)return new Set(state.core.map.map(t=>t.id));
   const player=state.core.players.find(p=>p.id===actor)!;
   const sources=[...player.civilization.cities.map(c=>c.hexId),...state.units.filter(u=>u.ownerId===actor).map(u=>u.hexId)];
   const byId=new Map(state.core.map.map(t=>[t.id,t]));

@@ -10,8 +10,10 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
   const growth=growthForecast(state,actor);
   const economic=playerView(state.core,actor,{visibleHexIds:state.core.map.filter(t=>visible.has(t.id)).map(t=>t.id),visibleCityIds:state.core.players.flatMap(p=>p.civilization.cities.filter(c=>visible.has(c.hexId)).map(c=>c.id)),knownGovernmentPlayerIds:[]});
   if(!economic)return null;
-  const known=state.core.map.filter(t=>progress.knownHexIds.includes(t.id)&&!visible.has(t.id));
-  const explored=state.core.map.filter(t=>progress.knownHexIds.includes(t.id)||visible.has(t.id));
+  // Playtest "Mapa revelado": the whole map is cartographed (known terrain and every city) but only the own surroundings are visible.
+  const knownIds=state.rules.revealMap?new Set(state.core.map.map(t=>t.id)):new Set(progress.knownHexIds);
+  const known=state.core.map.filter(t=>knownIds.has(t.id)&&!visible.has(t.id));
+  const explored=state.core.map.filter(t=>knownIds.has(t.id)||visible.has(t.id));
   const territory=state.core.config.territory;
   const displayCost=(cost:Parameters<typeof alphaCost>[0])=>alphaCost(cost,progress.resources);
   return structuredClone({
@@ -24,7 +26,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     administration:administration(state,actor),
     pressure:{value:state.pressure,threshold:pressureThreshold(state)},
     /** What anyone sees of a visible city from outside: its size and its walls (UXDEC-016/017). Never population details. */
-    cityMarks:state.cities.flatMap(meta=>{const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.id===meta.cityId);if(!city||(meta.currentOwnerId!==actor&&!visible.has(city.hexId)))return [];/* A blockade of a rival's port would reveal a war between others: only the owner learns it. */const own=meta.currentOwnerId===actor;return [{cityId:meta.cityId,hexId:city.hexId,ownerId:meta.currentOwnerId,level:CityLevelSchema.options.indexOf(meta.level)+1,capacity:ladderStep(meta.level).capacity,capital:meta.capital,fortification:meta.fortification,blockaded:own?blockadedBy(state,city.hexId,actor)!==null:null}];}),
+    cityMarks:state.cities.flatMap(meta=>{const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.id===meta.cityId);if(!city||(meta.currentOwnerId!==actor&&!visible.has(city.hexId)&&!state.rules.revealMap))return [];/* A blockade of a rival's port would reveal a war between others: only the owner learns it. */const own=meta.currentOwnerId===actor;return [{cityId:meta.cityId,hexId:city.hexId,ownerId:meta.currentOwnerId,level:CityLevelSchema.options.indexOf(meta.level)+1,capacity:ladderStep(meta.level).capacity,capital:meta.capital,fortification:meta.fortification,blockaded:own?blockadedBy(state,city.hexId,actor)!==null:null}];}),
     culture:culturalPresenceView(state,actor),
     independents:independentPeopleView(state,actor),
     raidBands:raidBandView(state,actor),
@@ -52,7 +54,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     /** Only once the match is over: the ranking and the tie-break figures behind it, for everyone. */
     finalStandings:state.winner?prestigeRanking(state).map(id=>{const progress=state.players.find(p=>p.playerId===id)!,owner=state.core.players.find(p=>p.id===id)!;return {playerId:id,name:owner.name,civilization:progress.civilization,prestige:progress.prestige,research:progress.research.length,population:owner.civilization.cities.reduce((total,city)=>total+city.population,0),wealth:progress.resources.wealth,cities:owner.civilization.cities.length,hegemony:progress.hegemony?.path??null};}):[],
     knownTerritory:known.map(t=>({id:t.id,q:t.q,r:t.r,terrain:t.terrain,features:t.features,visibility:'KNOWN' as const})),
-    frontier:state.core.map.filter(t=>!progress.knownHexIds.includes(t.id)&&!visible.has(t.id)&&explored.some(k=>hexDistance(k,t)===1)).map(t=>({id:t.id,q:t.q,r:t.r,visibility:'UNKNOWN' as const})),
+    frontier:state.core.map.filter(t=>!knownIds.has(t.id)&&!visible.has(t.id)&&explored.some(k=>hexDistance(k,t)===1)).map(t=>({id:t.id,q:t.q,r:t.r,visibility:'UNKNOWN' as const})),
     /** Rivals see a fleet, never its cargo. */
     units:state.units.filter(u=>u.ownerId===actor||(visible.has(u.hexId)&&!u.carrierId)).map(u=>({...u,supply:u.ownerId===actor?unitSupply(state,u):null})),
     regions:state.regions.filter(r=>r.revealedBy.includes(actor)).map(r=>({id:r.id,templateId:r.templateId,hexIds:r.hexIds,rotation:r.rotation})),
