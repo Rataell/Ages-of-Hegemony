@@ -10,9 +10,12 @@ import { CIVIL_PIECES, bannerArt, borderStrokes, cityArt, fortificationArt, piec
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
 export type MapArt = {
   seats: Record<string, { color: string; mark: CivilizationMark | null }>;
+  /** Roads (visible) and own trade routes, drawn under the pieces. */
+  roads?: readonly string[];
+  routes?: readonly { id: string; path: readonly string[]; suspended: boolean }[];
   /** Results shown on their target: a neutral halo and a short tag (resolution events, card effects on pieces). */
   marks?: readonly { hexId: string; label: string; tone: 'event' | 'card' | 'loss' }[];
-  cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capital: boolean; fortification: { level: string; state: string } }[];
+  cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capital: boolean; fortification: { level: string; state: string }; blockaded?: boolean | null }[];
 };
 const svgFragment = (html: string) => ({ __html: html });
 /** The two corners a tile shares with a neighbour centred at (nx, ny): the tile corners nearest to it. */
@@ -104,6 +107,23 @@ export const HexMap = memo(function HexMap({
   }, [focus]);
 
   const cities = [...data.view.player.civilization.cities, ...data.view.visibleCities];
+  /** Roads and own routes, per tile, as half-segments toward each linked neighbour: drawn inside the tile, under its pieces. */
+  const ways = useMemo(() => {
+    const out = new Map<string, { road: [number, number][]; route: { d: [number, number]; suspended: boolean }[] }>();
+    if (!art) return out;
+    const get = (id: string) => { let entry = out.get(id); if (!entry) { entry = { road: [], route: [] }; out.set(id, entry); } return entry; };
+    const coords = (id: string) => { const [q, r] = id.split(',').map(Number); return position(q ?? 0, r ?? 0); };
+    const half = (from: string, to: string): [number, number] => { const a = coords(from), b = coords(to); return [(b.x - a.x) / 2, (b.y - a.y) / 2]; };
+    const roads = new Set<string>(art.roads ?? []), cityHexes = new Set<string>(cities.map(c => c.hexId));
+    for (const id of roads) {
+      const [q, r] = id.split(',').map(Number);
+      for (const [dq, dr] of NEIGHBOURS) { const n = `${(q ?? 0) + dq},${(r ?? 0) + dr}`; if (roads.has(n) || cityHexes.has(n)) { get(id).road.push(half(id, n)); if (cityHexes.has(n)) get(n).road.push(half(n, id)); } }
+    }
+    for (const route of art.routes ?? []) route.path.forEach((id, k) => {
+      for (const other of [route.path[k - 1], route.path[k + 1]]) if (other) get(id).route.push({ d: half(id, other), suspended: route.suspended });
+    });
+    return out;
+  }, [art?.roads, art?.routes, cities.length]);
   const capitalId = data.view.player.civilization.capitalCityId;
 
   const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -228,6 +248,10 @@ export const HexMap = memo(function HexMap({
               {/* Subtle ownership wash/fill */}
               {owner > 0 && <polygon className="hex-owner-tint" points={innerPoints} />}
 
+              {art && ways.get(tile.id) && <g className="art-ways" aria-hidden="true">
+                {ways.get(tile.id)!.road.map(([dx, dy], k) => <line key={`r${k}`} x1="0" y1="0" x2={dx} y2={dy} className="art-road" />)}
+                {ways.get(tile.id)!.route.map((part, k) => <line key={`t${k}`} x1="0" y1="0" x2={part.d[0]} y2={part.d[1]} className={`art-route${part.suspended ? ' is-suspended' : ''}`} />)}
+              </g>}
               {/* Territorial border outline */}
               <polygon className="hex-border" points={points} />
 
@@ -319,8 +343,8 @@ export const HexMap = memo(function HexMap({
               {(() => {
                 const people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null), raid = raids.find(r => r.hexId === tile.id);
                 return <>
-                  {people && <g transform="translate(0 -30)" className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
-                  {raid && <g transform="translate(0 -30)" className="alpha-raid"><rect x="-17" y="-10" width="34" height="20" rx="4" className="raid-badge" /><path d="M-11 6L-1 -5M-11 -5L-1 6" className="raid-glyph" /><text x="8" y="4" className="raid-count" textAnchor="middle">{raid.strength}</text><title>Bando saqueador · Força {raid.strength}</title></g>}
+                  {people && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
+                  {raid && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className="alpha-raid"><rect x="-17" y="-10" width="34" height="20" rx="4" className="raid-badge" /><path d="M-11 6L-1 -5M-11 -5L-1 6" className="raid-glyph" /><text x="8" y="4" className="raid-count" textAnchor="middle">{raid.strength}</text><title>Bando saqueador · Força {raid.strength}</title></g>}
                 </>;
               })()}
               {/* One badge per owner: the owner's colour, a soldier or a flag for civil pieces, and the count. Foreign pieces are outlined. */}
