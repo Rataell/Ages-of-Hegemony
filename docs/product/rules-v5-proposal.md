@@ -1,4 +1,4 @@
-# Ages of Hegemony — Regras V5.1a (CANONICAL BASELINE)
+# Ages of Hegemony — Regras V5.1a FINAL (CANONICAL BASELINE)
 
 Data: 2026-10-04. **V5.1 aprovada como base; V5.1a é a correção final antes do engine** (Capacidade como potência da ativação, redistribuição no Planejamento, mobilização, Capacidade efetiva, N7 só na Era VII, Administração sem carga zero, nomes de recursos por extenso). Nada implementado no engine ainda. Tudo aqui é conteúdo original de AoH; referências externas valem só como princípio de design (ordens limitadas, um mundo que reage, eras que escalam).
 
@@ -31,8 +31,8 @@ Uma Ordem autoriza uma ação; não paga o custo. Recursos, avanço e infraestru
 | **Cidade** | Produzir · Construir · Recrutar · Governar · **Elevar** (subir de nível) | uma cidade (ativação) |
 | **Expedição** | mover · explorar · fundar · embarcar/transportar · desembarcar · atacar quando o movimento gera conflito | uma pilha ou peça |
 | **Avanço** | pesquisar um avanço da Teia ou de Herança | — |
-| **Influência** | tratado · oferta comercial · rota · missão cultural · ação com povo independente · integração política | um Enviado, cidade ou civilização |
-| **Legado** | iniciar/avançar Obra de Legado · empreendimento excepcional (declarar Hegemonia, grande migração, reforma de governo) | uma cidade ou a civilização |
+| **Influência** | tratado · oferta comercial · rota · missão cultural · ação com povo independente · integração política · **adoção ou reforma de Governo** | um Enviado, cidade ou civilização |
+| **Legado** | iniciar/avançar Obra de Legado · empreendimento excepcional (grande migração) · Declaração de Hegemonia | uma cidade ou a civilização |
 
 **Ações livres** (sem Ordem): responder a propostas, jogar 1 Manobra proativa e 1 Reação por rodada, escolher no Pulso, ajustar postura defensiva, usar o poder do Líder, cancelar uma Ordem antes de confirmar. **Redistribuir a população** de uma cidade também não gasta Ordem, mas só durante o Planejamento, uma vez por cidade; ao confirmar o planejamento a alocação trava para a rodada (§6).
 
@@ -306,12 +306,7 @@ Custo por Era mínima: I–II 3 Conhecimento · III–IV 5 Conhecimento · V–V
 | Infantaria Naval | Arquitetura Naval | III | 5 Conhecimento 1 Metal | Infantaria desembarca sem penalidade anfíbia |
 | Rede de Faróis | Navegação Oceânica | IV | 5 Conhecimento 1 Pedra | Farol custa −2; portos dão visão 2 no mar; bloqueio contra Thalos exige 2 navios |
 
-**Ashkar** (senhores das caravanas)
-| Caravanas do Deserto | Troca | I | 3 Conhecimento 1 Riqueza | rota terrestre atravessa Deserto sem Estrada |
-| Entrepostos de Oásis | Mercado Regional | III | 5 Conhecimento 1 Riqueza | Comercial em Deserto rende +1 Riqueza e +1 Alimento |
-| Casa das Balanças | Banco | V | 7 Conhecimento 2 Riqueza | crédito 2×/Era; Riqueza cobre 75% em Construir |
-
-As outras 15 seguem o mesmo molde (uma Herança cedo, uma média, uma tardia; cada uma pendurada num avanço de domínio diferente). Qualquer civilização pode ignorar sua Herança e investir só na Teia.
+Thalos e as demais civilizações do roster canônico (18, DEC-011) seguem o mesmo molde (uma Herança cedo, uma média, uma tardia; cada uma pendurada num avanço de domínio diferente). Qualquer civilização pode ignorar sua Herança e investir só na Teia.
 
 ## 14. Modelo de civilização
 
@@ -332,7 +327,7 @@ A habilidade 1×/Era da civilização (Bíblia) **sai**: o único poder 1×/Era 
 
 ## 16. Governos (7)
 
-Mesmo orçamento de poder: cada governo tem 2 vantagens e 1 limitação, todas escritas em Ânimo, Administração, economia, pesquisa, guerra, diplomacia, Ordens ou custos. Nenhuma usa Estabilidade/Coesão. Trocar: Ordem Legado + Influência (4 na Era I–III, 6 depois) + avanço exigido; a capital fica Abalada por 1 rodada. Todos começam em Conselho (forma inicial, fora dos 7).
+Mesmo orçamento de poder: cada governo tem 2 vantagens e 1 limitação, todas escritas em Ânimo, Administração, economia, pesquisa, guerra, diplomacia, Ordens ou custos. Nenhuma usa Estabilidade/Coesão. Trocar: **Ordem Influência** + Influência (4 na Era I–III, 6 depois) + avanço exigido; a capital fica Abalada por 1 rodada. Todos começam em Conselho (forma inicial, fora dos 7).
 
 | Governo | Abre com | Vantagens | Limitação |
 |---|---|---|---|
@@ -358,7 +353,7 @@ Mesmo orçamento de poder: cada governo tem 2 vantagens e 1 limitação, todas e
 
 ## 18. Pressão, Pulso e Teia
 
-- **Pressão decide QUANDO.** Começa em 0 a cada Era. Soma: fundação de cidade +1 · declaração de guerra +2 · captura de cidade +2 · Elevar a N5+ +1 · Convergência +1 · Obra concluída +2 · Encontro extraordinário +1. **Limiar = 4 + 2 × jogadores** (2j = 8, 4j = 12, 6j = 16). Ao atingir: Pulso adicional imediato, Pressão volta a 0. Esperado: 1 Pulso extra a cada 2–3 rodadas em mesa ativa, nunca toda rodada.
+- **Pressão decide QUANDO.** Começa em 0 na partida e **não zera na Virada de Era**: o Pulso obrigatório da Virada não toca a Pressão; o valor restante atravessa a mudança de Era. Soma: fundação de cidade +1 · declaração de guerra +2 · captura de cidade +2 · Elevar a N5+ +1 · Convergência +1 · Obra concluída +2 · Encontro extraordinário +1. **Limiar = 4 + 2 × jogadores** (2j = 8, 4j = 12, 6j = 16). Ao atingir o limiar: Pulso adicional imediato e só então Pressão volta a 0. Esperado: 1 Pulso extra a cada 2–3 rodadas em mesa ativa, nunca toda rodada.
 - **Pulso decide O QUÊ.** A carta é condicional: diz a quem se aplica e oferece escolha. Exemplos: **Seca Regional** (cidades sem Irrigação: −2 Alimento; com Irrigação: −1; com Agrário: nada) · **Colheita Farta** (cada Fazenda +1; Celeiro guarda além do limite nesta rodada) · **Epidemia** (cidades N4+ sem Saneamento: −1 habitante; com Saneamento: −1 Ânimo) · **Migração** (+1 Disponível na cidade de maior Ânimo de cada jogador; sem Alimento para o sustento, −1 Ânimo) · **Rotas Instáveis** (rotas sem Farol/Estrada rendem 0) · **Descoberta Partilhada** (quem tem Academia ganha 2 Conhecimento; os outros, 1 Conhecimento).
 - **Teia e infraestrutura decidem COMO.** Todo Pulso tem uma linha "mitigado por" com um avanço ou edifício. É assim que a tecnologia protege.
 
@@ -416,7 +411,7 @@ Mundo gerado por seed, oculto. Região = 7 hexes. Explorador adjacente escolhe *
 
 ## 22. Passagem de Era
 
-Após a 5ª rodada: efeitos de fim de Era → pontuar no máx. 1 Ambição → poder do Líder recupera → mão +1 Manobra (até 5), Reações descartadas voltam ao baralho → mudança de Governo permitida se elegível (custa Influência) → efeitos "por Era" → abre patamar da Teia → Pulso obrigatório → Era seguinte.
+Após a 5ª rodada: efeitos de fim de Era → pontuar no máx. 1 Ambição → poder do Líder recupera → mão +1 Manobra (até 5), Reações descartadas voltam ao baralho → mudança de Governo permitida se elegível (Ordem Influência na primeira rodada da Era, custa Influência) → efeitos "por Era" → abre patamar da Teia → Pulso obrigatório (não altera a Pressão) → Era seguinte.
 
 ## 23. Hegemonia (Era VII)
 
