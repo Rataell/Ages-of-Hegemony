@@ -33,11 +33,9 @@ describe('declarative alpha content',()=>{
     expect(result.ok).toBe(true);if(!result.ok)return;expect(result.value.players[0]!.ambitions).toHaveLength(2);expect(result.value.cards.discarded).toHaveLength(1);
     expect(AlphaStateSchema.safeParse({...result.value,players:result.value.players.map((p,i)=>i===1?{...p,hand:[result.value.players[0]!.hand[0]!,...p.hand]}:p)}).success).toBe(false);
   });
-  it('allows the configured civilization ability once per round',()=>{
-    const state=setup(),actor=state.players[0]!.playerId;const result=applyAlphaCommand(state,actor,{type:'CIVILIZATION_ABILITY',expectedVersion:0});
-    expect(result.ok).toBe(true);if(!result.ok)return;
-    expect(result.value.core.players[0]!.resources.food).toBe(state.core.players[0]!.resources.food+2);
-    expect(applyAlphaCommand(result.value,actor,{type:'CIVILIZATION_ABILITY',expectedVersion:1}).ok).toBe(false);
+  it('has no civilization ability command: the Leader holds the only 1×/Era power (canon V5.1a §14)',()=>{
+    const state=setup(),actor=state.players[0]!.playerId;
+    expect(applyAlphaCommand(state,actor,{type:'CIVILIZATION_ABILITY',expectedVersion:0})).toMatchObject({ok:false,error:{code:'INVALID_INPUT'}});
   });
   it('world decisions are explicit, once per event, and cannot spend another player hand',()=>{
     const state=setup(),actor=state.players[0]!.playerId;

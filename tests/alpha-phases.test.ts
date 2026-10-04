@@ -54,7 +54,8 @@ describe('the eight-phase round', () => {
     expect(after.core.round).toBe(2);
     expect(after.phase).toBe('PLANNING');
     const trail = after.events.slice(start).map(e => e.type).filter(t => relevant.includes(t));
-    expect(trail).toEqual(['RESOLUTION', 'RESOLUTION', 'MAINTENANCE', 'WORLD_PULSE', 'ROUND_STARTED']);
+    // Round 2 is inside Era I: no Pulse opens it (canon §17).
+    expect(trail).toEqual(['RESOLUTION', 'RESOLUTION', 'MAINTENANCE', 'ROUND_STARTED']);
   });
 
   it('rests only in planning or conflicts while internal phases resolve automatically', () => {
@@ -185,20 +186,20 @@ describe('what each phase does', () => {
     expect(state.players.every(p => !p.ready && p.orders.length === 0 && p.spentCommands === 0)).toBe(true);
   });
 
-  it('draws one distinct pulse per round from the private deck', () => {
+  it('draws one distinct pulse at the start of each Era from the private deck (canon §17), none in between', () => {
     let state = started(73);
+    state.rules.roundsPerEra = 2;
     const seen = new Set([state.worldPulse.current!.id]);
     const deck = state.worldPulse.deck.length;
     expect(state.worldPulse.deck.length + state.worldPulse.discard.length + 1).toBe(WORLD_PULSE_CARDS.length);
-    for (let round = 2; round <= 4; round++) {
-      state = completeRound(state);
-      expect(state.worldPulse.resolvedRound).toBe(round);
-      expect(seen.has(state.worldPulse.current!.id)).toBe(false);
-      seen.add(state.worldPulse.current!.id);
-    }
-    expect(state.worldPulse.deck.length).toBe(deck - 3);
-    expect(state.telemetry.worldPulseEvents).toBe(4);
-    expect(state.events.filter(e => e.type === 'WORLD_PULSE')).toHaveLength(4);
+    state = completeRound(state);
+    expect(state.worldPulse.resolvedRound).toBe(1);
+    state = completeRound(state);
+    expect(state.worldPulse.resolvedRound).toBe(3);
+    expect(seen.has(state.worldPulse.current!.id)).toBe(false);
+    expect(state.worldPulse.deck.length).toBe(deck - 1);
+    expect(state.telemetry.worldPulseEvents).toBe(2);
+    expect(state.events.filter(e => e.type === 'WORLD_PULSE')).toHaveLength(2);
   });
 
   it('keeps reports valid while a pulse changes balances', () => {
@@ -350,6 +351,7 @@ describe('world pulse deck exhaustion', () => {
   it('reshuffles the discard pile deterministically when the deck runs out', () => {
     const play = () => {
       const state = started(86);
+      state.rules.roundsPerEra = 1;
       state.worldPulse.discard = [...state.worldPulse.deck];
       state.worldPulse.deck = [];
       const after = completeRound(state);

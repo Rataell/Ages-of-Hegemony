@@ -70,8 +70,6 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   const strategy=state.players[0]!.hand.find(id=>ALPHA_CARDS.find(card=>card.id===id)?.timing==='PLANNING');
   if(!strategy)throw new Error('The authored scenario requires a planning card in its seeded hand');
   perform({type:'PLAY_CARD',cardId:strategy});
-  submit(p1,{type:'MANAGE',command:{type:'ADOPT_GOVERNMENT',government:'MONARCHY',playerId:p1,expectedVersion:state.core.version}});
-  submit(p2,{type:'MANAGE',command:{type:'ADOPT_GOVERNMENT',government:'MONARCHY',playerId:p2,expectedVersion:state.core.version}});
   for(const treaty of ['TRADE_AGREEMENT','OPEN_BORDERS'])
     perform({type:'PROPOSE_TREATY',recipientId:p2,treaty,deal:{give:emptyResourcePool(),receive:emptyResourcePool()}});
   round();

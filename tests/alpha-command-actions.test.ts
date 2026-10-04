@@ -52,10 +52,10 @@ describe('+Ações principais (Comando) modifiers raise the round limit', () => 
       return applyAlphaCommand(state, p1, { type: 'MANAGE', expectedVersion: state.version, command: { type: 'CLAIM_HEX', playerId: p1, cityId: city.id, hexId, expectedVersion: state.core.version } });
     };
     for (let i = 0; i < 6; i++) { const r = claim(); expect(r.ok, `claim ${i + 1}: ${r.ok ? '' : r.error.message}`).toBe(true); if (r.ok) state = r.value; }
-    state = must(state, { type: 'CIVILIZATION_ABILITY' }); // the 7th main action, possible only with the +2
-    // The 8th main action: a road is the cheapest main action left, and the limit, not the input, must refuse it.
-    const roadHex = state.core.map.find(tile => tile.ownerId === p1 && !state.roads.includes(tile.id))!.id;
-    expect(applyAlphaCommand(state, p1, { type: 'BUILD_ROAD', expectedVersion: state.version, hexId: roadHex })).toMatchObject({ ok: false, error: { code: 'ACTION_LIMIT' } });
+    const roads = () => state.core.map.filter(tile => tile.ownerId === p1 && !state.roads.includes(tile.id)).map(tile => tile.id);
+    state = must(state, { type: 'BUILD_ROAD', hexId: roads()[0] }); // the 7th main action, possible only with the +2
+    // The 8th main action: the limit, not the input, must refuse it.
+    expect(applyAlphaCommand(state, p1, { type: 'BUILD_ROAD', expectedVersion: state.version, hexId: roads()[0] })).toMatchObject({ ok: false, error: { code: 'ACTION_LIMIT' } });
   });
 
   it('ignores the legacy government command delta: Orders are fixed per match (canon V5.1a §1)', () => {

@@ -47,7 +47,7 @@ it('persists a running match across connections and rejects competing PostgreSQL
     expect(reconnected.ok && reconnected.value.seats.length).toBe(2);
     expect((await restoredService.read({ guestId: randomUUID() }, roomId, 2000)).ok).toBe(false);
 
-    const command = { type: 'CIVILIZATION_ABILITY', expectedVersion: started.value.game!.version };
+    const command = { type: 'SET_DEFENSE_POSTURE', posture: 'HOLD', expectedVersion: started.value.game!.version };
     const results = await Promise.all([restoredService.command(a, roomId, command, 2000), restoredService.command(a, roomId, command, 2000)]);
     expect(results.filter(result => result.ok)).toHaveLength(1);
     expect(results.find(result => !result.ok)).toMatchObject({ ok: false, error: { code: 'VERSION_CONFLICT' } });

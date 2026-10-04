@@ -44,7 +44,7 @@ async function legacyMatch(): Promise<{ id: string; original: unknown }> {
   return { id, original: legacy };
 }
 const rawSnapshot = async (id: string) => (await client.alphaMatch.findUniqueOrThrow({ where: { id } })).snapshot;
-const command = (version: number) => ({ type: 'CIVILIZATION_ABILITY', expectedVersion: version });
+const command = (version: number) => ({ type: 'SET_DEFENSE_POSTURE', posture: 'HOLD', expectedVersion: version });
 
 beforeAll(async () => {
   const applied = await client.$queryRaw<{ migration_name: string }[]>`

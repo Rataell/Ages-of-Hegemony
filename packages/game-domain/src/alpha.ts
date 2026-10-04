@@ -158,6 +158,8 @@ export const AlphaStateSchema = z.strictObject({
   independents:z.array(IndependentPeopleSchema).default([]),
   raidBands:z.array(RaidBandSchema).default([]),
   worldPulse:z.strictObject({deck:z.array(IdentifierSchema),discard:z.array(IdentifierSchema),current:WorldPulseCardSchema.nullable(),resolvedRound:N}).default({deck:[],discard:[],current:null,resolvedRound:0}),
+  /** World Pressure (canon §18): grows with great deeds, fires an extra Pulse at 4 + 2 × players and only then resets; it survives the Era turn. */
+  pressure:N.default(0),
   roundLedgers:z.array(RoundLedgerSchema).default([]),
   resolutionEvents:z.array(ResolutionEventSchema).default([]),
   telemetry:AlphaTelemetrySchema,
@@ -281,7 +283,6 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('RESPOND_TREATY'),expectedVersion:N,treatyId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('END_TREATY'),expectedVersion:N,treatyId:IdentifierSchema}),
   z.strictObject({type:z.literal('DECLARE_WAR'),expectedVersion:N,planId:IdentifierSchema.optional(),targetId:PlayerIdSchema}),
-  z.strictObject({type:z.literal('CIVILIZATION_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('LEADER_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('SET_DEFENSE_POSTURE'),expectedVersion:N,posture:BattlePostureSchema}),
   z.strictObject({type:z.literal('BUILD_ROAD'),expectedVersion:N,hexId:HexIdSchema}),
@@ -314,7 +315,7 @@ export const ACTION_CLASS = {
   URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
   SETTLE:'MAIN', DECLARE_HEGEMONY:'MAIN', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
-  CIVILIZATION_ABILITY:'MAIN', LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', DEMOBILIZE:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
+  LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', DEMOBILIZE:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
   CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
 
@@ -327,7 +328,7 @@ export function orderTypeForCommand(command:AlphaCommand,phase?:AlphaRoundPhase)
     case 'SETTLE':case 'EMBARK':case 'DISEMBARK':case 'DEMOBILIZE':return 'EXPEDITION';
     case 'MANAGE':return command.command.type==='ADOPT_GOVERNMENT'?'INFLUENCE':'CITY';
     case 'BUILD_ROAD':return 'CITY';
-    case 'BUILD_PROJECT':case 'DECLARE_HEGEMONY':case 'CIVILIZATION_ABILITY':return 'LEGACY';
+    case 'BUILD_PROJECT':case 'DECLARE_HEGEMONY':return 'LEGACY';
     default:return 'INFLUENCE';
   }
 }

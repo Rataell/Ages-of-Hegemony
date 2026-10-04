@@ -4,6 +4,7 @@ import {
 } from '@aoh/game-domain';
 import { applyCommand } from './engine.js';
 import { alphaEvent } from './alpha-events.js';
+import { addPressure } from './alpha-phases.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
 import { activationsAllowed, administration, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilize, moodBand } from './alpha-city.js';
@@ -246,6 +247,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       rejectExtras(command, []);
       const level = elevateCity(state, actor, city.id);
       mirrorDevelopment(state);
+      if (['GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS'].includes(level)) addPressure(state, 1, `${city.name} elevada`);
       message = `${city.name} foi elevada a ${level}.`;
       break;
     }
@@ -262,6 +264,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       rejectExtras(command, ['advancementId']);
       if (!command.advancementId) throw new Error('Escolha o avanço a pesquisar.');
       researchAdvancement(state, actor, command.advancementId);
+      if (ADVANCEMENTS.find(node => node.id === command.advancementId)?.convergence) addPressure(state, 1, 'Convergência');
       const domain = ADVANCEMENTS.find(node => node.id === command.advancementId)?.domain ?? 'HERITAGE';
       telemetry.researchByDomain[domain] = (telemetry.researchByDomain[domain] ?? 0) + 1;
       message = `${city.name} concluiu uma pesquisa.`;

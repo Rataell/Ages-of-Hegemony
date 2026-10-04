@@ -19,4 +19,4 @@
 - [x] E10 Governar with Capacity reach
 - [x] S1 projection + privacy test
 - [x] W1 tray 5 Orders · W2 seal N·Capacidade · W3 roles strip · W4 Elevar card · W5 Cofre 8 · W6 Teia 40+10+Herança · W7 Ânimo/Admin feedback
-- [ ] R1 Leaders · R2 Manobras · R3 Ambições · R4 Pressão/Pulso · R5 Governos · R6 Hegemonia Era VII · R7 combat/naval/diplomacy reconciliation
+- [x] R1 Leaders · R2 Manobras · R3 Ambições · R4 Pressão/Pulso · R5 Governos · R6 Hegemonia Era VII · R7 combat/naval/diplomacy reconciliation

@@ -56,7 +56,7 @@ describe('alpha lobby and authoritative service',()=>{
     expect(serialized).not.toContain(stored.game!.privateRng.seed);expect(serialized).not.toContain('strategyDeck');expect(serialized).not.toContain(f.b.guestId);
     const forbidden=await f.service.command(f.b,started.id,{type:'MANAGE',expectedVersion:game.version,command:{type:'DEVELOP_CITY',playerId:game.self.playerId,cityId:game.view.player.civilization.cities[0]!.id,expectedVersion:game.view.version}},2000);
     expect(forbidden.ok).toBe(false);
-    const command={type:'CIVILIZATION_ABILITY',expectedVersion:game.version};
+    const command={type:'SET_DEFENSE_POSTURE',posture:'HOLD',expectedVersion:game.version};
     const results=await Promise.all([f.service.command(f.a,started.id,command,2000),f.service.command(f.a,started.id,command,2000)]);
     expect(results.filter(r=>r.ok)).toHaveLength(1);
     expect(results.find(r=>!r.ok)).toMatchObject({ok:false,error:{code:'VERSION_CONFLICT'}});

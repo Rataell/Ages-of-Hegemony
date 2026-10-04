@@ -1,12 +1,13 @@
 import { proposeTrade, respondTrade } from './alpha-trade.js';
-import { AlphaCommandSchema, AlphaStateSchema, actionClassForCommand, orderTypeForCommand, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { AlphaCommandSchema, AlphaStateSchema, emptyAlphaResourcePool, actionClassForCommand, orderTypeForCommand, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { err, ok, type Result } from '@aoh/shared';
 import { applyCommand } from './engine.js';
 import { validateMilitaryOrder } from './alpha-military.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
-import { civilizationAbility } from './alpha-institutions.js';
 import { demobilize, mirrorDevelopment, refreshAlphaAdministration } from './alpha-city.js';
+import { hasUnlock } from './alpha-institutions.js';
+import { addPressure } from './alpha-phases.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
 import { manageCard, playCivilizationCard } from './alpha-cards.js';
@@ -76,6 +77,21 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if (command.command.playerId !== actor) return err({ code:'FORBIDDEN', message:'Você só pode comandar sua própria civilização.' });
       if (command.command.type === 'BUILD_DISTRICT' || command.command.type === 'BUILD_BUILDING') return err({ code:'USE_URBAN_ACTION', message:'Construa pela ação urbana Construir.' });
       if (command.command.type === 'DEVELOP_CITY' || command.command.type === 'SPECIALIZE_CITY') return err({ code:'RULE_REMOVED', message:'Desenvolvimento e especialização saíram das regras: a cidade sobe de nível por Elevar e se especializa pelos distritos.' });
+      if (command.command.type === 'ADOPT_GOVERNMENT') {
+        const government=command.command.government;const owner=state.core.players.find(p=>p.id===actor)!;
+        if(owner.civilization.government===government)throw new Error('Sua civilização já vive sob este governo.');
+        if(!hasUnlock(state,actor,`government:${government}`))throw new Error('Este governo exige o avanço da Teia que o abre.');
+        const influence=['FOUNDATION','EXPANSION','CONSOLIDATION'].includes(player.era)?4:6;
+        alphaPay(state,actor,{...emptyAlphaResourcePool(),influence});
+        owner.civilization={...owner.civilization,government};
+        const capital=state.cities.find(c=>c.cityId===owner.civilization.capitalCityId);if(capital)capital.mood=Math.min(capital.mood,3);
+        refreshAlphaAdministration(state);
+        alphaEvent(state,'GOVERNMENT',`Governo adotado: ${government}. A capital fica Abalada por uma rodada.`,[actor]);
+        if(actionClass==='MAIN')chargeMainAction(state,actor,'COMMIT','INFLUENCE');
+        refreshHegemony(state);state.version++;
+        const adopted=AlphaStateSchema.safeParse(state);if(adopted.success)return ok(adopted.data);
+        return err({ code:'INVALID_STATE', message:'A decisão violaria uma regra de integridade.' });
+      }
       const management=command.command;
       if(management.type==='ASSIGN_POPULATION'){const meta=state.cities.find(c=>c.cityId===management.cityId);if(meta&&meta.allocationRound===state.core.round)throw new Error('A população desta cidade já foi redistribuída nesta rodada.');if(meta)meta.allocationRound=state.core.round;}
       const occupied=state.occupations.some(o=>('cityId' in management&&management.type!=='FOUND_CITY'&&management.cityId===o.cityId)||('hexId' in management&&state.core.map.find(t=>t.id===management.hexId)?.controllerCityId===o.cityId));
@@ -129,7 +145,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       }
     } else if(command.type==='SETTLE') {
       const hexId=state.units.find(unit=>unit.id===command.unitId&&unit.ownerId===actor)?.hexId;
-      settleWithPioneer(state,actor,command.unitId,command.name);refreshKnowledge(state);
+      settleWithPioneer(state,actor,command.unitId,command.name);refreshKnowledge(state);addPressure(state,1,'fundação de cidade');
       alphaEvent(state,'CITY_FOUNDED','Pioneiro estabeleceu uma nova cidade.',[actor]);
       if(hexId){const city=state.core.players.find(owner=>owner.id===actor)!.civilization.cities.find(item=>item.hexId===hexId)!;const visibleTo=state.players.map(owner=>owner.playerId).filter(playerId=>playerId===actor||visibleHexIds(state,playerId).has(hexId));resolutionEvent(state,{type:'FOUNDATION',actorId:actor,visibleTo,message:`${city.name} foi fundada.`,hexId,cityId:city.id,unitIds:[command.unitId]});}
     } else if(command.type==='DECLARE_HEGEMONY') {
@@ -156,14 +172,11 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       const where=state.units.find(unit=>unit.id===command.unitIds[0])!.hexId;
       resolutionEvent(state,{type:'MOVEMENT',actorId:actor,visibleTo:[actor],message:command.type==='EMBARK'?`${command.unitIds.length} peça(s) embarcada(s) em ${where}.`:`${command.unitIds.length} peça(s) desembarcada(s) em ${where}.`,hexId:where,unitIds:[...command.unitIds]});
       alphaEvent(state,'ACTION_COMPLETED',command.type==='EMBARK'?'Peças embarcadas.':'Peças desembarcadas.',[actor]);
-    } else if(command.type==='BUILD_ROAD'||command.type==='CIVILIZATION_ABILITY') {
-      if(command.type==='CIVILIZATION_ABILITY')civilizationAbility(state,actor);
-      else {
-        const tile=state.core.map.find(t=>t.id===command.hexId&&t.ownerId===actor);
-        if(!tile||state.roads.includes(tile.id))throw new Error('Construa estrada em território próprio sem estrada.');
-        alphaPay(state,actor,kitWorksCost(state,actor,state.rules.roadCost));state.roads.push(tile.id);
-      }
-      alphaEvent(state,'ACTION_COMPLETED',({BUILD_ROAD:'Estrada construída.',CIVILIZATION_ABILITY:'Habilidade civilizacional utilizada.'})[command.type],[actor]);
+    } else if(command.type==='BUILD_ROAD') {
+      const tile=state.core.map.find(t=>t.id===command.hexId&&t.ownerId===actor);
+      if(!tile||state.roads.includes(tile.id))throw new Error('Construa estrada em território próprio sem estrada.');
+      alphaPay(state,actor,kitWorksCost(state,actor,state.rules.roadCost));state.roads.push(tile.id);
+      alphaEvent(state,'ACTION_COMPLETED','Estrada construída.',[actor]);
     }
     if(actionClass==='MAIN')chargeMainAction(state,actor,reservedMainAction?'RESERVE':'COMMIT',orderTypeForCommand(command,state.phase));
     refreshAlphaAdministration(state);

@@ -1,4 +1,5 @@
 import { type AlphaCommand, type AlphaState, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
+import { addPressure } from './alpha-phases.js';
 import { alphaCanAfford, alphaGain, alphaPay } from './alpha-resources.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
 import { culturalIdentityOf, establishCulturalPresence } from './alpha-culture.js';
@@ -6,6 +7,7 @@ import { kitTreatyRounds } from './alpha-kits.js';
 function enterWar(state:AlphaState,actor:PlayerId,target:PlayerId):void {
   if(atWar(state,actor,target))return;
   state.wars.push([actor,target].sort() as [PlayerId,PlayerId]);
+  addPressure(state,2,'declaração de guerra');
   const player=state.players.find(p=>p.playerId===actor)!;
   for(const treaty of state.treaties)if(['ACTIVE','ACCEPTED'].includes(treaty.status)&&[treaty.proposerId,treaty.recipientId].includes(actor)&&[treaty.proposerId,treaty.recipientId].includes(target)){
     treaty.status='ENDED';player.prestige=Math.max(0,player.prestige-2);

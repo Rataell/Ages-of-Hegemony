@@ -39,7 +39,7 @@ type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
   'MANAGE', 'QUEUE_ORDER', 'CANCEL_ORDER', 'SETTLE', 'DECLARE_HEGEMONY', 'CHOOSE_AMBITIONS', 'PLAY_CARD', 'PLAY_CIVILIZATION_CARD', 'HIRE_ADVISOR',
   'WORLD_CHOICE', 'BUILD_PROJECT', 'PROPOSE_TREATY', 'RESPOND_TREATY', 'END_TREATY', 'DECLARE_WAR', 'BUILD_ROAD',
-  'CIVILIZATION_ABILITY', 'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY', 'EMBARK', 'DISEMBARK', 'DEMOBILIZE',
+  'LEADER_ABILITY', 'SET_DEFENSE_POSTURE', 'URBAN_ACTION', 'READY', 'UNREADY', 'EMBARK', 'DISEMBARK', 'DEMOBILIZE',
   'CONTEST_PRESENCE',
   'INDEPENDENT_ACTION',
   'PROPOSE_TRADE', 'RESPOND_TRADE',
@@ -64,7 +64,7 @@ function viewersAt(state:AlphaState,hexId:string,always:readonly PlayerId[]=[]):
 }
 
 /** Buys one Pulse with the private RNG, applies each module to every civilization and records it. */
-function drawWorldPulse(state: AlphaState): void {
+export function drawWorldPulse(state: AlphaState): void {
   const pulse = state.worldPulse;
   if (pulse.current) { pulse.discard.push(pulse.current.id); pulse.current = null; }
   if (pulse.deck.length === 0) { pulse.deck = pulse.discard; pulse.discard = []; }
@@ -88,6 +88,18 @@ function drawWorldPulse(state: AlphaState): void {
   resolutionEvent(state,{type:'ROUND_EVENT',actorId:null,visibleTo:null,message,unitIds:[]});
 }
 
+/** Pressão decides WHEN (canon §18): reaching 4 + 2 × players fires one extra Pulse at once and only then resets to 0. */
+export const pressureThreshold = (state: AlphaState): number => 4 + 2 * state.players.length;
+export function addPressure(state: AlphaState, amount: number, reason: string): void {
+  state.pressure += amount;
+  alphaEvent(state, 'PRESSURE', `Pressão do Mundo +${amount} (${reason}): ${state.pressure} / ${pressureThreshold(state)}.`);
+  if (state.pressure >= pressureThreshold(state)) {
+    state.pressure = 0;
+    alphaEvent(state, 'PRESSURE_PULSE', 'A Pressão do Mundo atingiu o limiar: um Pulso adicional se abate sobre todas as civilizações.');
+    drawWorldPulse(state);
+  }
+}
+
 /**
  * WORLD_PULSE opens a round: ledgers open at the current balances, strategy cards and the world event advance, one Pulse is
  * drawn, ROUND_START effects are credited, and the round enters PLANNING. No city output is credited here.
@@ -98,7 +110,8 @@ export function openRound(state: AlphaState): void {
   for (const player of state.players) { player.ready = false; player.spentCommands = 0; player.ordersSpent = emptyOrderCount(); player.orders = []; player.plannedActions=[]; ledgerOf(state, player.playerId); }
   passEraByCalendar(state);
   maintainCards(state);
-  drawWorldPulse(state);
+  // A Pulse opens every Era (canon §17); the others come from Pressão (addPressure). The Era Pulse never touches Pressão.
+  if ((state.core.round - 1) % state.rules.roundsPerEra === 0) drawWorldPulse(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'ROUND_START');
   setAlphaPhase(state, 'PLANNING');
   alphaEvent(state, 'ROUND_STARTED', `Rodada ${state.core.round}: Planejamento.`);
