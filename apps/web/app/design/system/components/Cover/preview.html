@@ -1,0 +1,40 @@
+<!-- @dsCard height=320 -->
+<style>
+  body { margin: 0; background: var(--background); }
+  .cover { position: relative; width: 960px; height: 320px; overflow: hidden; background: var(--background); }
+  .gold { fill: var(--accent); } .sea { fill: var(--sea); } .parch { fill: var(--parchment); } .seat { fill: var(--civ-1); } .plain { fill: var(--plains); } .steel { fill: var(--surface-elevated); }
+  .hex { fill: none; stroke: var(--ink); stroke-width: 3; } .hex.on-dark { stroke: var(--mark); stroke-opacity: .55; }
+  .slab { rx: var(--radius-panel); }
+  .name { position: absolute; left: 48px; bottom: 64px; margin: 0; max-width: 440px; font: 600 88px/.95 var(--font-display); letter-spacing: .02em; color: var(--text-primary); }
+  .tag { position: absolute; left: 50px; bottom: 34px; margin: 0; max-width: 440px; font: 400 14px/1.4 var(--font-body); color: var(--text-secondary); }
+</style>
+<div class="cover">
+  <svg width="960" height="320" viewBox="0 0 960 320" aria-hidden="true" style="position:absolute;inset:0">
+    <!--
+      blocks: accent 120×232, sea 200×144, parchment 120×112, civ-1 96×88, plains 200×88 (multiples of space-4 = 16 px)
+      arrangement: one tall gold slab with satellites, flush to the right edge, a sea field bleeding off the top
+      pattern: a literal motif, the pointy-top hex of the map (radius 26 = pieces' hex at play size), in ink over light blocks and mark over dark
+      scales: gaps space-4 (16 px), corners radius-panel (12 px); hex stroke = the ink outline every map object carries
+    -->
+    <rect class="sea slab" x="496" y="-16" width="200" height="160"/>
+    <rect class="gold slab" x="712" y="32" width="120" height="232"/>
+    <rect class="parch slab" x="848" y="32" width="128" height="112"/>
+    <rect class="seat slab" x="848" y="160" width="96" height="104"/>
+    <rect class="plain slab" x="496" y="160" width="200" height="104"/>
+    <g>
+      <path class="hex on-dark" d="M541,40 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex on-dark" d="M586,40 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex on-dark" d="M631,40 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex on-dark" d="M563.5,79 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex on-dark" d="M608.5,79 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex" d="M541,182 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex" d="M586,182 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex" d="M631,182 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex" d="M772,88 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex" d="M772,166 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+      <path class="hex" d="M912,62 l22.5,13 v26 l-22.5,13 l-22.5,-13 v-26 z"/>
+    </g>
+  </svg>
+  <h1 class="name">Ages of Hegemony</h1>
+  <p class="tag">A mesa onde civilizações disputam a hegemonia.</p>
+</div>

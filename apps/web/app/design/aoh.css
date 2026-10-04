@@ -46,3 +46,16 @@
 .aoh-popover { border-radius: var(--radius-panel); padding: var(--space-4); }
 .aoh-sheet { border-radius: var(--radius-panel); padding: var(--space-4) var(--space-6); }
 .aoh-scrim { background: color-mix(in srgb, var(--background) 70%, transparent); }
+
+/* Hand card (Carta): parchment card with its family band; the fan lifts them, one in focus. */
+.aoh-handcard { width: 118px; height: 166px; border-radius: var(--radius-card); border: 2px solid var(--bronze); background: var(--parchment); color: var(--parchment-ink); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-sm); text-align: left; }
+.aoh-handcard .hd { background: var(--family-strategy); color: var(--parchment); font: 600 10px var(--font-display); letter-spacing: .1em; text-transform: uppercase; padding: 5px 8px; }
+.aoh-handcard.is-civilization .hd { background: var(--family-civilization); }
+.aoh-handcard.is-advisor .hd { background: var(--family-advisor); }
+.aoh-handcard .nm { font: 600 13px/1.2 var(--font-display); padding: 7px 8px 3px; }
+.aoh-handcard .tx { font-size: 12px; line-height: 1.3; padding: 0 8px; color: color-mix(in srgb, var(--parchment-ink) 80%, var(--parchment)); }
+.aoh-handcard.is-focus { outline: 2px solid var(--mark); }
+
+/* Result on its target (map): neutral halo plus a parchment tag. */
+.aoh-mark-tag { fill: var(--parchment); stroke: var(--ink); stroke-width: 1.2; }
+.aoh-mark-halo { fill: color-mix(in srgb, var(--mark) 8%, transparent); stroke: var(--mark); stroke-width: 2.4; stroke-dasharray: 6 5; }
