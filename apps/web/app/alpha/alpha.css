@@ -371,3 +371,19 @@ button.alpha-card { text-align: left; }
 .alpha-army { min-width: 0; max-width: 100%; box-sizing: border-box; }
 .alpha-army-actions { flex-wrap: wrap; }
 .alpha-army-actions small { min-width: 0; }
+/* Lobby roster: 18 canonical civilizations as compact rows plus one detail panel (DEC-011). */
+.alpha-roster { display: grid; grid-template-columns: minmax(260px, 420px) 1fr; gap: 18px; align-items: start; margin: 18px 0; }
+.alpha-roster-list.alpha-civilizations { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; }
+.alpha-roster-row { display: grid; grid-template-columns: 30px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); min-height: 48px; }
+.alpha-roster-row svg { grid-row: span 2; }
+.alpha-roster-row h3 { margin: 0; font-size: 15px; }
+.alpha-roster-row small { font-size: 11px; color: var(--text-muted, inherit); }
+.alpha-roster-row.is-selected { border-color: #f4ecd8; box-shadow: inset 0 0 0 1px #f4ecd8; }
+.alpha-roster-row:disabled { opacity: .55; }
+.alpha-roster-detail { padding: 16px 18px; border: 1px solid var(--border); border-radius: 10px; background: linear-gradient(145deg, var(--surface-elevated), var(--surface)); }
+.alpha-roster-detail header { display: flex; gap: 12px; align-items: center; }
+.alpha-roster-detail h3 { margin: 2px 0; font-size: 22px; }
+.alpha-roster-detail ul { padding-left: 18px; margin: 10px 0; display: grid; gap: 4px; font-size: 14px; }
+.alpha-roster-detail h4 { margin: 10px 0 4px; }
+.alpha-kit-planned { opacity: .7; font-size: 12px; }
+@media (max-width: 760px) { .alpha-roster { grid-template-columns: 1fr; } .alpha-roster-detail { order: -1; } }
