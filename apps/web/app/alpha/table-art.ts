@@ -152,10 +152,12 @@ const SHAPES: Record<PieceKind, (c: string) => string> = {
   ENVOY: c => `<rect x="-13" y="-9" width="26" height="18" rx="2" fill="${c}"/><path d="M-12,-8 L0,1.5 L12,-8" stroke="${INK}" stroke-width="1.7" fill="none" stroke-linejoin="round"/><circle cy="2.5" r="4.2" fill="#b44a3a" stroke="${INK}" stroke-width="1.3"/>`,
 };
 export const CIVIL_PIECES: ReadonlySet<string> = new Set(['EXPLORER', 'PIONEER', 'ENVOY']);
-export function pieceArt(kind: string, color: string, px = 36, count = 0) {
+/** `signature`: the civilization's signature variant of this family (drawn with a star, as in the atlas). */
+export function pieceArt(kind: string, color: string, px = 36, count = 0, signature = false) {
   const shape = SHAPES[kind as PieceKind] ?? SHAPES.INFANTRY, body = shape(color), s = px / 32;
   const outline = body.split(color).join(INK).replace(/fill="(?!none)[^"]+"/g, `fill="${INK}"`).replace(/stroke-width="([\d.]+)"/g, (_m, w: string) => `stroke-width="${+w + 2.6}"`);
   let g = `<g transform="scale(${f1(s * 100) / 100})"><g stroke="${INK}" stroke-width="2.6" stroke-linejoin="round">${outline}</g>${body}`;
+  if (signature) { const p: string[] = []; for (let i = 0; i < 8; i++) { const a = Math.PI / 4 * i - Math.PI / 2, rr = i % 2 ? 2.1 : 5; p.push(`${f1(12 + Math.cos(a) * rr)},${f1(-12 + Math.sin(a) * rr)}`); } g += `<path d="M${p.join('L')}Z" fill="${LIGHT}" stroke="${INK}" stroke-width="1.1"/>`; }
   if (count > 1) g += `<circle cx="12" cy="11" r="6.4" fill="${INK}" stroke="${color}" stroke-width="1.4"/><text x="12" y="14.3" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="700" font-size="9.5" fill="${LIGHT}">${count}</text>`;
   return g + '</g>';
 }

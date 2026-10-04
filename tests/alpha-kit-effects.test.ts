@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ADVANCEMENTS, AlphaStateSchema, CIVILIZATION_KITS, PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
-import { beginAlphaPlanning, createAlphaGame, kitProduceBonus, kitTradeBonus, kitWorksCost, kitAdvancementCost, kitExplorationKnowledge, kitFoodUpkeep, kitFortificationBlock, kitMovement, kitTreatyRounds, kitUnitCost } from '@aoh/game-engine';
+import { beginAlphaPlanning, createAlphaGame, hexId, hexNeighbors, isSignature, kitExplorationReach, resolveBattleWithFaces, kitProduceBonus, kitTradeBonus, kitWorksCost, kitAdvancementCost, kitExplorationKnowledge, kitFoodUpkeep, kitFortificationBlock, kitMovement, kitTreatyRounds, kitUnitCost } from '@aoh/game-engine';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
 const game = (civ: string, other = 'aurelia'): AlphaState => beginAlphaPlanning(createAlphaGame({ gameId: `kit-${civ}`, seed: 21, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um', civilization: civ }, { id: 'p2', name: 'Dois', civilization: other === civ ? 'valgard' : other }] }));
@@ -72,4 +72,21 @@ describe('civilization kits applied by the engine', () => {
     expect(state.players[0]!.resources.wealth).toBe(before + 1);
     expect(state.players[1]!.resources.wealth).toBe(game('meridia').players[1]!.resources.wealth);
   });
+
+  it('turns a whole family into the signature piece, and the Shield Guard holds fortified walls', () => {
+    const state = game('aurelia', 'valgard');
+    expect(isSignature(state, { ownerId: p2, kind: 'GUARD' })).toBe(true);
+    expect(isSignature(state, { ownerId: p1, kind: 'GUARD' })).toBe(false);
+    expect(kitExplorationReach(game('elyra'), { id: 'x', ownerId: p1, kind: 'EXPLORER', hexId: '0,0' as never, recruitedRound: 1, carrierId: null })).toBe(2);
+    const capital = state.core.players[1]!.civilization.cities[0]!;
+    state.cities.find(city => city.cityId === capital.id)!.fortification = { level: 'PALISADE', state: 'INTACT' };
+    const near = hexNeighbors(state.core.map.find(t => t.id === capital.hexId)!).map(hexId).find(id => state.core.map.some(t => t.id === id && !['SEA', 'UNKNOWN'].includes(t.terrain)))!;
+    state.units = state.units.filter(unit => unit.hexId !== near);
+    state.units.push({ id: 'attacker', ownerId: p1, kind: 'INFANTRY', hexId: near as never, recruitedRound: 1, carrierId: null });
+    state.players[0]!.knownHexIds = [...new Set([...state.players[0]!.knownHexIds, capital.hexId, near])].sort() as never;
+    state.wars.push(['p1', 'p2'] as never);
+    resolveBattleWithFaces(state, p1, { id: 'storm', type: 'ATTACK', unitIds: ['attacker'], target: capital.hexId, posture: 'ASSAULT' });
+    expect(state.battles.at(-1)!.defenseBreakdown.find(entry => entry.source === 'Guarda de Escudos')?.amount).toBe(1);
+  });
 });
+

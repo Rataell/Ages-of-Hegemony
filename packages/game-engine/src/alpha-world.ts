@@ -5,7 +5,7 @@ import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { initializeAlphaCards } from './alpha-cards.js';
 import { alphaRandomInteger, combineAlphaSeed, deterministicAlphaSeed } from './alpha-random.js';
 import { alphaEvent } from './alpha-events.js';
-import { applyCivilizationHeritage, kitExplorationKnowledge } from './alpha-kits.js';
+import { applyCivilizationHeritage, kitExplorationKnowledge, kitExplorationReach } from './alpha-kits.js';
 import { alphaGainLegacy } from './alpha-resources.js';
 
 export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;actionsPerRound?:number}):AlphaState {
@@ -103,7 +103,8 @@ export function validateExploration(state:AlphaState,actor:PlayerId,order:Extrac
   const unit=state.units.find(u=>u.id===order.unitId&&u.ownerId===actor);const region=state.regions.find(r=>r.hexIds.includes(order.target));
   if(!unit||!region||region.revealedBy.includes(actor))throw new Error('Escolha uma peça própria junto a uma região ainda não explorada.');
   const origin=state.core.map.find(t=>t.id===unit.hexId)!;
-  if(!region.hexIds.some(id=>{const tile=state.core.map.find(t=>t.id===id)!;return hexDistance(origin,tile)<=1;}))throw new Error('A região não está na fronteira desta peça.');
+  const reach=kitExplorationReach(state,unit);
+  if(!region.hexIds.some(id=>{const tile=state.core.map.find(t=>t.id===id)!;return hexDistance(origin,tile)<=reach;}))throw new Error('A região não está na fronteira desta peça.');
   if(!regionOrientationFixed(state,region)&&order.rotation!==region.rotation){
     const observed=new Set(state.players.flatMap(p=>[...p.knownHexIds,...visibleHexIds(state,p.playerId)]));
     const rotated=rotatedRegionTiles(state,region,order.rotation);

@@ -86,6 +86,15 @@ export function kitTradeBonus(state: AlphaState, parties: readonly PlayerId[]): 
   }
 }
 
+/**
+ * Signature pieces are variants of a family, not new classes: every piece of that family of the civilization is the signature.
+ * Valgard's Guards are the Shield Guard (+1 guard each when defending a fortified city); Kor's Siege are Siege Engineers
+ * (+1 breach against stone or better); Thalos' Infantry is Naval Infantry (no amphibious penalty); Elyra's Explorers are
+ * Cartographers (reveal regions up to two hexes away).
+ */
+export const isSignature = (state: AlphaState, unit: Pick<AlphaUnit, 'ownerId' | 'kind'>) => { const kit = civilizationKit(state.players.find(p => p.playerId === unit.ownerId)?.civilization); return !!kit && kit.signature.item.status === 'ACTIVE' && kit.signature.family === unit.kind; };
+export const kitExplorationReach = (state: AlphaState, unit: AlphaUnit) => civilizationOf(state, unit.ownerId) === 'elyra' && unit.kind === 'EXPLORER' ? 2 : 1;
+
 /** Starting heritage, applied once when the match is created. Pieces that do not fit the capital stand on a free neighbour. */
 export function applyCivilizationHeritage(state: AlphaState): void {
   for (const player of state.players) {

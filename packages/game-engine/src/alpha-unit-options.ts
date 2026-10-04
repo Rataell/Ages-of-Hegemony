@@ -8,7 +8,7 @@ import { settleWithPioneer } from './alpha-cities.js';
 import { applyCommand } from './engine.js';
 import { alphaCanAfford } from './alpha-resources.js';
 import { disembarkBlock, embarkBlock, isCarried, isCarrierKind } from './alpha-naval.js';
-import { kitMovement } from './alpha-kits.js';
+import { kitExplorationReach, kitMovement } from './alpha-kits.js';
 
 export interface AlphaUnitOptions {
   /** Cheapest legal MOVE path (origin excluded) to every hex the piece can reach this round. */
@@ -71,7 +71,7 @@ function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Ma
 function explorable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>): AlphaUnitOptions['explore'] {
   const origin = byId.get(unit.hexId)!;
   return state.regions.filter(region => !region.revealedBy.includes(actor)).flatMap(region => {
-    const near = region.hexIds.map(id => byId.get(id)!).filter(tile => tile && hexDistance(origin, tile) <= 1).sort((a, b) => hexDistance(origin, a) - hexDistance(origin, b) || a.id.localeCompare(b.id));
+    const near = region.hexIds.map(id => byId.get(id)!).filter(tile => tile && hexDistance(origin, tile) <= kitExplorationReach(state, unit)).sort((a, b) => hexDistance(origin, a) - hexDistance(origin, b) || a.id.localeCompare(b.id));
     return near[0] ? [{ target: near[0].id, hexIds: [...region.hexIds] }] : [];
   }).sort((a, b) => a.target.localeCompare(b.target));
 }

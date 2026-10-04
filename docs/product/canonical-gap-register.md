@@ -64,7 +64,7 @@ A coluna **Ação** termina com o estado: FEITO (commit) · PRÓXIMO · ABERTO �
 | GR-32 | Armazém | Teto civilizacional | ◐ | ✓ | ✓ | ✓ | alpha-storage-metal | sim | P2 | DEC-008 | BLOQUEADO |
 | GR-33 | Cultura | Presença com efeito além da Hegemonia; Coesão | ◐ | ✓ | ✓ | ✓ | alpha-culture | sim | P2 | DEC-016, DEC-022 | BLOQUEADO |
 | GR-34 | Mesa viva | Presença, pausa, suspender, retomar no servidor | ✗ | ✗ | ✗ | ✗ | — | não | P2 | UXDEC-001…008 | ABERTO |
-| GR-35 | Unidades | Escalas, Modernização, unidades assinatura no motor | ✗ | — | — | ✗ | — | não | P2 | DEC-014, GR-05 | ABERTO |
+| GR-35 | Unidades | Escalas, Modernização, unidades assinatura no motor | ◐ | — | — | ◐ | alpha-kit-effects | sim | P2 | DEC-014, GR-05 | Assinaturas como variante da família: Guarda de Escudos (Valgard), Engenheiros de Cerco (Kor), Infantaria Naval (Thalos), Exploradores de Elyra; estrela no mapa · FEITO · demais assinaturas, escalas e Modernização · ABERTO |
 | GR-36 | Testes | Comandos sem teste: HIRE_ADVISOR, BUILD_ROAD, EMBARGO | ✓ | ✓ | ✓ | ✓ | ◐ (alpha-untested-commands) | sim | P3 | — | HIRE_ADVISOR e BUILD_ROAD · FEITO · EMBARGO depende da DEC-015 · BLOQUEADO |
 | GR-37 | Layout | Mesa V2.1 (mapa protagonista, Cofre, Livro, um CTA, 1366×768) no produto | — | — | — | ◐ (Conselho/Inspetor/abas) | e2e | sim | P2 | — | Passo 1: abaixo de 1400 px o Conselho começa recolhido; clicar num hex com peças abre o inspetor militar com a pilha; Pulso e mão sobre o mapa · FEITO · Cofre/Livro como sobreposições · ABERTO |
 

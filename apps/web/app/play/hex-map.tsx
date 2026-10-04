@@ -9,7 +9,7 @@ import { CIVIL_PIECES, bannerArt, borderStrokes, cityArt, fortificationArt, piec
 
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
 export type MapArt = {
-  seats: Record<string, { color: string; mark: CivilizationMark | null }>;
+  seats: Record<string, { color: string; mark: CivilizationMark | null; signature?: string | null }>;
   /** Roads (visible) and own trade routes, drawn under the pieces. */
   roads?: readonly string[];
   routes?: readonly { id: string; path: readonly string[]; suspended: boolean }[];
@@ -365,7 +365,7 @@ export const HexMap = memo(function HexMap({
                   const kinds = [...all.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
                   return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={lead}>
                     <title>{own ? 'Suas peças' : `Peças de ${data.players.find(p => p.id === ownerId)?.name ?? 'outra civilização'}`}: {kinds}</title>
-                    <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 30 : 38, count) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20)}</g>`).join(''))} />
+                    <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 30 : 38, count, art.seats[ownerId]?.signature === lead) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20, 0, art.seats[ownerId]?.signature === kind)}</g>`).join(''))} />
                     {cargo.length > 0 && <g transform="translate(0 -24)" className="art-cargo"><rect x="-22" y="-8" width="44" height="15" rx="7" /><text y="3">carga {cargo.length}</text></g>}
                   </g>;
                 });

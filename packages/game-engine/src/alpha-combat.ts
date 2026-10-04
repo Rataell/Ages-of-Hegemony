@@ -10,6 +10,7 @@ import { canEnter, unitSupply, validateMilitaryOrder } from './alpha-military.js
 import { visibleHexIds } from './alpha-world.js';
 import { stackBlock, stackRoom } from './alpha-stack.js';
 import { settleCargo } from './alpha-naval.js';
+import { isSignature } from './alpha-kits.js';
 import { alphaEvent } from './alpha-events.js';
 
 type Order = Extract<StrategicOrder, { type: 'ATTACK' }>;
@@ -57,7 +58,7 @@ function staticSide(state: AlphaState, sides: Sides, attacking: boolean) {
   const terrain = units.reduce((total, unit) => total + state.rules.units[unit.kind].terrainModifiers[sides.terrain as keyof typeof state.rules.units.INFANTRY.terrainModifiers], 0);
   const landform = attacking ? 0 : sides.terrain === 'HILLS' ? config.hillDefense : sides.terrain === 'MOUNTAINS' ? config.mountainDefense : 0;
   push(modifiers, 'Terreno', terrain + landform);
-  if (attacking && units.some(unit => unit.carrierId)) push(modifiers, 'Desembarque anfíbio', -1);
+  if (attacking && units.some(unit => unit.carrierId && !isSignature(state, unit))) push(modifiers, 'Desembarque anfíbio', -1);
   if (sides.city) {
     const side = attacking ? 'ATTACK' : 'DEFENSE';
     const cityBonus = units.reduce((total, unit) => total + (cityModifierSide(unit.kind, state.rules.units[unit.kind]) === side ? state.rules.units[unit.kind].cityModifier : 0), 0);
@@ -69,6 +70,7 @@ function staticSide(state: AlphaState, sides: Sides, attacking: boolean) {
     fortification = { ...sides.meta.fortification };
     push(modifiers, 'Fortificação', fortificationBonus(config, fortification));
     if (fortified(fortification)) push(modifiers, 'Defensores abrigados', fighters.filter(unit => unit.kind === 'GUARD' || unit.kind === 'INFANTRY').length * config.fortification.fortifiedDefenderBonus);
+    if (fortified(fortification)) push(modifiers, 'Guarda de Escudos', fighters.filter(unit => unit.kind === 'GUARD' && isSignature(state, unit)).length);
   }
   const sources = strengthSources(state, owner);
   push(modifiers, 'Tecnologia', sources.technology);
@@ -113,7 +115,7 @@ function tally(state: AlphaState, sides: Sides, attacking: boolean, posture: Bat
       if (kind === 'INFANTRY') { if (posture === 'HOLD') { tally.guards++; roll.effect = 'Comando: guarda (postura de defesa)'; } else { tally.impacts++; roll.effect = 'Comando: impacto'; } }
       else if (kind === 'GUARD') { tally.guards++; roll.effect = 'Comando: guarda extra'; if (!attacking && sides.city) { tally.flat.push({ source: 'Proteção da cidade', amount: config.command.cityGuardProtection }); roll.effect += ' e proteção da cidade'; } }
       else if (kind === 'CAVALRY') { if ((config.command.cavalryFlankTerrains as string[]).includes(sides.terrain)) { tally.flat.push({ source: 'Flanco da cavalaria', amount: config.command.cavalryFlank }); roll.effect = 'Comando: flanco'; } else roll.effect = 'Comando: terreno não permite flanco'; }
-      else if (kind === 'SIEGE') { if (fortifiedTarget) { tally.breach += config.command.siegeBreachSteps; roll.effect = 'Comando: brecha na fortificação'; } else { tally.impacts++; roll.effect = 'Comando: impacto (sem fortificação)'; } }
+      else if (kind === 'SIEGE') { if (fortifiedTarget) { tally.breach += config.command.siegeBreachSteps + (isSignature(state, { ownerId: attacking ? sides.attackerId : sides.defenderId, kind }) && sides.meta && !['NONE', 'PALISADE'].includes(sides.meta.fortification.level) ? 1 : 0); roll.effect = 'Comando: brecha na fortificação'; } else { tally.impacts++; roll.effect = 'Comando: impacto (sem fortificação)'; } }
       else if (kind === 'FLEET') { if ((config.command.navalTerrains as string[]).includes(sides.terrain)) { tally.flat.push({ source: 'Superioridade naval', amount: config.command.navalBonus }); roll.effect = 'Comando: efeito naval'; } else roll.effect = 'Comando: frota sem efeito em terra'; }
       else if (kind !== 'RANGED') roll.effect = 'Comando';
     }
