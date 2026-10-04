@@ -1,4 +1,4 @@
-# Ages of Hegemony — Regras V5.1b (CANONICAL BASELINE)
+# Ages of Hegemony — Regras V5.1b FINAL — CANONICAL BASELINE
 
 Data: 2026-10-04. **V5.1b fecha combate, Ressonância/eventos, Virada de Era, ameaças, descobertas, Governo e evolução militar sobre a V5.1a aprovada** (economia, cidade, população e interface intactas). V5.1a foi a correção final da base (Capacidade como potência da ativação, redistribuição no Planejamento, mobilização, Capacidade efetiva, N7 só na Era VII, Administração sem carga zero, nomes de recursos por extenso). Nada implementado no engine ainda. Tudo aqui é conteúdo original de AoH; referências externas valem só como princípio de design (ordens limitadas, um mundo que reage, eras que escalam).
 
@@ -232,10 +232,10 @@ Uma batalha resolve **um** choque; não há rodadas repetidas obrigatórias. Que
 1. **Posturas.** O atacante declara Assalto, Manter ou Manobra; o defensor escolheu a sua em segredo (Ação livre, pode mudar a cada rodada). Círculo: Assalto vence Manobra, Manobra vence Manter, Manter vence Assalto; vencer o círculo dá +1. Cada postura potencializa uma face: Assalto → Impacto, Manter → Guarda, Manobra → Manobra.
 2. **Cada peça militar** soma seu Poder base, rola **1 dado AoH** — Impacto, Impacto, Guarda, Manobra, Comando, Vazio — e aplica a assinatura da família. Impacto +1 (+2 potencializado); Guarda cancela 1 Impacto inimigo (2 potencializada); Manobra +1 (+2 potencializada); Comando ativa a assinatura (Flanco, Salva, Brecha, Abordagem); Vazio nada.
 3. **Somam-se** terreno (defensor em Colina +1, Montanha +2), fortificação íntegra (+1 a +5 por nível; danificada vale metade; brechada zero), suprimento (sem suprimento −2), tecnologia (Grau e avanços com Força), Líder (poder 1×/Era) e **no máximo 1 Reação por lado** (carta Reação, 0–1 recurso).
-4. **Margem** = ataque − defesa. |margem| ≤ 1: choque sangrento, cada lado com 2+ peças perde 1, o atacante recua. 2–4: o perdedor perde 1 peça e recua. ≥ 5: o perdedor perde 2 peças e recua, o vencedor avança para o hex. Baixas escolhidas pelo dono, Cerco por último. Entrar numa cidade é sempre ataque; vitória ≥ 5 contra cidade sem Guarda viva captura.
+4. **Δ = Ataque − Defesa.** O sinal define o vencedor; o valor absoluto, a intensidade. |Δ| ≤ 1: **empate tático**, cada lado com 2+ peças perde 1 e o atacante recua. |Δ| 2–4: **vitória**, o perdedor perde 1 e recua. |Δ| ≥ 5: **vitória decisiva**, o perdedor perde 2 e recua. Δ > 0: o atacante venceu e **pode avançar** para o hex. Δ < 0: o defensor venceu e **mantém a posição** (nunca avança para o hex de origem do atacante). Baixas escolhidas pelo dono, Cerco por último. Entrar numa cidade é sempre ataque; vitória decisiva contra cidade sem Guarda viva captura.
 5. **Fortificação** absorve: a primeira Brecha bem-sucedida reduz 1 passo de Integridade em vez de matar; Governar repara.
 
-Simulação (§19): forças iguais 3v3 empatam 57% e decidem 43%; 6v6 decide 54%; Cavalaria+Arqueiros contra Infantaria em Planície vencem 37% (77% se o defensor errar a postura); Fortaleza sem Cerco cai 26%, com 1 Cerco 51%; sem suprimento o atacante perde 70%.
+Simulação (§19 H): forças iguais 3v3 empatam taticamente 57%, o atacante vence 14% e o defensor 29%; 6v6 decide 54%; Cavalaria+Arqueiros contra Infantaria em Planície vencem 37% (77% se o defensor errar a postura); Fortaleza sem Cerco cai 26%, com 1 Cerco 51%; sem suprimento o atacante perde 70% e recua 99%.
 
 ## 12. Teia Civilizacional (40 avanços + 10 Convergências = 50)
 
@@ -395,7 +395,7 @@ Mesmo orçamento de poder: cada governo tem 2 vantagens e 1 limitação, todas e
 
 ## 18. Ressonância, Repercussão e Pulso
 
-**Não existe mais contador de Pressão.** A função "o mundo reage ao que você faz" passa à **Ressonância**: cada civilização tem **3 marcadores ◆ ◆ ◆**.
+A função "o mundo reage ao que você faz" é da **Ressonância** (nenhum outro contador existe): cada civilização tem **3 marcadores ◆ ◆ ◆**.
 
 - Ao concluir **qualquer** avanço — universal, Convergência ou Herança — a civilização consome 1 marcador e registra o domínio do avanço.
 - Quando o **terceiro** é consumido: resolve-se uma **Repercussão** daquela civilização e os três marcadores voltam.
@@ -449,26 +449,27 @@ Elevações da capital (V5.1): N2 r2, N3 r11, N4 r18, N5 r21, N6 r24, N7 r28. Cu
 
 **G. Recrutamento por Soldados:** uma Vila (6 hab.) com 2 Soldados recruta 2 peças por ativação e fica em 4 habitantes, abaixo do mínimo da Vila: não cresce até repor. Isso dá peso real a cada recrutamento, sem baixar o nível.
 
-**H. Combate V5.1b** (`docs/product/sim/v51b-combate.py`, 4000 choques cada; margens 2/5):
+**H. Combate V5.1b** (`docs/product/sim/v51b-combate.py`, 4000 choques cada; Δ com |Δ| ≤ 1 / 2–4 / ≥ 5):
 
-| Choque | ataque vence | defesa vence | impasse | margem ≥ 5 |
-|---|---|---|---|---|
-| 1v1 Infantaria I | 0% | 28% | 72% | 0% |
-| 3v3 Infantaria I | 14% | 29% | 57% | 1% |
-| 6v6 Infantaria I | 31% | 23% | 46% | 6% |
-| Inf+Cav+Arq vs 3 Inf, Assalto × Manter | 37% | 7% | 56% | 2% |
-| mesmo, defensor em Manobra | 77% | 1% | 23% | 17% |
-| 3 Inf III vs 3 Inf I | 14% | 28% | 58% | 1% |
-| 4 Inf vs 2 Guarda + Paliçada | 65% | 1% | 34% | 12% |
-| 4 Inf vs 2 Guarda + Fortaleza | 26% | 18% | 56% | 1% |
-| 3 Inf + Cerco vs Fortaleza | 51% | 5% | 44% | 6% |
-| 3 Inf + 2 Cerco vs Cidadela | 87% | 0% | 13% | 38% |
-| 3 Inf sem suprimento vs 3 Inf | 1% | 70% | 28% | 13% |
-| 3 Inf vs 2 Inf em Colina | 46% | 5% | 50% | 3% |
+| Choque | A vence (decisiva) | D vence (decisiva) | empate tático | baixas médias A / D | recua A / D |
+|---|---|---|---|---|---|
+| 1v1 Infantaria I | 0% | 28% | 72% | 0,28 / 0,00 | 100% / 0% |
+| 3v3 Infantaria I | 14% (0%) | 29% (0%) | 57% | 0,87 / 0,71 | 86% / 14% |
+| 6v6 Infantaria I | 31% (5%) | 23% (2%) | 46% | 0,71 / 0,82 | 69% / 31% |
+| Inf+Cav+Arq vs 3 Inf, Assalto × Manter | 37% (2%) | 7% | 56% | 0,63 / 0,95 | 63% / 37% |
+| mesmo, defensor em Manobra | 77% (17%) | 1% | 23% | 0,23 / 1,16 | 23% / 77% |
+| 3 Inf III vs 3 Inf I | 14% | 28% | 58% | 0,86 / 0,73 | 86% / 14% |
+| 4 Inf vs 2 Guarda + Paliçada | 65% (12%) | 1% | 34% | 0,35 / 1,10 | 35% / 65% |
+| 4 Inf vs 2 Guarda + Fortaleza | 26% (1%) | 18% | 56% | 0,74 / 0,83 | 74% / 26% |
+| 3 Inf + Cerco vs Fortaleza | 51% (6%) | 5% | 44% | 0,49 / 1,00 | 49% / 51% |
+| 3 Inf + 2 Cerco vs Cidadela | 87% (38%) | 0% | 13% | 0,13 / 1,37 | 13% / 87% |
+| 3 Inf sem suprimento vs 3 Inf | 1% | 70% (13%) | 28% | 1,12 / 0,30 | 99% / 1% |
+| 3 Inf vs 2 Inf em Colina | 46% (3%) | 5% | 50% | 0,54 / 0,98 | 54% / 46% |
+| 2 Frotas vs 2 Frotas | 4% | 25% | 71% | 0,96 / 0,75 | 96% / 4% |
 
 Leitura: defender compensa em forças iguais; postura certa vale mais que um Grau; Fortaleza exige Cerco; Cidadela exige 2; sem suprimento não se ataca. Graus I→III ainda são sutis em 3v3 (14% em ambos): os Graus mudam identidade, não a curva — confirmar em playtest.
 
-**I. Ressonância, Pulsos e bandos** (`docs/product/sim/v51b-ressonancia-bandos.py`): a 1 avanço/2 rodadas, 6 Repercussões por civilização em 35 rodadas (1 a cada ~6); mesa de 2: 12 no total (0,3/rodada), 4: 24 (0,7), 6: 36 (1,0). Pulsos: 7 por partida. Bandos (Acampamento no Pulso com 60%, Repercussão 25%, 1 hex/rodada): primeiro ataque bárbaro na rodada 5–6 em qualquer mesa; sem ninguém eliminá-los, 7 (2j) a 13 (6j) Acampamentos vivos no fim — a recompensa única e a Ameaça crescente é que fazem valer a pena limpar a fronteira.
+**I. Ressonância, Pulsos e ameaças** (`docs/product/sim/v51b-ressonancia-bandos.py`): a 1 avanço/2 rodadas, 6 Repercussões por civilização em 35 rodadas (1 a cada ~6); mesa de 2: 12 no total (0,3/rodada), 4: 24 (0,7), 6: 36 (1,0). Pulsos: 7 por partida. Bandos com **limite mundial = jogadores + 2** (2p 4, 4p 6, 6p 8), surgimento no Pulso (60%) e nas Repercussões (25% SURGIR, 25% ATIVAR AMEAÇAS), 1 hex/rodada: primeiro ataque na rodada 4–6 em qualquer mesa; sem ninguém limpar, os acampamentos saturam no limite (4 / 6 / 8) com Ameaça média 2,9 e 2–3,5 surgimentos viram reforços; com os jogadores limpando metade dos acampamentos após um saque, sobram 1–2 e a Ameaça média cai a 1. Piratas: limite separado **⌈jogadores/2⌉ + 1** (2p 2, 4p 3, 6p 4).
 
 ## 20. O que a V5.1 recupera e o que descarta da Bíblia
 
@@ -485,15 +486,17 @@ Mundo inteiro pré-gerado pela seed, oculto. Região = 7 hexes. O Explorador esc
 Princípio: **surgem → crescem → movem → atacam**. Tudo determinístico sobre o RNG privado da partida.
 
 - **Surgimento.** Um Pulso, uma Repercussão (Pedra e Metal, Troca) ou um Encontro pode criar um **Acampamento** com um grupo inicial numa fronteira elegível: hex não reivindicado a 3–5 hexes de alguma cidade, fora da visão de todos no momento. Nunca adjacente a uma cidade.
+- **Limite mundial de Acampamentos terrestres = jogadores + 2** (2p 4 · 4p 6 · 6p 8). Um efeito que criaria um Acampamento acima do limite **REFORÇA** um Acampamento elegível existente (+1 Ameaça, o mais distante de peças de jogador) em vez de criar outro.
+- **Comandos de evento.** Além da Virada de Era (que sempre ativa as Ameaças), Pulsos e Repercussões podem trazer **ATIVAR AMEAÇAS** (bandos e piratas movem, reforçam ou saqueiam/atacam conforme o efeito), **SURGIR AMEAÇA** (novo Acampamento ou Ancoradouro pirata, sujeito ao limite) ou **REFORÇAR AMEAÇA** (+1 Ameaça num Acampamento elegível). Assim as ameaças agem durante a Era, não só a cada 5 rodadas.
 - **Ameaça I / II / III.** Composição por Era e terreno: I = 2 Infantaria (Poder 4); II = 3 Infantaria + 1 Arqueiros, Cavalaria em vez de Arqueiros a partir da Era III (Poder 8); III = 4 Infantaria + Cavalaria + Cerco a partir da Era V (Poder 13). Em Colina/Montanha o bando ganha a defesa do terreno como qualquer peça.
 - **Crescimento.** No Pulso de Virada de Era, cada Acampamento vivo sobe 1 Ameaça (máx. III) se nenhuma peça de jogador estiver a 2 hexes.
-- **Movimento e alvo** (passo 4 da Virada e em toda rodada ímpar): o bando escolhe o alvo deterministicamente: 1) acessível por terra; 2) cidade mais próxima; 3) menor defesa (Guarda + fortificação); 4) maior valor econômico (nível + distritos) como desempate. Move 1 hex por rodada rumo ao alvo (2 com Cavalaria na Ameaça II+).
+- **Movimento e alvo** (passo 4 da Virada, em toda rodada ímpar e a cada ATIVAR AMEAÇAS): o bando escolhe o alvo deterministicamente: 1) acessível por terra; 2) cidade mais próxima; 3) menor defesa (Guarda + fortificação); 4) maior valor econômico (nível + distritos) como desempate. Move 1 hex por rodada rumo ao alvo (2 com Cavalaria na Ameaça II+).
 - **No caminho** pode: atacar peças, bloquear a coleta de um hex (o hex não é trabalhado enquanto ocupado), pilhar uma melhoria (vira terreno simples), cortar estrada/rota (suspensa enquanto ocupada), matar civis expostos (Explorador/Pioneiro/Enviado sem escolta).
 - **Combate** usa o mesmo motor dos jogadores (§11b); o bando está sempre em Assalto.
 - **Recompensa** ao eliminar o Acampamento: uma única vez por Acampamento (Ameaça I: 2 Riqueza; II: 3 Riqueza + 1 Prestígio; III: 4 Riqueza + 2 Prestígio + 1 Encontro). Bandos derrotados em campo não dão nada: sem farming.
 - Bandos e Acampamentos são atacáveis no Alpha com a Ordem Expedição normal.
 
-**Piratas** seguem a mesma arquitetura no mar, com comportamento próprio: surgem em fronteiras marítimas ou numa rota marítima ativa (Repercussão de Troca, Pulso Rotas Instáveis); alvo: 1) rota marítima mais rica; 2) porto mais próximo; 3) porto com menos Frotas. Bloqueiam a rota enquanto estiverem nela, pilham o porto (−2 Riqueza ao dono) e combatem Frotas; nunca desembarcam. Eliminar o Ancoradouro pirata: 3 Riqueza + 1 Prestígio, uma vez.
+**Piratas** seguem a mesma arquitetura no mar, com comportamento próprio e **limite separado e menor: ⌈jogadores/2⌉ + 1** (2p 2 · 4p 3 · 6p 4; acima disso, REFORÇAR): surgem em fronteiras marítimas ou numa rota marítima ativa (Repercussão de Troca, Pulso Rotas Instáveis); alvo: 1) rota marítima mais rica; 2) porto mais próximo; 3) porto com menos Frotas. Bloqueiam a rota enquanto estiverem nela, pilham o porto (−2 Riqueza ao dono) e combatem Frotas; nunca desembarcam. Eliminar o Ancoradouro pirata: 3 Riqueza + 1 Prestígio, uma vez.
 
 ## 22. Virada de Era
 
@@ -544,7 +547,7 @@ Explorar Região +1 · fundar cidade +1 · cidade atinge N4 +1, N6 +2, N7 +3 · 
 | Teia 40+10 com OU | identidade por caminho | que tronco seguir; qual lado da escolha | grafo | Livro mostra só o patamar atual + próximo; Convergências entre colunas; OU como carta dupla |
 | Herança paga | assimetria opcional | investir na identidade ou não | 54 nós | 3 ramos na cor da civ saindo do avanço que os abre |
 | Suprimento por nível | guerra longe exige cidade grande | onde apoiar a campanha | raio | halo de suprimento ao selecionar exército; peças fora com borda tracejada |
-| Ressonância ◆◆◆ / Repercussão | o que você pesquisa volta para você | pesquisar agora ou guardar o 3º marcador | dois eventos | três losangos no selo da civ; a carta de Repercussão mostra "mitigado por" |
+| Ressonância ◆◆◆ / Repercussão | o que você pesquisa volta para você | pesquisar agora ou guardar o 3º marcador | dois eventos | três encaixes próprios de AoH na Faixa, esvaziados um a um; a carta de Repercussão mostra "mitigado por" |
 | Pulso por Era | o mundo muda junto | — | — | pergaminho na Virada de Era |
 | Bandos / Piratas | fronteira viva | limpar ou fortificar | IA | Acampamento com Ameaça I/II/III no mapa; rota de alvo tracejada quando visível |
 | Governos 7 | estilo com custo | trocar ou não | 8 textos | Livro·Conselho mostra só o atual e os elegíveis |
@@ -565,4 +568,8 @@ Explorar Região +1 · fundar cidade +1 · cidade atinge N4 +1, N6 +2, N7 +3 · 
 
 ## 27. V5.1a → V5.1b (o que mudou)
 
-Combate fechado como um choque tático com dado AoH, posturas circulares, margem 2/5 e no máximo 1 Reação por lado (§11b); tabela militar com Poder base e uma assinatura por família (§11); Graus I/II/III pela Teia (§12b); **Pressão removida** e substituída pela Ressonância de 3 marcadores com Repercussão por civilização, Pulso só na Virada de Era (§18); Virada de Era em 9 passos com Ameaças do Mundo (§22); Governo só na Virada, 1 reforma por Era (§16); Descobertas com tipos de ponto (§21); Bandos de fronteira e Piratas (§21b); Herança consome Ressonância (§13). Economia, cidade, população e interface da V5.1a intactas. Nada da referência externa é copiado: nomes, árvore, custos, matemática (nenhuma soma ÷ 5, nenhuma rodada obrigatória), ícones, bárbaros e líderes são autorais.
+Combate fechado como um choque tático com dado AoH, posturas circulares, Δ com empate tático / vitória / vitória decisiva e no máximo 1 Reação por lado (§11b); tabela militar com Poder base e uma assinatura por família (§11); Graus I/II/III pela Teia (§12b); **Pressão removida** e substituída pela Ressonância de 3 marcadores com Repercussão por civilização, Pulso só na Virada de Era (§18); Virada de Era em 9 passos com Ameaças do Mundo (§22); Governo só na Virada, 1 reforma por Era (§16); Descobertas com tipos de ponto (§21); Bandos de fronteira e Piratas (§21b); Herança consome Ressonância (§13). Economia, cidade, população e interface da V5.1a intactas. Nada da referência externa é copiado: nomes, árvore, custos, matemática (nenhuma soma ÷ 5, nenhuma rodada obrigatória), ícones, bárbaros e líderes são autorais.
+
+## 28. V5.1b → V5.1b FINAL (hotfix)
+
+Pressão removida de todo o texto e das pranchas (a Ressonância é o único sistema; o Pulso fica na Virada). Combate: Δ = Ataque − Defesa com empate tático / vitória / vitória decisiva; só o atacante avança (Δ > 0), o defensor mantém posição (Δ < 0). Eventos com ATIVAR AMEAÇAS / SURGIR AMEAÇA / REFORÇAR AMEAÇA. Limite mundial de Acampamentos = jogadores + 2 (reforço acima do limite); Piratas ⌈jogadores/2⌉ + 1. Simulações refeitas (§19 H, I). Pranchas reexportadas sem clipping.

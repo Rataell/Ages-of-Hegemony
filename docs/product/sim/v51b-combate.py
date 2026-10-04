@@ -1,7 +1,7 @@
 """V5.1b combat: one tactical shock. Power + one AoH die per unit + family signature + posture + terrain + fortification + supply.
 Die: Impacto, Impacto, Guarda, Manobra, Comando, Vazio. Postures circular: Assalto > Manobra > Manter > Assalto.
-Margin = attacker total − defender total: |m| ≤ 1 bloody stand (each side loses 1 if it has 2+ pieces, attacker falls back);
-2–4 loser loses 1 and retreats; ≥ 5 loser loses 2, retreats, winner advances. Fortification: intact adds level (1–5) to defender and absorbs the first breach;
+Δ = attack − defense. Sign = winner, |Δ| = intensity. |Δ| ≤ 1 tactical tie: each side with 2+ pieces loses 1, attacker falls back.
+|Δ| 2–4 victory: loser loses 1 and retreats. |Δ| ≥ 5 decisive: loser loses 2 and retreats. Δ > 0 the attacker may advance; Δ < 0 the defender holds. Fortification: intact adds level (1–5) to defender and absorbs the first breach;
 Cerco: 1 power in the field, +2 against a fortified city and converts one Comando into a breach step.
 Grades: I base; II signature stronger (Infantaria Guarda cancels 2; Cavalaria Manobra +1 move; Arqueiros 2 conversions;
 Guarda +1 in city); III +1 power on the family's own signature situation only.
@@ -45,11 +45,16 @@ def battle(att,ag,dfn,dg,ap='ASSAULT',dp='HOLD',terrain='PLAINS',fort=0,asup=Tru
     if m<=-5: return 'def_big',m
     return 'def',m
 def run(label,att,ag,dfn,dg,**kw):
-    n=4000; c={}
+    n=4000; c={}; la=ld=0; retreats_att=retreats_def=0
     for _ in range(n):
-        r,_=battle(att,ag,dfn,dg,**kw); c[r]=c.get(r,0)+1
+        r,m=battle(att,ag,dfn,dg,**kw); c[r]=c.get(r,0)+1
+        if r=='stand': la+=1 if len(att)>=2 else 0; ld+=1 if len(dfn)>=2 else 0; retreats_att+=1
+        elif r=='att': ld+=1; retreats_def+=1
+        elif r=='att_big': ld+=2; retreats_def+=1
+        elif r=='def': la+=1; retreats_att+=1
+        else: la+=2; retreats_att+=1
     att_w=(c.get('att',0)+c.get('att_big',0))/n; def_w=(c.get('def',0)+c.get('def_big',0))/n
-    print(f'{label:52s} ataque vence {att_w:5.0%}  defesa vence {def_w:5.0%}  impasse {c.get("stand",0)/n:5.0%}  grande margem {(c.get("att_big",0)+c.get("def_big",0))/n:4.0%}')
+    print(f'{label:50s} A vence {att_w:4.0%} (decisiva {c.get("att_big",0)/n:3.0%}) · D vence {def_w:4.0%} (decisiva {c.get("def_big",0)/n:3.0%}) · empate tático {c.get("stand",0)/n:4.0%} · baixas A {la/n:.2f} D {ld/n:.2f} · recua A {retreats_att/n:4.0%} D {retreats_def/n:4.0%}')
 I=[1]
 run('1v1 Infantaria I vs Infantaria I (planície)',['INF'],I,['INF'],I)
 run('3v3 Infantaria I vs Infantaria I',['INF']*3,I*3,['INF']*3,I*3)
