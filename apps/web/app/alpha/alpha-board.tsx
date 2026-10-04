@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { ALPHA_CARDS, CIVILIZATIONS, stackCategory, stackViewVerdict } from '@aoh/game-domain';
+import { ALPHA_CARDS, CIVILIZATIONS, civilizationKit, stackCategory, stackViewVerdict } from '@aoh/game-domain';
+import { seatColor } from './table-art';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import { HexMap } from '../play/hex-map';
 import { ResourceDisplay } from '../play/resource-display';
@@ -154,7 +155,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
         <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><p>Código para voltar: <code>{room.joinCode}</code></p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p>{feedbackUrl&&<a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a>}<p>Ambiente de teste: a partida pode ser reiniciada ou apagada.</p></details>
       </div>
       </aside>
-      <div className="world-column"><HexMap data={mapData} units={game.units} peoples={game.independents} raids={game.raidBands} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
+      <div className="world-column"><HexMap data={mapData} art={{seats:Object.fromEntries(game.players.map((p,i)=>[p.id,{color:seatColor(i),mark:civilizationKit(p.civilization)?.mark??null}])),cityMarks:game.cityMarks}} units={game.units} peoples={game.independents} raids={game.raidBands} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/></div>
       <aside className="context-inspector alpha-inspector" data-collapsed={!panels.inspector}>
         <div className="alpha-panel-toggle"><button type="button" aria-expanded={panels.inspector} aria-label={panels.inspector?'Recolher Inspetor':'Expandir Inspetor'} title={panels.inspector?'Recolher Inspetor':'Expandir Inspetor'} onClick={()=>togglePanel('inspector')}>{panels.inspector?'›':'‹'}</button></div>
         <div className="inspector-tabs" role="group" aria-label="Contexto">{INSPECTORS.map(([key,title])=><button key={key} aria-pressed={inspector===key} onClick={()=>setInspector(key)}>{title}{key==='military'&&game.self.orders.length>0?` · ${game.self.orders.length}`:''}</button>)}</div>

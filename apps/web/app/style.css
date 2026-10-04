@@ -26,12 +26,12 @@
   --wealth: #e6c173;
   --knowledge: #94bed2;
   --influence: #c4a7d4;
-  --civ-1: #d6b877;
-  --civ-2: #80b5c9;
-  --civ-3: #c9889f;
-  --civ-4: #97c288;
-  --civ-5: #b19ad6;
-  --civ-6: #d69472;
+  --civ-1: #6ca7d9;
+  --civ-2: #d48a6a;
+  --civ-3: #5cb3a5;
+  --civ-4: #a691d6;
+  --civ-5: #a9bf6a;
+  --civ-6: #c9889f;
   --plains: #77885b;
   --forest: #436349;
   --hills: #7c7766;
@@ -2417,3 +2417,16 @@ dialog h2 {
 .alpha-raid .raid-badge { fill: #2a1512; stroke: var(--danger); stroke-width: 1.5; }
 .alpha-raid .raid-glyph { fill: none; stroke: var(--danger); stroke-width: 2; stroke-linecap: round; }
 .alpha-raid .raid-count { fill: var(--text-primary); font-size: 11px; font-weight: 700; }
+
+/* Experience V2.2 table art (Alpha map). Seat colors carry no gold (UXDEC-020); selection, path and target stay neutral. */
+.world-map.art-mode .hex .hex-border { stroke: transparent; stroke-width: 1.4; filter: none; }
+.world-map.art-mode .hex:hover .hex-border, .world-map.art-mode .hex:focus .hex-border { stroke: rgba(244, 236, 216, 0.55); stroke-width: 2; }
+.world-map.art-mode .hex.eligible .hex-border { stroke: #f4ecd8; stroke-dasharray: 6 4; stroke-width: 2.5; }
+.world-map.art-mode .hex.selected .hex-border { stroke: #f4ecd8; stroke-width: 3.5; stroke-dasharray: none; }
+.world-map.art-mode .frontier-pulse { stroke: #f4ecd8; }
+.world-map.art-mode .hex-owner-tint { fill-opacity: 0.1; }
+.world-map.art-mode .art-borders, .world-map.art-mode .art-stack, .world-map.art-mode .art-city { pointer-events: none; }
+.art-level-seal { fill: #0b1114; stroke-width: 1.6; }
+.hex text.art-level { fill: #f4ecd8; font-size: 11px; font-weight: 700; }
+.hex text.art-city-name { font-size: 10.5px; }
+.world-map.art-mode .art-labels { pointer-events: none; }

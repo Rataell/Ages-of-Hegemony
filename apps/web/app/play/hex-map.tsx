@@ -4,6 +4,22 @@ import type { LocalView } from '@aoh/server/local-play';
 import type { AlphaUnit, HexTile } from '@aoh/game-domain';
 import { label, roman } from './presentation';
 import { clampCentre, clampZoom, mapFrame, position, tileSummary, viewBoxOf } from './map-frame';
+import type { CivilizationMark } from '@aoh/game-domain';
+import { CIVIL_PIECES, bannerArt, borderStrokes, cityArt, fortificationArt, pieceArt, seedOf } from '../alpha/table-art';
+
+/** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
+export type MapArt = {
+  seats: Record<string, { color: string; mark: CivilizationMark | null }>;
+  cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capital: boolean; fortification: { level: string; state: string } }[];
+};
+const svgFragment = (html: string) => ({ __html: html });
+/** The two corners a tile shares with a neighbour centred at (nx, ny): the tile corners nearest to it. */
+function sharedEdge(x: number, y: number, nx: number, ny: number, r: number): [number, number, number, number] {
+  const corners = Array.from({ length: 6 }, (_, i) => { const a = ((60 * i - 30) * Math.PI) / 180; return [x + r * Math.cos(a), y + r * Math.sin(a)] as const; })
+    .sort((a, b) => Math.hypot(a[0] - nx, a[1] - ny) - Math.hypot(b[0] - nx, b[1] - ny));
+  return [corners[0]![0], corners[0]![1], corners[1]![0], corners[1]![1]];
+}
+const NEIGHBOURS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]] as const;
 
 type Props = {
   data: Pick<LocalView,'players'|'claimable'|'workable'> & {view:Pick<LocalView['view'],'player'|'visibleCities'> & {era:string;visibleTerritory:HexTile[]}};
@@ -11,6 +27,7 @@ type Props = {
   /** Independent peoples and raid bands the player knows of (Alpha). */
   peoples?: readonly { hexId: string; type: string; attitude: string; integratedBy: string | null }[];
   raids?: readonly { hexId: string; strength: number }[];
+  art?: MapArt;
   selected: string | null;
   focus: string | null;
   working: boolean;
@@ -65,6 +82,7 @@ export const HexMap = memo(function HexMap({
   units = [],
   peoples = [],
   raids = [],
+  art,
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   // null = fitted to the projected tiles; otherwise an explicit centre and zoom (1 shows the whole fitted frame).
@@ -122,7 +140,7 @@ export const HexMap = memo(function HexMap({
 
       <svg
         ref={svgRef}
-        className="world-map"
+        className={`world-map${art ? ' art-mode' : ''}`}
         viewBox={viewBoxOf(frame, view)}
         aria-label="Mapa hexagonal interativo"
         onPointerDown={handlePointerDown}
@@ -212,7 +230,14 @@ export const HexMap = memo(function HexMap({
               <polygon className="hex-border" points={points} />
 
               {/* Content: City Monument or Rural Terrain */}
-              {city ? (
+              {city && art ? (() => {
+                const mark = art.cityMarks.find(m => m.cityId === city.id), seat = art.seats[city.ownerId];
+                const level = mark?.level ?? 1, color = seat?.color ?? '#9aa4a2';
+                return <g className="city-anchor art-city" data-level={level} data-fortification={mark?.fortification.level ?? 'NONE'}>
+                  <g dangerouslySetInnerHTML={svgFragment(cityArt(level, 50, { color, seed: seedOf(city.id) }) + (mark ? fortificationArt(mark.fortification.level, mark.fortification.state, 50) : '') + (seat?.mark ? `<g transform="translate(29 -24)">${bannerArt(seat.mark, color, 30)}</g>` : ''))} />
+                  <g transform="translate(-30 -26)"><circle r="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{level}</text></g>
+                </g>;
+              })() : city ? (
                 <g className={`city-anchor ${isCapital ? 'is-capital' : ''}`}>
                   {/* City bastion/monument foundation */}
                   <rect x="-24" y="-22" width="48" height="42" rx="4" className="city-plate" />
@@ -297,7 +322,25 @@ export const HexMap = memo(function HexMap({
                 </>;
               })()}
               {/* One badge per owner: the owner's colour, a soldier or a flag for civil pieces, and the count. Foreign pieces are outlined. */}
-              {(() => {
+              {art && (() => {
+                const here = units.filter(u => u.hexId === tile.id);
+                if (!here.length) return null;
+                const owners = [...new Set(here.map(u => u.ownerId))].sort((a, b) => Number(b === data.view.player.id) - Number(a === data.view.player.id));
+                // On a city the pieces stand at its lower corners, so the plan stays readable; in the field they take the centre.
+                return owners.slice(0, 2).map((ownerId, slot) => {
+                  const mine = here.filter(u => u.ownerId === ownerId), color = art.seats[ownerId]?.color ?? '#9aa4a2', own = ownerId === data.view.player.id;
+                  const military = mine.filter(u => !CIVIL_PIECES.has(u.kind)), civil = [...new Set(mine.filter(u => CIVIL_PIECES.has(u.kind)).map(u => u.kind))];
+                  const lead = military.length ? [...military.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1])[0]![0] : civil[0]!;
+                  const count = military.length || mine.filter(u => u.kind === lead).length, side = military.length ? civil : civil.slice(1);
+                  const x = city ? (slot === 0 ? -24 : 24) : owners.length > 1 ? (slot === 0 ? -20 : 20) : 0, y = city ? 22 : 0;
+                  const kinds = [...mine.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
+                  return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={lead}>
+                    <title>{own ? 'Suas peças' : `Peças de ${data.players.find(p => p.id === ownerId)?.name ?? 'outra civilização'}`}: {kinds}</title>
+                    <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 30 : 38, count) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20)}</g>`).join(''))} />
+                  </g>;
+                });
+              })()}
+              {!art && (() => {
                 const here = units.filter(u => u.hexId === tile.id);
                 if (!here.length) return null;
                 const owners = [...new Set(here.map(u => u.ownerId))].sort((a, b) => Number(b === data.view.player.id) - Number(a === data.view.player.id));
@@ -317,6 +360,32 @@ export const HexMap = memo(function HexMap({
             </g>
           );
         })}
+        {art && <g className="art-borders" aria-hidden="true">{(() => {
+          // Territorial edges: seat color with the owner's civilization pattern, drawn once per edge between different owners.
+          const byCoord = new Map(tiles.map(t => [`${t.q},${t.r}`, t]));
+          return tiles.flatMap(tile => {
+            if (!tile.ownerId) return [];
+            const seat = art.seats[tile.ownerId], p = position(tile.q, tile.r);
+            if (!seat) return [];
+            return NEIGHBOURS.flatMap(([dq, dr]) => {
+              const n = byCoord.get(`${tile.q + dq},${tile.r + dr}`);
+              if (n?.ownerId === tile.ownerId) return [];
+              const np = position(tile.q + dq, tile.r + dr), [x1, y1, x2, y2] = sharedEdge(p.x, p.y, np.x, np.y, 52);
+              const pattern = seat.mark?.border ?? 'SOLID';
+              return [<g key={`${tile.id}>${dq},${dr}`} dangerouslySetInnerHTML={svgFragment(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#0b1114" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>` + borderStrokes(pattern, seat.color, 3).map(st => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${st}/>`).join(''))} />];
+            });
+          });
+        })()}</g>}
+        {art && <g className="art-labels" aria-hidden="true">{cities.flatMap(city => {
+          // City names sit above every tile, so the next row never covers them.
+          const tile = tiles.find(t => t.id === city.hexId);
+          if (!tile) return [];
+          const p = position(tile.q, tile.r), name = `${city.id === capitalId ? '★ ' : ''}${city.name}`, natural = name.length * 6.2, fitted = Math.min(natural, 88);
+          return [<g key={city.id} transform={`translate(${p.x} ${p.y + 50})`} className="hex">
+            <rect x={-Math.max(26, fitted / 2 + 5)} y="-7" width={Math.max(52, fitted + 10)} height="13" rx="3" className="city-banner-bg" />
+            <text className="city-name art-city-name" y="3" {...(natural > fitted ? { textLength: fitted, lengthAdjust: 'spacingAndGlyphs' } : {})}>{name}</text>
+          </g>];
+        })}</g>}
       </svg>
 
       <div className="map-tools">

@@ -1,4 +1,4 @@
-import { ACTION_CLASS, ADVANCEMENTS, GREAT_PROJECTS, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { ACTION_CLASS, ADVANCEMENTS, CityLevelSchema, GREAT_PROJECTS, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
@@ -19,6 +19,8 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     phase:state.phase,urban:urbanOptions(state,actor),
     worldPulse:state.worldPulse.current?{id:state.worldPulse.current.id,name:state.worldPulse.current.name,type:state.worldPulse.current.type}:null,
     cityStates:state.cities.filter(c=>c.currentOwnerId===actor).map(c=>({cityId:c.cityId,status:c.status,integration:c.integration,mood:c.mood,level:c.level,localCohesion:c.localCohesion,urbanActionsUsed:c.urbanActionsUsed,plannedUrbanActions:progress.plannedActions.filter(action=>action.type==='URBAN_ACTION'&&action.cityId===c.cityId).length,fortification:c.fortification.level})),
+    /** What anyone sees of a visible city from outside: its size and its walls (UXDEC-016/017). Never population details. */
+    cityMarks:state.cities.flatMap(meta=>{const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.id===meta.cityId);if(!city||(meta.currentOwnerId!==actor&&!visible.has(city.hexId)))return [];return [{cityId:meta.cityId,hexId:city.hexId,ownerId:meta.currentOwnerId,level:CityLevelSchema.options.indexOf(meta.level)+1,capital:meta.capital,fortification:meta.fortification}];}),
     culture:culturalPresenceView(state,actor),
     independents:independentPeopleView(state,actor),
     raidBands:raidBandView(state,actor),
