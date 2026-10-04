@@ -17,3 +17,8 @@ Proposta de experiência. **Não implementada no produto.**
 10. **Pranchas V2.1** no mesmo arquivo: `?f=c01` … `c20` (as 20 pranchas do canvas reescritas com as regras V2.1) e `mv21` … `mv26` (Mesa viva). São a fonte do canvas “Ages of Hegemony — Concepção de Produto, UI e UX” (versão 12, 2026-10-03), que agora tem 27 pranchas em 6 páginas. Os conceitos V2 (`v2-concepts.html`) ficam como histórico.
 
 Autoridade: Canonical Product Specification V4 e decisões aprovadas acima de tudo; as pranchas 01–20 da proposta anterior são referência histórica. Números nos conceitos são ilustrativos.
+
+## Bíblia e protótipo
+
+11. [Atualização da Bíblia e sistema de ilustração](08-biblia-atualizacao-ilustracao.md) — as 28 pranchas contra a V4 (manter, atualizar, decidir, futuro), o inventário de ilustrações da Bíblia e os tamanhos na mesa; UXDEC-012 a 015. Versão visual: [biblia-proposta.html](biblia-proposta.html).
+12. [Protótipo jogável](prototype/index.html) — a Experience V2.1 com as ilustrações da Bíblia, contra duas civilizações-bot. Regras reduzidas; não substitui o motor do produto.

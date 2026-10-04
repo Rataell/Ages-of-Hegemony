@@ -1,0 +1,179 @@
+<title>Atualização da Bíblia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: an atlas plate per section, one reading column with full-width tables and art strips. Single dark look shared with the Bible and the game. */
+:root{--ink:#0b1114;--table:#121b20;--steel:#19252b;--line:#33474f;--bronze:#7d5c33;--gold:#c9a45c;--gold2:#e7c98a;--parch:#e8dbbb;--text:#eee8da;--muted:#b3c0bd;--dim:#93a3a0;--ok:#9ec4a2;--warn:#e5bf72;--bad:#e59a86;--plum:#c4a3e0;
+  --display:'Cinzel',Georgia,serif;--body:'Source Sans 3','Segoe UI',system-ui,sans-serif;--chron:'Cormorant Garamond',Georgia,serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font:16px/1.6 var(--body);padding-inline:20px;padding-block:0 60px}
+main{max-width:1180px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);color:var(--gold2);letter-spacing:.03em;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,52px);line-height:1.08}
+h2{font-size:clamp(24px,3vw,32px);margin-bottom:6px}
+h3{font-size:19px;margin:22px 0 8px}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.lead{font-family:var(--chron);font-style:italic;font-size:clamp(20px,2.4vw,26px);color:var(--gold2);max-width:60ch}
+.muted{color:var(--muted)}.dim{color:var(--dim)}
+header{padding-block:56px 28px;border-bottom:1px solid var(--bronze)}
+section{padding-block:40px 8px;border-bottom:1px solid #22323a}
+p{max-width:70ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{border:1px solid var(--line);border-radius:16px;padding:4px 12px;font-size:14px;background:#0f181c;color:var(--text);cursor:pointer;font-family:inherit}
+.chip[aria-pressed="true"]{border-color:var(--gold2);color:var(--gold2)}
+.st{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;border-radius:10px;padding:1px 8px;border:1px solid}
+.s-MANTER{color:var(--ok);border-color:#4f6b54}.s-ATUALIZAR{color:var(--gold2);border-color:var(--bronze)}.s-DECISÃO{color:var(--warn);border-color:#7a6230}.s-FUTURO{color:var(--plum);border-color:#5b4a73}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin-top:14px}
+table{border-collapse:collapse;width:100%;min-width:860px;font-size:14px;line-height:1.45}
+th{position:sticky;top:0;background:var(--steel);text-align:left;color:var(--gold);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:10px}
+td{padding:10px;border-top:1px solid #22323a;vertical-align:top}
+td:first-child{white-space:nowrap;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:14px;margin-top:14px}
+.plate{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--table);min-width:0}
+.strip{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;margin:14px 0}
+.fig{text-align:center;font-size:13px}
+.fig b{display:block;font-weight:600;color:var(--text)}
+.fig span{color:var(--dim);font-size:12px}
+.card{width:160px;border-radius:10px;border:1px solid #33474f;background:#121b20;overflow:hidden;text-align:left}
+.card .hd{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:6px 9px;color:#121b20;font-weight:700}
+.card .art{height:80px;display:grid;place-items:center;background:radial-gradient(circle,#1e2a30,#0d1316);margin:8px;border:1px solid #2a3a40}
+.card .nm{font:600 15px var(--display);color:var(--gold2);padding:0 10px;text-align:center}
+.card .tx{font-size:12.5px;color:var(--muted);padding:6px 10px 4px;text-align:center}
+.card .q{font-family:var(--chron);font-style:italic;color:#b08a4e;font-size:13px;padding:0 10px 10px;text-align:center}
+ol li,ul li{margin-bottom:6px}
+a{color:var(--gold2)}
+.cta{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:24px;background:linear-gradient(180deg,#e2bf78,#c99f55);color:#1a1206;font-weight:700;text-decoration:none;margin-top:14px}
+.dots{display:flex;gap:3px;justify-content:center;margin-top:2px}.dots i{width:5px;height:5px;border-radius:50%;background:var(--gold2)}.dots i.o{background:#33474f}
+@media (max-width:600px){header{padding-block:32px 20px}}
+</style>
+<main>
+<header>
+  <div class="eyebrow">Ages of Hegemony · Bíblia v3.1 → Canonical V4 · proposta de 2026-10-03</div>
+  <h1>Atualização da Bíblia e sistema de ilustração</h1>
+  <p class="lead">A Bíblia desenhou o jogo; agora ela precisa concordar com o produto e entregar suas ilustrações à mesa.</p>
+  <p class="muted">A Bíblia não foi alterada. Esta página propõe o que mudar em cada uma das 28 pranchas e como cidades, peças, distritos e cartas ficam visíveis para os jogadores. O protótipo jogável já aplica estas propostas.</p>
+  <a class="cta" href="https://claude.ai/artifact/UvGudZ86avw8ib1yHhTkzq">Abrir o protótipo jogável ›</a>
+</header>
+
+<section id="decidido">
+  <div class="eyebrow">Aplicar agora</div>
+  <h2>O que já está decidido</h2>
+  <ul>
+    <li><b>Eras:</b> I Fundação · II Expansão · III Civilização · IV Impérios · <b>V Potências</b> · <b>VI Ascensão</b>. Hegemonia é vitória, declarada só na Era VI (DEC-005, DEC-023, DEC-006).</li>
+    <li><b>Cidade:</b> Nível 1–7 é a única escada (DEC-002). Proposta: os nomes da Bíblia — Posto, Aldeia, Vila, Cidade, Grande Cidade, Metrópole, Metrópole Imperial — viram os nomes canônicos.</li>
+    <li><b>Espaço:</b> hexágono é a célula, região é um bloco de 7 hexes, território são os hexes controlados (DEC-010).</li>
+    <li><b>Rodada:</b> 8 fases no motor, 3 momentos para o jogador: Planejar, Resultado e Conflitos (DEC-004).</li>
+    <li><b>Recursos:</b> 7 — Alimento, Madeira, Pedra, Metal, Riqueza, Conhecimento e Influência. “Comida” vira Alimento; Legado espera a DEC-016.</li>
+  </ul>
+</section>
+
+<section id="pranchas">
+  <div class="eyebrow">As 28 pranchas</div>
+  <h2>Prancha por prancha</h2>
+  <p class="muted" id="sum"></p>
+  <div class="chips" role="group" aria-label="Filtrar por status" id="filters"></div>
+  <div class="tbl"><table><thead><tr><th>Prancha</th><th>Status</th><th>O que a Bíblia diz</th><th>Proposta</th><th>Decisão</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+
+<section id="ilustracao">
+  <div class="eyebrow">Sistema de ilustração</div>
+  <h2>O que o jogador vê na mesa</h2>
+  <p>Cada coisa que o jogador comanda tem uma ilustração reconhecível no tamanho em que ele joga. Os desenhos abaixo são os da própria Bíblia, nos tamanhos propostos para a mesa.</p>
+
+  <h3>Cidades: o horizonte cresce com o nível</h3>
+  <p class="muted">No mapa, a cidade é o horizonte do seu nível, de 50 a 95 px de largura, na cor do assento. A Grande Cidade ganha muralha, a Metrópole uma cúpula e a Metrópole Imperial uma coroa.</p>
+  <div class="strip" id="cities"></div>
+
+  <h3>Peças: a silhueta é da família</h3>
+  <p class="muted">Cada família tem uma miniatura. O degrau tecnológico (Milícia → Lanceiros → Infantaria Profissional…) aparece como pontos na base, sem trocar a silhueta. Tamanho de jogo: 36 px; mínimo 28 px.</p>
+  <div class="strip" id="units"></div>
+  <div class="strip" id="evo"></div>
+  <div class="strip" id="colors"></div>
+
+  <h3>Cartas: a moldura da família</h3>
+  <p class="muted">Cabeçalho na cor da família, numeral, janela de arte e citação. Na mesa, a mão abre em leque com cartas de 150 × 210 px.</p>
+  <div class="strip" id="cards"></div>
+
+  <h3>Civilizações: selo no brasão, emblema no mapa</h3>
+  <p class="muted">O selo da Bíblia identifica a civilização no lobby, na escolha e no final. No mapa, abaixo de 16 px, vale o emblema de traço único da V2.1, derivado da silhueta do selo. Os dois passam no teste em escala de cinza.</p>
+  <div class="strip" id="sigils"></div>
+
+  <h3>Tamanhos por zoom</h3>
+  <div class="tbl"><table><thead><tr><th>Elemento</th><th>Zoom afastado</th><th>Zoom de jogo</th><th>Lente ou painel</th></tr></thead><tbody>
+    <tr><td>Cidade</td><td>selo com o número do nível (16 px)</td><td>horizonte do nível (50–95 px) + nome</td><td>tabuleiro da cidade com distritos e fortificação</td></tr>
+    <tr><td>Pilha</td><td>ponto na cor do dono + número</td><td>miniatura da família dominante (36 px) + número</td><td>todas as miniaturas (30 px) com nome</td></tr>
+    <tr><td>Distrito</td><td>—</td><td>ícone sobre o hex da cidade</td><td>cartão com a cadeia de edifícios</td></tr>
+    <tr><td>Fortificação</td><td>—</td><td>anel de muralha em volta da cidade</td><td>trilha Paliçada → Cidadela com Integridade</td></tr>
+    <tr><td>Carta</td><td>—</td><td>leque de 150 × 210 px</td><td>carta ampliada</td></tr>
+    <tr><td>Líder</td><td>—</td><td>silhueta heráldica no brasão</td><td>retrato (futuro, DEC-011)</td></tr>
+  </tbody></table></div>
+</section>
+
+<section id="decisoes">
+  <div class="eyebrow">Para decidir</div>
+  <h2>Divergências de identidade</h2>
+  <div class="grid">
+    <div class="plate"><b>UXDEC-012 · Tipografia</b><p class="muted" style="margin:6px 0 0">Bíblia: Marcellus, Newsreader e IBM Plex Mono. Experience: Cinzel, Cormorant e Source Sans 3. Testar as duas a 14 px na mesa e ficar com uma só família.</p></div>
+    <div class="plate"><b>UXDEC-013 · Emblemas</b><p class="muted" style="margin:6px 0 0">Selo da Bíblia no brasão expandido; emblema de traço no mapa, derivado do selo.</p></div>
+    <div class="plate"><b>UXDEC-014 · Nomes dos níveis</b><p class="muted" style="margin:6px 0 0">Adotar Posto … Metrópole Imperial como nomes canônicos da escada 1–7.</p></div>
+    <div class="plate"><b>UXDEC-015 · Evolução de unidades</b><p class="muted" style="margin:6px 0 0">Mesma silhueta por família, degrau como marca na base.</p></div>
+  </div>
+  <h3>Novas pranchas propostas para a Bíblia</h3>
+  <ol>
+    <li><b>29 · A mesa</b> — Calm Strategy, os três momentos, Cofre, Livro, uma decisão dominante.</li>
+    <li><b>30 · Mesa viva</b> — presença, ausência, reações, pausa, guardar e retomar.</li>
+    <li><b>31 · Sistema de ilustração</b> — o inventário e os tamanhos desta página.</li>
+    <li><b>32 · Registro de decisões</b> — o que a V4 já decidiu e o que segue aberto.</li>
+  </ol>
+</section>
+</main>
+<script>const MATRIX=[["01", "Visão geral", "ATUALIZAR", "Eras: V Ascensão / VI Hegemonia; “18 civilizações”, “5 recursos materiais”.", "Eras I Fundação · II Expansão · III Civilização · IV Impérios · V Potências · VI Ascensão; Hegemonia é vitória (DEC-005/023). Números: 12 civilizações no Alpha (18 como visão, DEC-011), 7 recursos.", "DEC-005, DEC-023"], ["02", "A rodada", "ATUALIZAR", "8 fases com Concluir implícito; recrutar limitado por Soldados alocados.", "8 fases no motor, 3 momentos para o jogador: Planejar → Resultado → Conflitos (DEC-004). Recrutar não depende de Soldados no Alpha (P1-10).", "DEC-004"], ["03", "Mapa procedural e exploração", "ATUALIZAR", "“Região” = célula; mundos 37/61/91/127 regiões; arquétipos.", "Hexágono = célula, região = 7 hexes, território = hexes controlados (DEC-010). Tamanhos de mapa ficam como futuro (classe D); hoje: grade fixa e 4 presets.", "DEC-010"], ["04", "Povos independentes e bandos", "MANTER + MARCAR", "Atitudes Hostil/Desconfiado; Proteger = pacto de tributo.", "Manter. Marcar que no Alpha todos começam Neutros e Proteger ainda não tem efeito (P1-7/P1-8); o “pacto de tributo” da Bíblia é a regra candidata, falta valor.", "DEC-016"], ["05", "Economia e produção", "ATUALIZAR", "Comida; 5 materiais + Conhecimento, Influência e Legado; armazéns por fórmula; Mercado/Tesouro/Banco.", "Termo canônico Alimento; 7 recursos (Legado fora até DEC-016); produção só pela ação Produzir; Riqueza substitui até 50%. Mercado/Banco: classe C.", "DEC-008, DEC-016"], ["06", "Livre mercado e negociação", "FUTURO", "Contratos futuros, empréstimos, reputação.", "Marcar como Beta/futuro. O Alpha tem ofertas comerciais (4 tipos) e tratados com troca de recursos nos 7 recursos.", "DEC-015"], ["07", "Ânimo cívico e estabilidade", "DECISÃO", "Ânimo 0–6 + Estabilidade 0–6 + Coesão derivada.", "Alpha: Ânimo 0–6 que só sobe, Estabilidade 0–100, Coesão sem efeito. Aguardar DEC-022 antes de reescrever.", "DEC-022"], ["08", "Cidade completa", "ATUALIZAR (base aprovada)", "Níveis 1–7 com nomes (Posto … Metrópole Imperial), custos por nível, trilha de Prestígio 0–100.", "Nível 1–7 é a única escada (DEC-002). Propor adotar os nomes da Bíblia como canônicos. Custos e requisito da Teia dependem da especificação do Nível. Prestígio 0–100 não é a escala do Alpha.", "DEC-002"], ["09", "Edifícios e distritos", "DECISÃO", "8 distritos, cadeias de edifícios, slots por nível.", "Catálogo depende de DEC-013. Manter como direção.", "DEC-013"], ["10", "Fortificações e cerco", "MANTER", "Paliçada → Cidadela, Integridade.", "Coincide com o Alpha (6 níveis, Íntegra/Danificada/Brecha).", "—"], ["11", "Exércitos e miniaturas", "ATUALIZAR", "Famílias com evolução (Milícia → Mosqueteiros), peças de assinatura.", "Alpha: 9 classes fixas, sem modernização. Evolução e assinaturas: classe C/D (DEC-014). As miniaturas viram o padrão visual do jogo (ver sistema de ilustração).", "DEC-014"], ["12", "Combate", "ATUALIZAR", "Postura em vantagem relança 1 VAZIO; até 3 choques; 12 passos.", "Alpha: vantagem de postura soma Força, 1 choque. Guarda defende cidades (corrigido, P0-5). Registrar a diferença e decidir se o choque múltiplo volta.", "—"], ["13", "Frotas e guerra naval", "FUTURO", "7 navios, missões, embarque.", "Fora do Alpha (DEC-014). Manter como expansão.", "DEC-014"], ["14", "O hex: capacidade, paz e guerra", "ATUALIZAR", "Campo 6 + 2 civis; cidade 8 de 10.", "Alinhar com os limites de pilha do Alpha (exército 6, civis, guarnição) e com a regra de guerra declarada.", "—"], ["15", "Teia Civilizacional", "DECISÃO", "40 avanços + 10 convergências, escolhas OU.", "Alpha: 5 domínios × 5 eras × 2 ramos. Formato final é DEC-012; a Teia não é redistribuída agora (DEC-023).", "DEC-012"], ["16", "Pulso do Mundo", "FUTURO", "60 cartas condicionais com severidade.", "Alpha: Pulso automático simples + Evento mundial com escolha. Pulso condicional é classe C (DEC-017).", "DEC-017"], ["17", "Cartas", "ATUALIZAR", "222 cartas, 7 famílias.", "Alpha: 108 cartas. Manter a moldura visual das famílias (vira o padrão do jogo); números da Bíblia como visão.", "DEC-017"], ["18", "Presença cultural e disputa", "ATUALIZAR", "3 espaços, dados de disputa, Coesão local.", "Disputa existe no Alpha (só com 2 presenças estrangeiras). Coesão fora até DEC-016/022.", "DEC-016"], ["19", "Civilizações assimétricas", "DECISÃO", "18 povos com inclinação, traço, habilidade, componente exclusivo e limitação.", "Alpha: 12 civilizações com ênfase, habilidade e líder. Os nomes coincidem em parte, as regras não. Decidir qual conjunto é canônico (DEC-011).", "DEC-011"], ["20", "Governos", "FUTURO", "7 governos adotados na Era III, com reforma.", "Alpha: 5 governos, adoção a qualquer momento. 7 governos com reforma: classe C (DEC-021).", "DEC-021"], ["21", "Diplomacia e comércio", "ATUALIZAR", "PNA impede declarar guerra; Embargo multilateral; Confiança e Tensão.", "Alpha: PNA não impede guerra (−2 Prestígio por acordo); Embargo exige aceite. Marcar até DEC-015.", "DEC-015"], ["22", "Obras de Legado", "ATUALIZAR", "12 Obras únicas no mundo.", "Alpha: 12 Grandes Projetos com regra simples. Unificar o nome (colisão Grande Projeto × Obra de Legado).", "—"], ["23", "Hegemonia e prestígio", "ATUALIZAR", "Declarar principalmente na Era VI; metas escaladas; livro de marcos.", "Declarar só na Era VI · Ascensão; requisitos contam a partida inteira (DEC-006 aprovada). Metas escaladas: decisão aberta.", "DEC-006"], ["24", "Regras da partida", "ATUALIZAR", "Durações 24/36/48 rodadas; Voto de Ritmo; assíncrono.", "Alpha: 9/15/20 rodadas e prazo por fase. Partida curta pode terminar por Prestígio (DEC-006). Durações finais: DEC-003.", "DEC-003"], ["25", "Perguntas que o jogo responde", "MANTER", "Índice de perguntas.", "Atualizar respostas que mudaram (eras, PNA, Nível).", "—"], ["26", "Componentes", "FUTURO", "Edição física.", "O produto é digital primeiro (V4 §1). Componentes viram o inventário visual digital.", "—"], ["27", "Manual e compêndio", "MANTER", "Compêndio em camadas, ajuda contextual.", "Coincide com a Experience V2.1 (guia sobre a mesa, “onde vejo isso”).", "—"], ["28", "Identidade do produto", "ATUALIZAR", "Marcellus, Newsreader, IBM Plex Mono; paleta tinta/bronze/ouro.", "A Experience V2.1 usa Cinzel, Cormorant e Source Sans 3 com a mesma paleta. Decidir uma única família tipográfica (UXDEC-012).", "UXDEC-012"]];
+/* Illustrations from the Ages of Hegemony concept bible (cityGlyph, mini, sigil, icon paths). */
+let gid=0;
+function cityGlyph(l,s,stroke,fill='#26343b'){const w=40+l*8,base=44;let b='';const blocks=[[0,12,10],[9,16,12],[19,10,9],[27,20,14],[38,12,10],[48,16,11],[58,12,9]];
+  for(let i=0;i<Math.min(l+1,7);i++){const [x,h,ww]=blocks[i];const bx=4+x*(l>4?.9:1);b+=`<rect x="${bx}" y="${base-h}" width="${ww}" height="${h}"/>`+(l>=3&&i%2===0?`<path d="M${bx} ${base-h}l${ww/2} -5 ${ww/2} 5z"/>`:'')}
+  if(l>=5)b+=`<path d="M2 ${base}V${base-9}h${w-4}V${base}"/>`;if(l>=6)b+=`<circle cx="${w/2}" cy="${base-30}" r="3.2"/>`;if(l>=7)b+=`<path d="M${w/2-8} ${base-36}l4 -5 4 4 4-4 4 5z"/>`;
+  return `<svg viewBox="0 0 ${w} 52" width="${s*w/56}" height="${s*52/56}" fill="${fill}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M0 ${base}h${w}"/>${b}</svg>`;}
+function mini(n,c,s){const b={
+  pioneiro:`<path d="M20 12L33 40H7z"/><path d="M20 12V3" stroke="${c}" stroke-width="1.6"/><path d="M20 3l8 2.5-8 2.5z"/><path d="M17 40l3-9 3 9z" fill="#0a0d0f" stroke="none"/>`,
+  infantaria:`<path d="M20 13l10 4v9c0 8-5 12-10 15-5-3-10-7-10-15v-9z"/><path d="M20 3v10" stroke="${c}" stroke-width="1.8"/><path d="M17 6l3-5 3 5z"/><circle cx="20" cy="26" r="3.2" fill="#0a0d0f" stroke="none"/>`,
+  cavalaria:`<path d="M8 40c0-9 2-15 7-19l-2-8 6 3 5-8 1 9c5 3 8 9 8 23z"/><circle cx="24" cy="18" r="1.4" fill="#0a0d0f" stroke="none"/>`,
+  guarda:`<path d="M20 8l12 4v12c0 9-6 14-12 17-6-3-12-8-12-17V12z"/><path d="M20 3v38" stroke="${c}" stroke-width="1.6"/><path d="M17 5l3-4 3 4z"/><path d="M12 20h16" stroke="#07090b" stroke-width="1.2"/>`,
+  atiradores:`<circle cx="16" cy="12" r="5"/><path d="M8 40c0-10 3-15 8-17 5 2 8 7 8 17z"/><path d="M29 8c9 8 9 24 0 32" fill="none" stroke="${c}" stroke-width="2"/><path d="M29 8v32M22 24h6" stroke="#f3e2b6" stroke-width="1"/>`,
+  cerco:`<path d="M5 40h30l-3-6H8z"/><path d="M13 34l7-21 7 21z"/><path d="M20 13L9 6" stroke="${c}" stroke-width="3"/><circle cx="8" cy="6" r="3.6"/>`,
+  frota:`<path d="M4 33h32l-5 8H9z"/><path d="M20 5v28" stroke="${c}" stroke-width="1.8"/><path d="M20 6l12 22H20z"/><path d="M18 10L8 28h10z"/>`,
+  explorador:`<circle cx="20" cy="11" r="5"/><path d="M13 12h14l-2-5H15z"/><path d="M12 40c0-9 3-14 8-16 5 2 8 7 8 16z"/><path d="M29 14V40" stroke="${c}" stroke-width="1.8"/>`,
+  enviado:`<circle cx="20" cy="10" r="5.6"/><path d="M11 40c0-11 3-17 9-19 6 2 9 8 9 19z"/><path d="M26 22h6v12h-6z" fill="#ebe3cf"/>`,
+  elefante:`<path d="M5 40V23c0-8 6-13 14-13s13 4 13 12v18z"/><path d="M32 20c5 0 8 4 8 10v6" fill="none" stroke="${c}" stroke-width="3"/><circle cx="12" cy="20" r="1.6" fill="#07090b" stroke="none"/>`}[n];
+  const id='mg'+(gid++);return `<svg viewBox="0 0 40 50" width="${s}" height="${s*1.25}" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e2b6"/><stop offset=".45" stop-color="${c}"/><stop offset="1" stop-color="#5b4020"/></linearGradient></defs><ellipse cx="20" cy="43" rx="16" ry="4.6" fill="#07090b"/><ellipse cx="20" cy="41.5" rx="15.5" ry="4.2" fill="url(#${id})" stroke="#07090b" stroke-width=".7"/><g fill="url(#${id})" stroke="#07090b" stroke-width=".8" stroke-linejoin="round">${b}</g></svg>`;}
+function sigil(i,s=56,col='#d6b064'){const fr=i%3,g=Math.floor(i/3)%6,n=3+((i*5)%4);
+  const hexp=Array.from({length:6},(_,k)=>{const a=Math.PI/180*(60*k-30);return (18*Math.cos(a)).toFixed(1)+','+(18*Math.sin(a)).toFixed(1)}).join(' ');
+  const frame=[`<circle r="18"/>`,`<polygon points="${hexp}"/>`,`<path d="M-15-16h30v15c0 12-8 18-15 21-7-3-15-9-15-21z"/>`][fr];let inner='';
+  if(g===0){for(let k=0;k<n+3;k++){const a=Math.PI*2/(n+3)*k;inner+=`<line x1="${(3.5*Math.cos(a)).toFixed(1)}" y1="${(3.5*Math.sin(a)).toFixed(1)}" x2="${(11*Math.cos(a)).toFixed(1)}" y2="${(11*Math.sin(a)).toFixed(1)}"/>`}inner+=`<circle r="1.6" fill="${col}"/>`}
+  if(g===1){for(let k=0;k<3;k++)inner+=`<path d="M-9 ${k*6-2}L0 ${k*6-9}L9 ${k*6-2}"/>`}
+  if(g===2){for(let k=0;k<3;k++)inner+=`<path d="M-10 ${k*6-6}q2.5-4 5 0t5 0t5 0t5 0"/>`}
+  if(g===3){inner=`<path d="M-9 10V-1h3v-4h3v4h3v-4h3v4h3V10zM-2 10V4h4v6"/>`}
+  if(g===4){const m=n+2;const pts=Array.from({length:m*2},(_,k)=>{const r=k%2?4.2:11.5;const a=Math.PI/m*k-Math.PI/2;return (r*Math.cos(a)).toFixed(1)+','+(r*Math.sin(a)).toFixed(1)}).join(' ');inner=`<polygon points="${pts}"/>`}
+  if(g===5){inner=`<circle r="3.5"/><circle r="7.5"/><path d="M-12 0h24"/>`}
+  return `<svg viewBox="-20 -20 40 40" width="${s}" height="${s}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${frame}<g stroke-width="1.4">${inner}</g></svg>`;}
+const P={wheat:'<path d="M16 28V8M16 13l-5-4M16 13l5-4M16 19l-5-4M16 19l5-4M16 25l-5-4M16 25l5-4M16 8l0-3"/>',hex:'<path d="M16 3l11 6.5v13L16 29 5 22.5v-13z"/>',crown:'<path d="M5 23L4 10l7 6 5-9 5 9 7-6-1 13zM5 27h22"/>',star:'<path d="M16 5l3 7 7 1-5 5 1.5 7L16 21l-6.5 4L11 18l-5-5 7-1z"/>',chev:'<path d="M9 20l7-6 7 6M9 14l7-6 7 6M9 26l7-6 7 6"/>'};
+const ic=(n,s,c)=>`<svg viewBox="0 0 32 32" width="${s}" height="${s}" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+const EMB={espiga:'M0,9L0,-9 M0,-6l-5,-4 M0,-6l5,-4 M0,-1l-5,-4 M0,-1l5,-4 M0,4l-5,-4 M0,4l5,-4',passo:'M-10,8 L-5,-6 L0,4 L5,-6 L10,8 M-3,8 L-3,2 L3,2 L3,8',ondas:'M-10,-2 q5,-6 10,0 t10,0 M-10,6 q5,-6 10,0 t10,0'};
+const emb=(k,c,s)=>`<svg width="${s}" height="${s}" viewBox="-12 -12 24 24" aria-hidden="true"><path d="${EMB[k]}" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const $=id=>document.getElementById(id);
+const LEVELS=['Posto','Aldeia','Vila','Cidade','Grande Cidade','Metrópole','Metrópole Imperial'];
+$('cities').innerHTML=LEVELS.map((n,i)=>`<div class="fig">${cityGlyph(i+1,46+(i+1)*7,'#e0bd78')}<b>${i+1} · ${n}</b><span>${46+(i+1)*7} px</span></div>`).join('');
+const FAM=[['infantaria','Infantaria'],['guarda','Guarda'],['atiradores','Atiradores'],['cavalaria','Cavalaria'],['cerco','Cerco'],['frota','Frota'],['explorador','Explorador'],['pioneiro','Pioneiro'],['enviado','Enviado'],['elefante','Elefantes · assinatura']];
+$('units').innerHTML=FAM.map(([k,n])=>`<div class="fig" style="width:90px">${mini(k,'#e0bd78',48)}<b>${n}</b></div>`).join('');
+$('evo').innerHTML=[['Milícia',1],['Lanceiros',2],['Infantaria Profissional',3],['Piqueiros',4],['Mosqueteiros',5]].map(([n,d])=>`<div class="fig" style="width:110px">${mini('infantaria','#e0bd78',36)}<div class="dots">${[1,2,3,4,5].map(x=>`<i class="${x<=d?'':'o'}"></i>`).join('')}</div><b>${n}</b><span>degrau ${d}</span></div>`).join('')+`<div class="fig" style="width:130px;align-self:center"><span>36 px · tamanho de jogo</span></div>`;
+$('colors').innerHTML=[['#e0bd78','espiga','Aurélia · assento 1'],['#7cc0d6','passo','Valgard · assento 2'],['#d090a8','ondas','Merídia · assento 3']].map(([c,e,n])=>`<div class="fig">${mini('infantaria',c,40)}${mini('cavalaria',c,40)}<b>${emb(e,c,14)} ${n}</b></div>`).join('')+`<div class="fig">${mini('infantaria','#e0bd78',28)}<b>28 px</b><span>mínimo</span></div>`;
+const CARDS=[['Pulso do Mundo','I','#b4523f','chev','Chuvas de Retorno','+1 Alimento para todas as civilizações.','Automático · 1 de 24'],['Estratégia','IV','#7f9d5e','crown','Delegação de Tarefas','+2 Ações principais até o fim desta rodada.','Ação livre · 1 de 30'],['Conselheiro','VI','#e0925f','star','Curador de Sementes','+1 Alimento por rodada enquanto servir.','Permanente · 1 de 18'],['Obra de Legado','VII','#d6b064','hex','Rede Imperial de Estradas','Exércitos +1 movimento em território próprio.','Única no mundo']];
+$('cards').innerHTML=CARDS.map(([f,r,c,i,n,t,q])=>`<div class="card"><div class="hd" style="background:${c}"><span>${f}</span><span>${r}</span></div><div class="art">${ic(i,46,c)}</div><div class="nm">${n}</div><div class="tx">${t}</div><div class="q">${q}</div></div>`).join('');
+$('sigils').innerHTML=[[0,'#e0bd78','espiga','Aurélia'],[4,'#7cc0d6','passo','Valgard'],[8,'#d090a8','ondas','Merídia']].map(([i,c,e,n])=>`<div class="fig" style="width:150px">${sigil(i,64,c)}<div style="margin-top:6px">${emb(e,c,16)} <span style="filter:grayscale(1)">${sigil(i,22,c)} ${emb(e,c,14)}</span></div><b>${n}</b><span>selo 64 px · emblema 16 px · cinza</span></div>`).join('');
+const ST=['Todas','ATUALIZAR','DECISÃO','FUTURO','MANTER'];let cur='Todas';
+const cnt=k=>MATRIX.filter(r=>r[2].startsWith(k)).length;
+$('sum').textContent=`${cnt('MANTER')} manter · ${cnt('ATUALIZAR')} atualizar · ${cnt('DECISÃO')} dependem de decisão · ${cnt('FUTURO')} marcar como futuro.`;
+function draw(){$('filters').innerHTML=ST.map(s=>`<button class="chip" aria-pressed="${s===cur}" data-s="${s}">${s==='Todas'?'Todas (28)':s.charAt(0)+s.slice(1).toLowerCase()+' ('+cnt(s)+')'}</button>`).join('');
+  $('rows').innerHTML=MATRIX.filter(r=>cur==='Todas'||r[2].startsWith(cur)).map(([n,t,s,a,b,d])=>`<tr><td>${n} · ${t}</td><td><span class="st s-${s.split(' ')[0]}">${s}</span></td><td>${a}</td><td>${b}</td><td class="dim">${d}</td></tr>`).join('');}
+$('filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cur=b.dataset.s;draw();});
+draw();
+</script>
