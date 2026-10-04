@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>AoH Experience V2 — conceitos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --night:#0b1114;--stone:#121b20;--steel:#19252b;--steel2:#22323a;--line:#33474f;
+  --bronze:#7d5c33;--gold:#c9a45c;--gold2:#e7c98a;--parch:#e8dbbb;--ink:#2a2116;
+  --text:#eee8da;--muted:#a9b8b5;--dim:#8a9b98;
+  --ok:#9ec4a2;--warn:#e5bf72;--bad:#e59a86;
+  --civ1:#e0bd78;--civ2:#7cc0d6;--civ3:#d090a8;--civ4:#a3d09a;--civ5:#c4a3e0;--civ6:#e09a6c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--night);color:var(--text);font:14px/1.45 'Source Sans 3',system-ui,sans-serif}
+.frame{position:relative;width:1440px;height:900px;overflow:hidden;background:#0b1114}
+.disp{font-family:Cinzel,Georgia,serif;letter-spacing:.04em}
+.ital{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.muted{color:var(--muted)}.gold{color:var(--gold2)}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+svg.map{position:absolute;inset:0}
+/* glass surfaces */
+.glass{background:linear-gradient(180deg,rgba(25,37,43,.94),rgba(18,27,32,.94));border:1px solid var(--line);box-shadow:0 10px 30px #0009,inset 0 1px 0 #ffffff10;backdrop-filter:blur(6px)}
+.brz{border-color:var(--bronze);box-shadow:0 10px 30px #0009,inset 0 0 0 1px #c9a45c22}
+/* Faixa */
+.faixa{position:absolute;left:0;right:0;top:0;height:56px;display:flex;align-items:center;gap:14px;padding:0 12px;border-width:0 0 1px 0;white-space:nowrap}.faixa{gap:11px}
+.seal{width:36px;height:36px;border:1px solid var(--bronze);border-radius:6px;display:grid;place-items:center;font:700 13px Cinzel,serif;color:var(--gold2);background:#0e1619}
+.civ b{font:600 16px Cinzel,serif;color:var(--gold2);display:block;line-height:1.1}.civ small{color:var(--muted);font-size:12px}
+.res{display:flex;gap:7px}.r{display:flex;flex-direction:column;align-items:flex-start;min-width:40px}
+.r b{font-size:15px;line-height:1}.r small{font-size:10.5px;color:var(--dim)}
+.r i{display:block;height:3px;width:100%;background:#2a3a40;border-radius:2px;margin-top:3px;overflow:hidden}.r i::after{content:'';display:block;height:100%;background:currentColor;opacity:.7;width:var(--w)}
+.sep{width:1px;height:30px;background:var(--line)}
+.kv small{display:block;font-size:11px;color:var(--dim)}.kv b{font-size:15px}
+.moment{display:flex;gap:4px;align-items:center}
+.moment span{padding:4px 10px;border-radius:12px;font-size:12px;color:var(--dim);border:1px solid transparent}
+.moment span.on{color:#1a1206;background:var(--gold);font-weight:700}
+.who{display:flex;gap:4px}.who span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#111;border:2px solid #0b1114}
+.who span.wait{opacity:.35}
+.boards{display:flex;gap:6px;margin-left:auto}
+.bd{position:relative;width:32px;height:32px;border:1px solid var(--line);border-radius:6px;display:grid;place-items:center;color:var(--muted);background:#0f181c}
+.bd.on{border-color:var(--gold);color:var(--gold2)}
+.bd em{position:absolute;top:-6px;right:-6px;min-width:17px;height:17px;border-radius:9px;background:var(--bad);color:#1a0d08;font:700 11px/17px 'Source Sans 3';text-align:center;font-style:normal;padding:0 4px}
+.alert{display:flex;align-items:center;gap:6px;padding:4px 9px;white-space:nowrap;border:1px solid var(--bronze);border-radius:16px;font-size:12px;color:var(--gold2);background:#1b160d}
+/* Trilho */
+.trilho{position:absolute;left:10px;top:70px;width:52px;display:flex;flex-direction:column;gap:8px;padding:8px 6px;border-radius:10px}
+.ti{position:relative;width:40px;height:40px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;background:#0f181c;font:700 12px 'Source Sans 3';color:var(--muted)}
+.ti.city{color:var(--gold2)}.ti .dot{position:absolute;right:-3px;top:-3px;width:10px;height:10px;border-radius:50%;background:var(--warn);border:2px solid #0b1114}
+.ti small{position:absolute;bottom:-1px;right:2px;font-size:10px;color:var(--text)}
+.tsep{height:1px;background:var(--line);margin:2px 4px}
+/* Bandeja */
+.bandeja{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;width:1060px;height:72px;border-radius:12px;display:flex;align-items:center;gap:18px;padding:0 14px 0 18px}
+.budget b{font:700 22px Cinzel,serif;color:var(--gold2)}.budget small{display:block;font-size:11px;color:var(--dim)}
+.slots{display:flex;gap:5px;margin-top:4px}.slots i{width:10px;height:10px;border-radius:50%;border:1px solid var(--gold)}.slots i.f{background:var(--gold)}
+.chips{display:flex;gap:8px;flex:1;overflow:hidden}
+.chip{display:flex;align-items:center;gap:8px;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#0f181c;font-size:13px;white-space:nowrap}
+.chip .n{width:20px;height:20px;border-radius:50%;background:var(--steel2);display:grid;place-items:center;font-size:11px;color:var(--gold2)}
+.chip .x{color:var(--dim);margin-left:4px}
+.chip.empty{border-style:dashed;color:var(--dim)}
+.btn{height:44px;padding:0 18px;border-radius:8px;border:1px solid var(--line);background:#16232a;color:var(--text);font:600 14px 'Source Sans 3';display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.primary{background:linear-gradient(180deg,#e2bf78,#c99f55);color:#1a1206;border-color:#e7c98a}
+.btn.sm{height:32px;padding:0 12px;font-size:13px}
+.check{font-size:12px;color:var(--warn);max-width:170px;line-height:1.25}
+/* Cartão */
+.card{position:absolute;width:340px;border-radius:10px;padding:16px}
+.card h3{font:600 20px Cinzel,serif;color:var(--gold2);margin:2px 0 2px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:12px 0;font-size:13px}
+.facts span{color:var(--dim)}.facts b{display:block;color:var(--text);font-weight:600}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}.seg span{flex:1;text-align:center;padding:7px 0;font-size:13px;color:var(--muted)}.seg span.on{background:var(--gold);color:#1a1206;font-weight:700}
+.prev{border:1px solid var(--bronze);border-radius:8px;padding:12px;margin:10px 0;background:#141c18}
+.big{font:700 34px Cinzel,serif;color:var(--gold2);line-height:1}
+.bar{height:6px;border-radius:3px;background:#2a3a40;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:var(--gold)}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.small{font-size:12px}.tiny{font-size:11px;color:var(--dim)}
+.anchor{position:absolute;width:14px;height:14px;transform:rotate(45deg);background:#19252b;border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
+/* Callouts */
+.callout{position:absolute;display:flex;gap:8px;align-items:flex-start;max-width:250px;font-size:12.5px;line-height:1.35;color:#f3ead4}
+.callout .k{flex:none;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#1a1206;font:700 12px/22px 'Source Sans 3';text-align:center}
+.callout p{background:rgba(11,17,20,.88);border:1px solid var(--bronze);border-radius:6px;padding:6px 9px}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:1px 8px;color:var(--muted)}
+.dimlayer{position:absolute;inset:0;background:radial-gradient(closest-side,transparent 0,transparent 55%,rgba(5,8,10,.78) 100%)}
+.scrim{position:absolute;inset:0;background:rgba(5,8,10,.62)}
+.board{position:absolute;left:70px;right:70px;top:76px;bottom:28px;border-radius:14px;padding:22px 26px}
+.board h2{font:600 26px Cinzel,serif;color:var(--gold2)}
+.parch{background:linear-gradient(180deg,#efe3c3,#e2d3ad);color:var(--ink);border:1px solid #b89a63;box-shadow:0 14px 34px #000a}
+.parch .eyebrow{color:#7d5c33}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+/* ---------- deterministic world ---------- */
+const R=26, SQ=Math.sqrt(3);
+const COLS=34, ROWS=22;
+function hash(q,r){let h=(q*374761393+r*668265263)^0x5bd1e995;h=(h^(h>>>13))*1274126177;return ((h^(h>>>16))>>>0)/4294967295;}
+function noise(q,r){let s=0,w=0;for(const[dq,dr,k] of [[0,0,4],[1,0,1],[-1,0,1],[0,1,1],[0,-1,1],[1,-1,1],[-1,1,1]]){s+=hash(Math.floor((q+dq)/2),Math.floor((r+dr)/2))*k;w+=k;}return s/w;}
+const T={PLAINS:'#71844f',FOREST:'#3f6148',HILLS:'#857c68',MOUNTAINS:'#646d69',COAST:'#3f6d7c',SEA:'#264a5c'};
+const tiles=[];
+for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++){
+  const q=col-Math.floor(row/2), r=row;
+  const n=noise(q*1.3+3,r*1.3+7), m=hash(q+11,r+5);
+  let t=n<.30?'SEA':n<.38?'COAST':n<.62?(m<.3?'FOREST':'PLAINS'):n<.74?(m<.5?'FOREST':'HILLS'):n<.82?'HILLS':'MOUNTAINS';
+  tiles.push({q,r,col,row,t});
+}
+const key=(q,r)=>q+','+r, byKey=new Map(tiles.map(t=>[key(t.q,t.r),t]));
+const dist=(a,b)=>(Math.abs(a.q-b.q)+Math.abs(a.r-b.r)+Math.abs(a.q+a.r-b.q-b.r))/2;
+function at(col,row){return byKey.get(key(col-Math.floor(row/2),row));}
+const civs={A:{name:'Aurélia',color:'var(--civ1)',hex:'#e0bd78'},V:{name:'Valgard',color:'var(--civ2)',hex:'#7cc0d6'},M:{name:'Merídia',color:'var(--civ3)',hex:'#d090a8'}};
+const cities=[
+  {id:'aurora',name:'Aurora',owner:'A',level:4,tile:at(12,11),capital:true},
+  {id:'travessia',name:'Travessia',owner:'A',level:2,tile:at(16,8)},
+  {id:'porto',name:'Porto Claro',owner:'A',level:1,tile:at(9,14)},
+  {id:'fronteira',name:'Fronteira',owner:'V',level:3,tile:at(22,10),capital:true},
+  {id:'sal',name:'Vila do Sal',owner:'I',level:1,tile:at(18,15),indep:true},
+];
+// make city tiles land
+for(const c of cities) if(['SEA','COAST'].includes(c.tile.t)) c.tile.t='PLAINS';
+for(const t of tiles){
+  let best=null,bd=99;for(const c of cities){if(c.indep)continue;const d=dist(t,c.tile);if(d<bd){bd=d;best=c;}}
+  const radius=best.level>=3?3:2;
+  t.owner=bd<=radius&&!['SEA'].includes(t.t)?best.owner:null;
+  // knowledge relative to Aurélia
+  const own=cities.filter(c=>c.owner==='A');
+  const dd=Math.min(...own.map(c=>dist(t,c.tile)));
+  t.know=dd<=3?'vis':dd<=7?'known':'unk';
+}
+const stacks=[
+  {id:'ex1',owner:'A',label:5,kind:'army',tile:at(19,10)},
+  {id:'ex2',owner:'A',label:2,kind:'fleet',tile:at(7,16)},
+  {id:'exp',owner:'A',label:1,kind:'civil',tile:at(14,5)},
+  {id:'vg1',owner:'V',label:3,kind:'army',tile:at(21,11)},
+];
+for(const s of stacks){if(s.kind!=='fleet'&&['SEA','COAST'].includes(s.tile.t))s.tile.t='PLAINS'; s.tile.know='vis';}
+at(22,10).know='vis';at(21,11).know='vis';at(21,10).know='vis';at(20,10).know='vis';at(20,11).know='vis';at(22,11).know='vis';at(21,9).know='vis';at(20,9).know='vis';
+/* ---------- map renderer ---------- */
+function pos(t,s){return [ (t.q + t.r/2)*SQ*R*s, t.r*1.5*R*s ];}
+function hexPath(x,y,r){let p='';for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);p+=(i?'L':'M')+(x+r*Math.cos(a)).toFixed(1)+','+(y+r*Math.sin(a)).toFixed(1);}return p+'Z';}
+function crown(x,y,s,col){const w=26*s,h=20*s;return `<g transform="translate(${x},${y})"><rect x="${-w/2-3*s}" y="${-h/2-3*s}" width="${w+6*s}" height="${h+6*s}" rx="${3*s}" fill="#10181c" stroke="${col}" stroke-width="${1.5*s}"/><path d="M${-w/2},${h/3} L${-w/2},${-h/3} L${-w/4},0 L0,${-h/2} L${w/4},0 L${w/2},${-h/3} L${w/2},${h/3}Z" fill="${col}"/></g>`;}
+function shield(x,y,s,col,n){return `<g transform="translate(${x},${y})"><path d="M${-11*s},${-11*s} H${11*s} V${2*s} Q${11*s},${11*s} 0,${15*s} Q${-11*s},${11*s} ${-11*s},${2*s}Z" fill="#10181c" stroke="${col}" stroke-width="${1.6*s}"/><path d="M${-6*s},${4*s} L${6*s},${-6*s}" stroke="${col}" stroke-width="${2*s}"/><circle cx="${12*s}" cy="${-11*s}" r="${7*s}" fill="${col}"/><text x="${12*s}" y="${-8*s}" text-anchor="middle" font-size="${9*s}" font-weight="700" fill="#111">${n}</text></g>`;}
+function map(o={}){
+  const s=o.scale||1, W=1440,H=900;
+  const center=o.center||at(14,10); const [cx,cy]=pos(center,s);
+  const ox=W/2-cx+(o.dx||0), oy=H/2-cy+(o.dy||0);
+  let g='';
+  for(const t of tiles){
+    const [x0,y0]=pos(t,s), x=x0+ox, y=y0+oy;
+    if(x<-60||x>W+60||y<-60||y>H+60)continue;
+    const rr=R*s*0.985;
+    if(t.know==='unk'){g+=`<path d="${hexPath(x,y,rr)}" fill="#141d21" stroke="#0e1518" stroke-width="1"/>`;if(hash(t.q+3,t.r)>.82)g+=`<text x="${x}" y="${y+4*s}" text-anchor="middle" font-size="${11*s}" fill="#2b3a40">?</text>`;continue;}
+    let fill=T[t.t];
+    g+=`<path d="${hexPath(x,y,rr)}" fill="${fill}" stroke="#0b1114" stroke-width="${1.2*s}"/>`;
+    // terrain glyphs
+    if(t.t==='FOREST')g+=`<path d="M${x-8*s},${y+6*s} L${x-4*s},${y-4*s} L${x},${y+6*s}Z M${x},${y+6*s} L${x+4*s},${y-5*s} L${x+8*s},${y+6*s}Z" fill="#2c4733"/>`;
+    if(t.t==='HILLS')g+=`<path d="M${x-10*s},${y+5*s} Q${x-5*s},${y-5*s} ${x},${y+5*s} Q${x+5*s},${y-5*s} ${x+10*s},${y+5*s}" fill="none" stroke="#5f5848" stroke-width="${2*s}"/>`;
+    if(t.t==='MOUNTAINS')g+=`<path d="M${x-10*s},${y+7*s} L${x},${y-9*s} L${x+10*s},${y+7*s}Z" fill="#4b524f"/><path d="M${x-3*s},${y-4*s} L${x},${y-9*s} L${x+3*s},${y-4*s}Z" fill="#cfd5d2"/>`;
+    if(t.t==='SEA'||t.t==='COAST')g+=`<path d="M${x-8*s},${y} q4,-4 8,0 t8,0" fill="none" stroke="#ffffff22" stroke-width="${1.4*s}"/>`;
+    if(t.know==='known')g+=`<path d="${hexPath(x,y,rr)}" fill="#0b1114" opacity=".55"/>`;
+    if(o.dimExcept&&!o.dimExcept(t))g+=`<path d="${hexPath(x,y,rr)}" fill="#05080a" opacity=".62"/>`;
+  }
+  // borders: draw owner edges
+  for(const t of tiles){
+    if(!t.owner||t.know==='unk')continue;
+    const [x0,y0]=pos(t,s),x=x0+ox,y=y0+oy; if(x<-60||x>W+60||y<-60||y>H+60)continue;
+    const nb=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+    const corners=i=>{const a=Math.PI/180*(60*i-30);return [x+R*s*Math.cos(a),y+R*s*Math.sin(a)];};
+    const edge=[ [0,1],[5,0],[4,5],[3,4],[2,3],[1,2] ]; // neighbor dir -> corner pair
+    nb.forEach(([dq,dr],k)=>{const n=byKey.get(key(t.q+dq,t.r+dr)); if(n&&n.owner===t.owner)return; const [a,b]=edge[k];const p1=corners(a),p2=corners(b);
+      g+=`<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="${civs[t.owner].hex}" stroke-width="${2.6*s}" stroke-linecap="round" opacity="${t.know==='known'?.5:.95}"/>`;});
+  }
+  const P=t=>{const [x0,y0]=pos(t,s);return [x0+ox,y0+oy];};
+  if(o.under)g+=o.under(P,s);
+  for(const c of cities){if(c.tile.know==='unk')continue;const [x,y]=P(c.tile);const col=c.indep?'#cfc6b0':civs[c.owner].hex;const fade=o.dimExcept&&!o.dimExcept(c.tile);
+    if(fade)g+='<g opacity=".3">';g+=crown(x,y-3*s,s,col);if(fade)g+='</g>';
+    if(!o.hideLabels)g+=`<g font-family="Cinzel,serif"><rect x="${x-50*s}" y="${y-38*s}" width="${100*s}" height="${17*s}" rx="${3*s}" fill="#0b1114e6" stroke="${col}" stroke-width=".8"/><text x="${x}" y="${y-26*s}" text-anchor="middle" font-size="${10.5*s}" fill="#f2e8cf">${c.capital?'★ ':''}${c.name} · ${c.indep?'povo':c.level}</text></g>`;}
+  for(const st of stacks){const [x,y]=P(st.tile);const fade=o.dimExcept&&!o.dimExcept(st.tile);g+=`<g opacity="${fade?.3:1}">`+shield(x,y,s*1.05,st.owner==='A'?civs.A.hex:civs.V.hex,st.label)+'</g>';}
+  if(o.over)g+=o.over(P,s);
+  return `<svg class="map" width="1440" height="900" viewBox="0 0 1440 900">${g}</svg>`;
+}
+/* ---------- shared surfaces ---------- */
+const RES=[['Alimento',42,60,'#a3c97a'],['Madeira',18,40,'#c79b62'],['Pedra',12,40,'#b7b0a2'],['Metal',6,20,'#9fb6c4'],['Riqueza',31,40,'#e7c98a'],['Conhecimento',24,null,'#9fc0e6'],['Influência',9,null,'#d0a6d6']];
+function faixa(o={}){
+  const moment=o.moment||'Planejar';
+  return `<div class="faixa glass">
+    <div class="seal">AH</div>
+    <div class="civ"><b>Aurélia</b><small>II · Expansão · Monarquia</small></div>
+    <div class="sep"></div>
+    <div class="res">${RES.map(([n,v,c,col])=>`<div class="r" style="color:${col}" title="${n}"><b>${v}</b><small>${n}</small>${c?`<i style="--w:${Math.round(v/c*100)}%"></i>`:''}</div>`).join('')}</div>
+    <div class="sep"></div>
+    <div class="kv"><small>Admin.</small><b>5 / 6</b></div>
+    <div class="kv"><small>Prestígio</small><b>14</b></div>
+    <div class="sep"></div>
+    <div class="kv"><small>Rodada</small><b>6 / 15</b></div>
+    <div class="moment">${['Planejar','Resultado','Conflitos'].map(m=>`<span class="${m===moment?'on':''}">${m}</span>`).join('')}</div>
+    <div class="who"><span style="background:#e0bd78">A</span><span class="${o.allReady?'':'wait'}" style="background:#7cc0d6">B</span><span class="${o.allReady?'':'wait'}" style="background:#d090a8">C</span></div>
+    ${o.alert===false?'':`<div class="alert">◆ ${o.alert||'Evento mundial'}</div>`}
+    <div class="boards">
+      ${[['T','Teia'],['D','Diplomacia',1],['C','Cartas'],['E','Eras e Hegemonia'],['R','Crônicas'],['?','Compêndio']].map(([k,n,b])=>`<div class="bd ${o.board===k?'on':''}" title="${n}">${icon(k)}${b?`<em>${b}</em>`:''}</div>`).join('')}
+    </div>
+  </div>`;
+}
+function icon(k){const p={T:'M12 3v18M4 8l8 4 8-4M4 16l8-4 8 4',D:'M4 12h16M7 7l-3 5 3 5M17 7l3 5-3 5',C:'M6 4h9l3 3v13H6z',E:'M12 3l2.5 6H21l-5 4 2 7-6-4-6 4 2-7-5-4h6.5z',R:'M5 4h14v16H5zM8 8h8M8 12h8M8 16h5','?':'M9 9a3 3 0 1 1 4 2.8c-.8.4-1 1-1 2.2M12 17v.5'}[k];return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${p}"/></svg>`;}
+function trilho(){return `<div class="trilho glass">
+  <div class="ti city" title="Aurora">AU<span class="dot"></span></div><div class="ti city">TR</div><div class="ti city">PC<span class="dot"></span></div>
+  <div class="tsep"></div>
+  <div class="ti">⛨<small>5</small></div><div class="ti">⛵<small>2</small></div><div class="ti">◎<small>1</small></div>
+  <div class="tsep"></div><div class="ti" style="color:var(--warn)">!</div></div>`;}
+function bandeja(o={}){
+  const chips=o.chips??[['Aurora · Produzir'],['Exército → 8,11 · Atacar · Manobra']];
+  return `<div class="bandeja glass brz">
+    <div class="budget"><small>Ações</small><b>${o.used??2} / 7</b><div class="slots"><i class="f" title="Aurora"></i><i></i><i></i></div></div>
+    <div class="sep"></div>
+    <div class="chips">${chips.map((c,i)=>`<div class="chip"><span class="n">${i+1}</span>${c[0]}<span class="x">✕</span></div>`).join('')}<div class="chip empty">+ selecione no mapa</div></div>
+    ${o.check===false?'':`<div class="check">${o.check||'2 cidades sem ação urbana · evento sem resposta'}</div>`}
+    <button class="btn primary">${o.cta||'Confirmar planejamento'} ›</button>
+  </div>`;}
+function callouts(list){return list.map(([n,x,y,t,w])=>`<div class="callout" style="left:${x}px;top:${y}px;${w?`max-width:${w}px`:''}"><span class="k">${n}</span><p>${t}</p></div>`).join('');}
+/* ---------- frames ---------- */
+const F={};
+F.mesa=()=>map({center:at(15,10)})+faixa()+trilho()+bandeja({chips:[],used:0,check:'3 cidades sem ação urbana'})+callouts([
+ [1,300,64,'<b>Faixa de Estado</b>: recursos de relance, momento da rodada, quem falta, alertas e os Tabuleiros (não são abas).',300],
+ [2,74,420,'<b>Trilho</b>: cidades e pilhas como ícones. Clicar centraliza e seleciona. Substitui o Conselho fixo.',220],
+ [3,640,700,'<b>Bandeja de Ordens</b>: orçamento de Ações, vaga de cada cidade, ordens como fichas e o botão do momento.',320],
+ [4,1060,380,'<b>Mesa</b>: o mapa é a tela inteira. Sem seleção, nada mais cobre o atlas (≥ 85% visível).',250],
+]);
+F.ataque=()=>map({center:at(19,10),scale:1.25,dx:-170,over:(P,s)=>{
+  const a=P(at(19,10)),b=P(at(21,11)),mid=P(at(20,10));
+  return `<path d="${hexPath(b[0],b[1],R*s)}" fill="none" stroke="#e59a86" stroke-width="3"/>`+
+  `<path d="${hexPath(a[0],a[1],R*s)}" fill="none" stroke="#e7c98a" stroke-width="3"/>`+
+  `<defs><marker id="ah" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#e59a86"/></marker></defs>`+
+  `<path d="M${a[0]+12},${a[1]+6} Q${mid[0]+20},${mid[1]+30} ${b[0]-20},${b[1]-4}" stroke="#e59a86" stroke-width="4" fill="none" marker-end="url(#ah)"/>`+
+  [at(20,11),at(20,10),at(21,10)].map(t=>{const p=P(t);return `<path d="${hexPath(p[0],p[1],R*s*.92)}" fill="#e59a8622" stroke="#e59a8688" stroke-width="1.5"/>`}).join('');
+}})+faixa({alert:false})+trilho()+`
+<div class="card glass brz" style="left:860px;top:150px">
+  <div class="eyebrow">Pilha · Exército</div><h3>Planejar com 5 peças</h3>
+  <div class="small muted">Infantaria ×3 · Arqueiros ×2 · abastecido</div>
+  <div class="facts"><div><span>Alvo</span><b>21,11 · Colinas</b></div><div><span>Defesa visível</span><b>Infantaria ×3</b></div><div><span>Limite da pilha</span><b>5 de 6 avançam</b></div><div><span>Custo</span><b>1 Ação</b></div></div>
+  <div class="eyebrow" style="margin-bottom:6px">Postura</div>
+  <div class="seg"><span>Assalto</span><span>Defesa</span><span class="on">Manobra</span></div>
+  <div class="prev"><div class="eyebrow">Prévia · sem dados</div>
+    <div style="display:flex;align-items:flex-end;gap:16px;margin-top:6px"><div><div class="big">20</div><div class="tiny">seu ataque</div></div><div class="muted">×</div><div><div class="big bad">8</div><div class="tiny">defesa visível</div></div></div>
+    <div class="tiny" style="margin-top:8px">Postura adversária desconhecida · faces só na batalha · empate favorece o defensor.</div>
+    <div class="small" style="margin-top:8px;color:var(--gold2)">Detalhe do cálculo ›</div></div>
+  <div style="display:flex;gap:8px"><button class="btn primary" style="flex:1">Reservar ataque ⏎</button><button class="btn">Mover</button></div>
+</div>`+bandeja({chips:[['Aurora · Produzir'],['Exército → 21,11 · Atacar · Manobra']],used:2})+callouts([
+ [1,520,180,'Selecionar a pilha e escolher Atacar destaca os <b>alvos legais</b> no mapa.',230],
+ [2,640,560,'A <b>seta de ataque</b> fica no mapa como ordem planejada (tracejado = planejado; contínuo = resolvido).',260],
+ [3,1210,600,'<b>Cartão de Seleção</b> ancorado ao objeto: relance, postura, prévia e Reservar. Some quando a decisão termina.',210],
+ [4,700,740,'A ordem vira <b>ficha</b> na Bandeja e gasta 1 Ação do orçamento.',260],
+]);
+F.cidade=()=>{const c=cities[0];return map({center:c.tile,scale:2.1,dx:-170,hideLabels:true,dimExcept:t=>dist(t,c.tile)<=2,over:(P,s)=>{
+  let g='';const worked=[[1,0],[0,1],[-1,1],[1,-1]];
+  for(const [dq,dr] of worked){const t=byKey.get(key(c.tile.q+dq,c.tile.r+dr));const p=P(t);g+=`<path d="${hexPath(p[0],p[1],R*s*.9)}" fill="none" stroke="#e7c98a" stroke-width="2.5"/><g transform="translate(${p[0]},${p[1]+22})"><rect x="-26" y="-11" width="52" height="20" rx="10" fill="#0b1114e6" stroke="#c9a45c"/><text y="4" text-anchor="middle" font-size="12" font-weight="700" fill="#e7c98a">${t.t==='FOREST'?'+2 Mad.':t.t==='HILLS'?'+1 Pedra':'+2 Alim.'}</text></g>`;}
+  const dist_=[[-1,0,'Agrário'],[0,-1,'Comercial']];
+  for(const [dq,dr,n] of dist_){const t=byKey.get(key(c.tile.q+dq,c.tile.r+dr));const p=P(t);g+=`<g transform="translate(${p[0]},${p[1]})"><rect x="-30" y="-16" width="60" height="32" rx="5" fill="#16232a" stroke="#c9a45c" stroke-width="1.5"/><text y="-1" text-anchor="middle" font-size="11" fill="#e7c98a" font-family="Cinzel,serif">${n}</text><text y="11" text-anchor="middle" font-size="9" fill="#a9b8b5">distrito</text></g>`;}
+  return g;}})+faixa({alert:false})+trilho()+`
+<div class="card glass brz" style="left:1000px;top:76px;width:400px">
+  <div class="eyebrow">Lente da cidade · capital</div><h3>★ Aurora</h3>
+  <div class="small muted">6 habitantes · Ânimo Animada (+20% produção) · Estabilidade 72</div>
+  <div class="hr"></div>
+  <div class="eyebrow">Nível</div>
+  <div style="display:flex;gap:4px;margin:8px 0 4px">${[1,2,3,4,5,6,7].map(n=>`<div style="flex:1;height:26px;border-radius:4px;display:grid;place-items:center;font:700 12px Cinzel,serif;${n<=4?'background:#c9a45c;color:#1a1206':'border:1px solid #33474f;color:#8a9b98'}">${n}</div>`).join('')}</div>
+  <div class="tiny">Escada canônica 1–7 (DEC-002). Regra de subida em especificação.</div>
+  <div class="hr"></div>
+  <div class="eyebrow">Habitantes</div>
+  <div class="facts" style="grid-template-columns:repeat(3,1fr)"><div><span>Produtores</span><b>2</b></div><div><span>Artesãos</span><b>1</b></div><div><span>Mercadores</span><b>1</b></div><div><span>Estudiosos</span><b>1</b></div><div><span>Soldados</span><b>1 <small class="tiny">sem efeito</small></b></div><div><span>Livres</span><b>0</b></div></div>
+  <div class="prev" style="background:#141c18"><div class="eyebrow">Crescimento · mesma regra do motor</div>
+    <div class="bar"><i style="width:60%"></i></div><div class="small">6 / 10 · a sobra da civilização (+2) é dividida entre as cidades que podem crescer: Aurora recebe +1 → cerca de 4 rodadas.</div></div>
+  <div class="eyebrow" style="margin-top:4px">Ação urbana desta rodada · 1 vaga</div>
+  <div class="acts">${['Produzir','Construir','Recrutar','Pesquisar','Investimento','Comércio','Cívica'].map((a,i)=>`<span class="btn sm" style="${i===0?'border-color:#e7c98a;color:#e7c98a':''}">${a}</span>`).join('')}</div>
+  <div class="small">Produzir: +6 Alimento, +2 Madeira, +1 Pedra, +3 Riqueza, +2 Conhecimento. Sem custo.</div>
+  <div style="display:flex;gap:8px;margin-top:12px"><button class="btn primary" style="flex:1">Reservar Produzir</button><button class="btn">Detalhe ›</button></div>
+</div>`+bandeja({chips:[['Exército → 21,11 · Atacar · Manobra']],used:1,check:'Aurora ainda sem ação'})+callouts([
+ [1,120,170,'O mapa <b>aproxima o território da cidade</b>; o resto escurece. Nada de página ou gaveta.',240],
+ [2,90,560,'Hexes trabalhados mostram o rendimento <b>sobre o hex</b>; distritos são peças da cidade no mapa.',250],
+ [3,640,90,'Cartão da Cidade: Nível 1–7, habitantes, previsão de crescimento real e a <b>ação urbana</b>. Economia e armazém só em “Detalhe”.',270],
+]);};
+F.resultado=()=>map({center:at(16,10),over:(P,s)=>{
+  const a=P(at(15,6)),b=P(at(14,5));
+  const hx=P(at(17,12));
+  return `<path d="M${b[0]},${b[1]} L${a[0]},${a[1]}" stroke="#e7c98a" stroke-width="3" fill="none"/>`+
+  `<path d="${hexPath(hx[0],hx[1],R*.98)}" fill="#e7c98a33" stroke="#e7c98a" stroke-width="2.5"/>`+
+  `<g transform="translate(${hx[0]+40},${hx[1]-18})"><rect width="196" height="26" rx="13" fill="#e8dbbb"/><text x="12" y="17" font-size="12" font-weight="700" fill="#2a2116">Travessia reivindicou 17,12</text></g>`+
+  (()=>{const c=P(cities[0].tile);return `<g transform="translate(${c[0]-80},${c[1]-92})"><rect width="160" height="26" rx="13" fill="#e8dbbb"/><text x="12" y="17" font-size="12" font-weight="700" fill="#2a2116">Aurora produziu · +14</text></g>`})();
+}})+faixa({moment:'Resultado',allReady:true,alert:false})+trilho()+`
+<div class="glass brz" style="position:absolute;left:180px;right:180px;bottom:14px;height:138px;border-radius:12px;padding:12px 18px">
+  <div style="display:flex;align-items:center;gap:12px"><div class="eyebrow">Resultado da rodada 6 · etapa 2 de 6</div><span class="tag">só o que você observou</span>
+    <div style="margin-left:auto;display:flex;gap:6px"><button class="btn sm">⏮</button><button class="btn sm">⏸</button><button class="btn sm">⏭</button><button class="btn sm">Pular para o resumo</button></div></div>
+  <div style="display:flex;gap:10px;margin-top:12px;align-items:stretch">
+    ${[['1','Ações urbanas','Aurora produziu; Travessia construiu',1],['2','Ordens e movimento','Explorador revelou uma região; hex 17,12 reivindicado',2],['3','Diplomacia','Valgard aceitou Acordo comercial',0],['4','Conflitos','Seu ataque a 21,11',0],['5','Manutenção','Crescimento, consumo, armazém',0],['6','Fim da rodada','Prestígio e iniciativa',0]].map(([n,t,d,st])=>`<div style="flex:1;border:1px solid ${st===2?'#e7c98a':'#33474f'};border-radius:8px;padding:8px 10px;background:${st===2?'#1d1a12':'#0f181c'};opacity:${st===0?.55:1}"><div class="small" style="color:${st?'#e7c98a':'#a9b8b5'};font-weight:700">${n} · ${t}</div><div class="tiny" style="margin-top:3px">${d}</div></div>`).join('')}
+  </div></div>`+callouts([
+ [1,240,120,'<b>Resultado</b>: depois que todos confirmam, as fases automáticas viram um <b>replay sobre o mapa</b>, etapa por etapa.',290],
+ [2,820,300,'Cada batida destaca no mapa o que mudou (pergaminhos curtos sobre o objeto).',240],
+ [3,190,620,'<b>Linha da Crônica</b>: avançar, pausar, pular. Termina num resumo da rodada em pergaminho.',300],
+]);
+F.batalha=()=>map({center:at(20,10),scale:1.4})+`<div class="scrim"></div>`+faixa({moment:'Conflitos',allReady:true,alert:'Você está em batalha'})+`
+<div class="glass brz" style="position:absolute;left:300px;right:60px;top:110px;height:540px;border-radius:14px;padding:22px 28px">
+  <div style="display:flex;align-items:center;gap:14px"><div><div class="eyebrow">Conflitos · hex 21,11 · Colinas</div><h2 class="disp" style="font-size:26px;color:var(--gold2)">Folha de Batalha</h2></div>
+    <span class="tag" style="margin-left:auto">empate favorece o defensor</span></div>
+  <div style="display:grid;grid-template-columns:1fr 150px 1fr;gap:20px;margin-top:18px">
+    ${side('Ataque · Ana · Aurélia','Manobra',[['Peças',12],['Terreno',0],['Postura (Manobra vence Defesa)',2],['Dados: impactos e manobra',7],['Tecnologia',1],['Guardas inimigas',-2]],20,'#e0bd78',['IMP','IMP','MAN','VAZ','IMP'])}
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><div class="big" style="font-size:52px">20</div><div class="muted">×</div><div class="big bad" style="font-size:52px">8</div><div class="eyebrow" style="margin-top:12px">Vencedor</div><div class="disp gold" style="font-size:20px">Aurélia</div></div>
+    ${side('Defesa · Beto · Valgard','Defesa',[['Peças e guarnição',6],['Fortificação intacta',1],['Defensores abrigados',1],['Guarda da cidade',0],['Postura',0]],8,'#7cc0d6',['GUA','VAZ','GUA'])}
+  </div>
+  <div class="hr"></div>
+  <div style="display:flex;gap:30px;align-items:center"><div class="small"><b>Consequência:</b> Valgard perde 2 peças e recua para 22,12 · fortificação de Fronteira <span class="warn">danificada</span> · 5 de 5 peças avançam.</div>
+  <button class="btn primary" style="margin-left:auto">Voltar ao mapa ›</button></div>
+</div>`+callouts([[1,20,140,'Em Conflitos a <b>Folha de Batalha</b> ocupa o centro; o mapa fica visível ao fundo e o hex da batalha continua no lugar.',250],[2,20,560,'Cada número tem origem; dados táticos mostram a face real depois da rolagem.',220]]);
+function side(t,post,rows,total,col,dice){return `<div style="border:1px solid #33474f;border-radius:10px;padding:14px;background:#0f181c">
+  <div class="eyebrow" style="color:${col}">${t}</div><div class="small muted">Postura: ${post}</div>
+  <div style="display:flex;gap:6px;margin:12px 0">${dice.map(d=>`<div style="width:38px;height:38px;border-radius:7px;background:#e8dbbb;color:#2a2116;display:grid;place-items:center;font:700 11px 'Source Sans 3'">${d}</div>`).join('')}</div>
+  ${rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #22323a"><span class="muted">${k}</span><b>${v>0?'+':''}${v}</b></div>`).join('')}
+  <div style="display:flex;justify-content:space-between;margin-top:8px"><b>Total</b><b class="disp gold" style="font-size:20px">${total}</b></div></div>`}
+F.teia=()=>map({center:at(15,10)})+`<div class="scrim"></div>`+faixa({board:'T',alert:false})+`
+<div class="board glass brz" style="display:grid;grid-template-columns:1fr 340px;gap:22px">
+  <div style="position:relative">
+    <div class="eyebrow">Tabuleiro · Teia Civilizacional</div><h2>Ideias em rede, por era</h2>
+    <div class="small muted">Anéis = eras I–VI (do centro para fora) · setores = domínios · linhas = pré-requisitos</div>
+    ${teia()}
+  </div>
+  <div style="border-left:1px solid #33474f;padding-left:20px">
+    <div class="eyebrow">Nó selecionado · Era II</div><h3 class="disp gold" style="font-size:20px;margin:4px 0">Treino de Manobras</h3>
+    <div class="small muted">Guerra · disponível</div>
+    <div class="prev"><div class="eyebrow">Efeito</div><div class="small" style="margin-top:4px">+1 Madeira por rodada, na manutenção.</div></div>
+    <div class="facts"><div><span>Custo</span><b>3 Conhecimento</b></div><div><span>Pré-requisito</span><b>Formações de Guarda ✓</b></div><div><span>Exclui</span><b>—</b></div><div><span>Quem pesquisa</span><b>Aurora (vaga livre)</b></div></div>
+    <div class="eyebrow" style="margin-top:10px">Abre caminho para</div><div class="small">Engenharia de Posição (Era III)</div>
+    <button class="btn primary" style="width:100%;margin-top:16px">Reservar pesquisa com Aurora</button>
+    <div class="tiny" style="margin-top:8px">Usa a ação urbana de Aurora nesta rodada. Fechar volta ao mapa com a seleção preservada.</div>
+    <div class="tiny" style="margin-top:14px">Formato final da Teia: DEC-012 (aberta). O desenho aceita mais ou menos nós por anel.</div>
+  </div>
+</div>`;
+function teia(){const cx=500,cy=380,dom=['Conhecimento','Sociedade','Economia','Guerra','Cultura'];let g='';
+  for(let e=1;e<=6;e++){g+=`<circle cx="${cx}" cy="${cy}" r="${e*48}" fill="none" stroke="#33474f" stroke-dasharray="${e===2?'0':'3 5'}"/>`;g+=`<text x="${cx+6}" y="${cy-e*48+14}" font-size="11" fill="#8a9b98" font-family="Cinzel,serif">${['I','II','III','IV','V','VI'][e-1]}</text>`;}
+  dom.forEach((d,i)=>{const a=-Math.PI/2+i*2*Math.PI/5;g+=`<line x1="${cx}" y1="${cy}" x2="${cx+Math.cos(a)*300}" y2="${cy+Math.sin(a)*300}" stroke="#22323a"/>`;
+    const la=a+Math.PI/5;g+=`<text x="${cx+Math.cos(la)*330}" y="${cy+Math.sin(la)*330}" text-anchor="middle" font-size="13" fill="#e7c98a" font-family="Cinzel,serif">${d}</text>`;
+    for(let e=1;e<=6;e++)for(let k=0;k<2;k++){const aa=a+(k+1)*2*Math.PI/15,rr=e*48-24,x=cx+Math.cos(aa)*rr,y=cy+Math.sin(aa)*rr;
+      const st=e===1||(e===2&&k===0&&i!==2)?'done':e===2||(e===3&&k===0)?'open':'lock';
+      const sel=i===3&&e===2&&k===1;
+      if(e>1){const pa=a+(k+1)*2*Math.PI/15,pr=(e-1)*48-24;g+=`<line x1="${cx+Math.cos(pa)*pr}" y1="${cy+Math.sin(pa)*pr}" x2="${x}" y2="${y}" stroke="${st==='lock'?'#22323a':'#7d5c33'}" stroke-width="1.5"/>`;}
+      g+=`<circle cx="${x}" cy="${y}" r="${sel?11:8}" fill="${st==='done'?'#c9a45c':st==='open'?'#16232a':'#0f181c'}" stroke="${sel?'#fff':st==='lock'?'#33474f':'#e7c98a'}" stroke-width="${sel?3:1.5}"/>`;}
+  });
+  return `<svg width="1000" height="760" style="position:absolute;left:0;top:70px">${g}</svg>`;}
+F.diplomacia=()=>map({center:at(17,10)})+`<div class="scrim"></div>`+faixa({board:'D',alert:'Proposta de Valgard'})+`
+<div class="board glass brz">
+  <div class="eyebrow">Tabuleiro · Diplomacia</div><h2>A mesa das civilizações</h2>
+  <div style="display:grid;grid-template-columns:420px 1fr;gap:26px;margin-top:14px">
+   <div style="position:relative;height:640px">${mesa()}</div>
+   <div>
+    <div class="eyebrow" style="color:#7cc0d6">Valgard · Beto · contato · paz</div><h3 class="disp gold" style="font-size:22px;margin:4px 0 10px">Relação com Valgard</h3>
+    <div class="parch" style="border-radius:10px;padding:14px 16px;margin-bottom:14px"><div class="eyebrow">Proposta recebida</div><div style="font:600 18px Cinzel,serif;margin:4px 0">Acordo comercial</div><div class="small">Permite rotas entre as duas civilizações, inclusive pelo território do parceiro, em paz e sem embargo. Dura 3 rodadas depois de aceito.</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn primary sm">Aceitar</button><button class="btn sm">Recusar</button><span class="tiny" style="color:#5b4a30;align-self:center">ação livre</span></div></div>
+    <div class="facts" style="grid-template-columns:repeat(3,1fr)"><div><span>Tratados ativos</span><b>Fronteiras abertas · até R8</b></div><div><span>Rotas</span><b>1 · Aurora ⇄ Fronteira</b></div><div><span>Ofertas comerciais</span><b>1 aberta</b></div></div>
+    <div class="eyebrow" style="margin:12px 0 6px">Propor</div>
+    <div class="acts">${['Acordo comercial','Pacto de não agressão','Fronteiras abertas','Pacto defensivo','Aliança','Embargo','Oferta comercial'].map(t=>`<span class="btn sm">${t}</span>`).join('')}</div>
+    <div class="tiny">Pacto de não agressão: compromisso de paz que encerra guerra em curso; declarar guerra depois custa −2 Prestígio por acordo. (Bloquear guerra: DEC-015 aberta.)</div>
+    <div class="hr"></div>
+    <div style="display:flex;gap:8px"><button class="btn">Mostrar fronteira no mapa</button><button class="btn">Mostrar rota</button><button class="btn" style="margin-left:auto;color:var(--bad);border-color:#6b3a30">Declarar guerra…</button></div>
+   </div></div></div>`;
+function mesa(){const seats=[['Você · Aurélia','#e0bd78',''],['Beto · Valgard','#7cc0d6','paz · 1 proposta'],['Clara · Merídia','#d090a8','paz'],['Davi · Thalos','#a3d09a','sem contato'],['Vila do Sal','#cfc6b0','povo · neutro']];
+  let g=`<ellipse cx="210" cy="300" rx="150" ry="220" fill="#16232a" stroke="#7d5c33" stroke-width="2"/><text x="210" y="305" text-anchor="middle" font-family="Cinzel,serif" font-size="14" fill="#8a9b98">mesa</text>`;
+  seats.forEach(([n,c,st],i)=>{const a=Math.PI/2+i*2*Math.PI/seats.length,x=210+Math.cos(a)*180,y=300+Math.sin(a)*250;
+   g+=`<line x1="210" y1="300" x2="${x}" y2="${y}" stroke="${i===1?c:'#22323a'}" stroke-width="${i===1?2:1}" stroke-dasharray="${st.includes('sem')?'4 4':'0'}"/>`;
+   g+=`<g transform="translate(${x},${y})"><circle r="30" fill="#0f181c" stroke="${c}" stroke-width="${i===1?4:2}"/><text y="5" text-anchor="middle" font-family="Cinzel,serif" font-size="13" fill="${c}">${n.split('· ')[1]?.slice(0,2)??n.slice(0,2)}</text><text y="46" text-anchor="middle" font-size="12" fill="#eee8da">${n}</text><text y="61" text-anchor="middle" font-size="11" fill="#8a9b98">${st}</text></g>`;});
+  return `<svg width="420" height="640">${g}</svg>`;}
+F.eras=()=>map({center:at(15,10)})+`<div class="scrim"></div>`+faixa({board:'E',alert:false})+`
+<div class="board glass brz">
+  <div class="eyebrow">Tabuleiro · Eras e Hegemonia</div><h2>Do assentamento à disputa pelo mundo</h2>
+  <div style="display:flex;gap:6px;margin:18px 0 6px">${['I · Fundação','II · Expansão','III · Civilização','IV · Impérios','V · Potências','VI · Ascensão'].map((e,i)=>`<div style="flex:1;padding:10px;border-radius:8px;text-align:center;font:600 14px Cinzel,serif;${i<1?'background:#3a3020;color:#e7c98a':i===1?'background:#c9a45c;color:#1a1206':'border:1px solid #33474f;color:#8a9b98'}">${e}</div>`).join('')}<div style="padding:10px 14px;border-radius:8px;border:1px dashed #e7c98a;color:#e7c98a;font:600 14px Cinzel,serif">Hegemonia = vitória</div></div>
+  <div class="small muted">Próxima era (III): 2 de 3 critérios necessários · cidades ✓ · pesquisas ✓ · território 11/14</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px">
+   ${[['Militar',[['Força ≥ 12',9,12],['Vitórias ≥ 2',1,2],['Presença estrangeira ≥ 2',0,2]]],['Econômico',[['Riqueza ≥ 30',30,30],['Rotas internacionais ≥ 2',1,2],['Parceiros comerciais ≥ 1',1,1]]],['Científico',[['Pesquisas da era V ≥ 2',0,2],['Distritos acadêmicos ≥ 2',1,2],['Projetos científicos ≥ 1',0,1]]],['Cultural',[['Influência ≥ 25',9,25],['Distritos culturais ≥ 2',0,2],['Cidades influenciadas ≥ 3',1,3]]],['Político',[['Parceiros diplomáticos ≥ 1',1,1],['Influência estrangeira ≥ 3',1,3],['Projetos políticos ≥ 1',0,1]]],['Territorial',[['Territórios ≥ 14',11,14],['Cidades com nível ≥ 3',1,3],['Administração na capacidade',1,1]]]].map(([n,rows],i)=>`<div style="border:1px solid ${i===1?'#e7c98a':'#33474f'};border-radius:10px;padding:12px 14px;background:#0f181c"><div style="display:flex;justify-content:space-between"><b class="disp gold" style="font-size:16px">${n}</b><span class="small muted">${rows.filter(r=>r[1]>=r[2]).length} / 3</span></div>${rows.map(([k,v,m])=>`<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span>${v>=m?'✓ ':''}${k}</span><span class="muted">${v}/${m}</span></div><div class="bar"><i style="width:${Math.min(100,v/m*100)}%;${v>=m?'background:#9ec4a2':''}"></i></div></div>`).join('')}</div>`).join('')}
+  </div>
+  <div style="display:flex;gap:14px;margin-top:16px;align-items:center">
+   <div class="prev" style="flex:1;margin:0"><div class="eyebrow">Caminho mais próximo · Econômico 2/3</div><div class="small" style="margin-top:4px">Falta 1 rota internacional. Valgard propôs um Acordo comercial. <span class="gold">Mostrar no mapa ›</span></div></div>
+   <div style="flex:1;border:1px dashed #7d5c33;border-radius:8px;padding:12px"><div class="eyebrow">Declarar Hegemonia</div><div class="small" style="margin-top:4px">Requisitos contam desde já. A declaração só fica disponível na <b>Era VI · Ascensão</b>; depois, mantenha por 2 rodadas completas.</div></div>
+   <div class="kv" style="text-align:right"><small>Vence no limite</small><b>maior Prestígio · R15</b></div>
+  </div>
+</div>`;
+F.mobile=()=>`<div style="position:absolute;inset:0;background:radial-gradient(1200px 700px at 50% 30%,#17252c,#0b1114 72%)"></div>
+<div style="position:absolute;left:60px;top:40px"><div class="eyebrow">Tamanhos de tela</div><h2 class="disp gold" style="font-size:26px">A mesma mesa no celular</h2><div class="small muted" style="max-width:300px;margin-top:8px">Mapa em tela cheia; o Cartão vira folha inferior; Tabuleiros viram tela cheia; a Bandeja fica compacta. Nunca uma página empilhada.</div></div>
+${phone(420,'Planejar · sem seleção',`<div style="position:absolute;left:0;right:0;bottom:0;height:64px;background:#121b20f0;border-top:1px solid #7d5c33;display:flex;align-items:center;gap:8px;padding:0 10px"><div><div class="tiny">Ações</div><b class="disp gold">2/7</b></div><div class="tiny" style="flex:1">2 ordens · <span class="warn">1 cidade sem ação</span></div><button class="btn primary sm">Confirmar ›</button></div>`)}
+${phone(760,'Seleção · folha inferior',`<div style="position:absolute;left:0;right:0;bottom:0;height:300px;background:#19252bf5;border-top:1px solid #7d5c33;border-radius:16px 16px 0 0;padding:10px 14px"><div style="width:40px;height:4px;border-radius:2px;background:#33474f;margin:0 auto 10px"></div><div class="eyebrow">Pilha · Exército</div><div class="disp gold" style="font-size:17px">Atacar 21,11</div><div class="seg" style="margin:10px 0"><span>Assalto</span><span>Defesa</span><span class="on">Manobra</span></div><div class="prev" style="margin:6px 0"><span class="big" style="font-size:26px">20</span> <span class="muted">×</span> <span class="big bad" style="font-size:26px">8</span><div class="tiny">prévia sem dados</div></div><button class="btn primary" style="width:100%">Reservar ataque</button></div>`)}
+${phone(1100,'Tabuleiro · tela cheia',`<div style="position:absolute;inset:44px 0 0 0;background:#121b20;padding:14px"><div class="eyebrow">Eras e Hegemonia</div><div class="disp gold" style="font-size:17px;margin-bottom:10px">Caminhos</div>${['Econômico 2/3','Territorial 1/3','Político 1/3','Militar 0/3'].map(t=>`<div style="border:1px solid #33474f;border-radius:8px;padding:10px;margin-bottom:8px;font-size:13px">${t}<div class="bar"><i style="width:${parseInt(t.split(' ')[1])/3*100}%"></i></div></div>`).join('')}<button class="btn" style="width:100%">Voltar ao mapa</button></div>`)}
+`;
+function phone(x,label,inner){const W=300,H=620;const sub=map({center:at(18,10),scale:.9});return `<div style="position:absolute;left:${x}px;top:200px"><div class="tiny" style="margin-bottom:8px;color:var(--gold2)">${label}</div><div style="position:relative;width:${W}px;height:${H}px;border-radius:34px;border:8px solid #22323a;overflow:hidden;background:#0b1114">
+ <div style="position:absolute;left:${-(1440-W)/2}px;top:${-(900-H)/2}px;width:1440px;height:900px">${sub}</div>
+ <div style="position:absolute;left:0;right:0;top:0;height:44px;background:#121b20f0;border-bottom:1px solid #33474f;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:12px"><b class="disp gold">R6</b><span class="tag" style="background:#c9a45c;color:#1a1206;border:0">Planejar</span><span class="muted">42 Ali · 18 Mad · 31 Riq</span><span style="margin-left:auto" class="warn">◆</span></div>
+ ${inner}</div></div>`;}
+/* ---------- boot ---------- */
+const frame=new URLSearchParams(location.search).get('f')||'mesa';
+document.getElementById('root').innerHTML=`<div class="frame">${F[frame]()}</div>`;
+</script>
+</body>
+</html>
