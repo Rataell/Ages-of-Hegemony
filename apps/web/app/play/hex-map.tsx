@@ -359,8 +359,8 @@ export const HexMap = memo(function HexMap({
                   const cargo = all.filter(u => u.carrierId), mine = all.filter(u => !u.carrierId);
                   if (!mine.length) return null;
                   const military = mine.filter(u => !CIVIL_PIECES.has(u.kind)), civil = [...new Set(mine.filter(u => CIVIL_PIECES.has(u.kind)).map(u => u.kind))];
-                  const lead = military.some(u => u.kind === 'FLEET') ? 'FLEET' : military.length ? [...military.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1])[0]![0] : civil[0]!;
-                  const count = lead === 'FLEET' ? military.filter(u => u.kind === 'FLEET').length : military.length || mine.filter(u => u.kind === lead).length, side = military.length ? civil : civil.slice(1);
+                  const lead = military.some(u => u.kind === 'FLEET') ? 'FLEET' : mine.some(u => u.kind === 'COASTAL_VESSEL') ? 'COASTAL_VESSEL' : military.length ? [...military.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1])[0]![0] : civil[0]!;
+                  const count = lead === 'FLEET' || lead === 'COASTAL_VESSEL' ? mine.filter(u => u.kind === lead).length : military.length || mine.filter(u => u.kind === lead).length, side = military.length ? civil : civil.slice(1);
                   const x = city ? (slot === 0 ? -24 : 24) : owners.length > 1 ? (slot === 0 ? -20 : 20) : 0, y = city ? 22 : 0;
                   const kinds = [...all.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
                   return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={lead}>

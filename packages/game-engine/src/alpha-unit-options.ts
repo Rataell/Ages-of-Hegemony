@@ -7,7 +7,7 @@ import { stackBlock } from './alpha-stack.js';
 import { settleWithPioneer } from './alpha-cities.js';
 import { applyCommand } from './engine.js';
 import { alphaCanAfford } from './alpha-resources.js';
-import { disembarkBlock, embarkBlock, isCarried } from './alpha-naval.js';
+import { disembarkBlock, embarkBlock, isCarried, isCarrierKind } from './alpha-naval.js';
 import { kitMovement } from './alpha-kits.js';
 
 export interface AlphaUnitOptions {
@@ -36,7 +36,7 @@ export function alphaUnitOptions(state: AlphaState, actor: PlayerId): Record<str
   const options: Record<string, AlphaUnitOptions> = {};
   for (const unit of state.units.filter(candidate => candidate.ownerId === actor)) {
     const carried = isCarried(unit);
-    const embark = carried || state.rules.units[unit.kind].domain !== 'LAND' ? [] : state.units.filter(fleet => fleet.kind === 'FLEET' && fleet.ownerId === actor && embarkBlock(state, actor, [unit.id], fleet.id) === null).map(fleet => fleet.id).sort();
+    const embark = carried || state.rules.units[unit.kind].domain !== 'LAND' ? [] : state.units.filter(fleet => isCarrierKind(state, fleet.kind) && fleet.ownerId === actor && embarkBlock(state, actor, [unit.id], fleet.id) === null).map(fleet => fleet.id).sort();
     const disembark = carried ? hexNeighbors(byId.get(unit.hexId)!).map(hexId).filter(id => disembarkBlock(state, actor, [unit.id], id) === null).sort() : [];
     options[unit.id] = { moves: carried ? {} : reachable(state, actor, unit, byId, known), explore: carried ? [] : explorable(state, actor, unit, byId), settleBlock: unit.kind === 'PIONEER' ? settleBlock(state, actor, unit) : 'Somente Pioneiros fundam cidades.', embark, disembark };
   }

@@ -33,7 +33,7 @@ export function ArmyList({ units, selected, onSelect, stacks, rules }: { units: 
   return <div className="alpha-armies">{[...groups].sort(([a], [b]) => a.localeCompare(b)).map(([hexId, members]) => {
     const ids = members.map(unit => unit.id), chosen = ids.filter(id => selected.includes(id)).length, unsupplied = members.filter(unit => unit.supply && !unit.supply.supplied).length;
     const military = members.some(unit => !CIVILIAN.has(unit.kind));
-    const naval = members.some(unit => unit.kind === 'FLEET');
+    const naval = members.some(unit => unit.kind === 'FLEET' || unit.kind === 'COASTAL_VESSEL');
     const title = members.length === 1 ? text(members[0]!.kind) : `${naval ? 'Frota' : military ? 'Exército' : 'Civis'} · ${members.length} peças`;
     return <article className="alpha-army" data-selected={chosen > 0} key={hexId}>
       <div className="alpha-army-head"><b>{title}</b><small>{hexId}{unsupplied ? ` · ${unsupplied} sem suprimento` : ' · abastecido'}</small><StackTags hexId={hexId} members={members} stacks={stacks} rules={rules} /></div>

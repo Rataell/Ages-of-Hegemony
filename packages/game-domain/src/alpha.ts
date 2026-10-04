@@ -31,7 +31,8 @@ export const AlphaRulesSchema = z.strictObject({
   integrationCost:ResourcePoolSchema,occupationStabilityPenalty:N,
   hegemonyRequirements:z.record(HegemonyPathSchema,z.array(z.strictObject({metric:HegemonyMetricSchema,minimum:P})).min(3)),
   cardsPerRound:P,eventEvery:P,roadCost:ResourcePoolSchema,advisorCost:ResourcePoolSchema,treatyDuration:P,routeIncome:N,foreignRouteIncome:N,
-  units:z.record(AlphaUnitClassSchema,UnitCatalogEntrySchema),
+  /** Classes added later (e.g. COASTAL_VESSEL) are filled from the catalogue, so older saved matches stay valid. */
+  units:z.preprocess(value=>value&&typeof value==='object'?{...alphaUnitCatalog(),...value}:value,z.record(AlphaUnitClassSchema,UnitCatalogEntrySchema)),
   movementCosts:z.record(z.enum(['UNKNOWN','PLAINS','FOREST','HILLS','MOUNTAINS','COAST','SEA']),P), supplyRadius:P,
   milestones:z.array(AlphaEraMilestoneSchema).length(5),
   planningSeconds: z.union([z.literal(0), z.literal(180), z.literal(300), z.literal(480), z.literal(3600), z.literal(14400), z.literal(28800)]),
@@ -216,12 +217,13 @@ export const AlphaStateSchema = z.strictObject({
     const tile = hexes.get(unit.hexId);
     if (!owners.has(unit.ownerId) || !tile || unit.recruitedRound > state.core.round) fail('Invalid unit owner, position or round');
     const carrier = unit.carrierId ? state.units.find(candidate => candidate.id === unit.carrierId) : null;
-    if (unit.carrierId && (unit.kind === 'FLEET' || !carrier || carrier.kind !== 'FLEET' || carrier.ownerId !== unit.ownerId || carrier.hexId !== unit.hexId)) fail('Invalid carrier');
-    if (tile && (unit.kind === 'FLEET' ? !['COAST','SEA'].includes(tile.terrain) : tile.terrain === 'UNKNOWN' || (tile.terrain === 'SEA' && !carrier))) fail('Unit on illegal terrain');
+    const sea = (kind: AlphaUnit['kind']) => state.rules.units[kind].domain === 'SEA';
+    if (unit.carrierId && (sea(unit.kind) || !carrier || !sea(carrier.kind) || carrier.ownerId !== unit.ownerId || carrier.hexId !== unit.hexId)) fail('Invalid carrier');
+    if (tile && (sea(unit.kind) ? !['COAST','SEA'].includes(tile.terrain) : tile.terrain === 'UNKNOWN' || (tile.terrain === 'SEA' && !carrier))) fail('Unit on illegal terrain');
   }
-  for (const fleet of state.units.filter(unit => unit.kind === 'FLEET')) {
+  for (const fleet of state.units.filter(unit => state.rules.units[unit.kind].domain === 'SEA')) {
     const load = state.units.filter(unit => unit.carrierId === fleet.id).reduce((total, unit) => total + (state.rules.units[unit.kind].cargo ?? 1), 0);
-    if (load > (state.rules.units.FLEET.transport ?? 0)) fail('Fleet over its transport capacity');
+    if (load > (state.rules.units[fleet.kind].transport ?? 0)) fail('Fleet over its transport capacity');
   }
   for (const player of state.players) {
     if(new Set(player.influencedCities).size!==player.influencedCities.length||player.influencedCities.some(id=>!cities.some(c=>c.id===id))||player.foreignInfluence!==player.influencedCities.length)fail('Invalid foreign influence');

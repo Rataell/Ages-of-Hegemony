@@ -135,4 +135,32 @@ describe('naval vertical slice (DEC-014)', () => {
     expect(state.units.filter(unit => unit.id.startsWith('cargo-')).length).toBeLessThanOrEqual(1);
     expect(AlphaStateSchema.safeParse(state).success).toBe(true);
   });
+
+  it('launches a coastal vessel from Era I: it carries one piece, explores from the sea and never blockades', () => {
+    const { state, capital } = harbour();
+    state.players[0]!.era = 'FOUNDATION';
+    expect(recruitBlock(state, p1, capital.id, 'FLEET')).toMatch(/era/);
+    expect(recruitBlock(state, p1, capital.id, 'COASTAL_VESSEL')).toBeNull();
+    recruitUnit(state, p1, capital.id, 'COASTAL_VESSEL');
+    const boat = state.units.find(unit => unit.kind === 'COASTAL_VESSEL')!;
+    expect(['COAST', 'SEA']).toContain(tile(state, boat.hexId).terrain);
+    const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'EXPLORER')!;
+    const next = must(state, p1, { type: 'EMBARK', unitIds: [explorer.id], fleetId: boat.id });
+    expect(next.units.find(unit => unit.id === explorer.id)!.carrierId).toBe(boat.id);
+    state.units.push({ id: 'second', ownerId: p1, kind: 'INFANTRY', hexId: capital.hexId, recruitedRound: 1, carrierId: null });
+    expect(applyAlphaCommand(next, p1, { type: 'EMBARK', expectedVersion: next.version, unitIds: ['pioneer-1'], fleetId: boat.id }).ok).toBe(false);
+    next.wars.push(['p1', 'p2'] as never);
+    expect(blockadedBy(next, next.core.players[1]!.civilization.cities[0]!.hexId, p2)).toBeNull();
+    expect(AlphaStateSchema.safeParse(next).success).toBe(true);
+  });
+
+  it('keeps matches saved before the coastal vessel valid', () => {
+    const { state } = harbour();
+    const old = JSON.parse(JSON.stringify(state)) as { rules: { units: Record<string, unknown> } };
+    delete old.rules.units.COASTAL_VESSEL;
+    const parsed = AlphaStateSchema.safeParse(old);
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.rules.units.COASTAL_VESSEL.domain).toBe('SEA');
+  });
 });
+

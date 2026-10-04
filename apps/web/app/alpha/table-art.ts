@@ -134,7 +134,7 @@ export function fortificationArt(level: string, state: string, r: number) {
  * 32-unit design box. Every piece on the map is its own silhouette in the seat color with an ink outline — the civil pieces
  * too (UXDEC-018: no generic discs on the map). Discs are kept for inhabitants inside a city.
  */
-export type PieceKind = 'INFANTRY' | 'GUARD' | 'RANGED' | 'CAVALRY' | 'SIEGE' | 'FLEET' | 'EXPLORER' | 'PIONEER' | 'ENVOY';
+export type PieceKind = 'INFANTRY' | 'GUARD' | 'RANGED' | 'CAVALRY' | 'SIEGE' | 'FLEET' | 'EXPLORER' | 'PIONEER' | 'ENVOY' | 'COASTAL_VESSEL';
 const SHAPES: Record<PieceKind, (c: string) => string> = {
   INFANTRY: c => `<path d="M-11,-1 L11,-1 L11,10 Q11,13 8,13 L-8,13 Q-11,13 -11,10 Z" fill="${c}"/>` + [-7, 0, 7].map(x => `<path d="M${x - 1.6},-1 L${x - 1.6},-9 L${x},-14.5 L${x + 1.6},-9 L${x + 1.6},-1 Z" fill="${c}"/>`).join('') + `<path d="M-11,4 L11,4" stroke="${INK}" stroke-width="1.3"/>`,
   GUARD: c => `<path d="M0,-14 C9,-14 12,-11 12,-8 L12,2 C12,9 6,13 0,15 C-6,13 -12,9 -12,2 L-12,-8 C-12,-11 -9,-14 0,-14 Z" fill="${c}"/><path d="M0,-11 L0,12" stroke="${INK}" stroke-width="1.4"/><circle cy="-1" r="3" fill="${c}" stroke="${INK}" stroke-width="1.4"/>`,
@@ -142,6 +142,8 @@ const SHAPES: Record<PieceKind, (c: string) => string> = {
   CAVALRY: c => `<path d="M-8,14 L-8,7 C-11,0 -8,-7 -2,-10 L0,-15 L3,-10 C9,-9 13,-3 13,2 L9,4.5 L5,1 C4,6 7,9 8,14 Z" fill="${c}"/><circle cx="4" cy="-5" r="1.5" fill="${INK}"/><path d="M-2,-10 C-6,-6 -7,0 -5,7" stroke="${INK}" stroke-width="1.2" fill="none"/>`,
   SIEGE: c => `<rect x="-13" y="4" width="26" height="5" rx="1" fill="${c}"/><path d="M-7,5 L0,-6 L7,5" stroke="${c}" stroke-width="3.2" fill="none"/><path d="M-12,1 L12,-12" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/><circle cx="12" cy="-12" r="3.2" fill="${c}"/><circle cx="-8" cy="11" r="3.6" fill="${c}"/><circle cx="8" cy="11" r="3.6" fill="${c}"/><circle cx="-8" cy="11" r="1.1" fill="${INK}"/><circle cx="8" cy="11" r="1.1" fill="${INK}"/>`,
   FLEET: c => `<path d="M-15,-5 L7,-5 Q14,-3 16,0 Q14,3 7,5 L-15,5 Q-17,5 -17,3 L-17,-3 Q-17,-5 -15,-5 Z" fill="${c}"/><path d="M-8,-5 l-2,-5 M-2,-5 l-2,-5 M4,-5 l-2,-5 M-8,5 l-2,5 M-2,5 l-2,5 M4,5 l-2,5" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/><path d="M-12,0 L8,0" stroke="${INK}" stroke-width="1.3"/>`,
+  // Coastal vessel: a short open boat with two oars a side — explores the coast, never fights.
+  COASTAL_VESSEL: c => `<path d="M-12,-5 L5,-5 Q12,-3 14,0 Q12,3 5,5 L-12,5 Q-14,5 -14,3 L-14,-3 Q-14,-5 -12,-5 Z" fill="${c}"/><path d="M-6,-5 l-2,-6 M2,-5 l-2,-6 M-6,5 l-2,6 M2,5 l-2,6" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/><circle cx="-3" r="2.2" fill="${INK}"/>`,
   // Explorer: an eight-point compass rose — reveals the map.
   EXPLORER: c => `<path d="M0,-15 L3.4,-3.4 L15,0 L3.4,3.4 L0,15 L-3.4,3.4 L-15,0 L-3.4,-3.4 Z" fill="${c}"/><path d="M0,-8.5 L2,-2 L8.5,0 L2,2 L0,8.5 L-2,2 L-8.5,0 L-2,-2 Z" fill="${c}" transform="rotate(45)"/><circle r="2.4" fill="${INK}"/>`,
   // Pioneer: a house with the founding flag — founds and settles.

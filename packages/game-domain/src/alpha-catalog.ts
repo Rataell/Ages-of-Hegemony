@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { NonNegativeIntegerSchema as N, ResourcePoolSchema, TerrainTypeSchema, emptyResourcePool } from './core.js';
 import { AlphaEraSchema } from './alpha-concept.js';
 
-export const AlphaUnitClassSchema = z.enum(['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE', 'FLEET', 'EXPLORER', 'PIONEER', 'ENVOY']);
+export const AlphaUnitClassSchema = z.enum(['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE', 'FLEET', 'EXPLORER', 'PIONEER', 'ENVOY', 'COASTAL_VESSEL']);
 export const UnitCatalogEntrySchema = z.strictObject({
   name: z.string(), cost: ResourcePoolSchema, metal: N.default(0), upkeep: ResourcePoolSchema, movement: N.min(1), strength: N,
   domain: z.enum(['LAND', 'SEA']), terrainModifiers: z.record(TerrainTypeSchema, z.number().int().min(-10).max(10)), cityModifier: N,
@@ -36,5 +36,7 @@ export function alphaUnitCatalog(): Record<z.infer<typeof AlphaUnitClassSchema>,
     EXPLORER: { ...make('Explorador', pool({ food: 1, wealth: 1 }), 3, 0, 'Exploração terrestre.'), upkeep: pool({}) },
     PIONEER: make('Pioneiro', pool({ food: 3, materials: 2 }), 2, 0, 'Fundação de cidades.'),
     ENVOY: { ...make('Enviado', pool({ wealth: 2, influence: 1 }), 3, 0, 'Diplomacia e presença cultural.'), upkeep: pool({ wealth: 1 }) },
+    /** First naval class (naval audit): Era I, explores and crosses the coast, carries one piece, never fights. */
+    COASTAL_VESSEL: { ...make('Embarcação Costeira', pool({ materials: 2, wealth: 1 }), 3, 0, 'Explora a costa e leva uma peça. Não combate.'), upkeep: pool({ wealth: 1 }), domain: 'SEA', transport: 1 },
   };
 }

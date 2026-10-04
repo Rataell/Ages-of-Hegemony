@@ -16,10 +16,11 @@ export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:
   const entry=state.rules.units[kind];const tile=state.core.map.find(t=>t.id===city.hexId)!;
   if(AlphaEraSchema.options.indexOf(progress.era)<AlphaEraSchema.options.indexOf(entry.era))return 'Sua civilização ainda não alcançou a era exigida.';
   if(entry.militaryInfrastructure&&!city.districts.some(d=>d.type==='MILITARY'))return 'Esta peça requer distrito Militar.';
-  if(kind==='FLEET'&&!isPort(state,tile.id))return 'A Frota precisa de uma cidade portuária: na Costa ou vizinha ao mar.';
-  if(kind==='FLEET'&&blockadedBy(state,tile.id,actor))return 'Porto bloqueado por uma frota inimiga.';
+  const naval=entry.domain==='SEA';
+  if(naval&&!isPort(state,tile.id))return 'Navios precisam de uma cidade portuária: na Costa ou vizinha ao mar.';
+  if(naval&&blockadedBy(state,tile.id,actor))return 'Porto bloqueado por uma frota inimiga.';
   // A full coastal port still answers with its stack count, so the player sees why.
-  const spawn=kind==='FLEET'?launchHex(state,actor,tile.id)??(tile.terrain==='COAST'?city.hexId:null):city.hexId;
+  const spawn=naval?launchHex(state,actor,tile.id,kind)??(tile.terrain==='COAST'?city.hexId:null):city.hexId;
   if(!spawn)return 'Não há água livre junto ao porto para lançar a Frota.';
   if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)return 'Reserva de unidades esgotada.';
   const arriving:AlphaUnit={id:`recruit-${cityId}`,ownerId:actor,kind,hexId:spawn,recruitedRound:state.core.round,carrierId:null};
@@ -31,9 +32,9 @@ export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:
 export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):void {
   const blocked=recruitBlock(state,actor,cityId,kind);if(blocked)throw new Error(blocked);
   const city=state.core.players.find(p=>p.id===actor)!.civilization.cities.find(c=>c.id===cityId)!;const entry=state.rules.units[kind];
-  const price=kitUnitCost(state,actor,kind);void entry;
+  const price=kitUnitCost(state,actor,kind);
   alphaPay(state,actor,alphaCostWithMetal(state,actor,price.cost,price.metal));
-  const hexId=kind==='FLEET'?launchHex(state,actor,city.hexId)!:city.hexId;
+  const hexId=entry.domain==='SEA'?launchHex(state,actor,city.hexId,kind)!:city.hexId;
   state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId,recruitedRound:state.core.round,carrierId:null});
 }
 export function canEnter(state:AlphaState,unit:AlphaUnit,target:HexId):boolean {
