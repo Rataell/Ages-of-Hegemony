@@ -291,7 +291,7 @@ export function alphaBalance(): AlphaBalance {
       { productionPercent: 30, stabilityDelta: 1 },
     ],
     stack: { military: 6, militaryCommandOne: 7, militaryCommandTwo: 8, civilians: 2, cityBase: 6, cityMax: 10, fleets: 4, fleetsUpgraded: 5,
-      upgrades: { commandOne: 'adv-2-4-1', commandTwo: 'adv-4-4-1', naval: 'adv-3-4-2', doctrine: 'adv-4-4-2' },
+      upgrades: { commandOne: 'web-maneuver-training', commandTwo: 'web-war-of-movement', naval: 'web-naval-architecture', doctrine: 'web-deep-defense' },
       cityBonus: { militaryDistrict: 1, doctrine: 1, fortification: { NONE: 0, PALISADE: 1, STONE_WALL: 1, FORTRESS: 2, BASTION: 2, CITADEL: 3 } },
     },
     cultureSlots: 3,

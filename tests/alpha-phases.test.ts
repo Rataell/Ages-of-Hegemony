@@ -92,7 +92,7 @@ describe('phase legality', () => {
 
   it('has exactly one path for each urban action: the legacy commands no longer exist', () => {
     const state = started();
-    for (const raw of [{ type: 'RECRUIT', cityId: 'capital-1', kind: 'INFANTRY' }, { type: 'RESEARCH', advancementId: 'adv-1-1-1' }, { type: 'INTEGRATE_CITY', cityId: 'capital-2' }])
+    for (const raw of [{ type: 'RECRUIT', cityId: 'capital-1', kind: 'INFANTRY' }, { type: 'RESEARCH', advancementId: 'web-writing' }, { type: 'INTEGRATE_CITY', cityId: 'capital-2' }])
       expect(applyAlphaCommand(state, p1, { ...raw, expectedVersion: state.version })).toMatchObject({ ok: false, error: { code: 'INVALID_INPUT' } });
     for (const build of [{ type: 'BUILD_DISTRICT', cityId: 'capital-1', district: 'AGRARIAN' }, { type: 'BUILD_BUILDING', cityId: 'capital-1', building: 'GRANARY' }])
       expect(legalIn(state, 'MANAGE', { command: { ...build, playerId: p1, expectedVersion: state.core.version } })).toMatchObject({ ok: false, error: { code: 'USE_URBAN_ACTION' } });

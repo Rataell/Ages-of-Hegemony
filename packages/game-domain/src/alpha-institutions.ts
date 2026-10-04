@@ -1,40 +1,7 @@
-import { z } from 'zod';
-import { CivilizationDomainSchema, ResourcePoolSchema, emptyResourcePool } from './core.js';
-import { AlphaEraSchema } from './alpha-concept.js';
-/**
- * When a recurring resource effect is credited. ON_PRODUCE: with the PRODUCE action of the city it belongs to. ROUND_START:
- * when the round opens. MAINTENANCE: in integration and maintenance (the default for institutional income). ONCE: at the moment
- * the effect is earned or played (cards, abilities, world choices); it never recurs.
- */
-export const EffectTimingSchema=z.enum(['ON_PRODUCE','ROUND_START','MAINTENANCE','ONCE']);
-export type EffectTiming=z.infer<typeof EffectTimingSchema>;
-export const AlphaEffectSchema=z.discriminatedUnion('kind',[
-  z.strictObject({kind:z.literal('PRODUCTION'),resource:z.enum(['food','materials','wealth','knowledge','influence']),amount:z.number().int().min(1).max(5),timing:EffectTimingSchema.optional()}),
-  z.strictObject({kind:z.enum(['STRENGTH','MOVEMENT','COMMAND']),amount:z.number().int().min(1).max(2)}),
-]);
-export type AlphaEffect=z.infer<typeof AlphaEffectSchema>;
-export const AdvancementSchema=z.strictObject({id:z.string(),name:z.string(),domain:CivilizationDomainSchema,era:AlphaEraSchema,cost:ResourcePoolSchema,
-  prerequisites:z.array(z.string()),excludes:z.array(z.string()),convergence:z.boolean(),effect:AlphaEffectSchema});
-export type Advancement=z.infer<typeof AdvancementSchema>;
-const domains=CivilizationDomainSchema.options;const eras=AlphaEraSchema.options.slice(0,5);
-const names=[
-  ['Registros de Sinais','Observação das Estações','Assembleias de Bairro','Pactos de Reciprocidade','Celeiros de Reserva','Pesos de Troca','Formações de Guarda','Sinais de Patrulha','Narrativas Comuns','Ritos de Acolhida'],
-  ['Mapas de Referência','Cálculo de Colheitas','Centralização do Conselho','Federação dos Distritos','Ofícios Cooperados','Contabilidade de Rotas','Treino de Manobras','Logística de Campanha','Casas de Memória','Festivais de Encontro'],
-  ['Método de Comparação','Círculos de Investigação','Códigos de Acesso','Serviço por Mérito','Contratos de Produção','Câmaras de Compensação','Engenharia de Posição','Cartografia Operacional','Escolas de Expressão','Patrimônio Compartilhado'],
-  ['Redes de Observatórios','Instrumentos de Precisão','Auditoria de Instituições','Representação Regional','Sistemas de Distribuição','Crédito de Infraestrutura','Comando Coordenado','Doutrina de Proteção','Intercâmbio de Mestres','Arquivos de Tradição'],
-  ['Síntese de Evidências','Comunidade de Descoberta','Pacto de Continuidade','Conselho de Civilizações','Economia Interdependente','Padrões de Prosperidade','Estratégia de Contenção','Defesa de Redes','Cultura de Convivência','Memória do Mundo'],
-];
-const production=['knowledge','influence','wealth','materials','influence'] as const;
-export const ADVANCEMENTS:readonly Advancement[]=eras.flatMap((era,e)=>domains.flatMap((domain,d)=>[0,1].map(branch=>{
-  const id=`adv-${e+1}-${d+1}-${branch+1}`;const convergence=branch===1&&d===(e%5)||branch===1&&d===((e+2)%5);
-  const prerequisites=e===0?(convergence?[`adv-1-${d+1}-1`,`adv-1-${(d+1)%5+1}-1`]:[]):[`adv-${e}-${d+1}-1`,...(convergence?[`adv-${e}-${(d+1)%5+1}-1`]:[])];
-  // Neither side of the explicit institutional divergence is required by later nodes.
-  if(e===2&&d===1)prerequisites.splice(0,1,'adv-1-2-1');
-  return AdvancementSchema.parse({id,name:names[e]![d*2+branch]!,domain,era,cost:{...emptyResourcePool(),knowledge:e+2},prerequisites,
-    excludes:e===1&&d===1?[`adv-2-2-${branch===0?2:1}`]:[],convergence,
-    effect:d===3&&branch===1?{kind:'STRENGTH',amount:1}:d===1&&branch===1?{kind:'COMMAND',amount:1}:{kind:'PRODUCTION',resource:production[d],amount:1},
-  });
-})));
+import type { AlphaEffect } from './alpha-effects.js';
+export { AlphaEffectSchema, EffectTimingSchema, type AlphaEffect, type EffectTiming } from './alpha-effects.js';
+// The Teia Civilizacional lives in alpha-web.ts (V5.1a: 40 + 10 Convergences); ADVANCEMENTS is kept as the name every consumer uses.
+export { AdvancementSchema, WEB_ADVANCES as ADVANCEMENTS, type Advancement } from './alpha-web.js';
 export interface AlphaCivilization {id:string;name:string;/** Name of the founding capital; players' own names identify seats, not cities. */capital:string;identity:string;color:string;symbol:string;bias:string;passives:readonly AlphaEffect[];ability:{name:string;effects:readonly Extract<AlphaEffect,{kind:'PRODUCTION'}>[]}}
 const civilizations=[
   ['aurelia','Aurélia','Celeiro Áureo','Comunidades de cultivo e reservas comuns','food','materials','Celeiros compartilhados'],

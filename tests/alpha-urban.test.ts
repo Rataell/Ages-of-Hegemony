@@ -56,7 +56,7 @@ describe('urban actions: legality', () => {
 
   it('refuses missing or stray parameters and leaves the state untouched', () => {
     const state = urban(); const before = JSON.stringify(state);
-    for (const extra of [{ action: 'BUILD' }, { action: 'RECRUIT' }, { action: 'RESEARCH' }, { action: 'PRODUCE', unit: 'INFANTRY' }, { action: 'PROMOTE_MOOD', advancementId: 'adv-1-1-1' }, { action: 'CIVIC_ACTION', build: { kind: 'FORTIFICATION' } }])
+    for (const extra of [{ action: 'BUILD' }, { action: 'RECRUIT' }, { action: 'RESEARCH' }, { action: 'PRODUCE', unit: 'INFANTRY' }, { action: 'PROMOTE_MOOD', advancementId: 'web-writing' }, { action: 'CIVIC_ACTION', build: { kind: 'FORTIFICATION' } }])
       expect(act(state, p1, c1, extra).ok).toBe(false);
     expect(JSON.stringify(state)).toBe(before);
   });
@@ -256,18 +256,18 @@ describe('urban actions: RESEARCH', () => {
   it('spends knowledge and records the domain', () => {
     const state = urban();
     const knowledge = pool(state).knowledge;
-    const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'RESEARCH', advancementId: 'adv-1-1-1' });
-    expect(after.players[0]!.research).toEqual(['adv-1-1-1']);
+    const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'RESEARCH', advancementId: 'web-writing' });
+    expect(after.players[0]!.research).toEqual(['web-writing']);
     expect(pool(after).knowledge).toBe(knowledge - 2);
     expect(Object.values(after.telemetry.researchByDomain).reduce((a, b) => a + b, 0)).toBe(1);
   });
 
   it('respects prerequisites, era and unknown advancements', () => {
     const state = urban();
-    expect(act(state, p1, c1, { action: 'RESEARCH', advancementId: 'adv-2-1-1' }).ok).toBe(false);
+    expect(act(state, p1, c1, { action: 'RESEARCH', advancementId: 'web-mathematics' }).ok).toBe(false);
     expect(act(state, p1, c1, { action: 'RESEARCH', advancementId: 'nope' }).ok).toBe(false);
     pool(state).knowledge = 0; state.core.players[0]!.resources = alphaToLegacyResources(pool(state));
-    expect(act(state, p1, c1, { action: 'RESEARCH', advancementId: 'adv-1-1-1' }).ok).toBe(false);
+    expect(act(state, p1, c1, { action: 'RESEARCH', advancementId: 'web-writing' }).ok).toBe(false);
   });
 });
 

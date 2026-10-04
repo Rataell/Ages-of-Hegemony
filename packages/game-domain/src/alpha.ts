@@ -3,6 +3,7 @@ import { CityIdSchema, GameIdSchema, HexIdSchema, IdentifierSchema, NonNegativeI
 import { GameCommandSchema, GameStateSchema } from './model.js';
 import { AlphaUnitClassSchema, UnitCatalogEntrySchema, alphaUnitCatalog } from './alpha-catalog.js';
 import { ADVANCEMENTS, CIVILIZATIONS, AlphaEffectSchema } from './alpha-institutions.js';
+import { HERITAGE_ADVANCES, migrateResearch } from './alpha-web.js';
 import { ALPHA_CARDS, GREAT_PROJECTS } from './alpha-cards.js';
 import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
 import { civilizationKit } from './alpha-civilization-kits.js';
@@ -98,7 +99,9 @@ export type PlannedAction=z.infer<typeof PlannedActionSchema>;
 const StrategicPlayerSchema = z.strictObject({
   playerId: PlayerIdSchema, civilization: IdentifierSchema.nullable(), era: LegacyAlphaEraSchema,
   resources:AlphaResourcePoolSchema.default(emptyAlphaResourcePool), legacyCulturalTrack:N.default(0),
-  spentCommands: N, ready: z.boolean(), prestige: N, research: z.array(IdentifierSchema),
+  spentCommands: N, ready: z.boolean(), prestige: N,
+  /** Researched Web and Heritage ids. Pre-V5.1a `adv-*` ids are read as their closest Web node. */
+  research: z.preprocess(value => Array.isArray(value) && value.some(id => typeof id === 'string' && id.startsWith('adv-')) ? migrateResearch(value as string[]) : value, z.array(IdentifierSchema)),
   hand: z.array(IdentifierSchema), ambitions: z.array(IdentifierSchema), completedAmbitions: z.array(IdentifierSchema), advisors: z.array(IdentifierSchema),
   knownHexIds: z.array(HexIdSchema), orders: z.array(StrategicOrderSchema), plannedActions:z.array(PlannedActionSchema).default([]),
   victories: N, exploredRegions: N, foreignInfluence: N,
@@ -233,8 +236,8 @@ export const AlphaStateSchema = z.strictObject({
     if(player.hegemony&&(player.era!=='ASCENSION'||player.hegemony.declaredRound>state.core.round||(player.hegemony.qualifiedSince!==null&&(player.hegemony.qualifiedSince<player.hegemony.declaredRound||player.hegemony.qualifiedSince>state.core.round))))fail('Invalid hegemony declaration');
     if(player.civilization!==null&&!CIVILIZATIONS.some(c=>c.id===player.civilization))fail('Unknown civilization');
     if(player.leader!==null&&LEADERS.find(l=>l.id===player.leader!.leaderId)?.civilizationId!==player.civilization)fail('Leader must belong to the player civilization');
-    if(player.research.some(id=>!ADVANCEMENTS.some(a=>a.id===id)))fail('Unknown advancement');
-    for(const id of player.research){const node=ADVANCEMENTS.find(a=>a.id===id);if(!node)continue;if(node.prerequisites.some(p=>!player.research.includes(p))||node.excludes.some(p=>player.research.includes(p))||AlphaEraSchema.options.indexOf(node.era)>AlphaEraSchema.options.indexOf(player.era))fail('Illegal research prerequisites, exclusion or era');}
+    if(player.research.some(id=>!ADVANCEMENTS.some(a=>a.id===id)&&!HERITAGE_ADVANCES.some(a=>a.id===id)))fail('Unknown advancement');
+    for(const id of player.research){const heritage=HERITAGE_ADVANCES.find(a=>a.id===id);if(heritage&&(heritage.civilizationId!==player.civilization||!player.research.includes(heritage.prerequisite)))fail('Illegal heritage research');const node=ADVANCEMENTS.find(a=>a.id===id);if(!node)continue;if(node.prerequisites.some(p=>!player.research.includes(p))||(node.prerequisitesAny.length>0&&!node.prerequisitesAny.some(p=>player.research.includes(p)))||node.excludes.some(p=>player.research.includes(p))||AlphaEraSchema.options.indexOf(node.era)>AlphaEraSchema.options.indexOf(player.era))fail('Illegal research prerequisites, exclusion or era');}
     const kitCards=new Set(civilizationKit(player.civilization)?.cards.map(card=>card.id)??[]);
     if(player.civilizationCardsPlayed.some(entry=>!kitCards.has(entry.cardId))||new Set(player.civilizationCardsPlayed.map(entry=>`${entry.cardId}:${entry.era}`)).size!==player.civilizationCardsPlayed.length)fail('Invalid civilization card play');
     if(player.contacts.some(id=>!owners.has(id)||id===player.playerId)||new Set(player.contacts).size!==player.contacts.length||player.abilityRound>state.core.round)fail('Invalid contact or ability timing');

@@ -74,7 +74,7 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   round();
   perform({type:'QUEUE_ORDER',order:{id:'explore',type:'EXPLORE',unitId:'pioneer',target:'1,0',rotation:0}});
   perform({type:'QUEUE_ORDER',order:{id:'route',type:'TRADE',fromCityId:'c1-0',toCityId:'c2-0'}});
-  urbanAct('RESEARCH',{advancementId:'adv-1-1-1'});round();
+  urbanAct('RESEARCH',{advancementId:'web-writing'});round();
   perform({type:'QUEUE_ORDER',order:{id:'settler-move',type:'MOVE',unitIds:['pioneer'],path:['3,0']}});
   urbanAct('SUPPORT_TRADE',{},'c1-0');
   urbanAct('PRODUCE',{},'c1-1');
@@ -84,7 +84,7 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   round();
   checkpoint?.('beforeAttack',structuredClone(state));
   perform({type:'QUEUE_ORDER',order:{id:'battle',type:'ATTACK',unitIds:Array.from({length:10},(_,i)=>`army-${i}`),target:'9,0'}});round();
-  const foundation=ADVANCEMENTS.filter(a=>a.era==='FOUNDATION'&&a.id!=='adv-1-1-1');
+  const foundation=ADVANCEMENTS.filter(a=>a.era==='FOUNDATION'&&a.id!=='web-writing');
   for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length)){urbanAct('RESEARCH',{advancementId:node.id});round();}
   for(const cityId of ['c1-0','c1-1','c1-2'])for(let i=0;i<2;i++)manage({type:'DEVELOP_CITY',cityId});
   for(const [cityId,district] of [['c1-0','ACADEMIC'],['c1-1','AGRARIAN'],['c1-2','COMMERCIAL'],['c1-3','CULTURAL']])urbanAct('BUILD',{build:{kind:'DISTRICT',district}},cityId);
@@ -95,7 +95,7 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   for(const [cityId,hexIds] of Object.entries(claims))for(const hexId of hexIds)manage({type:'CLAIM_HEX',cityId,hexId});
   manage({type:'IMPROVE_HEX',hexId:'1,0',improvement:'FARM'});
   submit(p1,{type:'MANAGE',command:{type:'ASSIGN_WORKED_HEXES',playerId:p1,cityId:CityIdSchema.parse('c1-0'),hexIds:['1,0'],expectedVersion:state.core.version}});
-  urbanAct('RESEARCH',{advancementId:'adv-2-1-2'});round();
+  urbanAct('RESEARCH',{advancementId:'web-irrigation'});round();
   perform({type:'BUILD_PROJECT',projectId:'archive-of-horizons',cityId:'c1-0'});
   submit(p1,{type:'DECLARE_HEGEMONY',path:'TERRITORIAL'});
   while(state.core.status==='ACTIVE'){checkpoint?.('beforeEndRound',structuredClone(state));round();}

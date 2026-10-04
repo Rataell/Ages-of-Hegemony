@@ -19,13 +19,13 @@ describe('+Ações principais (Comando) modifiers raise the round limit', () => 
     expect(alphaPlayerView(state, p1)!.actions.limit).toBe(6);
   });
 
-  it('adds researched advancements and hired advisors permanently', () => {
+  it('adds hired advisors permanently; Web nodes unlock things and never add actions (canon V5.1a)', () => {
     const state = setup();
-    state.players[0]!.research.push('adv-1-2-1', 'adv-1-2-2');
-    expect(alphaActionCapacity(state, p1)).toBe(8);
+    state.players[0]!.research.push('web-writing', 'web-codes');
+    expect(alphaActionCapacity(state, p1)).toBe(7);
     state.players[0]!.advisors.push('advisor-15');
-    expect(alphaActionCapacity(state, p1)).toBe(9);
-    expect(alphaPlayerView(state, p1)!.actions.limit).toBe(9);
+    expect(alphaActionCapacity(state, p1)).toBe(8);
+    expect(alphaPlayerView(state, p1)!.actions.limit).toBe(8);
   });
 
   it('adds a played strategy card for this round only, once', () => {
@@ -41,17 +41,21 @@ describe('+Ações principais (Comando) modifiers raise the round limit', () => 
 
   it('lets the extra actions actually be spent, and refuses beyond the raised limit', () => {
     let state = setup(5);
-    state.players[0]!.research.push('adv-1-2-1', 'adv-1-2-2');
-    state.players[0]!.resources.influence = 20;
-    expect(alphaActionCapacity(state, p1)).toBe(6);
+    state.cards.strategyDeck = state.cards.strategyDeck.filter(id => id !== commandCard.id);
+    state.players[0]!.hand = [commandCard.id];
+    state = must(state, { type: 'PLAY_CARD', cardId: commandCard.id });
+    state.players[0]!.resources.influence = 10;
+    expect(alphaActionCapacity(state, p1)).toBe(7);
     const claim = () => {
       const city = state.core.players[0]!.civilization.cities[0]!;
       const hexId = alphaClaimOptions(state, p1)[city.id]![0]!;
       return applyAlphaCommand(state, p1, { type: 'MANAGE', expectedVersion: state.version, command: { type: 'CLAIM_HEX', playerId: p1, cityId: city.id, hexId, expectedVersion: state.core.version } });
     };
-    for (let i = 0; i < 5; i++) { const r = claim(); expect(r.ok, `claim ${i + 1}`).toBe(true); if (r.ok) state = r.value; }
-    state = must(state, { type: 'CIVILIZATION_ABILITY' }); // the 6th main action, possible only with the +1
-    expect(claim()).toMatchObject({ ok: false, error: { code: 'ACTION_LIMIT' } });
+    for (let i = 0; i < 6; i++) { const r = claim(); expect(r.ok, `claim ${i + 1}: ${r.ok ? '' : r.error.message}`).toBe(true); if (r.ok) state = r.value; }
+    state = must(state, { type: 'CIVILIZATION_ABILITY' }); // the 7th main action, possible only with the +2
+    // The 8th main action: a road is the cheapest main action left, and the limit, not the input, must refuse it.
+    const roadHex = state.core.map.find(tile => tile.ownerId === p1 && !state.roads.includes(tile.id))!.id;
+    expect(applyAlphaCommand(state, p1, { type: 'BUILD_ROAD', expectedVersion: state.version, hexId: roadHex })).toMatchObject({ ok: false, error: { code: 'ACTION_LIMIT' } });
   });
 
   it('applies the government command delta (Confederação −1) and never goes below zero', () => {

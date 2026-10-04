@@ -1,4 +1,4 @@
-import { ADVANCEMENTS, ALPHA_RESOURCE_KEYS, type AlphaState, type PlannedAction, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_RESOURCE_KEYS, heritageAdvance, type AlphaState, type PlannedAction, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 
 /** Player-facing names for resolution messages. Events are read as written, so they never carry enum identifiers. */
 const RESOURCE_NAMES: Record<string, string> = { food: 'Alimento', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
@@ -31,7 +31,7 @@ export function urbanActionMessage(before: AlphaState, after: AlphaState, actor:
       return `${cityName} construiu ${what}.`;
     }
     case 'RECRUIT': return `${cityName} recrutou ${action.unit ? before.rules.units[action.unit].name : 'uma peça'}.`;
-    case 'RESEARCH': return `${cityName} concluiu a pesquisa ${ADVANCEMENTS.find(advancement => advancement.id === action.advancementId)?.name ?? ''}.`.replace(' .', '.');
+    case 'RESEARCH': return `${cityName} concluiu a pesquisa ${(ADVANCEMENTS.find(advancement => advancement.id === action.advancementId) ?? heritageAdvance(action.advancementId ?? ''))?.name ?? ''}.`.replace(' .', '.');
     case 'PROMOTE_MOOD': return `${cityName} investiu no ânimo da população.`;
     case 'SUPPORT_TRADE': return `${cityName} sustentou o comércio.`;
     case 'CIVIC_ACTION': return `${cityName} realizou uma ação cívica.`;

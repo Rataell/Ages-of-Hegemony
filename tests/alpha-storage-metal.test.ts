@@ -187,7 +187,7 @@ describe('storage capacity', () => {
 
   it('keeps purchases working under the caps', () => {
     const state = readyAll(beginAlphaPlanning(created()));
-    const result = urban(state, p1, 'RESEARCH', { advancementId: 'adv-1-1-1' });
+    const result = urban(state, p1, 'RESEARCH', { advancementId: 'web-writing' });
     expect(result.ok).toBe(true);
   });
 

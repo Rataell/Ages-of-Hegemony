@@ -11,6 +11,7 @@ export * from './alpha-city-ladder.js';
 export * from './alpha-catalog.js';
 export * from './alpha-regions.js';
 export * from './alpha-institutions.js';
+export * from './alpha-web.js';
 export * from './alpha-cards.js';
 export * from './alpha-leaders.js';
 export * from './alpha-stack.js';

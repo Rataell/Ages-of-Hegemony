@@ -1,4 +1,4 @@
-import { ADVANCEMENTS, eraForRound, eraNumeral, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, GREAT_PROJECTS, ALPHA_RESOURCE_KEYS, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type EffectTiming, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { ADVANCEMENTS, HERITAGE_ADVANCES, heritageAdvance, eraForRound, eraNumeral, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, GREAT_PROJECTS, ALPHA_RESOURCE_KEYS, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type EffectTiming, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { alphaCanAfford, alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { sum } from './arithmetic.js';
 import { alphaEvent } from './alpha-events.js';
@@ -6,8 +6,10 @@ import { cardEffects } from './alpha-cards.js';
 import { kitAdvancementCost } from './alpha-kits.js';
 export function institutionEffects(state:AlphaState,actor:PlayerId):AlphaEffect[] {
   const player=state.players.find(p=>p.playerId===actor)!;
-  return [...(CIVILIZATIONS.find(c=>c.id===player.civilization)?.passives??[]),...player.research.map(id=>ADVANCEMENTS.find(a=>a.id===id)!.effect),...cardEffects(state,actor)];
+  return [...(CIVILIZATIONS.find(c=>c.id===player.civilization)?.passives??[]),...researchedEffects(player.research),...cardEffects(state,actor)];
 }
+/** PRODUCTION/STRENGTH effects of researched Web nodes (most nodes unlock things instead and carry no effect). */
+const researchedEffects=(research:readonly string[]):AlphaEffect[]=>research.map(id=>ADVANCEMENTS.find(a=>a.id===id)?.effect??null).filter((effect):effect is AlphaEffect=>effect!==null);
 export function institutionBonus(state:AlphaState,actor:PlayerId,kind:AlphaEffect['kind']):number {
   return sum(institutionEffects(state,actor).filter(e=>e.kind===kind).map(e=>e.amount));
 }
@@ -18,7 +20,7 @@ function recurringSources(state:AlphaState,actor:PlayerId):RecurringSource[] {
   const player=state.players.find(p=>p.playerId===actor)!;
   return [
     ...(CIVILIZATIONS.find(c=>c.id===player.civilization)?.passives??[]).map(effect=>({effect,cityId:null})),
-    ...player.research.map(id=>({effect:ADVANCEMENTS.find(a=>a.id===id)!.effect,cityId:null})),
+    ...researchedEffects(player.research).map(effect=>({effect,cityId:null})),
     ...player.advisors.map(id=>ALPHA_CARDS.find(c=>c.id===id)!.effect).filter((effect):effect is AlphaEffect=>effect!==null).map(effect=>({effect,cityId:null})),
     ...state.projects.filter(p=>p.ownerId===actor).map(p=>({effect:GREAT_PROJECTS.find(g=>g.id===p.projectId)!.effect,cityId:p.cityId as string|null})),
   ];
@@ -30,7 +32,7 @@ function recurringSources(state:AlphaState,actor:PlayerId):RecurringSource[] {
 /** The strength bonus of a civilization split by origin, for the combat breakdown. Adds up to institutionBonus(..., 'STRENGTH'). */
 export function strengthSources(state:AlphaState,actor:PlayerId):{technology:number;leader:number;other:number} {
   const player=state.players.find(p=>p.playerId===actor)!;
-  const technology=sum(player.research.map(id=>ADVANCEMENTS.find(a=>a.id===id)!.effect).filter(e=>e.kind==='STRENGTH').map(e=>e.amount));
+  const technology=sum(researchedEffects(player.research).filter(e=>e.kind==='STRENGTH').map(e=>e.amount));
   const leader=sum(player.temporaryEffects.filter(e=>e.round===state.core.round&&e.effect.kind==='STRENGTH'&&e.source.startsWith('leader-')).map(e=>e.effect.amount));
   const total=sum(cardEffects(state,actor).filter(e=>e.kind==='STRENGTH').map(e=>e.amount));
   return {technology,leader,other:total-leader};
@@ -56,21 +58,42 @@ export function applyRecurringEffects(state:AlphaState,actor:PlayerId,timing:Eff
   }
 }
 /** Why an advancement cannot be researched now, or null. Pure: used by the action and by the client preview. */
+/** Cost of a Web node or a Heritage advance for this player (the kit may adjust Web costs). */
+export function advanceCost(state:AlphaState,actor:PlayerId,id:string){
+  const node=ADVANCEMENTS.find(a=>a.id===id);if(node)return kitAdvancementCost(state,actor,node);
+  return heritageAdvance(id)?.cost??{food:0,materials:0,wealth:0,knowledge:0,influence:0};
+}
 export function researchBlock(state:AlphaState,actor:PlayerId,id:string):string|null {
-  const player=state.players.find(p=>p.playerId===actor)!;const node=ADVANCEMENTS.find(a=>a.id===id);
-  if(!node)return 'Avanço desconhecido.';
+  const player=state.players.find(p=>p.playerId===actor)!;const node=ADVANCEMENTS.find(a=>a.id===id);const heritage=heritageAdvance(id);
+  if(!node&&!heritage)return 'Avanço desconhecido.';
   if(player.research.includes(id))return 'Este avanço já foi pesquisado.';
-  if(AlphaEraSchema.options.indexOf(player.era)<AlphaEraSchema.options.indexOf(node.era))return 'Este avanço requer uma era posterior.';
-  if(node.prerequisites.some(prerequisite=>!player.research.includes(prerequisite)))return 'Complete os pré-requisitos indicados na Teia Civilizacional.';
-  if(node.excludes.some(excluded=>player.research.includes(excluded)))return 'Este caminho institucional exclui uma escolha anterior.';
-  if(!alphaCanAfford(state,actor,kitAdvancementCost(state,actor,node)))return 'Recursos insuficientes para esta ação.';
+  const era=(node??heritage)!.era;
+  if(AlphaEraSchema.options.indexOf(player.era)<AlphaEraSchema.options.indexOf(era))return 'Este avanço requer uma Era posterior.';
+  if(heritage){
+    if(heritage.civilizationId!==player.civilization)return 'Esta Herança pertence a outra civilização.';
+    if(!player.research.includes(heritage.prerequisite))return 'Pesquise primeiro o avanço universal que abre esta Herança.';
+  }
+  if(node){
+    if(node.prerequisites.some(prerequisite=>!player.research.includes(prerequisite)))return 'Complete os pré-requisitos indicados na Teia Civilizacional.';
+    if(node.prerequisitesAny.length>0&&!node.prerequisitesAny.some(prerequisite=>player.research.includes(prerequisite)))return 'Complete um dos pré-requisitos indicados na Teia Civilizacional.';
+    if(node.excludes.some(excluded=>player.research.includes(excluded)))return 'Esta escolha OU exclui um caminho já tomado.';
+  }
+  if(!alphaCanAfford(state,actor,advanceCost(state,actor,id)))return 'Recursos insuficientes para esta ação.';
   return null;
 }
+/** Research (canon §12, §13): pays Conhecimento (+ the Heritage's thematic resource); Prestígio only on ★ milestones (+3). */
 export function researchAdvancement(state:AlphaState,actor:PlayerId,id:string):void {
   const blocked=researchBlock(state,actor,id);if(blocked)throw new Error(blocked);
-  const player=state.players.find(p=>p.playerId===actor)!;const node=ADVANCEMENTS.find(a=>a.id===id)!;
-  alphaPay(state,actor,kitAdvancementCost(state,actor,node));player.research.push(id);player.prestige++;
+  const player=state.players.find(p=>p.playerId===actor)!;const node=ADVANCEMENTS.find(a=>a.id===id);
+  alphaPay(state,actor,advanceCost(state,actor,id));player.research.push(id);if(node?.milestone)player.prestige+=3;
 }
+/** Whether the player has researched any node that unlocks `tag` (e.g. `district:AGRARIAN`, `elevate:HAMLET`). */
+export function hasUnlock(state:AlphaState,actor:PlayerId,tag:string):boolean {
+  const player=state.players.find(p=>p.playerId===actor);
+  return !!player&&player.research.some(id=>ADVANCEMENTS.find(a=>a.id===id)?.unlocks.includes(tag));
+}
+/** Heritage advances of the player's civilization. */
+export const heritageFor=(state:AlphaState,actor:PlayerId)=>HERITAGE_ADVANCES.filter(a=>a.civilizationId===state.players.find(p=>p.playerId===actor)?.civilization);
 export interface EraMilestoneCriterion {key:AlphaMilestoneCriterion;current:number;minimum:number;met:boolean}
 /** Era progress (canon §1, §22): Eras pass by the calendar, `rules.roundsPerEra` rounds each. The old criteria stay as a read-only report. */
 export function eraMilestones(state:AlphaState,actor:PlayerId) {

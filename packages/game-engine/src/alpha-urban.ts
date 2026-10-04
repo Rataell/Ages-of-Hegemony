@@ -1,5 +1,5 @@
 import {
-  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, RESOURCE_KEYS, alphaGainOf, cityLevelForPopulation, emptyAlphaResourcePool, legacyToAlphaResources,
+  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, RESOURCE_KEYS, cityLevelForPopulation, emptyAlphaResourcePool, legacyToAlphaResources,
   type AlphaCommand, type AlphaResourcePool, type AlphaState, type PlayerId, type ResourcePool,
 } from '@aoh/game-domain';
 import { applyCommand } from './engine.js';
@@ -8,10 +8,10 @@ import { deriveCityProductionBreakdown } from './economy.js';
 import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
-import { applyRecurringEffects, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
+import { advanceCost, applyRecurringEffects, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment, metalSites } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
-import { kitAdvancementCost, kitCivicInfluence, kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
+import { kitCivicInfluence, kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
 
 type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
 
@@ -116,7 +116,7 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
     return next ? alphaCostWithMetal(state, actor, balance.fortification[next].cost, balance.fortification[next].metal) : zero;
   }
   if (action === 'RECRUIT' && params.unit) { const price = kitUnitCost(state, actor, params.unit); return alphaCostWithMetal(state, actor, price.cost, price.metal); }
-  if (action === 'RESEARCH' && params.advancementId) { const node = ADVANCEMENTS.find(candidate => candidate.id === params.advancementId); return alphaCostWithMetal(state, actor, node ? kitAdvancementCost(state, actor, node) : { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 }, 0); }
+  if (action === 'RESEARCH' && params.advancementId) return alphaCostWithMetal(state, actor, advanceCost(state, actor, params.advancementId), 0);
   if (action === 'PROMOTE_MOOD') return { ...zero, wealth: balance.publicInvestmentCost };
   if (action === 'CIVIC_ACTION' && cityMeta?.status === 'OCCUPIED') return { ...zero, influence: state.rules.integrationCost.influence };
   return zero;
@@ -176,12 +176,12 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
   }
   const firstCity = owned[0]?.cityId;
   const progress = state.players.find(player => player.playerId === actor)!;
-  const research: UrbanOption[] = firstCity === undefined ? [] : ADVANCEMENTS
+  const research: UrbanOption[] = firstCity === undefined ? [] : [...ADVANCEMENTS, ...heritageFor(state, actor)]
     .filter(node => !progress.research.includes(node.id) && AlphaEraSchema.options.indexOf(node.era) <= AlphaEraSchema.options.indexOf(progress.era))
     .map(node => ({
-      ...option(state, actor, firstCity, 'RESEARCH', { advancementId: node.id }, node.effect.kind === 'PRODUCTION' ? `${listOf(alphaGainOf(node.effect.resource, node.effect.amount))} por rodada, na manutenção` : `Bônus permanente de ${node.effect.kind}`),
+      ...option(state, actor, firstCity, 'RESEARCH', { advancementId: node.id }, 'description' in node ? node.description : `Herança · ${node.effect}`),
       // Research is not tied to one city: the client adds the selected city's own gate (actions left, occupation).
-      blocked: (state.phase !== 'PLANNING' ? 'Disponível apenas no Planejamento.' : progress.ready ? 'Suas decisões já estão confirmadas para esta fase.' : alphaActionUsage(state,actor).used>=alphaActionUsage(state,actor).limit ? 'Sem ações principais disponíveis nesta rodada.' : researchBlock(state, actor, node.id)),
+      blocked: (state.phase !== 'PLANNING' ? 'Disponível apenas no Planejamento.' : progress.ready ? 'Suas decisões já estão confirmadas para esta fase.' : alphaActionUsage(state,actor).used>=alphaActionUsage(state,actor).limit ? 'Sem ações principais disponíveis.' : null) ?? researchBlock(state, actor, node.id),
     }));
   return { cities, research };
 }
@@ -263,7 +263,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       rejectExtras(command, ['advancementId']);
       if (!command.advancementId) throw new Error('Escolha o avanço a pesquisar.');
       researchAdvancement(state, actor, command.advancementId);
-      const domain = ADVANCEMENTS.find(node => node.id === command.advancementId)!.domain;
+      const domain = ADVANCEMENTS.find(node => node.id === command.advancementId)?.domain ?? 'HERITAGE';
       telemetry.researchByDomain[domain] = (telemetry.researchByDomain[domain] ?? 0) + 1;
       message = `${city.name} concluiu uma pesquisa.`;
       break;

@@ -18,7 +18,7 @@ describe('seven-resource authority', () => {
     const state = setup(); setAlphaPhase(state, 'URBAN_ACTIONS');
     expect(inSync(state)).toBe(true);
     const knowledge = pool(state).knowledge;
-    const result = urban(state, p1, 'RESEARCH', { advancementId: 'adv-1-1-1' });
+    const result = urban(state, p1, 'RESEARCH', { advancementId: 'web-writing' });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.players[0]!.resources.knowledge).toBe(knowledge - 2);

@@ -28,7 +28,7 @@ describe('effect timing taxonomy', () => {
       for (const effect of civilization.passives) expect(effectTiming(effect)).toBe('MAINTENANCE');
       for (const effect of civilization.ability.effects) expect(effectTiming(effect)).toBe('ONCE');
     }
-    for (const node of ADVANCEMENTS) expect(effectTiming(node.effect)).toBe(node.effect.kind === 'PRODUCTION' ? 'MAINTENANCE' : 'ONCE');
+    for (const node of ADVANCEMENTS) if (node.effect) expect(effectTiming(node.effect)).toBe(node.effect.kind === 'PRODUCTION' ? 'MAINTENANCE' : 'ONCE');
     for (const card of ALPHA_CARDS) {
       if (!card.effect || card.effect.kind !== 'PRODUCTION') continue;
       const timing = effectTiming(card.effect);
@@ -64,16 +64,14 @@ describe('recurring effects do not depend on PRODUCE', () => {
     expect(total(report(idle).production)).toBe(0);
   });
 
-  it('keeps researched advancements paying at maintenance without PRODUCE', () => {
+  it('research unlocks rather than paying: a Web node adds nothing to the institutional ledger', () => {
     let state = fresh(93);
-    const node = ADVANCEMENTS.find(candidate => candidate.id === 'adv-1-1-1')!;
-    expect(node.effect.kind).toBe('PRODUCTION');
-    const before = total(passives(state).reduce((acc, e) => e.kind === 'PRODUCTION' ? { ...acc, [e.resource]: (acc[e.resource] ?? 0) + e.amount } : acc, {} as Record<string, number>));
     state = must(state, p1, { type: 'CHOOSE_AMBITIONS', cardIds: state.players[0]!.ambitions.slice(0, 2) });
-    state = must(state, p1, { type: 'URBAN_ACTION', cityId: 'capital-1', action: 'RESEARCH', advancementId: 'adv-1-1-1' });
+    state = must(state, p1, { type: 'URBAN_ACTION', cityId: 'capital-1', action: 'RESEARCH', advancementId: 'web-writing' });
     expect(total(ledger(state).institutions)).toBe(0);
+    const before = total(passives(state).reduce((acc, e) => e.kind === 'PRODUCTION' ? { ...acc, [e.resource]: (acc[e.resource] ?? 0) + e.amount } : acc, {} as Record<string, number>));
     state = completeRound(state);
-    expect(total(report(state).institutions)).toBe(before + (node.effect.kind === 'PRODUCTION' ? node.effect.amount : 0));
+    expect(total(report(state).institutions)).toBe(before);
   });
 
   it('credits a ROUND_START advisor when the round opens, not at maintenance', () => {

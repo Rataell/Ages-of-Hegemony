@@ -237,7 +237,7 @@ describe('modifiers by origin', () => {
 
   it('technology, leader and cards appear as separate lines and add up to the institutional bonus', () => {
     const { state, order } = arena({ attackers: ['INFANTRY', 'INFANTRY'] });
-    const tech = ADVANCEMENTS.find(node => node.effect.kind === 'STRENGTH')!;
+    const tech = ADVANCEMENTS.find(node => node.effect?.kind === 'STRENGTH')!;
     state.players[0]!.research = [tech.id];
     state.players[0]!.temporaryEffects = [{ source: 'leader-toren-hjalvar', effect: { kind: 'STRENGTH', amount: 2 }, round: state.core.round }, { source: 'strategy-99', effect: { kind: 'STRENGTH', amount: 1 }, round: state.core.round }];
     const sources = strengthSources(state, p1);

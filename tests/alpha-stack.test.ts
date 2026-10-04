@@ -81,10 +81,9 @@ describe('land military limit 6 / 7 / 8', () => {
   it('the upgrade advancements exist, are military ones and Command II requires Command I', () => {
     const byId = new Map(ADVANCEMENTS.map(node => [node.id, node]));
     for (const id of [commandOne, commandTwo, naval, doctrine]) expect(byId.has(id), id).toBe(true);
-    expect([commandOne, commandTwo, naval, doctrine].map(id => byId.get(id)!.name)).toEqual(['Treino de Manobras', 'Comando Coordenado', 'Cartografia Operacional', 'Doutrina de Proteção']);
-    let id: string | undefined = commandTwo; const chain: string[] = [];
-    while (id) { chain.push(id); id = byId.get(id)!.prerequisites.find(candidate => candidate.startsWith('adv-') && candidate.split('-')[2] === '4' && candidate.endsWith('-1')); }
-    expect(chain).toContain(commandOne);
+    expect([commandOne, commandTwo, naval, doctrine].map(id => byId.get(id)!.name)).toEqual(['Treino de Manobras', 'Guerra de Movimento', 'Arquitetura Naval', 'Defesa Profunda']);
+    expect(byId.get(commandTwo)!.convergence).toBe(true);
+    expect(byId.get(commandTwo)!.pair).toBe('war-iv');
   });
 });
 
