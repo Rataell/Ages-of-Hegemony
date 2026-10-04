@@ -413,12 +413,13 @@ Peça central de cada jogador, pessoal, aberta sobre a Mesa (não é HUD permane
 
 - **Cabeçalho:** emblema, nome, Era, Líder, Governo.
 - **A. Ressonância:** cinco encaixes grandes, preenchidos na cor do domínio; o 5º brilha.
+- **Reserva de Marcos:** pequena área física do Tabuleiro com os cubos disponíveis, nas cores dos domínios. É visual: não cria limite de tecnologias. O cubo sai da Reserva, viaja ao nó pesquisado e fica lá; a Ressonância recebe 1 registro temporário do domínio.
 - **B. Teia Civilizacional:** 40 + 10 em cinco trilhas × sete Eras; cada avanço tem um pequeno encaixe quadrado; pesquisado = **cubo/marco** permanente na cor do domínio; Convergências como losangos entre trilhas; escolhas OU com borda tracejada; o alcançável agora em pergaminho.
 - **C. Herança da Civilização:** três espaços próprios (I / II / III) com estados bloqueada (cinza, mostra o avanço universal que falta), disponível (pergaminho, custo visível) e adquirida (marco da civilização). Ligação visual ao nó da Teia que a abre. Deixa óbvio: Teia universal ≠ tecnologia exclusiva da civilização.
 - **D. Identidade:** Traço passivo, Componente assinatura, Limitação.
 - **Líder:** nome, passiva resumida, poder 1×/Era com estado disponível/usado. **Governo:** nome, 2 vantagens, 1 limitação. Detalhes maiores por foco/clique.
 - Cofre continua separado; nenhuma economia aqui.
-- **Fluxo de pesquisa:** Reserva (Ordem Avanço na Bandeja) → ao resolver, o marco anima da Bandeja até o nó da Teia → o registro de Ressonância preenche o próximo encaixe → no 5º, a Repercussão abre como pergaminho e os encaixes se limpam.
+- **Fluxo de pesquisa:** Ordem Avanço reservada na Bandeja → ao resolver, um **cubo quadrado** sai da Reserva de Marcos e anima até o nó da Teia, onde fica para sempre (avanço adquirido) → um **losango** preenche o próximo encaixe de Ressonância (registro temporário do ciclo) → no 5º, a Repercussão abre como pergaminho e os encaixes se limpam. Cubo e losango partilham a cor do domínio e nunca a forma.
 - **Na Mesa** só o resumo: civilização, Era/rodada, 5 encaixes compactos, Cofre, Livro, Ordens.
 
 ## 19. Simulação (modelo matemático, 35 rodadas)
@@ -574,7 +575,7 @@ Explorar Região +1 · fundar cidade +1 · cidade atinge N4 +1, N6 +2, N7 +3 · 
 2. Elevar N7 (Era VII + Saneamento + Metrópoles do Mundo + 10 Madeira): confirmar raridade (meta: ≤ 1 por jogador na rodada 35).
 3. Rendimento dos papéis (1 por par) vs Capacidade: no modelo, Riqueza e Conhecimento enchem o Cofre nas Eras III–IV; talvez 1 por 3 Mercadores.
 4. Sustento militar 1 por 2 peças e atrito −1 Força: testar com exércitos de 6–8.
-5. Ressonância: 3 marcadores (ritmo de Repercussão) e o peso da família principal (2 em 3) na escolha da carta.
+5. Ressonância: 5 encaixes (ritmo de Repercussão) e o peso da composição (3+, 2+2+1, Confluência) na escolha da carta.
 6. Pesos das escolhas OU (Centralização/Federalização etc.) e das 7 limitações de governo: orçamento igual no papel, não na mesa.
 7. Alcance de suprimento 1 + teto(N/2) em mapas de 4–6 jogadores (distâncias menores).
 8. Custo das Convergências (+2 Conhecimento) vs ritmo de 1 avanço a cada 2 rodadas.
@@ -583,7 +584,7 @@ Explorar Região +1 · fundar cidade +1 · cidade atinge N4 +1, N6 +2, N7 +3 · 
 
 ## 27. V5.1a → V5.1b (o que mudou)
 
-Combate fechado como um choque tático com dado AoH, posturas circulares, Δ com empate tático / vitória / vitória decisiva e no máximo 1 Reação por lado (§11b); tabela militar com Poder base e uma assinatura por família (§11); Graus I/II/III pela Teia (§12b); **Pressão removida** e substituída pela Ressonância de 3 marcadores com Repercussão por civilização, Pulso só na Virada de Era (§18); Virada de Era em 9 passos com Ameaças do Mundo (§22); Governo só na Virada, 1 reforma por Era (§16); Descobertas com tipos de ponto (§21); Bandos de fronteira e Piratas (§21b); Herança consome Ressonância (§13). Economia, cidade, população e interface da V5.1a intactas. Nada da referência externa é copiado: nomes, árvore, custos, matemática (nenhuma soma ÷ 5, nenhuma rodada obrigatória), ícones, bárbaros e líderes são autorais.
+Combate fechado como um choque tático com dado AoH, posturas circulares, Δ com empate tático / vitória / vitória decisiva e no máximo 1 Reação por lado (§11b); tabela militar com Poder base e uma assinatura por família (§11); Graus I/II/III pela Teia (§12b); **Pressão removida** e substituída pela Ressonância (5 encaixes desde a correção final) com Repercussão por civilização, Pulso só na Virada de Era (§18); Virada de Era em 9 passos com Ameaças do Mundo (§22); Governo só na Virada, 1 reforma por Era (§16); Descobertas com tipos de ponto (§21); Bandos de fronteira e Piratas (§21b); Herança consome Ressonância (§13). Economia, cidade, população e interface da V5.1a intactas. Nada da referência externa é copiado: nomes, árvore, custos, matemática (nenhuma soma ÷ 5, nenhuma rodada obrigatória), ícones, bárbaros e líderes são autorais.
 
 ## 28. V5.1b → V5.1b FINAL (hotfix)
 
