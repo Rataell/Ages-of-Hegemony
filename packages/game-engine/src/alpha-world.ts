@@ -5,6 +5,8 @@ import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { initializeAlphaCards } from './alpha-cards.js';
 import { alphaRandomInteger, combineAlphaSeed, deterministicAlphaSeed } from './alpha-random.js';
 import { alphaEvent } from './alpha-events.js';
+import { applyCivilizationHeritage, kitExplorationKnowledge } from './alpha-kits.js';
+import { alphaGainLegacy } from './alpha-resources.js';
 
 export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;actionsPerRound?:number}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
@@ -71,7 +73,7 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   const wild=pick([...land].sort((a,b)=>reach(b).near-reach(a).near||a.id.localeCompare(b.id)),2,peoples);
   state.independents=peoples.map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));
   state.raidBands=wild.map((tile,index)=>({id:`raid-${index+1}`,hexId:tile.id,strength:2+index,lastMovedRound:0}));
-  initializeAlphaCards(state);return AlphaStateSchema.parse(state);
+  applyCivilizationHeritage(state);initializeAlphaCards(state);return AlphaStateSchema.parse(state);
 }
 export function visibleHexIds(state:AlphaState,actor:PlayerId):Set<string> {
   const player=state.core.players.find(p=>p.id===actor)!;
@@ -132,6 +134,7 @@ export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<Stra
   }
   region.rotation=rotation;region.revealedBy.push(actor);
   const player=state.players.find(p=>p.playerId===actor)!;player.knownHexIds=[...new Set([...player.knownHexIds,...region.hexIds])].sort();player.exploredRegions++;player.prestige++;
+  const knowledge=kitExplorationKnowledge(state,actor,region.hexIds);if(knowledge)alphaGainLegacy(state,actor,{knowledge});
 }
 
 function raidDefense(state:AlphaState,hexIdValue:string):number {

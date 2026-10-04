@@ -1,5 +1,5 @@
 import { ACTION_CLASS, ADVANCEMENTS, CityLevelSchema, GREAT_PROJECTS, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { kitAdvancementCost, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -34,7 +34,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
       claim:displayCost(territory.claimCost),founding:displayCost(territory.foundingCost),road:displayCost(state.rules.roadCost),advisor:displayCost(state.rules.advisorCost),
       development:state.core.config.developmentCosts.map(displayCost),
       improvements:Object.fromEntries(Object.entries(territory.improvementCatalog).map(([kind,entry])=>[kind,displayCost(entry.cost)])),
-      advancements:Object.fromEntries(ADVANCEMENTS.map(advancement=>[advancement.id,displayCost(advancement.cost)])),
+      advancements:Object.fromEntries(ADVANCEMENTS.map(advancement=>[advancement.id,displayCost(kitAdvancementCost(state,actor,advancement))])),
       projects:Object.fromEntries(GREAT_PROJECTS.map(project=>[project.id,displayCost(project.cost)])),
     },
     milestones:eraMilestones(state,actor),

@@ -18,6 +18,7 @@ import { resolveBattle } from './alpha-combat.js';
 import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
 import { applyRecurringEffects } from './alpha-institutions.js';
 import { performUrbanAction } from './alpha-urban.js';
+import { kitFoodUpkeep } from './alpha-kits.js';
 
 /**
  * The alpha round is driven only by `state.phase`. The legacy core phase is mirrored (never advanced through the core
@@ -207,6 +208,7 @@ function maintainCivilizations(state: AlphaState): void {
 
     const upkeep = { ...zero };
     for (const unit of state.units.filter(candidate => candidate.ownerId === owner.id)) for (const key of RESOURCE_KEYS) upkeep[key] += state.rules.units[unit.kind].upkeep[key];
+    upkeep.food += kitFoodUpkeep(state, owner.id);
     for (const key of RESOURCE_KEYS) ledger.upkeepRequired[key] += upkeep[key];
     const paid = alphaDrain(state, owner.id, upkeep, 'upkeepPaid');
     const unitShortage = RESOURCE_KEYS.some(key => paid[key] < upkeep[key]);

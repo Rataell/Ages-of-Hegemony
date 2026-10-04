@@ -2,6 +2,7 @@ import { ADVANCEMENTS, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS,
 import { alphaCanAfford, alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { sum } from './arithmetic.js';
 import { cardEffects } from './alpha-cards.js';
+import { kitAdvancementCost } from './alpha-kits.js';
 export function institutionEffects(state:AlphaState,actor:PlayerId):AlphaEffect[] {
   const player=state.players.find(p=>p.playerId===actor)!;
   return [...(CIVILIZATIONS.find(c=>c.id===player.civilization)?.passives??[]),...player.research.map(id=>ADVANCEMENTS.find(a=>a.id===id)!.effect),...cardEffects(state,actor)];
@@ -61,13 +62,13 @@ export function researchBlock(state:AlphaState,actor:PlayerId,id:string):string|
   if(AlphaEraSchema.options.indexOf(player.era)<AlphaEraSchema.options.indexOf(node.era))return 'Este avanço requer uma era posterior.';
   if(node.prerequisites.some(prerequisite=>!player.research.includes(prerequisite)))return 'Complete os pré-requisitos indicados na Teia Civilizacional.';
   if(node.excludes.some(excluded=>player.research.includes(excluded)))return 'Este caminho institucional exclui uma escolha anterior.';
-  if(!alphaCanAfford(state,actor,node.cost))return 'Recursos insuficientes para esta ação.';
+  if(!alphaCanAfford(state,actor,kitAdvancementCost(state,actor,node)))return 'Recursos insuficientes para esta ação.';
   return null;
 }
 export function researchAdvancement(state:AlphaState,actor:PlayerId,id:string):void {
   const blocked=researchBlock(state,actor,id);if(blocked)throw new Error(blocked);
   const player=state.players.find(p=>p.playerId===actor)!;const node=ADVANCEMENTS.find(a=>a.id===id)!;
-  alphaPay(state,actor,node.cost);player.research.push(id);player.prestige++;
+  alphaPay(state,actor,kitAdvancementCost(state,actor,node));player.research.push(id);player.prestige++;
 }
 export interface EraMilestoneCriterion {key:AlphaMilestoneCriterion;current:number;minimum:number;met:boolean}
 /** Progress toward the next era: which criteria are met, which are missing and how many are needed. */

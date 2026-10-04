@@ -8,6 +8,7 @@ import { settleWithPioneer } from './alpha-cities.js';
 import { applyCommand } from './engine.js';
 import { alphaCanAfford } from './alpha-resources.js';
 import { disembarkBlock, embarkBlock, isCarried } from './alpha-naval.js';
+import { kitMovement } from './alpha-kits.js';
 
 export interface AlphaUnitOptions {
   /** Cheapest legal MOVE path (origin excluded) to every hex the piece can reach this round. */
@@ -43,7 +44,7 @@ export function alphaUnitOptions(state: AlphaState, actor: PlayerId): Record<str
 }
 
 function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>, known: Set<string>): Record<string, string[]> {
-  const budget = state.rules.units[unit.kind].movement + institutionBonus(state, actor, 'MOVEMENT');
+  const budget = state.rules.units[unit.kind].movement + institutionBonus(state, actor, 'MOVEMENT') + kitMovement(state, actor, unit.kind);
   const land = state.rules.units[unit.kind].domain === 'LAND';
   const best = new Map<string, { cost: number; path: string[] }>([[unit.hexId, { cost: 0, path: [] }]]);
   const queue = [unit.hexId as string];

@@ -6,6 +6,7 @@ import { atWar, bordersOpen } from './alpha-diplomacy.js';
 import { leaderSupplyBonus } from './alpha-leaders.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { blockadedBy, isCarried, isPort, launchHex } from './alpha-naval.js';
+import { kitMovement, kitSupplyBonus, kitUnitCost } from './alpha-kits.js';
 
 /** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
 export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):string|null {
@@ -23,13 +24,15 @@ export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:
   if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)return 'Reserva de unidades esgotada.';
   const arriving:AlphaUnit={id:`recruit-${cityId}`,ownerId:actor,kind,hexId:spawn,recruitedRound:state.core.round,carrierId:null};
   const crowded=stackBlock(state,actor,[arriving],spawn,pendingArrivals(state,actor,spawn,''));if(crowded)return crowded;
-  if(!alphaCanAfford(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal)))return 'Recursos insuficientes para esta ação.';
+  const price=kitUnitCost(state,actor,kind);
+  if(!alphaCanAfford(state,actor,alphaCostWithMetal(state,actor,price.cost,price.metal)))return 'Recursos insuficientes para esta ação.';
   return null;
 }
 export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):void {
   const blocked=recruitBlock(state,actor,cityId,kind);if(blocked)throw new Error(blocked);
   const city=state.core.players.find(p=>p.id===actor)!.civilization.cities.find(c=>c.id===cityId)!;const entry=state.rules.units[kind];
-  alphaPay(state,actor,alphaCostWithMetal(state,actor,entry.cost,entry.metal));
+  const price=kitUnitCost(state,actor,kind);void entry;
+  alphaPay(state,actor,alphaCostWithMetal(state,actor,price.cost,price.metal));
   const hexId=kind==='FLEET'?launchHex(state,actor,city.hexId)!:city.hexId;
   state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId,recruitedRound:state.core.round,carrierId:null});
 }
@@ -41,7 +44,7 @@ export function unitSupply(state:AlphaState,unit:AlphaUnit):{supplied:boolean;re
   const player=state.core.players.find(p=>p.id===unit.ownerId)!;
   const tile=state.core.map.find(t=>t.id===unit.hexId)!;
   const cities=player.civilization.cities.filter(c=>!state.occupations.some(o=>o.cityId===c.id));
-  if(cities.some(c=>hexDistance(state.core.map.find(t=>t.id===c.hexId)!,tile)<=state.rules.supplyRadius+leaderSupplyBonus(state,unit.ownerId)))return {supplied:true,reason:'Dentro do alcance de uma cidade própria.'};
+  if(cities.some(c=>hexDistance(state.core.map.find(t=>t.id===c.hexId)!,tile)<=state.rules.supplyRadius+leaderSupplyBonus(state,unit.ownerId)+kitSupplyBonus(state,unit)))return {supplied:true,reason:'Dentro do alcance de uma cidade própria.'};
   const byId=new Map(state.core.map.map(t=>[t.id,t]));const seen=new Set<HexId>();const queue=cities.map(c=>c.hexId);
   for(let i=0;i<queue.length;i++) {
     const id=queue[i]!;if(seen.has(id))continue;seen.add(id);if(id===unit.hexId)return {supplied:true,reason:'Conexão por território controlado e estradas.'};
@@ -68,7 +71,7 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
       if(order.type==='MOVE'&&(!bordersOpen(state,actor,target.ownerId)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)))throw new Error('Fronteira fechada ou presença de outra civilização: use uma ordem de conflito.');
       cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];current=target;
     }
-    if(cost>state.rules.units[unit.kind].movement+institutionBonus(state,actor,'MOVEMENT'))throw new Error('Caminho excede a mobilidade da peça.');
+    if(cost>state.rules.units[unit.kind].movement+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind))throw new Error('Caminho excede a mobilidade da peça.');
     if(order.type==='ATTACK'&&state.rules.units[unit.kind].strength===0)throw new Error('Esta peça não participa de ataques.');
   }
   if(order.type==='MOVE'&&order.path.length){const crowded=stackBlock(state,actor,units as AlphaUnit[],order.path.at(-1)!);if(crowded)throw new Error(crowded);}

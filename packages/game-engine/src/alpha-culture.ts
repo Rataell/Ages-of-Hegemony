@@ -7,6 +7,7 @@ import {
 } from '@aoh/game-domain';
 import { alphaEvent } from './alpha-events.js';
 import { alphaRandomInteger } from './alpha-random.js';
+import { kitCultureDefense } from './alpha-kits.js';
 
 type Contest = Extract<AlphaCommand, { type: 'CONTEST_PRESENCE' }>;
 type Presence = AlphaState['cities'][number]['foreignPresence'][number];
@@ -80,7 +81,7 @@ export function contestPresence(state: AlphaState, actor: PlayerId, command: Con
   const attackDice = [alphaRandomInteger(state, 6) + 1, alphaRandomInteger(state, 6) + 1] as [number, number];
   const defenseDice = [alphaRandomInteger(state, 6) + 1, alphaRandomInteger(state, 6) + 1] as [number, number];
   const attackModifier = modifier(state, attackerCivilizationId, attacker, city.culturalAnchor);
-  const defenseModifier = modifier(state, command.defenderCivilizationId, defender, city.culturalAnchor);
+  const defenseModifier = modifier(state, command.defenderCivilizationId, defender, city.culturalAnchor) + kitCultureDefense(state, command.defenderCivilizationId);
   const attackTotal = attackDice[0] + attackDice[1] + attackModifier;
   const defenseTotal = defenseDice[0] + defenseDice[1] + defenseModifier;
   const attackerWins = attackTotal > defenseTotal;

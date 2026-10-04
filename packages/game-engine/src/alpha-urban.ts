@@ -11,6 +11,7 @@ import { recruitBlock, recruitUnit } from './alpha-military.js';
 import { applyRecurringEffects, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment, metalSites } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
+import { kitAdvancementCost, kitCivicInfluence, kitFortificationBlock, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
 
 type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
 
@@ -71,6 +72,7 @@ function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: B
   const spec = state.rules.balance.fortification[next];
   if (AlphaEraSchema.options.indexOf(progress.era) < AlphaEraSchema.options.indexOf(spec.era)) return 'Sua civilização ainda não alcançou a era exigida.';
   if (spec.militaryDistrict && !city.districts.some(item => item.type === 'MILITARY')) return 'Esta fortificação requer distrito Militar.';
+  const capped = kitFortificationBlock(state, actor, next); if (capped) return capped;
   return alphaCanAfford(state, actor, alphaCostWithMetal(state, actor, spec.cost, spec.metal)) ? null : 'Recursos insuficientes para esta ação.';
 }
 
@@ -113,8 +115,8 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(cityMeta.fortification.level as never) + 1];
     return next ? alphaCostWithMetal(state, actor, balance.fortification[next].cost, balance.fortification[next].metal) : zero;
   }
-  if (action === 'RECRUIT' && params.unit) return alphaCostWithMetal(state, actor, state.rules.units[params.unit].cost, state.rules.units[params.unit].metal);
-  if (action === 'RESEARCH' && params.advancementId) return alphaCostWithMetal(state, actor, ADVANCEMENTS.find(node => node.id === params.advancementId)?.cost ?? { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 }, 0);
+  if (action === 'RECRUIT' && params.unit) { const price = kitUnitCost(state, actor, params.unit); return alphaCostWithMetal(state, actor, price.cost, price.metal); }
+  if (action === 'RESEARCH' && params.advancementId) { const node = ADVANCEMENTS.find(candidate => candidate.id === params.advancementId); return alphaCostWithMetal(state, actor, node ? kitAdvancementCost(state, actor, node) : { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 }, 0); }
   if (action === 'PROMOTE_MOOD') return { ...zero, wealth: balance.publicInvestmentCost };
   if (action === 'CIVIC_ACTION' && cityMeta?.status === 'OCCUPIED') return { ...zero, influence: state.rules.integrationCost.influence };
   return zero;
@@ -231,6 +233,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
         const spec = balance.fortification[next];
         if (AlphaEraSchema.options.indexOf(progress.era) < AlphaEraSchema.options.indexOf(spec.era)) throw new Error('Sua civilização ainda não alcançou a era exigida.');
         if (spec.militaryDistrict && !city.districts.some(item => item.type === 'MILITARY')) throw new Error('Esta fortificação requer distrito Militar.');
+        const capped = kitFortificationBlock(state, actor, next); if (capped) throw new Error(capped);
         alphaPay(state, actor, alphaCostWithMetal(state, actor, spec.cost, spec.metal));
         meta.fortification = { level: next, state: 'INTACT' };
         message = `${city.name} recebeu a fortificação ${next}.`;
@@ -276,7 +279,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       const routes = state.routes.filter(route => route.ownerId === actor && route.fromCityId === city.id && !route.suspended);
       if (routes.length === 0) throw new Error('A cidade não origina nenhuma rota comercial ativa.');
       for (const route of routes) {
-        alphaGainLegacy(state, actor, { wealth: state.rules.routeIncome }, { category: 'trade' });
+        alphaGainLegacy(state, actor, { wealth: Math.max(0, state.rules.routeIncome + kitRouteIncome(state, actor)) }, { category: 'trade' });
         const receiver = state.core.players.find(player => player.civilization.cities.some(candidate => candidate.id === route.toCityId));
         if (receiver && receiver.id !== actor) alphaGainLegacy(state, receiver.id, { wealth: state.rules.foreignRouteIncome }, { category: 'trade' });
       }
@@ -297,7 +300,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
         }
         message = `${city.name} avançou na integração (${meta.integration}%).`;
       } else {
-        alphaGain(state, actor, { influence: balance.civicInfluence });
+        alphaGain(state, actor, { influence: balance.civicInfluence + kitCivicInfluence(state, actor) });
         meta.localCohesion = Math.min(100, meta.localCohesion + balance.civicCohesion);
         message = `${city.name} realizou uma ação cívica.`;
       }

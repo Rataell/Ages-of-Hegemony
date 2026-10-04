@@ -2,6 +2,7 @@ import { type AlphaCommand, type AlphaState, type PlayerId, type StrategicOrder 
 import { alphaCanAfford, alphaGain, alphaPay } from './alpha-resources.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
 import { culturalIdentityOf, establishCulturalPresence } from './alpha-culture.js';
+import { kitTreatyRounds } from './alpha-kits.js';
 function enterWar(state:AlphaState,actor:PlayerId,target:PlayerId):void {
   if(atWar(state,actor,target))return;
   state.wars.push([actor,target].sort() as [PlayerId,PlayerId]);
@@ -71,7 +72,7 @@ export function settleTreaties(state:AlphaState):void {
     if(!alphaCanAfford(state,a.id,treaty.deal.give)||!alphaCanAfford(state,b.id,treaty.deal.receive)){treaty.status='DECLINED';continue;}
     alphaPay(state,a.id,treaty.deal.give);alphaPay(state,b.id,treaty.deal.receive);
     alphaGain(state,a.id,treaty.deal.receive,{category:'trade'});alphaGain(state,b.id,treaty.deal.give,{category:'trade'});
-    treaty.status='ACTIVE';
+    treaty.status='ACTIVE';treaty.expiresRound+=kitTreatyRounds(state,a.id,b.id);
     if(['NON_AGGRESSION_PACT','ALLIANCE'].includes(treaty.type))state.wars=state.wars.filter(pair=>!pair.includes(a.id)||!pair.includes(b.id));
   }
 }
