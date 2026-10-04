@@ -6,7 +6,7 @@ import { validateMilitaryOrder } from './alpha-military.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { civilizationAbility } from './alpha-institutions.js';
-import { demobilize } from './alpha-city.js';
+import { demobilize, refreshAlphaAdministration } from './alpha-city.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
 import { manageCard, playCivilizationCard } from './alpha-cards.js';
@@ -31,6 +31,7 @@ export function alphaCommandCapacity(state: AlphaState, playerId: PlayerId): num
 /** Opens the first round (or any round waiting at WORLD_PULSE): ledgers, cards and one world pulse, then PLANNING. No city output is credited. */
 export function beginAlphaPlanning(input: AlphaState): AlphaState {
   const state = AlphaStateSchema.parse(input);
+  liftLegacyCityCaps(state); refreshAlphaAdministration(state);
   ensureLeaders(state);
   if (state.phase !== 'WORLD_PULSE') throw new Error('Início requer o Pulso do mundo.');
   openRound(state);
@@ -163,6 +164,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       alphaEvent(state,'ACTION_COMPLETED',({BUILD_ROAD:'Estrada construída.',CIVILIZATION_ABILITY:'Habilidade civilizacional utilizada.'})[command.type],[actor]);
     }
     if(actionClass==='MAIN')chargeMainAction(state,actor,reservedMainAction?'RESERVE':'COMMIT',orderTypeForCommand(command,state.phase));
+    refreshAlphaAdministration(state);
     refreshHegemony(state);
     state.version++;
     const output=AlphaStateSchema.safeParse(state);

@@ -6,7 +6,7 @@ import { applyCommand } from './engine.js';
 import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
-import { activationsAllowed, cityYield, districtSlots, elevateBlock, elevateCity, mobilize, moodBand } from './alpha-city.js';
+import { activationsAllowed, administration, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mobilize, moodBand } from './alpha-city.js';
 import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
@@ -44,7 +44,8 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
   if (occupied && action !== 'CIVIC_ACTION') return 'Cidade ocupada: apenas a Ação Cívica de integração está disponível.';
   const planned=state.players.find(player=>player.playerId===actor)?.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.cityId===cityId).length??0;
   // Two activations per round when Estável or Próspera, one when Abalada (canon §10); the second costs one Ânimo when it resolves.
-  const allowed=Math.min(state.rules.balance.cityActions,activationsAllowed(meta));
+  // Sobre-extensão (canon §4): no second activation anywhere.
+  const allowed=Math.min(state.rules.balance.cityActions,activationsAllowed(meta),administration(state,actor).overextended?1:2);
   if(moodBand(meta.mood)==='REVOLT'&&action!=='PROMOTE_MOOD'&&action!=='CIVIC_ACTION')return 'Cidade em Revolta: só Governar (Ânimo e integração) está disponível.';
   if(state.phase==='PLANNING'&&planned>=allowed)return allowed===1?'Esta cidade já possui sua ação planejada para esta rodada.':'Esta cidade já tem as duas ativações planejadas nesta rodada.';
   if (state.phase==='URBAN_ACTIONS'&&meta.urbanActionsUsed >= allowed) return 'Esta cidade já usou suas ativações nesta rodada.';
@@ -81,7 +82,7 @@ function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: B
 export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction, params: UrbanParams = {}): string | null {
   const gate = cityGate(state, actor, cityId, action);
   if (gate) return gate;
-  const balance = state.rules.balance, meta = state.cities.find(candidate => candidate.cityId === cityId)!;
+  const meta = state.cities.find(candidate => candidate.cityId === cityId)!;
   switch (action) {
     case 'PRODUCE': return null;
     case 'ELEVATE': return elevateBlock(state, actor, cityId);
@@ -93,9 +94,7 @@ export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, a
       const reserved = state.phase === 'PLANNING' && state.players.find(player => player.playerId === actor)?.plannedActions.some(planned => planned.type === 'URBAN_ACTION' && planned.action === 'RESEARCH' && planned.advancementId === params.advancementId);
       return reserved ? 'Este avanço já está planejado em outra cidade nesta rodada.' : researchBlock(state, actor, params.advancementId);
     }
-    case 'PROMOTE_MOOD':
-      if (meta.mood >= balance.promoteMoodCeiling) return 'O investimento público não eleva o ânimo além do limite; outras ações são necessárias.';
-      return alphaCanAfford(state, actor, { ...emptyAlphaResourcePool(), wealth: balance.publicInvestmentCost }) ? null : 'Recursos insuficientes para esta ação.';
+    case 'PROMOTE_MOOD': return governBlock(state, actor, cityId);
     case 'SUPPORT_TRADE':
       return state.routes.some(route => route.ownerId === actor && route.fromCityId === cityId && !route.suspended) ? null : 'A cidade não origina nenhuma rota comercial ativa.';
     case 'CIVIC_ACTION': {
@@ -120,7 +119,7 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
   if (action === 'ELEVATE') { const next = nextLevel(cityMeta?.level ?? 'OUTPOST'); return next ? elevateRequirement(next)!.cost : zero; }
   if (action === 'RECRUIT' && params.unit) { const price = kitUnitCost(state, actor, params.unit); return alphaCostWithMetal(state, actor, price.cost, price.metal); }
   if (action === 'RESEARCH' && params.advancementId) return alphaCostWithMetal(state, actor, advanceCost(state, actor, params.advancementId), 0);
-  if (action === 'PROMOTE_MOOD') return { ...zero, wealth: balance.publicInvestmentCost };
+  if (action === 'PROMOTE_MOOD') return governCost(state, actor);
   if (action === 'CIVIC_ACTION' && cityMeta?.status === 'OCCUPIED') return { ...zero, influence: state.rules.integrationCost.influence };
   return zero;
 }
@@ -162,7 +161,7 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
     list.push(option(state, actor, id, 'BUILD', { build: { kind: 'FORTIFICATION' } }, next ? `Fortificação ${next}` : 'Fortificação máxima'));
     for (const unit of AlphaUnitClassSchema.options) list.push(option(state, actor, id, 'RECRUIT', { unit }, `Força ${state.rules.units[unit].strength} · Movimento ${state.rules.units[unit].movement}`));
-    list.push(option(state, actor, id, 'PROMOTE_MOOD', {}, `Ânimo +1 (máximo ${balance.promoteMoodCeiling} por esta ação)`));
+    list.push(option(state, actor, id, 'PROMOTE_MOOD', {}, `Governar: +1 Ânimo por nível pago (1 Cultura ou 2 Riqueza), até ${produced.capacity} nível(is); repara 1 passo de fortificação por 1 Pedra`));
     list.push(option(state, actor, id, 'SUPPORT_TRADE', {}, `Renda de rota: +${state.rules.routeIncome} Riqueza por rota originada`));
     list.push(option(state, actor, id, 'CIVIC_ACTION', {}, occupied ? `Integração +${balance.integrationPerAction + leaderIntegrationBonus(state, actor)}%` : `+${balance.civicInfluence} Influência e coesão local`));
     cities[id] = list;
@@ -269,10 +268,8 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
     }
     case 'PROMOTE_MOOD': {
       rejectExtras(command, []);
-      if (meta.mood >= balance.promoteMoodCeiling) throw new Error('O investimento público não eleva o ânimo além do limite; outras ações são necessárias.');
-      alphaPay(state, actor, { ...emptyAlphaResourcePool(), wealth: balance.publicInvestmentCost });
-      meta.mood += 1;
-      message = `${city.name} recebeu investimento público; o ânimo melhorou.`;
+      const governed = governCity(state, actor, city.id);
+      message = `${city.name} foi governada: Ânimo +${governed.moodGained}${governed.repaired ? ', fortificação reparada' : ''}.`;
       break;
     }
     case 'SUPPORT_TRADE': {

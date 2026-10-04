@@ -1,11 +1,10 @@
 import { settleTradeOffers } from './alpha-trade.js';
-import { canGrow, citySustenance, growCost, militaryUpkeep, replaceCity } from './alpha-city.js';
+import { administration, canGrow, citySustenance, growCost, militaryUpkeep, refreshAlphaAdministration, replaceCity } from './alpha-city.js';
 import { TREATY_NAMES, battleMessage, lossesMessage, orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
   ALPHA_CARDS, emptyOrderCount, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources,
   type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlannedAction, type PlayerId, type RoundPhase, type StrategicOrder,
 } from '@aoh/game-domain';
-import { deriveAdministration, refreshAdministration } from './civilization.js';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
 import { alphaRandomInteger } from './alpha-random.js';
 import { alphaDrain, alphaGain, alphaLose, enforceStorageRecorded, ledgerOf } from './alpha-resources.js';
@@ -119,7 +118,7 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         else validateMilitaryOrder(candidate, id, order);
         if (order.type === 'MOVE') { candidate.units.filter(unit => order.unitIds.includes(unit.id)).forEach(unit => { unit.hexId = order.path.at(-1)!; }); settleCargo(candidate); }
         if (order.type === 'ATTACK') resolveBattle(candidate, id, order);
-        candidate.core.players.forEach(player => { player.civilization = refreshAdministration(player.civilization, candidate.core.config, candidate.core.map); });
+        refreshAlphaAdministration(candidate);
         refreshKnowledge(candidate); refreshHegemony(candidate);
         const before = { units: new Map(state.units.map(unit => [unit.id, unit])), rules: state.rules, names: new Map(state.core.players.map(player => [player.id as string, player.name])) };
         const message = order.type === 'ATTACK' ? battleMessage(before.names, candidate.battles.at(-1)!) : orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined);
@@ -239,10 +238,15 @@ function maintainCivilizations(state: AlphaState): void {
       for (const meta of metas) meta.mood = Math.max(0, meta.mood - 1);
       alphaEvent(state, 'UPKEEP_SHORTAGE', 'Faltaram recursos para manter as peças. Ânimo das cidades −1.', [owner.id]);
     }
-    const overextended = deriveAdministration(owner.civilization, state.core.config, state.core.map).administrationStatus === 'OVEREXTENDED';
-    if (overextended) alphaEvent(state, 'ADMINISTRATIVE_OVEREXTENSION', 'A administração está sobrecarregada.', [owner.id]);
+    // Sobre-extensão (canon §4): the city with the lowest Ânimo loses one level each round over the capacity.
+    const admin = administration(state, owner.id);
+    if (admin.overextended) {
+      const lowest = [...metas].sort((a, b) => a.mood - b.mood)[0];
+      if (lowest) lowest.mood = Math.max(0, lowest.mood - 1);
+      alphaEvent(state, 'ADMINISTRATIVE_OVEREXTENSION', `Sobre-extensão: carga ${admin.load} para capacidade ${admin.capacity}. Ânimo cai na cidade mais abalada.`, [owner.id]);
+    }
     for (const meta of metas) state.telemetry.moodSamples.push(meta.mood);
-    owner.civilization = refreshAdministration(owner.civilization, state.core.config, state.core.map);
+    refreshAlphaAdministration(state);
     alphaEvent(state, 'UPKEEP', `Manutenção: ${ledger.upkeepRequired.food} Alimento e ${upkeep.wealth} Riqueza.`, [owner.id]);
   }
 }

@@ -13,7 +13,7 @@ export function scriptedMatchSetup():AlphaState {
     initialCities:centers.flatMap((cities,p)=>cities.map(([q,r],i)=>({id:`c${p+1}-${i}`,ownerId:`p${p+1}`,hexId:`${q},${r}`,name:`Centro ${p+1}.${i}`,population:2,workers:{producers:1,artisans:1,merchants:0,scholars:0,soldiers:0,unassigned:0}}))),
   });
   if(!initial.ok)throw new Error(initial.error.message);const migrated=migrateSnapshotV3ToV4(initial.value);if(!migrated.ok)throw new Error(migrated.error.message);
-  const state=migrated.value,p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');state.rules=alphaRules('EPIC');state.core.config.administrativeRules.baseCapacity=50;
+  const state=migrated.value,p1=PlayerIdSchema.parse('p1'),p2=PlayerIdSchema.parse('p2');state.rules=alphaRules('EPIC');state.core.config.administrativeRules.baseCapacity=50;state.rules.balance.administrationBase=50;
   state.rules.roundLimit=100;state.rules.roundsPerEra=1;
   for(const key of Object.keys(state.rules.balance.limits.base)){Object.assign(state.rules.balance.limits.base,{[key]:1000});Object.assign(state.rules.balance.limits.hardCap,{[key]:1000});}
   state.players[0]!.civilization='aurelia';state.players[1]!.civilization='valgard';

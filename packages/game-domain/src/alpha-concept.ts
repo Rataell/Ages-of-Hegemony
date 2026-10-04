@@ -248,6 +248,8 @@ export const AlphaBalanceSchema = z.strictObject({
   integrationPerAction: P,
   /** Metal produced by each PRODUCE action for every worked hex that has both a metal deposit and a Mine. */
   metalPerMine: P,
+  /** Base of the Capacidade Administrativa (canon §4: 2; §26 lists it for playtest). Everything else is capital, districts, Chancelaria, government and Web. */
+  administrationBase: P,
   /** CIVIC_ACTION in an owned city: influence gained and local cohesion added. */
   civicInfluence: P,
   civicCohesion: P,
@@ -283,7 +285,7 @@ export function alphaBalance(): AlphaBalance {
     },
     storagePerBuilding: storage,
     overflowRule: 'DISCARD_AFTER_ACTION',
-    publicInvestmentCost: 3,
+    publicInvestmentCost: 2,
     moodEffects: [
       { productionPercent: -100, stabilityDelta: -2 },
       { productionPercent: -50, stabilityDelta: -1 },
@@ -301,9 +303,10 @@ export function alphaBalance(): AlphaBalance {
     cultureDice: 2,
     integrationPerAction: 25,
     metalPerMine: 1,
+    administrationBase: 2,
     civicInfluence: 1,
     civicCohesion: 10,
-    promoteMoodCeiling: 5,
+    promoteMoodCeiling: 6,
     metalAccessDistance: 6,
     fortification: {
       PALISADE: { cost: { food: 0, materials: 2, wealth: 0, knowledge: 0, influence: 0 }, metal: 0, era: 'FOUNDATION', militaryDistrict: false },

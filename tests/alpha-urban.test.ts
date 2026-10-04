@@ -282,7 +282,7 @@ describe('urban actions: RESEARCH', () => {
 });
 
 describe('urban actions: PROMOTE_MOOD', () => {
-  it('spends the configured wealth to raise mood one step', () => {
+  it('Governar spends 2 Riqueza (no Cultura in store) to raise mood one step in a Capacity-1 city', () => {
     const state = urban();
     const wealth = pool(state).wealth, mood = meta(state).mood;
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PROMOTE_MOOD' });
@@ -290,11 +290,11 @@ describe('urban actions: PROMOTE_MOOD', () => {
     expect(pool(after).wealth).toBe(wealth - state.rules.balance.publicInvestmentCost);
   });
 
-  it('never lifts a city above the ceiling on its own', () => {
+  it('never lifts a city above Próspera (6)', () => {
     const state = urban();
     meta(state).mood = state.rules.balance.promoteMoodCeiling;
     expect(act(state, p1, c1, { action: 'PROMOTE_MOOD' })).toMatchObject({ ok: false });
-    expect(meta(state).mood).toBe(5);
+    expect(meta(state).mood).toBe(6);
   });
 
   it('needs the wealth', () => {

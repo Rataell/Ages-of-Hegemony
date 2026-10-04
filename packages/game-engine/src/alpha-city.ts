@@ -197,3 +197,70 @@ export function replaceCity(state: AlphaState, cityId: string, next: CityState):
 
 /** Sum of a pool, for messages. */
 export const poolTotal = (pool: AlphaResourcePool): number => ALPHA_RESOURCE_KEYS.reduce((total, key) => total + pool[key], 0);
+
+/**
+ * Administration (canon §4): load 1 per integrated city, 2 per Ocupada; capacity 2 (base) + 1 capital + 1 per Administrativo
+ * district + 1 Chancelaria (one per civilization) + government (Conselho +1, Confederação +2) + Web (Códigos +1, Urbanismo +1).
+ * No city ever weighs zero. Over the capacity the civilization is in Sobre-extensão.
+ */
+export interface Administration { load: number; capacity: number; overextended: boolean; parts: { base: number; capital: number; districts: number; chancellery: number; government: number; web: number } }
+export function administration(state: AlphaState, actor: PlayerId): Administration {
+  const owner = state.core.players.find(player => player.id === actor);
+  const progress = state.players.find(player => player.playerId === actor);
+  if (!owner || !progress) return { load: 0, capacity: 0, overextended: false, parts: { base: 0, capital: 0, districts: 0, chancellery: 0, government: 0, web: 0 } };
+  const metas = state.cities.filter(meta => meta.currentOwnerId === actor);
+  const load = metas.reduce((total, meta) => total + (meta.status === 'OCCUPIED' || state.occupations.some(occupation => occupation.cityId === meta.cityId) ? 2 : 1), 0);
+  const parts = {
+    base: state.rules.balance.administrationBase,
+    capital: owner.civilization.capitalCityId && metas.some(meta => meta.cityId === owner.civilization.capitalCityId) ? 1 : 0,
+    districts: metas.filter(meta => meta.districts.includes('ADMINISTRATIVE')).length,
+    chancellery: metas.some(meta => meta.buildings.includes('CHANCELLERY')) ? 1 : 0,
+    government: owner.civilization.government === 'CONFEDERATION' ? 2 : owner.civilization.government === 'PROTO_GOVERNANCE' ? 1 : 0,
+    web: (hasUnlock(state, actor, 'rule:admin-capacity-plus-1') ? progress.research.filter(id => ['web-codes', 'web-urbanism'].includes(id)).length : 0),
+  };
+  const capacity = parts.base + parts.capital + parts.districts + parts.chancellery + parts.government + parts.web;
+  return { load, capacity, overextended: load > capacity, parts };
+}
+/** Writes the canon administration into the core civilization record every consumer already reads. */
+export function refreshAlphaAdministration(state: AlphaState): void {
+  for (const owner of state.core.players) {
+    const result = administration(state, owner.id);
+    owner.civilization = { ...owner.civilization, administrativeLoad: result.load, administrativeCapacity: result.capacity, administrationStatus: result.overextended ? 'OVEREXTENDED' : 'WITHIN_CAPACITY' };
+  }
+}
+
+/** Governar (canon §4, §10): +1 Ânimo per level paid, 1 Cultura or 2 Riqueza each, up to the activation's Capacity, never above Próspera (6). */
+export function governCost(state: AlphaState, actor: PlayerId): AlphaResourcePool {
+  const progress = state.players.find(player => player.playerId === actor);
+  return progress && progress.resources.culture >= 1 ? { ...emptyAlphaResourcePool(), culture: 1 } : { ...emptyAlphaResourcePool(), wealth: 2 };
+}
+export function governBlock(state: AlphaState, actor: PlayerId, cityId: string): string | null {
+  const pair = cityPair(state, cityId);
+  if (!pair || pair.ownerId !== actor) return 'Escolha uma cidade própria.';
+  if (pair.meta.mood >= 6 && pair.meta.fortification.state === 'INTACT') return 'A cidade já está Próspera e íntegra: Governar não tem o que recuperar.';
+  if (pair.meta.mood < 6 && !alphaCanAfford(state, actor, governCost(state, actor))) return 'Governar custa 1 Cultura ou 2 Riqueza por nível de Ânimo.';
+  return null;
+}
+/** Applies Governar: pays level by level while there is Capacity and Ânimo to recover; repairs one fortification step (1 Pedra, free with Fortificação). Returns what happened. */
+export function governCity(state: AlphaState, actor: PlayerId, cityId: string): { moodGained: number; repaired: boolean } {
+  const blocked = governBlock(state, actor, cityId);
+  if (blocked) throw new Error(blocked);
+  const pair = cityPair(state, cityId)!;
+  const reach = Math.max(1, cityLevels(pair.meta, pair.city).capacity);
+  let moodGained = 0;
+  while (moodGained < reach && pair.meta.mood < 6 && alphaCanAfford(state, actor, governCost(state, actor))) {
+    alphaPay(state, actor, governCost(state, actor));
+    pair.meta.mood += 1; moodGained += 1;
+  }
+  let repaired = false;
+  if (pair.meta.fortification.state !== 'INTACT') {
+    const free = hasUnlock(state, actor, 'rule:free-repair');
+    const cost = { ...emptyAlphaResourcePool(), stone: free ? 0 : 1 };
+    if (alphaCanAfford(state, actor, cost)) {
+      alphaPay(state, actor, cost);
+      pair.meta.fortification = { ...pair.meta.fortification, state: pair.meta.fortification.state === 'BREACHED' ? 'DAMAGED' : 'INTACT' };
+      repaired = true;
+    }
+  }
+  return { moodGained, repaired };
+}
