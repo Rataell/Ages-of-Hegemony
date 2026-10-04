@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ADVANCEMENTS, AlphaStateSchema, CIVILIZATION_KITS, PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
-import { beginAlphaPlanning, createAlphaGame, kitAdvancementCost, kitExplorationKnowledge, kitFoodUpkeep, kitFortificationBlock, kitMovement, kitTreatyRounds, kitUnitCost } from '@aoh/game-engine';
+import { beginAlphaPlanning, createAlphaGame, kitProduceBonus, kitTradeBonus, kitWorksCost, kitAdvancementCost, kitExplorationKnowledge, kitFoodUpkeep, kitFortificationBlock, kitMovement, kitTreatyRounds, kitUnitCost } from '@aoh/game-engine';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
 const game = (civ: string, other = 'aurelia'): AlphaState => beginAlphaPlanning(createAlphaGame({ gameId: `kit-${civ}`, seed: 21, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um', civilization: civ }, { id: 'p2', name: 'Dois', civilization: other === civ ? 'valgard' : other }] }));
@@ -52,5 +52,24 @@ describe('civilization kits applied by the engine', () => {
     const aurelia = game('aurelia', 'valgard');
     for (const n of [1, 2, 3, 4]) aurelia.units.push({ id: `soldier-${n}`, ownerId: p1, kind: 'INFANTRY', hexId: aurelia.units[0]!.hexId, recruitedRound: 1, carrierId: null });
     expect(kitFoodUpkeep(aurelia, p1)).toBe(1);
+  });
+
+  it('adds Kor quarry stone and Aurélia farm food when a city produces, and trims Dravik works', () => {
+    for (const [civ, improvement, terrain, key] of [['kor', 'QUARRY', 'HILLS', 'stone'], ['aurelia', 'FARM', 'PLAINS', 'food']] as const) {
+      const state = game(civ), city = state.core.players[0]!.civilization.cities[0]!;
+      const tile = state.core.map.find(t => t.id !== city.hexId && t.ownerId === null && t.terrain === terrain)!;
+      tile.ownerId = p1; tile.controllerCityId = city.id; tile.improvement = improvement;
+      city.workedHexIds = [...city.workedHexIds, tile.id];
+      expect(kitProduceBonus(state, p1, city.id)[key]).toBe(1);
+      expect(kitProduceBonus(game('valgard'), p1, game('valgard').core.players[0]!.civilization.cities[0]!.id)).toEqual({ food: 0, stone: 0 });
+    }
+    expect(kitWorksCost(game('dravik'), p1, { food: 0, materials: 2, wealth: 1, knowledge: 0, influence: 0 }).materials).toBe(1);
+    expect(kitWorksCost(base, p1, { food: 0, materials: 2, wealth: 1, knowledge: 0, influence: 0 }).materials).toBe(2);
+  });
+  it('gives Merídia +1 Wealth for its first settled trade of the round only', () => {
+    const state = game('meridia'), before = state.players[0]!.resources.wealth;
+    kitTradeBonus(state, [p1, p2]); kitTradeBonus(state, [p1, p2]);
+    expect(state.players[0]!.resources.wealth).toBe(before + 1);
+    expect(state.players[1]!.resources.wealth).toBe(game('meridia').players[1]!.resources.wealth);
   });
 });

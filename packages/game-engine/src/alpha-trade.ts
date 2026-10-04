@@ -2,6 +2,7 @@ import { ALPHA_RESOURCE_KEYS, type AlphaCommand, type AlphaResourcePool, type Al
 import { alphaGain, alphaPay } from './alpha-resources.js';
 import { atWar, hasTreaty } from './alpha-diplomacy.js';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
+import { kitTradeBonus } from './alpha-kits.js';
 
 type Offer = AlphaState['tradeOffers'][number];
 type Propose = Extract<AlphaCommand, { type: 'PROPOSE_TRADE' }>;
@@ -75,6 +76,7 @@ export function respondTrade(state: AlphaState, actor: PlayerId, command: Respon
   if (recipientNow) transfer(state, offer.recipientId, offer.proposerId, recipientNow);
   offer.status = offer.type === 'FUTURE_PROMISE' || offer.type === 'LOAN' ? 'ACCEPTED' : 'SETTLED';
   state.telemetry.acceptedTrades += 1;
+  kitTradeBonus(state, [offer.proposerId, offer.recipientId]);
   resolutionEvent(state, { type: 'TRADE', actorId: actor, visibleTo: [offer.proposerId, offer.recipientId], message: `${name(state, offer.recipientId)} aceitou a oferta de ${name(state, offer.proposerId)}.`, unitIds: [] });
 }
 

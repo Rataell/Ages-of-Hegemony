@@ -1,6 +1,7 @@
 import { ADVANCEMENTS, AlphaEraSchema, civilizationKit, type Advancement, type AlphaState, type AlphaUnit, type HexId, type PlayerId, type ResourcePool } from '@aoh/game-domain';
 import { hexId, hexNeighbors } from './hex.js';
 import { stackBlock } from './alpha-stack.js';
+import { alphaGain } from './alpha-resources.js';
 
 /**
  * Civilization kits in the engine (DEC-011). Each rule here is a kit item marked ACTIVE in `CIVILIZATION_KITS`; the rest stay
@@ -59,6 +60,30 @@ export function kitFoodUpkeep(state: AlphaState, actor: PlayerId): number {
   if (civ === 'saren' || civ === 'orinth') return own.filter(unit => unit.kind === 'CAVALRY').length;
   if (civ === 'aurelia') return Math.floor(own.filter(unit => state.rules.units[unit.kind].strength > 0).length / 4);
   return 0;
+}
+
+/** Extra yield when a city PRODUCES: Kor +1 Stone per worked quarry on Hills; Aurélia +1 Food per worked farm. */
+export function kitProduceBonus(state: AlphaState, actor: PlayerId, cityId: string): { food: number; stone: number } {
+  const civ = civilizationOf(state, actor), city = state.core.players.find(p => p.id === actor)?.civilization.cities.find(c => c.id === cityId);
+  if (!city || (civ !== 'kor' && civ !== 'aurelia')) return { food: 0, stone: 0 };
+  const worked = city.workedHexIds.map(id => state.core.map.find(t => t.id === id)).filter(t => t !== undefined);
+  return {
+    food: civ === 'aurelia' ? worked.filter(t => t.improvement === 'FARM').length : 0,
+    stone: civ === 'kor' ? worked.filter(t => t.improvement === 'QUARRY' && t.terrain === 'HILLS').length : 0,
+  };
+}
+/** Dravik's roads and improvements cost 1 Wood/Stone (legacy materials) less. */
+export function kitWorksCost(state: AlphaState, actor: PlayerId, cost: ResourcePool): ResourcePool {
+  return civilizationOf(state, actor) === 'dravik' ? { ...cost, materials: Math.max(0, cost.materials - 1) } : cost;
+}
+/** Merídia: +1 Wealth for the first trade offer it settles in a round (as proposer or recipient). */
+export function kitTradeBonus(state: AlphaState, parties: readonly PlayerId[]): void {
+  for (const id of parties) {
+    if (civilizationOf(state, id) !== 'meridia') continue;
+    if (state.events.some(event => event.type === 'KIT_FIRST_TRADE' && event.round === state.core.round && event.audience?.includes(id))) continue;
+    alphaGain(state, id, { wealth: 1 }, { category: 'trade' });
+    state.events.push({ id: `event-${state.events.length + 1}`, round: state.core.round, type: 'KIT_FIRST_TRADE', message: 'Feira das margens: +1 Riqueza pela primeira troca da rodada.', audience: [id] });
+  }
 }
 
 /** Starting heritage, applied once when the match is created. Pieces that do not fit the capital stand on a free neighbour. */

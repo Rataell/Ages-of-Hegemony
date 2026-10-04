@@ -19,6 +19,7 @@ import { ensureLeaders, useLeaderAbility } from './alpha-leaders.js';
 import { alphaActionCapacity, chargeMainAction } from './alpha-actions.js';
 import { contestPresence } from './alpha-culture.js';
 import { independentAction } from './alpha-independents.js';
+import { kitWorksCost } from './alpha-kits.js';
 
 export { alphaEvent, resolutionEvent } from './alpha-events.js';
 
@@ -70,7 +71,8 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       const management=command.command;
       const occupied=state.occupations.some(o=>('cityId' in management&&management.type!=='FOUND_CITY'&&management.cityId===o.cityId)||('hexId' in management&&state.core.map.find(t=>t.id===management.hexId)?.controllerCityId===o.cityId));
       if(occupied)throw new Error('Integre a cidade ocupada antes de administrar seus territórios e construções.');
-      const result = applyCommand(state.core,{ ...command.command, expectedVersion:state.core.version },alphaResourcePayment(state));
+      const pay=alphaResourcePayment(state);
+      const result = applyCommand(state.core,{ ...command.command, expectedVersion:state.core.version },management.type==='IMPROVE_HEX'?(player,cost)=>pay(player,kitWorksCost(state,actor,cost)):pay);
       if (!result.ok) return result;
       state.core = result.value; syncCityMetadata(state);
       alphaEvent(state,'MANAGEMENT','Decisão de gestão aplicada.',[actor]);
@@ -148,7 +150,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       else {
         const tile=state.core.map.find(t=>t.id===command.hexId&&t.ownerId===actor);
         if(!tile||state.roads.includes(tile.id))throw new Error('Construa estrada em território próprio sem estrada.');
-        alphaPay(state,actor,state.rules.roadCost);state.roads.push(tile.id);
+        alphaPay(state,actor,kitWorksCost(state,actor,state.rules.roadCost));state.roads.push(tile.id);
       }
       alphaEvent(state,'ACTION_COMPLETED',({BUILD_ROAD:'Estrada construída.',ADVANCE_ERA:'Nova era alcançada.',CIVILIZATION_ABILITY:'Habilidade civilizacional utilizada.'})[command.type],[actor]);
     }

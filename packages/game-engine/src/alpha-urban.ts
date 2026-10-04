@@ -11,7 +11,7 @@ import { recruitBlock, recruitUnit } from './alpha-military.js';
 import { applyRecurringEffects, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment, metalSites } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
-import { kitAdvancementCost, kitCivicInfluence, kitFortificationBlock, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
+import { kitAdvancementCost, kitCivicInfluence, kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
 
 type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
 
@@ -218,6 +218,8 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       alphaGainLegacy(state, actor, output, { category: 'production' });
       applyRecurringEffects(state, actor, 'ON_PRODUCE', { cityId: city.id });
       if (metal > 0) alphaGain(state, actor, { metal }, { category: 'mining' });
+      const kitBonus = kitProduceBonus(state, actor, city.id);
+      if (kitBonus.food || kitBonus.stone) alphaGain(state, actor, { food: kitBonus.food, stone: kitBonus.stone }, { category: 'production' });
       const gained = legacyToAlphaResources(output);
       for (const key of Object.keys(gained) as (keyof typeof gained)[]) telemetry.productionByResource[key] += gained[key];
       telemetry.productionByResource.metal += metal;
