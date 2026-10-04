@@ -29,3 +29,8 @@ Autoridade: Canonical Product Specification V4 e decisões aprovadas acima de tu
 14. [Identidade visual na mesa](10-identidade-visual-v22.md) — cidade top-down A/B, fortificação como overlay, atlas de peças e naval, civilização ≠ cor, bandeira aplicada, verificação em partida real; UXDEC-016 a 020.
 15. [Kit de Civilização](11-kit-de-civilizacao.md) — 12 × 18, kits com fonte marcada (Alpha, Bíblia, Proposta), 3 cartas próprias por civilização, auditoria das famílias de cartas.
 16. [Conceitos V2.2](concepts/v22-identity.html) — 13 pranchas 1440×900 (`a1`–`a12`), incluindo a demonstração na Mesa V2.1 em cor e em cinza. Arte compartilhada em [`concepts/art-v22.js`](concepts/art-v22.js).
+
+## Regras V5 (proposta)
+
+17. [Regras V5](../rules-v5-proposal.md) — 7 Eras × 5 rodadas × 5 Ordens, 8 recursos com limites, cidade com Capacidade e Ânimo, Teia de 7 patamares, Herança, Líderes, famílias de cartas, Pressão do Mundo, exploração por direção, Virada de Era, Hegemonia.
+18. [Pranchas V5](concepts/v5-proposal.html) — 16 pranchas (`p1`…`p16`) aplicando as regras à Mesa V2.2. Proposta; nada implementado.
