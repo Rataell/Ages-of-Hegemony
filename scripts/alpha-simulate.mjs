@@ -47,9 +47,9 @@ async function plan(p, round) {
   if (city && round === 3) { const t = g1.view.visibleTerritory.find(t => t.controllerCityId === city.id && !t.improvement && t.id !== city.hexId && ['PLAINS', 'FOREST', 'HILLS'].includes(t.terrain)); if (t) await cmd(p, { type: 'MANAGE', command: { type: 'IMPROVE_HEX', playerId: id, hexId: t.id, improvement: t.terrain === 'PLAINS' ? 'FARM' : t.terrain === 'FOREST' ? 'LUMBER_CAMP' : 'QUARRY' } }); }
   if (city && round === 4) { const worked = g1.view.visibleTerritory.filter(t => t.controllerCityId === city.id).slice(0, city.workers.producers).map(t => t.id); await cmd(p, { type: 'MANAGE', command: { type: 'ASSIGN_WORKED_HEXES', playerId: id, cityId: city.id, hexIds: worked } }); }
   if (city && round === 5) await cmd(p, { type: 'MANAGE', command: { type: 'ASSIGN_POPULATION', playerId: id, cityId: city.id, workers: { ...city.workers } } });
-  if (city && round === 6) await cmd(p, { type: 'MANAGE', command: { type: 'SPECIALIZE_CITY', playerId: id, cityId: city.id, specialization: 'AGRARIAN' } });
   if (city && round === 7) await cmd(p, { type: 'BUILD_ROAD', hexId: city.hexId });
-  if (city && round === 10) await cmd(p, { type: 'MANAGE', command: { type: 'DEVELOP_CITY', playerId: id, cityId: city.id } });
+  if (city && round === 10) { const cs = g1.cityStates.find(c => c.cityId === city.id); if (cs?.elevate && cs.elevate.block === null) await cmd(p, { type: 'URBAN_ACTION', cityId: city.id, action: 'ELEVATE' }); }
+  if (round === 11) { const piece = g1.units.find(u => u.ownerId === id && u.kind === 'INFANTRY' && g1.cityMarks.some(m => m.ownerId === id && m.hexId === u.hexId)); if (piece) await cmd(p, { type: 'DEMOBILIZE', unitId: piece.id }); }
   // diplomacy
   const other = g1.players.find(x => x.id !== id)?.id;
   if (other && round === 2 && p === A) await cmd(p, { type: 'PROPOSE_TREATY', recipientId: other, treaty: 'OPEN_BORDERS', deal: { give: { food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 }, receive: { food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 } } });

@@ -6,7 +6,7 @@ import { validateMilitaryOrder } from './alpha-military.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { civilizationAbility } from './alpha-institutions.js';
-import { demobilize, refreshAlphaAdministration } from './alpha-city.js';
+import { demobilize, mirrorDevelopment, refreshAlphaAdministration } from './alpha-city.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
 import { manageCard, playCivilizationCard } from './alpha-cards.js';
@@ -50,6 +50,7 @@ const PHASE_LABEL: Record<AlphaState['phase'], string> = {
 /** The legacy Desenvolvimento caps never bind an alpha city: population is bounded by the built level (alpha-city-ladder). */
 export function liftLegacyCityCaps(state: AlphaState): void {
   state.core.config.developmentPopulationCaps = [20, 20, 20, 20, 20];
+  mirrorDevelopment(state);
 }
 export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unknown): Result<AlphaState, AlphaError> {
   const validated = AlphaStateSchema.safeParse(input);
@@ -74,6 +75,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if (command.command.type === 'ADVANCE_PHASE' || command.command.type === 'SUBMIT_ORDER') return err({ code:'FORBIDDEN', message:'Use os controles de planejamento da alpha.' });
       if (command.command.playerId !== actor) return err({ code:'FORBIDDEN', message:'Você só pode comandar sua própria civilização.' });
       if (command.command.type === 'BUILD_DISTRICT' || command.command.type === 'BUILD_BUILDING') return err({ code:'USE_URBAN_ACTION', message:'Construa pela ação urbana Construir.' });
+      if (command.command.type === 'DEVELOP_CITY' || command.command.type === 'SPECIALIZE_CITY') return err({ code:'RULE_REMOVED', message:'Desenvolvimento e especialização saíram das regras: a cidade sobe de nível por Elevar e se especializa pelos distritos.' });
       const management=command.command;
       if(management.type==='ASSIGN_POPULATION'){const meta=state.cities.find(c=>c.cityId===management.cityId);if(meta&&meta.allocationRound===state.core.round)throw new Error('A população desta cidade já foi redistribuída nesta rodada.');if(meta)meta.allocationRound=state.core.round;}
       const occupied=state.occupations.some(o=>('cityId' in management&&management.type!=='FOUND_CITY'&&management.cityId===o.cityId)||('hexId' in management&&state.core.map.find(t=>t.id===management.hexId)?.controllerCityId===o.cityId));

@@ -25,7 +25,7 @@ export function scriptedMatchSetup():AlphaState {
     ...Array.from({length:10},(_,i)=>({id:`army-${i}`,ownerId:p1,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('8,0'),recruitedRound:1})),
     ...Array.from({length:4},(_,i)=>({id:`defender-${i}`,ownerId:p2,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('9,0'),recruitedRound:1}))];
   // The script builds two districts per city and recruits once: give the built levels room (canon §5) and a Soldado (canon §6).
-  for(const meta of state.cities)meta.level='CITY';
+  for(const meta of state.cities)meta.level='GREAT_CITY';
   const first=state.core.players[0]!.civilization.cities[0]!;first.workers={...first.workers,artisans:0,soldiers:1};
   initializeAlphaCards(state);refreshKnowledge(state);return beginAlphaPlanning(AlphaStateSchema.parse(state));
 }
@@ -91,7 +91,6 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   perform({type:'QUEUE_ORDER',order:{id:'battle',type:'ATTACK',unitIds:Array.from({length:10},(_,i)=>`army-${i}`),target:'9,0'}});round();
   const foundation=ADVANCEMENTS.filter(a=>a.era==='FOUNDATION'&&a.id!=='web-writing');
   for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length)){urbanAct('RESEARCH',{advancementId:node.id});round();}
-  for(const cityId of ['c1-0','c1-1','c1-2'])for(let i=0;i<2;i++)manage({type:'DEVELOP_CITY',cityId});
   urbanAct('RESEARCH',{advancementId:'web-codes'});round();
   for(const [cityId,district] of [['c1-0','ACADEMIC'],['c1-1','AGRARIAN'],['c1-2','COMMERCIAL'],['c1-3','CULTURAL']])urbanAct('BUILD',{build:{kind:'DISTRICT',district}},cityId);
   for(const cityId of ['c1-0','c1-1','c1-2','c1-4']){

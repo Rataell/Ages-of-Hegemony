@@ -31,7 +31,7 @@ describe('alpha city capture and integration',()=>{
   it('blocks administration and recruitment until a later-round paid integration through the civic action',()=>{
     let state=setup();const actor=state.players[0]!.playerId,cityId=state.core.players[1]!.civilization.capitalCityId!;
     occupyCity(state,actor,cityId);refreshKnowledge(state);
-    expect(applyAlphaCommand(state,actor,{type:'MANAGE',expectedVersion:state.version,command:{type:'DEVELOP_CITY',playerId:actor,cityId,expectedVersion:state.core.version}}).ok).toBe(false);
+    expect(applyAlphaCommand(state,actor,{type:'MANAGE',expectedVersion:state.version,command:{type:'ASSIGN_POPULATION',playerId:actor,cityId,workers:state.core.players[1]!.civilization.cities[0]!.workers,expectedVersion:state.core.version}}).ok).toBe(false);
     setAlphaPhase(state,'URBAN_ACTIONS');
     expect(applyAlphaCommand(state,actor,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'RECRUIT',unit:'INFANTRY'}).ok).toBe(false);
     expect(applyAlphaCommand(state,actor,{type:'URBAN_ACTION',expectedVersion:state.version,cityId,action:'CIVIC_ACTION'})).toMatchObject({ok:false,error:{message:expect.stringContaining('rodada seguinte')}});

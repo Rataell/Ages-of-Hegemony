@@ -1,7 +1,7 @@
 export const labels: Record<string, string> = {
   EXPANSION: 'Expansão', CIVILIZATION: 'Civilização', EMPIRES: 'Impérios', HEGEMONY: 'Hegemonia',
   food: 'Alimento', materials: 'Materiais', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura',
-  producers: 'Produtores', artisans: 'Artesãos', merchants: 'Mercadores', scholars: 'Estudiosos', soldiers: 'Soldados', unassigned: 'Livres',
+  producers: 'Produtores', artisans: 'Artesãos', merchants: 'Mercadores', scholars: 'Eruditos', soldiers: 'Soldados', unassigned: 'Disponível',
   PROTO_GOVERNANCE: 'Governo inicial', MONARCHY: 'Monarquia', REPUBLIC: 'República', OLIGARCHY: 'Oligarquia', THEOCRACY: 'Teocracia', CONFEDERATION: 'Confederação',
   AGRARIAN: 'Agrário', COMMERCIAL: 'Comercial', ACADEMIC: 'Acadêmico', ADMINISTRATIVE: 'Administrativo', MILITARY: 'Militar', INDUSTRIAL: 'Industrial', CULTURAL: 'Cultural',
   GRANARY: 'Celeiro', MARKET: 'Mercado', LIBRARY: 'Biblioteca', ARCHIVE: 'Arquivo', BARRACKS: 'Quartel', WORKSHOP: 'Oficina', CULTURAL_CENTER: 'Centro cultural',

@@ -35,11 +35,20 @@ describe('urban actions: legality', () => {
     expect(JSON.stringify(state)).toBe(before);
   });
 
-  it('allows exactly one action per city per round and resets it next round', () => {
+  it('allows two activations per round for an Estável city (the second costs one Ânimo), one when Abalada, and resets next round', () => {
     let state = must(urban(), p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
     expect(meta(state).urbanActionsUsed).toBe(1);
-    const again = act(state, p1, c1, { action: 'PROMOTE_MOOD' });
-    expect(again).toMatchObject({ ok: false, error: { code: 'RULE_FAILURE', message: expect.stringContaining('já usou') } });
+    const moodBefore = meta(state).mood;
+    state = must(state, p1, c1 ? { type: 'URBAN_ACTION', cityId: c1, action: 'PROMOTE_MOOD' } : {});
+    expect(meta(state).urbanActionsUsed).toBe(2);
+    // Governar +1, then the second-activation cost −1: back where it started.
+    expect(meta(state).mood).toBe(moodBefore);
+    const third = act(state, p1, c1, { action: 'PRODUCE' });
+    expect(third).toMatchObject({ ok: false, error: { code: 'RULE_FAILURE', message: expect.stringContaining('ativações') } });
+    meta(state).mood = 2;
+    const shaken = urban(); shaken.cities.find(c => c.cityId === c1)!.mood = 2;
+    const once = must(shaken, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PRODUCE' });
+    expect(act(once, p1, c1, { action: 'PRODUCE' })).toMatchObject({ ok: false });
     expect(act(state, p2, c2, { action: 'PRODUCE' }).ok).toBe(true);
     setAlphaPhase(state,'PLANNING');state = completeRound(state);
     expect(state.core.round).toBe(2);

@@ -34,8 +34,9 @@ describe('urban option preview', () => {
   it('agrees with the server when the civilization is rich and advanced', () => {
     const state = rich(base(112));
     state.players[0]!.era = 'CIVILIZATION';
+    // A Vila has two slots (canon §5); the legacy development mirrors the built level so the core accepts both districts.
+    state.cities.find(c => c.currentOwnerId === 'p1')!.level = 'VILLAGE'; state.core.players[0]!.civilization.cities[0]!.development = 3;
     state.core.players[0]!.civilization.cities[0]!.districts.push({ type: 'MILITARY', builtRound: 1 }, { type: 'AGRARIAN', builtRound: 1 });
-    state.core.players[0]!.civilization.cities[0]!.development = 3;
     const { unblocked } = expectParity(state);
     expect(unblocked).toBeGreaterThan(10);
   });

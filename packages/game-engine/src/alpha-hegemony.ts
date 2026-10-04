@@ -26,7 +26,7 @@ export function hegemonyProgress(state:AlphaState,actor:PlayerId) {
     treatyPartners:new Set(treaties.map(t=>t.proposerId===actor?t.recipientId:t.proposerId)).size,
     politicalProjects:projects.filter(p=>GREAT_PROJECTS.find(g=>g.id===p.projectId)?.path==='POLITICAL').length,
     territory:state.core.map.filter(t=>t.ownerId===actor&&!state.occupations.some(o=>o.cityId===t.controllerCityId)).length,
-    developedCities:cities.filter(c=>c.development>=3).length,
+    developedCities:state.cities.filter(m=>m.currentOwnerId===actor&&['GREAT_CITY','METROPOLIS','IMPERIAL_METROPOLIS'].includes(m.level)).length,
     withinCapacity:Number(core.civilization.administrativeLoad<=core.civilization.administrativeCapacity),
   };
   return HegemonyPathSchema.options.map(path=>({path,requirements:state.rules.hegemonyRequirements[path].map(r=>({...r,current:metrics[r.metric],met:metrics[r.metric]>=r.minimum}))}));

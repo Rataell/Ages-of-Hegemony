@@ -57,7 +57,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     for(const [width,height] of [[1366,768],[1440,900],[1920,1080]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${actionEvidence}/${width}x${height}-counter.png`});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.setViewportSize({width:1440,height:900});
     await openArea(pa,'Conselho');await expect(pa.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(new URL(pa.url()).searchParams.get('game')!))!.game!.version}`);await toMap(pa);
-    await pa.getByLabel('Produtores',{exact:true}).fill('1');await pa.getByLabel('Artesãos',{exact:true}).fill('1');await pa.getByLabel('Estudiosos',{exact:true}).fill('0');
+    await pa.getByLabel('Produtores',{exact:true}).fill('1');await pa.getByLabel('Artesãos',{exact:true}).fill('1');await pa.getByLabel('Eruditos',{exact:true}).fill('0');
     await pa.getByRole('button',{name:'Aplicar distribuição'}).click();
     await pa.locator('svg.world-map [role=button]').filter({has:pa.locator('title')}).first().focus();
     const gameId=new URL(pa.url()).searchParams.get('game')!;
@@ -103,10 +103,10 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await detailA.getByRole('button',{name:'Planejar ação urbana'}).click();
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
     await expect(pa.locator('.alpha-action-queue')).toContainText('Ordens planejadas 1 / 5');
-    // With its one action planned, the city shows that plan instead of the full menu, and offers to swap it.
+    // With one activation planned, the city shows that plan and offers to swap it; a second activation stays available (canon §10).
     const plannedCard=urbanA.getByRole('article',{name:'Ação planejada'});
     await expect(plannedCard).toContainText('Nesta rodada: Produzir');
-    await expect(urbanA.getByRole('button',{name:'Escolher produzir'})).toHaveCount(0);
+    await expect(urbanA.getByRole('button',{name:'Escolher produzir'})).toHaveCount(1);
     await plannedCard.screenshot({path:`${actionEvidence}/1440x900-city-refusal.png`});
     await plannedCard.getByRole('button',{name:'Trocar ação',exact:true}).click();
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 2 / 2');
@@ -122,7 +122,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(pa.locator('.alpha-order')).toContainText('Movimento · Explorador ×1');
     await pa.getByRole('button',{name:'Cidade',exact:true}).click();
     await pa.reload();await expect(pa.locator('.alpha-urban')).toContainText('Ações planejáveis da cidade: 1 / 2');
-    await bothConfirm('Confirmar planejamento','2 / 9');
+    await bothConfirm('Confirmar planejamento','2 / 21');
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
     {
       const after=await game();
@@ -137,23 +137,24 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(pa.locator('.alpha-urban-detail')).toContainText('Custo:');await expect(pa.locator('.alpha-urban-detail')).toContainText('Efeito:');
     await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
-    // Valgard's page is still on the old version here: the build recovers on its own and must not show a conflict.
-    await pb.locator('.alpha-urban summary').filter({hasText:'Construir'}).click();
-    await pb.getByRole('button',{name:/^Distrito Agr/i}).click();
-    await expect(pb.locator('.alpha-urban-detail')).toContainText('Custo:');
-    await pb.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
+    // Valgard's page is still on the old version here: the research recovers on its own and must not show a conflict. Districts need their Web advance (canon §5), so Beto opens the Teia first.
+    await openArea(pb,'Teia Civilizacional');
+    const agriculture=pb.locator('.alpha-research-grid article').filter({hasText:'Agricultura'}).first();
+    await expect(agriculture).toContainText('Custo:');
+    await agriculture.getByRole('button',{name:'Pesquisar (ação urbana)'}).click();
+    await toMap(pb);
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 2');
     {
       const planned=await game();
       // Only the starting Explorer exists until the planned recruitment resolves.
       expect(planned.units.filter(u=>u.ownerId===planned.players[0]!.playerId&&u.kind==='EXPLORER')).toHaveLength(1);
-      expect(planned.core.players[1]!.civilization.cities[0]!.districts.map(d=>d.type)).not.toContain('AGRARIAN');
+      expect(planned.players[1]!.research).not.toContain('web-agriculture');
     }
-    await bothConfirm('Confirmar planejamento','3 / 9');
+    await bothConfirm('Confirmar planejamento','3 / 21');
     {
       const after=await game();
       expect(after.units.filter(u=>u.ownerId===after.players[0]!.playerId&&u.kind==='EXPLORER')).toHaveLength(2);
-      expect(after.core.players[1]!.civilization.cities[0]!.districts.map(d=>d.type)).toContain('AGRARIAN');
+      expect(after.players[1]!.research).toContain('web-agriculture');
     }
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
     // Round 3 - research survives reconnect; Ana's move is visible only to Ana because Beto cannot see its destination.
@@ -175,7 +176,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await confirm(pa,'Confirmar planejamento');await pa.reload();await expect(pa.getByRole('button',{name:'Aguardando outras pessoas',exact:true})).toBeVisible();
     await pb.getByRole('button',{name:/Escolher produzir/}).click();
     await pb.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
-    await confirm(pb,'Confirmar planejamento');await phase(pa,'4 / 9');await phase(pb,'4 / 9');
+    await confirm(pb,'Confirmar planejamento');await phase(pa,'4 / 21');await phase(pb,'4 / 21');
     expect((await game()).players[0]!.research).toHaveLength(1);
     const replayA=pa.locator('.alpha-resolution-phase'),replayB=pb.locator('.alpha-resolution-phase');
     await expect(replayA).toContainText('Mobilidade');await expect(replayA).toContainText(/Ana: Explorador moveu-se para \d+,\d+\./);

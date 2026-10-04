@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PlayerIdSchema, alphaToLegacyResources, type AlphaState } from '@aoh/game-domain';
 import {
   alphaCanAfford, alphaCost, alphaDrain, alphaGainLegacy, alphaPay, applyAlphaCommand, beginAlphaPlanning,
-  createAlphaGame, setAlphaPhase,
+  alphaClaimOptions, createAlphaGame, setAlphaPhase,
 } from '@aoh/game-engine';
 import { urban } from './alpha-rounds.js';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
@@ -74,7 +74,8 @@ describe('seven-resource authority', () => {
     Object.assign(pool(state), { food: 100, wood: 100, stone: 100, metal: 0, wealth: 100, knowledge: 100, influence: 100 });
     Object.assign(legacy(state), { food: 0, materials: 0, wealth: 0, knowledge: 0, influence: 0 });
     const before = { ...pool(state) };
-    const result = applyAlphaCommand(state, p1, { type: 'MANAGE', expectedVersion: state.version, command: { type: 'DEVELOP_CITY', playerId: p1, cityId: city.id, expectedVersion: state.core.version } });
+    const hexId = alphaClaimOptions(state, p1)[city.id]![0]!;
+    const result = applyAlphaCommand(state, p1, { type: 'MANAGE', expectedVersion: state.version, command: { type: 'CLAIM_HEX', playerId: p1, cityId: city.id, hexId, expectedVersion: state.core.version } });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.players[0]!.resources).not.toEqual(before);

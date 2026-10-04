@@ -16,7 +16,7 @@ function initialCities(core: GameState, civilizationByPlayer: Map<string, string
     nativeIdentity: civilizationByPlayer.get(player.id) ?? `native-${player.id}`,
     status: 'OWNED' as const,
     integration: 100,
-    mood: 3,
+    mood: 4,
     level: cityLevelForPopulation(city.population),
     capital: player.civilization.capitalCityId === city.id,
     districts: city.districts.map(district => district.type),

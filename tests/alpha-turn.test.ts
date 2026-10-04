@@ -5,7 +5,7 @@ import { applyAlphaCommand, beginAlphaPlanning, createGame, migrateSnapshotV3ToV
 function setup(): AlphaState {
   const result=createGame({ gameId:'turn-alpha', seed:7,
     players:[{ id:'p1', name:'Um', resources:{food:100,materials:30,wealth:10,knowledge:0,influence:30} },{id:'p2',name:'Dois'}],
-    map:[{id:'0,0',q:0,r:0,terrain:'PLAINS'},{id:'3,0',q:3,r:0,terrain:'PLAINS'}],
+    map:[{id:'0,0',q:0,r:0,terrain:'PLAINS'},{id:'1,0',q:1,r:0,terrain:'PLAINS'},{id:'3,0',q:3,r:0,terrain:'PLAINS'}],
     initialCities:[{id:'c1',ownerId:'p1',hexId:'0,0',name:'Primeira'},{id:'c2',ownerId:'p2',hexId:'3,0',name:'Segunda'}] });
   if(!result.ok)throw new Error(result.error.message);const migrated=migrateSnapshotV3ToV4(result.value);
   if(!migrated.ok)throw new Error(migrated.error.message);return beginAlphaPlanning(migrated.value);
@@ -31,18 +31,19 @@ describe('alpha core turn and finish',()=>{
   });
   it('validates actor, version and ready lock before running legacy commands',()=>{
     const state=setup();const before=serializeAlphaState(state);
-    expect(applyAlphaCommand(state,p2,{type:'MANAGE',expectedVersion:state.version,command:{type:'DEVELOP_CITY',playerId:p1,cityId:'c1',expectedVersion:state.core.version}})).toMatchObject({ok:false,error:{code:'FORBIDDEN'}});
+    expect(applyAlphaCommand(state,p2,{type:'MANAGE',expectedVersion:state.version,command:{type:'CLAIM_HEX',playerId:p1,cityId:'c1',hexId:'1,0',expectedVersion:state.core.version}})).toMatchObject({ok:false,error:{code:'FORBIDDEN'}});
     expect(applyAlphaCommand(state,p1,{type:'READY',expectedVersion:999})).toMatchObject({ok:false,error:{code:'VERSION_CONFLICT'}});
     const locked=ready(state,p1);expect(applyAlphaCommand(locked,p1,{type:'READY',expectedVersion:locked.version})).toMatchObject({ok:false,error:{code:'ALREADY_READY'}});
     expect(serializeAlphaState(state)).toBe(before);
   });
   it('executes existing management with its real costs and alpha command budget',()=>{
-    const state=setup();const result=applyAlphaCommand(state,p1,{type:'MANAGE',expectedVersion:0,command:{type:'DEVELOP_CITY',playerId:p1,cityId:'c1',expectedVersion:0}});
+    const state=setup();const result=applyAlphaCommand(state,p1,{type:'MANAGE',expectedVersion:0,command:{type:'CLAIM_HEX',playerId:p1,cityId:'c1',hexId:'1,0',expectedVersion:0}});
     expect(result.ok).toBe(true);if(!result.ok)return;
-    expect(result.value.core.players[0]?.resources.materials).toBe(25);expect(result.value.players[0]?.spentCommands).toBe(1);
+    expect(result.value.core.players[0]?.resources.influence).toBe(29);expect(result.value.players[0]?.spentCommands).toBe(1);
     result.value.players[0]!.spentCommands=result.value.rules.actionsPerRound!;
     const before=serializeAlphaState(result.value);
-    expect(applyAlphaCommand(result.value,p1,{type:'MANAGE',expectedVersion:result.value.version,command:{type:'DEVELOP_CITY',playerId:p1,cityId:'c1',expectedVersion:result.value.core.version}})).toMatchObject({ok:false,error:{code:'ACTION_LIMIT',message:'Sem ações principais disponíveis nesta rodada.'}});
+    expect(applyAlphaCommand(result.value,p1,{type:'MANAGE',expectedVersion:result.value.version,command:{type:'ASSIGN_POPULATION',playerId:p1,cityId:'c1',workers:result.value.core.players[0]!.civilization.cities[0]!.workers,expectedVersion:result.value.core.version}})).toMatchObject({ok:true});
+    expect(applyAlphaCommand(result.value,p1,{type:'BUILD_ROAD',expectedVersion:result.value.version,hexId:'1,0'})).toMatchObject({ok:false,error:{code:'ACTION_LIMIT',message:'Sem ações principais disponíveis nesta rodada.'}});
     expect(serializeAlphaState(result.value)).toBe(before);
   });
   it('never accepts a scheduler command through the player management envelope',()=>{

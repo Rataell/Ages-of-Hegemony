@@ -187,6 +187,19 @@ export function demobilize(state: AlphaState, actor: PlayerId, unitId: string): 
   return pair.city.id;
 }
 
+/**
+ * The legacy `development` field is a mirror of the built level, kept only so the core's claim radius reads the canon
+ * raio de reivindicação (1 for N1–2, 2 for N3–5, 3 for N6–7 through the legacy cityRadii [1,1,2,2,3]). Nothing else reads it.
+ */
+export function mirrorDevelopment(state: AlphaState): void {
+  for (const meta of state.cities) {
+    const pair = cityPair(state, meta.cityId);
+    if (!pair) continue;
+    const index = ['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS'].indexOf(meta.level);
+    const development = index <= 1 ? 1 : index <= 4 ? 3 : 5;
+    if (pair.city.development !== development) replaceCity(state, meta.cityId, { ...pair.city, development });
+  }
+}
 /** Writes a city back into the core (the core keeps cities immutable). */
 export function replaceCity(state: AlphaState, cityId: string, next: CityState): void {
   for (const player of state.core.players) {

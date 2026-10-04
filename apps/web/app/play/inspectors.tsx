@@ -76,7 +76,7 @@ export function PopulationManager({
                  role === 'artisans' ? 'Produzem manufaturas e materiais' :
                  role === 'merchants' ? 'Geram riqueza e mantêm o tesouro' :
                  role === 'scholars' ? 'Desenvolvem conhecimento e arquivos' :
-                 role === 'soldiers' ? 'Ainda sem efeito: não produz nem defende' : 'Mão de obra livre'}
+                 role === 'soldiers' ? 'Recrutar mobiliza 1 por peça terrestre' : 'Recém-chegado: arraste para um papel'}
               </small>
             </div>
             <input

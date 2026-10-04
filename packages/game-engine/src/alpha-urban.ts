@@ -6,7 +6,7 @@ import { applyCommand } from './engine.js';
 import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
-import { activationsAllowed, administration, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mobilize, moodBand } from './alpha-city.js';
+import { activationsAllowed, administration, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilize, moodBand } from './alpha-city.js';
 import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
@@ -245,6 +245,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
     case 'ELEVATE': {
       rejectExtras(command, []);
       const level = elevateCity(state, actor, city.id);
+      mirrorDevelopment(state);
       message = `${city.name} foi elevada a ${level}.`;
       break;
     }

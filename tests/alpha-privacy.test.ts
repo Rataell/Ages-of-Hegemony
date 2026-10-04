@@ -26,7 +26,7 @@ describe('projection privacy', () => {
   it('ships only an explicit list of top-level fields', () => {
     const view = alphaPlayerView(midRound(), p2)!;
     // Adding a field to the projection must be a deliberate edit of this list.
-    expect(Object.keys(view).sort()).toEqual(["actionClasses","actions","advisorMarket","battles","cityDetails","cityMarks","cityStates","claimOptions","commandCapacity","costs","culture","declarations","economicEvents","events","finalStandings","frontier","gameId","hegemony","incomingAttacks","independents","initiative","knownTerritory","leaderBlock","milestones","occupations","orderPreviews","phase","players","projects","raidBands","regions","roads","roundReports","routes","rules","schemaVersion","self","stacks","storage","tradeOffers","treaties","unitOptions","units","urban","version","view","wars","winner","worldDecisionPending","worldEvent","worldPulse"]);
+    expect(Object.keys(view).sort()).toEqual(["actionClasses","actions","administration","advisorMarket","battles","cityDetails","cityMarks","cityStates","claimOptions","commandCapacity","costs","culture","declarations","economicEvents","events","finalStandings","frontier","gameId","hegemony","incomingAttacks","independents","initiative","knownTerritory","leaderBlock","milestones","occupations","orderPreviews","phase","players","projects","raidBands","regions","roads","roundReports","routes","rules","schemaVersion","self","stacks","storage","tradeOffers","treaties","unitOptions","units","urban","version","view","wars","winner","worldDecisionPending","worldEvent","worldPulse"]);
     for (const forbidden of ['core', 'privateRng', 'seed', 'cards', 'tradeOffersAll', 'telemetry', 'roundLedgers', 'resolutionEvents']) expect(view).not.toHaveProperty(forbidden);
   });
 
@@ -53,7 +53,7 @@ describe('public city marks', () => {
   it('show a visible rival city only by size and walls, and never a city out of sight', () => {
     const state = midRound(), view = alphaPlayerView(state, p2)!;
     for (const mark of view.cityMarks) {
-      expect(Object.keys(mark).sort()).toEqual(['blockaded', 'capital', 'cityId', 'fortification', 'hexId', 'level', 'ownerId']);
+      expect(Object.keys(mark).sort()).toEqual(['blockaded', 'capacity', 'capital', 'cityId', 'fortification', 'hexId', 'level', 'ownerId']);
       if (mark.ownerId !== p2) expect(mark.blockaded).toBeNull();
       expect(mark.level).toBeGreaterThanOrEqual(1);
       expect(mark.level).toBeLessThanOrEqual(7);

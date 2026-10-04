@@ -145,7 +145,8 @@ function raidDefense(state:AlphaState,hexIdValue:string):number {
   const units=state.units.filter(unit=>unit.hexId===hexIdValue);
   const pieces=units.reduce((total,unit)=>total+state.rules.units[unit.kind].strength,0);
   const city=state.core.players.flatMap(player=>player.civilization.cities).find(candidate=>candidate.hexId===hexIdValue);
-  return pieces+(city?.development??0);
+  const level=city?state.cities.find(meta=>meta.cityId===city.id)?.level:undefined;
+  return pieces+(level?['OUTPOST','HAMLET','VILLAGE','CITY','GREAT_CITY','METROPOLIS','IMPERIAL_METROPOLIS'].indexOf(level)+1:0);
 }
 
 /** One deterministic step per band at round end. Weak occupied targets are preferred and attacked on contact. */

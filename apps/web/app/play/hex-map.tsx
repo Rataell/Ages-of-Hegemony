@@ -15,7 +15,7 @@ export type MapArt = {
   routes?: readonly { id: string; path: readonly string[]; suspended: boolean }[];
   /** Results shown on their target: a neutral halo and a short tag (resolution events, card effects on pieces). */
   marks?: readonly { hexId: string; label: string; tone: 'event' | 'card' | 'loss' }[];
-  cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capital: boolean; fortification: { level: string; state: string }; blockaded?: boolean | null }[];
+  cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capacity?: number; capital: boolean; fortification: { level: string; state: string }; blockaded?: boolean | null }[];
 };
 const svgFragment = (html: string) => ({ __html: html });
 /** The two corners a tile shares with a neighbour centred at (nx, ny): the tile corners nearest to it. */
@@ -261,7 +261,8 @@ export const HexMap = memo(function HexMap({
                 const level = mark?.level ?? 1, color = seat?.color ?? '#9aa4a2';
                 return <g className="city-anchor art-city" data-level={level} data-fortification={mark?.fortification.level ?? 'NONE'}>
                   <g dangerouslySetInnerHTML={svgFragment(cityArt(level, 50, { color, seed: seedOf(city.id) }) + (mark ? fortificationArt(mark.fortification.level, mark.fortification.state, 50) : '') + (seat?.mark ? `<g transform="translate(29 -24)">${bannerArt(seat.mark, color, 30)}</g>` : ''))} />
-                  <g transform="translate(-30 -26)"><circle r="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{level}</text></g>
+                  {/* The seal reads N·Capacidade (canon §4): level built and the power of one activation. */}
+                  <g transform="translate(-30 -26)"><rect x={mark?.capacity ? -15 : -9} y="-9" width={mark?.capacity ? 30 : 18} height="18" rx="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{mark?.capacity ? `${level}·${mark.capacity}` : level}</text></g>
                 </g>;
               })() : city ? (
                 <g className={`city-anchor ${isCapital ? 'is-capital' : ''}`}>

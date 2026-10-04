@@ -77,7 +77,7 @@ function staticSide(state: AlphaState, sides: Sides, attacking: boolean) {
   push(modifiers, 'Líder', sources.leader);
   push(modifiers, 'Cartas e efeitos', sources.other);
   const strength = units.reduce((total, unit) => total + state.rules.units[unit.kind].strength, 0)
-    + (!attacking && sides.city ? sides.city.development + infrastructureStats(sides.city, state.core.config).garrisonCapacity : 0);
+    + (!attacking && sides.city ? ['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS'].indexOf(state.cities.find(meta => meta.cityId === sides.city!.id)?.level ?? 'OUTPOST') + 1 + infrastructureStats(sides.city, state.core.config).garrisonCapacity : 0);
   return { owner, units, fighters, modifiers, strength, fortification };
 }
 
