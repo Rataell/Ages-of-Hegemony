@@ -414,6 +414,6 @@ button.alpha-card { text-align: left; }
 }
 .alpha-recommended { border-color: #f4ecd8; }
 .alpha-recommended[aria-pressed="true"] { box-shadow: inset 0 0 0 1px #f4ecd8; }
-.alpha-pulse { display: block; font-size: 11px; color: var(--text-muted, #b3c0bd); max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.alpha-pulse.tone-NEGATIVE { color: #e5b3a5; }
-.alpha-pulse.tone-POSITIVE { color: #9ec4a2; }
+.alpha-pulse-chip { position: absolute; z-index: 4; left: 18px; top: 40px; max-width: min(420px, 60%); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(18, 28, 33, .88); font-size: 12px; color: var(--text-muted, #b3c0bd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.alpha-pulse-chip.tone-NEGATIVE { color: #e5b3a5; }
+.alpha-pulse-chip.tone-POSITIVE { color: #9ec4a2; }
