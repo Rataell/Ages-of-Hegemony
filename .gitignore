@@ -18,3 +18,6 @@ playwright-report/
 
 # Local playtest raw logs (summaries stay committable)
 docs/evidence/playtests/**/events.jsonl
+
+# UI playtest: per-friction debug screenshots stay local (session.json keeps the text)
+docs/evidence/v51b-ui-playtest/**/shots/friction-*.png
