@@ -6,11 +6,12 @@
 //
 //   node scripts/alpha-ui-playtest.mjs --players=2 --preset=QUICK --rounds=12 --out=docs/evidence/v51b-ui-playtest/run-2p
 //   options: --players=2|4|6  --preset=QUICK|STANDARD  --rounds=N (stop after N rounds)  --out=DIR  --headed  --reveal
+//            --personas=scholar,diplomat,...  (strategy per seat; default cycles expansionist,warrior,scholar,trader,diplomat,builder)
 //            --viewport=1366x768  --shots=natural (screenshot the first time each milestone appears)
 // Output (in --out): session.json (per-round client-observed telemetry, contact metrics, friction log), shots/*.png.
 import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { ADVANCEMENTS } from '@aoh/game-domain';
+import { ADVANCEMENTS, HERITAGE_ADVANCES } from '@aoh/game-domain';
 const KIND_LABEL = { EXPLORER: 'Explorador', PIONEER: 'Pioneiro', ENVOY: 'Enviado', INFANTRY: 'Infantaria', GUARD: 'Guarda', RANGED: 'Arqueiros', CAVALRY: 'Cavalaria', SIEGE: 'Cerco', FLEET: 'Frota', COASTAL_VESSEL: 'Embarcação' };
 
 const arg = new Map(process.argv.slice(2).map(a => { const [k, v] = a.replace(/^--/, '').split('='); return [k, v ?? true]; }));
@@ -22,7 +23,7 @@ const [VW, VH] = String(arg.get('viewport') ?? '1366x768').split('x').map(Number
 mkdirSync(SHOTS, { recursive: true });
 const nap = ms => new Promise(r => setTimeout(r, ms));
 const LETTERS = 'ABCDEF';
-const PERSONAS = ['expansionist', 'warrior', 'scholar', 'trader', 'diplomat', 'builder'];
+const PERSONAS = arg.get('personas') ? String(arg.get('personas')).split(',') : ['expansionist', 'warrior', 'scholar', 'trader', 'diplomat', 'builder'];
 // What each seat tries first, in order. A person would not do everything every round; neither does the driver.
 const PRIORITY = {
   expansionist: ['settle', 'move-pioneer', 'explore', 'move-explorer', 'elevate', 'recruit-pioneer', 'produce', 'research', 'govern', 'build'],
@@ -35,7 +36,7 @@ const PRIORITY = {
 const RESEARCH_PREF = {
   expansionist: ['web-agriculture', 'web-coastal-navigation', 'web-irrigation', 'web-cartography', 'web-masonry'],
   warrior: ['web-guard-formations', 'web-masonry', 'web-metallurgy', 'web-maneuver-training', 'web-engineering', 'web-fortification'],
-  scholar: ['web-writing', 'web-mathematics', 'web-natural-philosophy', 'web-experimental-method', 'web-laboratory'],
+  scholar: ['web-writing', 'web-common-narratives', 'web-codes', 'web-centralization', 'web-mathematics', 'web-natural-philosophy', 'web-experimental-method'],
   trader: ['web-exchange', 'web-currency', 'web-regional-market', 'web-logistics', 'web-bank'],
   diplomat: ['web-common-narratives', 'web-codes', 'web-urbanism', 'web-exchange'],
   builder: ['web-masonry', 'web-agriculture', 'web-engineering', 'web-codes', 'web-urbanism'],
@@ -88,6 +89,16 @@ class Seat {
       return false;
     }
   }
+  /** The banner the UI shows when two seats acted at once and the retry also lost the race (compare-and-swap). A person just tries again. */
+  async conflictBanner() {
+    const banner = this.page.getByText('Estado atualizado por outra ação', { exact: false }).first();
+    if (!await banner.isVisible().catch(() => false)) return false;
+    this.conflicts = (this.conflicts ?? 0) + 1;
+    this.note('version-conflict', 'banner "Estado atualizado por outra ação" after an action; retrying like a person would');
+    await this.page.locator('[role=alert] button, .alpha-error button, .alpha-banner button').first().click({ timeout: 800 }).catch(() => {});
+    await nap(400);
+    return true;
+  }
   async shot(name) { if (this.shots.has(name)) return; this.shots.add(name); try { await this.page.screenshot({ path: `${SHOTS}/${this.label.replace(' ', '-')}-${name}.png` }); } catch { /* page closing */ } }
   async waitState(predicate, timeout = 6000) {
     const end = Date.now() + timeout;
@@ -106,14 +117,15 @@ async function dismissOverlays(seat) {
   // the resolution replay of the previous round sits over the map and the tray until 'Continuar'
   await seat.click(seat.page.locator('.alpha-resolution-phase').getByRole('button', { name: /Continuar/ }), 'close resolution replay', { optional: true, timeout: 500 });
   const g = seat.game;
-  // Ambitions (first planning)
-  if (g && !g.self.ambitionsChosen && g.self.ambitions.length >= 2) {
+  // Ambitions (first planning). With several seats choosing at the same moment the confirm can lose the version race: try again, like a person.
+  for (let attempt = 0; attempt < 6 && g && !seat.game.self.ambitionsChosen && seat.game.self.ambitions.length >= 2; attempt++) {
     const boxes = seat.page.locator('.alpha-modal input[type=checkbox]');
     if (await boxes.count() >= 2) {
-      // a person reads the three cards, then picks the two that suit the plan; the driver reads the card titles
-      await boxes.nth(0).check(); await boxes.nth(1).check();
+      // a person reads the three cards, then picks the two that suit the plan
+      await boxes.nth(0).check().catch(() => {}); await boxes.nth(1).check().catch(() => {});
       await seat.click(seat.page.getByRole('button', { name: 'Confirmar duas ambições' }), 'confirm ambitions');
-      await seat.waitState(x => x.self.ambitionsChosen, 4000);
+      if (await seat.waitState(x => x.self.ambitionsChosen, 3500)) break;
+      await seat.conflictBanner();
     } else {
       await seat.click(seat.page.getByRole('button', { name: 'Escolher ambições' }), 'open ambitions');
     }
@@ -185,7 +197,7 @@ async function planResearch(seat) {
   const dialog = seat.page.getByRole('dialog', { name: 'Tabuleiro da Civilização' });
   if (!await dialog.isVisible().catch(() => false)) return false;
   await seat.shot('tabuleiro-open');
-  const advName = ADVANCEMENTS.find(a => a.id === choice.advancementId)?.name ?? '';
+  const advName = ADVANCEMENTS.find(a => a.id === choice.advancementId)?.name ?? HERITAGE_ADVANCES.find(h => h.id === choice.advancementId)?.name ?? '';
   const node = dialog.locator('button.alpha-node, button.alpha-diamond').filter({ hasText: advName });
   let ok = await seat.click(node, `select node ${advName}`);
   if (ok) {
@@ -225,7 +237,14 @@ async function pieceOrder(seat, unit, kind) {
   }
   // choose exactly this class of the stack, as a person does with the class chip
   const kindChip = seat.page.locator('.alpha-inspector .alpha-army-classes button').filter({ hasText: new RegExp(`^${KIND_LABEL[unit.kind] ?? unit.kind}`) });
-  if (await kindChip.count()) await seat.click(kindChip, `select class ${unit.kind}`, { optional: true });
+  const needsOne = kind === 'explore' || kind === 'settle';
+  const chipText = await kindChip.first().innerText().catch(() => '');
+  if (needsOne && /×\s*[2-9]/.test(chipText)) {
+    // two pieces of the same class: ordering ONE of them means opening 'ver composição' and ticking it (a real discoverability cost)
+    seat.note('single-piece-needs-composition', `${unit.kind} stack of ${chipText.trim()}: one piece can only be picked in 'ver composição'`);
+    await seat.click(seat.page.locator('.alpha-inspector .alpha-army summary').filter({ hasText: 'ver composição' }).first(), 'open composition', { optional: true, timeout: 800 });
+    await seat.click(seat.page.locator('.alpha-inspector .alpha-piece-row input[type=checkbox]').first(), 'tick one piece', { optional: true, timeout: 800 });
+  } else if (await kindChip.count()) await seat.click(kindChip, `select class ${unit.kind}`, { optional: true });
   else await seat.click(seat.page.getByRole('button', { name: /Selecionar( todas)?$/ }), 'select stack', { optional: true });
   const traceSelect = (await seat.page.locator('.alpha-inspector').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 120);
   let ok = false;
@@ -330,6 +349,23 @@ async function diplomacyTurn(seat) {
   await seat.click(seat.page.keyboard ? seat.page.locator('body') : seat.page.locator('body'), 'noop', { optional: true });
 }
 
+/** Last round of the Era: reserve a government reform through the same Livro panel a person uses (Influência Order). */
+async function reformTurn(seat) {
+  const info = seat.game.government;
+  if (!info?.window || info.planned || ordersLeft(seat) < 1) return;
+  const option = info.options.find(o => o.government !== info.current.government && o.unlocked && o.block === null);
+  if (!option) { seat.note('reform-unavailable', `last round of the Era: no government open for me (${info.options.filter(o => o.unlocked).length} unlocked)`); return; }
+  await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'open Livro');
+  await seat.click(seat.page.locator('.alpha-livro-tabs').getByRole('button', { name: 'Conselho' }), 'Conselho tab', { optional: true });
+  await seat.click(seat.page.locator('.alpha-government summary'), 'open reform list');
+  await seat.shot('government-reform-list');
+  const before = seat.game.government.planned;
+  await seat.click(seat.page.locator('.alpha-government li').filter({ hasText: option.name }).getByRole('button'), `reserve reform ${option.name}`);
+  await seat.waitState(x => x.government.planned !== before, 3000);
+  await seat.shot('government-reform-reserved');
+  await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'close Livro', { optional: true });
+}
+
 async function confirmPlanning(seat) {
   const confirmBtn = seat.page.locator('.alpha-tray .primary, .alpha-tray button.advance-phase-btn').filter({ hasText: /Confirmar planejamento/ });
   if (!await seat.click(confirmBtn, 'Confirmar planejamento', { timeout: 5000 })) return false;
@@ -373,9 +409,40 @@ async function mapShots(seat, dir) {
   return out;
 }
 
+const ROLE_LABEL = { producers: 'Produtores', artisans: 'Artesãos', merchants: 'Mercadores', scholars: 'Eruditos', soldiers: 'Soldados' };
+const ROLE_WEIGHT = { // how each strategy spreads the non-farming citizens
+  expansionist: { artisans: 2, merchants: 1, scholars: 1, soldiers: 0 }, warrior: { artisans: 2, merchants: 0, scholars: 1, soldiers: 3 }, scholar: { artisans: 1, merchants: 1, scholars: 3, soldiers: 0 },
+  trader: { artisans: 1, merchants: 3, scholars: 1, soldiers: 0 }, diplomat: { artisans: 1, merchants: 1, scholars: 2, soldiers: 0 }, builder: { artisans: 3, merchants: 1, scholars: 1, soldiers: 0 },
+};
+/** Redistribute citizens in the inspector (Planejamento only, once per city): half farm, the rest follow the strategy. Typed into the real number fields. */
+async function redistribute(seat, city) {
+  const w = city.workers, total = city.population;
+  if (!(w.unassigned > 0)) return false;
+  await selectCity(seat, city);
+  const weights = ROLE_WEIGHT[seat.persona], target = { producers: Math.ceil(total / 2), artisans: 0, merchants: 0, scholars: 0, soldiers: Math.min(w.soldiers + (weights.soldiers > 0 ? 1 : 0), Math.floor(total / 3)) };
+  let rest = total - target.producers - target.soldiers;
+  const order = Object.entries(weights).filter(([role, weight]) => role !== 'soldiers' && weight > 0).sort((a, b) => b[1] - a[1]);
+  for (let i = 0; rest > 0; i = (i + 1) % order.length) { target[order[i][0]]++; rest--; }
+  const panel = seat.page.locator('.alpha-inspector');
+  for (const [role, n] of Object.entries(target)) {
+    const input = panel.getByLabel(ROLE_LABEL[role], { exact: true });
+    try { await input.scrollIntoViewIfNeeded({ timeout: 1500 }); await input.fill(String(n), { timeout: 1500 }); } catch (error) { seat.note('population-field', `${ROLE_LABEL[role]}: ${String(error.message).split('\n')[0].slice(0, 100)}`); return false; }
+  }
+  const unassigned = panel.getByLabel('Disponível', { exact: true });
+  await unassigned.fill('0').catch(() => {});
+  const apply = panel.getByRole('button', { name: 'Aplicar distribuição' });
+  if (await apply.isDisabled().catch(() => false)) { seat.note('population-invalid', `Aplicar distribuição disabled for ${city.name}: target ${JSON.stringify(target)} of ${total}`); return false; }
+  const before = seat.game.version;
+  const ok = await seat.click(apply, 'apply population');
+  if (ok) await seat.waitState(x => x.version > before, 3000);
+  return ok;
+}
+
 async function planRound(seat) {
   const round = seat.game.view.round, started = Date.now();
   await dismissOverlays(seat);
+  for (const city of mine(seat)) { try { await redistribute(seat, city); } catch (error) { seat.note('exception', `redistribute: ${String(error.message).split('\n')[0]}`); } }
+  seat.retries = new Map();
   const tried = new Set(); let guard = 0;
   while (ordersLeft(seat) > 0 && guard++ < 12) {
     const intent = nextIntent(seat, tried);
@@ -386,10 +453,16 @@ async function planRound(seat) {
       else if (intent.pieceKind) ok = await pieceOrder(seat, intent.unit, intent.pieceKind);
       else ok = await planUrban(seat, intent.city, intent);
     } catch (error) { seat.note('exception', `${intent.intent}: ${String(error.message).split('\n')[0]}`); }
-    if (!ok) tried.add(intent.intent);
+    if (!ok) {
+      const lost = await seat.conflictBanner();
+      seat.retries = seat.retries ?? new Map();
+      const n = (seat.retries.get(intent.intent) ?? 0) + 1; seat.retries.set(intent.intent, n);
+      if (!(lost && n <= 3)) tried.add(intent.intent);
+    }
     await dismissOverlays(seat);
     if (!seat.game) break;
   }
+  try { await reformTurn(seat); } catch (error) { seat.note('exception', `reform: ${String(error.message).split('\n')[0]}`); }
   try { await diplomacyTurn(seat); } catch (error) { seat.note('exception', `diplomacy: ${String(error.message).split('\n')[0]}`); }
   const planningMs = Date.now() - started;
   const ordersUsed = seat.game.actions.reserved;
@@ -421,7 +494,7 @@ async function milestoneShots(seat) {
   if (cs.some(c => levelNo(c.level) >= 7)) await seat.shot('city-n7');
   if (g.phase === 'ERA_TURN') await seat.shot('era-turn');
   if (g.winner) await seat.shot('finale');
-  if (g.government && g.government.current?.government && g.government.current.government !== 'COUNCIL') await seat.shot('government-adopted');
+  if (g.government?.current?.government && !['COUNCIL', 'PROTO_GOVERNANCE'].includes(g.government.current.government)) await seat.shot('government-adopted');
 }
 
 async function seatLoop(seat, state) {
