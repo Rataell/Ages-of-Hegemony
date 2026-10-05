@@ -1,0 +1,203 @@
+{
+  "shots": [
+    {
+      "file": "05-cidade-elevar-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "05-cidade-elevar-1440x900.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "06-ameaca-mapa-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "06-ameaca-mapa-1440x900.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "01-mesa-faixa-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "01-mesa-faixa-1440x900.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "02-tabuleiro-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "02-tabuleiro-1440x900.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "03-teia-detalhe-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "04-heranca-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "04b-governo-lider-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "09-virada-de-era-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "09-virada-de-era-1440x900.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "07-combate-previa-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "07-combate-previa-1440x900.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "08-combate-resultado-1366x768.png",
+      "noGlobalScroll": true
+    },
+    {
+      "file": "08-combate-resultado-1440x900.png",
+      "noGlobalScroll": true
+    }
+  ],
+  "errors": [],
+  "captured": [
+    "cidade",
+    "ameaca",
+    "mesa",
+    "era",
+    "previa",
+    "resultado"
+  ],
+  "log": [
+    "B RESOLVE_CHOICE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A WORLD_CHOICE ok",
+    "A MANAGE ok",
+    "A URBAN_ACTION:RECRUIT ok",
+    "DBG r2 army=[[\"GUARD\",\"4,5\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=3",
+    "A QUEUE_ORDER:MOVE ok",
+    "B WORLD_CHOICE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A MANAGE ok",
+    "A URBAN_ACTION:RESEARCH ok",
+    "DBG r3 army=[[\"GUARD\",\"5,4\"],[\"INFANTRY\",\"3,6\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=4",
+    "A QUEUE_ORDER:MOVE ok",
+    "A QUEUE_ORDER:MOVE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A WORLD_CHOICE ok",
+    "A MANAGE ok",
+    "A URBAN_ACTION:ELEVATE ok",
+    "DBG r4 army=[[\"GUARD\",\"6,3\"],[\"INFANTRY\",\"4,5\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=4",
+    "A QUEUE_ORDER:MOVE ok",
+    "A QUEUE_ORDER:MOVE ok",
+    "B WORLD_CHOICE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A URBAN_ACTION:RESEARCH ok",
+    "DBG r5 army=[[\"GUARD\",\"7,2\"],[\"INFANTRY\",\"5,4\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=4",
+    "A QUEUE_ORDER:ATTACK RULE_FAILURE: Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.",
+    "A QUEUE_ORDER:MOVE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A RESOLVE_CHOICE ok",
+    "A READY ok",
+    "B RESOLVE_CHOICE ok",
+    "B READY ok",
+    "A WORLD_CHOICE ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r6 army=[[\"GUARD\",\"7,2\"],[\"INFANTRY\",\"7,2\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=4",
+    "A QUEUE_ORDER:ATTACK RULE_FAILURE: Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.",
+    "B WORLD_CHOICE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r7 army=[[\"GUARD\",\"7,2\"],[\"INFANTRY\",\"7,2\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=4",
+    "A QUEUE_ORDER:ATTACK RULE_FAILURE: Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.",
+    "B URBAN_ACTION:PRODUCE ok",
+    "A READY ok",
+    "B READY ok",
+    "A WORLD_CHOICE ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r8 army=[[\"GUARD\",\"7,2\"],[\"INFANTRY\",\"7,2\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=4",
+    "A QUEUE_ORDER:ATTACK RULE_FAILURE: Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.",
+    "B WORLD_CHOICE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r9 army=[[\"GUARD\",\"7,2\"],[\"INFANTRY\",\"7,2\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=4",
+    "A QUEUE_ORDER:ATTACK RULE_FAILURE: Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.",
+    "B URBAN_ACTION:PRODUCE ok",
+    "A READY ok",
+    "B READY ok",
+    "A WORLD_CHOICE ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r10 army=[[\"GUARD\",\"7,2\"],[\"INFANTRY\",\"7,2\"]] threat=[\"pirate-r1-e1\",\"8,1\",1] units=4",
+    "A QUEUE_ORDER:ATTACK RULE_FAILURE: Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.",
+    "B WORLD_CHOICE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A RESOLVE_CHOICE ok",
+    "A READY ok",
+    "B RESOLVE_CHOICE ok",
+    "B READY ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r11 army=[[\"GUARD\",\"7,2\"],[\"INFANTRY\",\"7,2\"]] threat=[\"camp-r10-e173\",\"0,10\",2] units=4",
+    "A QUEUE_ORDER:MOVE ok",
+    "B URBAN_ACTION:RESEARCH ok",
+    "A READY ok",
+    "B READY ok",
+    "A WORLD_CHOICE ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r12 army=[[\"GUARD\",\"6,3\"],[\"INFANTRY\",\"6,3\"]] threat=[\"camp-r10-e173\",\"0,9\",2] units=4",
+    "A QUEUE_ORDER:MOVE ok",
+    "B WORLD_CHOICE ok",
+    "B URBAN_ACTION:PROMOTE_MOOD ok",
+    "A READY ok",
+    "B READY ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r13 army=[[\"GUARD\",\"5,4\"],[\"INFANTRY\",\"5,4\"]] threat=[\"camp-r10-e173\",\"0,9\",2] units=4",
+    "A QUEUE_ORDER:MOVE ok",
+    "B URBAN_ACTION:PROMOTE_MOOD ok",
+    "A READY ok",
+    "B READY ok",
+    "A WORLD_CHOICE ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r14 army=[[\"GUARD\",\"4,5\"],[\"INFANTRY\",\"4,5\"]] threat=[\"camp-r10-e173\",\"1,8\",2] units=4",
+    "A QUEUE_ORDER:MOVE ok",
+    "B WORLD_CHOICE ok",
+    "B URBAN_ACTION:PROMOTE_MOOD ok",
+    "A READY ok",
+    "B READY ok",
+    "A URBAN_ACTION:PROMOTE_MOOD ok",
+    "DBG r15 army=[[\"GUARD\",\"2,7\"],[\"INFANTRY\",\"2,7\"]] threat=[\"camp-r10-e173\",\"1,8\",2] units=4",
+    "A QUEUE_ORDER:ATTACK ok",
+    "B URBAN_ACTION:PROMOTE_MOOD ok",
+    "A READY ok",
+    "B READY ok",
+    "A RESOLVE_CHOICE ok",
+    "A READY ok",
+    "B RESOLVE_CHOICE ok",
+    "B READY ok"
+  ]
+}
