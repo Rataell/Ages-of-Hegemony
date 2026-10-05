@@ -1,0 +1,4997 @@
+{
+ "runsBySkill": {
+  "competent": [
+   {
+    "skill": "competent",
+    "players": 2,
+    "seed": 1,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "warrior",
+      "prestige": 28,
+      "cities": 1,
+      "population": 2,
+      "research": 11,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "builder",
+      "prestige": 35,
+      "cities": 2,
+      "population": 17,
+      "research": 24,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 730,
+    "rejected": 122,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 63,
+     "URBAN_ACTION:RULE_FAILURE": 31,
+     "PLAY_CARD:RULE_FAILURE": 28
+    },
+    "orders": {
+     "totals": {
+      "CITY": 120,
+      "EXPEDITION": 71,
+      "ADVANCE": 42,
+      "INFLUENCE": 30,
+      "LEGACY": 3
+     },
+     "entropyBits": 1.88,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.14,
+     "meanOrdersCommitted": 3.8,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.44
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 5,
+      "25": 5,
+      "30": 5,
+      "35": 5
+     },
+     "firstN4": 15,
+     "firstN5": 20,
+     "firstN6": null,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.49,
+      "stone": 0,
+      "metal": 0,
+      "wealth": 0.01,
+      "knowledge": 0.01,
+      "influence": 0.14,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.54,
+      "wood": 0.03,
+      "stone": 0.01,
+      "metal": 0.13,
+      "wealth": 0,
+      "knowledge": 0.11,
+      "influence": 0,
+      "culture": 1
+     },
+     "discardedPerRound": {
+      "food": 0.77,
+      "materials": 0.94,
+      "wealth": 0,
+      "knowledge": 0.03,
+      "influence": 0.01
+     }
+    },
+    "animo": {
+     "meanMood": 1.96,
+     "shareAtZero": 0.17,
+     "shareShakenOrWorse": 0.6,
+     "governPerPlayerRound": 0.49,
+     "meanMoodWhenGoverned": 0.69,
+     "meanMoodWhenNot": 2.82,
+     "roundsGoverned": 32
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 2,
+     "attacks": 45,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 45,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 3.2,
+     "maxAlive": 4,
+     "firstAssaultRound": 11,
+     "assaultsOnPlayers": 45,
+     "worldWinShare": 1,
+     "undefendedAssaults": 43,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 45,
+     "outcomes": {
+      "DECISIVE": 35,
+      "VICTORY": 10
+     },
+     "citiesCaptured": 0,
+     "casualties": 3
+    },
+    "resonance": {
+     "cycles": 6,
+     "byKind": {
+      "PAIR": 1,
+      "HYBRID": 3,
+      "DOMINANT": 2
+     },
+     "repercussionsPerCivilization": 3
+    },
+    "research": {
+     "perCivilization": 17.5,
+     "heritagesPerCivilization": 1
+    },
+    "time": {
+     "engineMsTotal": 14065,
+     "engineMsPerRoundMean": 343.02,
+     "engineMsPerRoundMax": 1809,
+     "commandsPerPlayerRound": 10.43
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": false,
+     "government": false,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": false
+    }
+   },
+   {
+    "skill": "competent",
+    "players": 2,
+    "seed": 2,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "builder",
+      "prestige": 18,
+      "cities": 2,
+      "population": 2,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "trader",
+      "prestige": 36,
+      "cities": 2,
+      "population": 22,
+      "research": 28,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 809,
+    "rejected": 152,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 67,
+     "URBAN_ACTION:RULE_FAILURE": 43,
+     "MANAGE:INVALID_WORKED_HEXES": 6,
+     "PLAY_CARD:RULE_FAILURE": 36
+    },
+    "orders": {
+     "totals": {
+      "CITY": 158,
+      "EXPEDITION": 92,
+      "ADVANCE": 56,
+      "INFLUENCE": 2,
+      "LEGACY": 0
+     },
+     "entropyBits": 1.51,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.76,
+     "meanOrdersCommitted": 4.4,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.37
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 4,
+      "25": 5,
+      "30": 5,
+      "35": 6
+     },
+     "firstN4": 15,
+     "firstN5": 22,
+     "firstN6": 32,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.19,
+      "stone": 0,
+      "metal": 0,
+      "wealth": 0.41,
+      "knowledge": 0,
+      "influence": 0,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.44,
+      "wood": 0.11,
+      "stone": 0.63,
+      "metal": 0.5,
+      "wealth": 0,
+      "knowledge": 0,
+      "influence": 0.29,
+      "culture": 1
+     },
+     "discardedPerRound": {
+      "food": 0.94,
+      "materials": 0.49,
+      "wealth": 0.61,
+      "knowledge": 0.01,
+      "influence": 0
+     }
+    },
+    "animo": {
+     "meanMood": 2.24,
+     "shareAtZero": 0.13,
+     "shareShakenOrWorse": 0.51,
+     "governPerPlayerRound": 0.44,
+     "meanMoodWhenGoverned": 1.02,
+     "meanMoodWhenNot": 2.8,
+     "roundsGoverned": 20
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 2,
+     "attacks": 43,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 43,
+     "shareOfAllCasualtiesInWorldBattles": 0,
+     "meanAlive": 3,
+     "maxAlive": 4,
+     "firstAssaultRound": 11,
+     "assaultsOnPlayers": 43,
+     "worldWinShare": 1,
+     "undefendedAssaults": 43,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 43,
+     "outcomes": {
+      "DECISIVE": 33,
+      "VICTORY": 10
+     },
+     "citiesCaptured": 0,
+     "casualties": 0
+    },
+    "resonance": {
+     "cycles": 8,
+     "byKind": {
+      "HYBRID": 3,
+      "PAIR": 2,
+      "DOMINANT": 3
+     },
+     "repercussionsPerCivilization": 4
+    },
+    "research": {
+     "perCivilization": 23,
+     "heritagesPerCivilization": 1.5
+    },
+    "time": {
+     "engineMsTotal": 10277,
+     "engineMsPerRoundMean": 250.62,
+     "engineMsPerRoundMax": 757,
+     "commandsPerPlayerRound": 11.56
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": false,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": true,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   },
+   {
+    "skill": "competent",
+    "players": 2,
+    "seed": 3,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "trader",
+      "prestige": 24,
+      "cities": 2,
+      "population": 5,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "explorer",
+      "prestige": 26,
+      "cities": 2,
+      "population": 25,
+      "research": 21,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 824,
+    "rejected": 151,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 71,
+     "URBAN_ACTION:RULE_FAILURE": 36,
+     "LEADER_ABILITY:RULE_FAILURE": 7,
+     "PLAY_CARD:RULE_FAILURE": 37
+    },
+    "orders": {
+     "totals": {
+      "CITY": 140,
+      "EXPEDITION": 94,
+      "ADVANCE": 45,
+      "INFLUENCE": 51,
+      "LEGACY": 0
+     },
+     "entropyBits": 1.85,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.93,
+     "meanOrdersCommitted": 4.71,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.27
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 3,
+      "20": 4,
+      "25": 4,
+      "30": 5,
+      "35": 5
+     },
+     "firstN4": 19,
+     "firstN5": 26,
+     "firstN6": null,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      0,
+      2,
+      1,
+      1,
+      0,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.29,
+      "stone": 0.39,
+      "metal": 0,
+      "wealth": 0.07,
+      "knowledge": 0,
+      "influence": 0.5,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.44,
+      "wood": 0.07,
+      "stone": 0,
+      "metal": 0.14,
+      "wealth": 0,
+      "knowledge": 0.04,
+      "influence": 0.19,
+      "culture": 0.5
+     },
+     "discardedPerRound": {
+      "food": 0.37,
+      "materials": 2.26,
+      "wealth": 0.07,
+      "knowledge": 0,
+      "influence": 0.53
+     }
+    },
+    "animo": {
+     "meanMood": 2.31,
+     "shareAtZero": 0.29,
+     "shareShakenOrWorse": 0.43,
+     "governPerPlayerRound": 0.04,
+     "meanMoodWhenGoverned": 1.5,
+     "meanMoodWhenNot": 2.38,
+     "roundsGoverned": 2
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 2,
+     "attacks": 53,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 53,
+     "shareOfAllCasualtiesInWorldBattles": 0,
+     "meanAlive": 3.57,
+     "maxAlive": 4,
+     "firstAssaultRound": 10,
+     "assaultsOnPlayers": 53,
+     "worldWinShare": 1,
+     "undefendedAssaults": 53,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 53,
+     "outcomes": {
+      "DECISIVE": 53
+     },
+     "citiesCaptured": 0,
+     "casualties": 0
+    },
+    "resonance": {
+     "cycles": 7,
+     "byKind": {
+      "PAIR": 3,
+      "HYBRID": 3,
+      "DOMINANT": 1
+     },
+     "repercussionsPerCivilization": 3.5
+    },
+    "research": {
+     "perCivilization": 19.5,
+     "heritagesPerCivilization": 1.5
+    },
+    "time": {
+     "engineMsTotal": 17094,
+     "engineMsPerRoundMean": 416.91,
+     "engineMsPerRoundMax": 877,
+     "commandsPerPlayerRound": 11.77
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": false,
+     "government": true,
+     "battle": true,
+     "fortification": false,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": false
+    }
+   },
+   {
+    "skill": "competent",
+    "players": 4,
+    "seed": 1,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p4",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "warrior",
+      "prestige": 18,
+      "cities": 1,
+      "population": 2,
+      "research": 11,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "builder",
+      "prestige": 21,
+      "cities": 2,
+      "population": 10,
+      "research": 25,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "trader",
+      "prestige": 24,
+      "cities": 2,
+      "population": 28,
+      "research": 27,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "explorer",
+      "prestige": 26,
+      "cities": 3,
+      "population": 19,
+      "research": 16,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 1591,
+    "rejected": 298,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 154,
+     "URBAN_ACTION:RULE_FAILURE": 74,
+     "PLAY_CARD:RULE_FAILURE": 63,
+     "LEADER_ABILITY:RULE_FAILURE": 3,
+     "PROPOSE_TREATY:RULE_FAILURE": 4
+    },
+    "orders": {
+     "totals": {
+      "CITY": 305,
+      "EXPEDITION": 173,
+      "ADVANCE": 89,
+      "INFLUENCE": 31,
+      "LEGACY": 1
+     },
+     "entropyBits": 1.66,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.74,
+     "meanOrdersCommitted": 4.28,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.47
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 5,
+      "25": 5,
+      "30": 6,
+      "35": 6
+     },
+     "firstN4": 13,
+     "firstN5": 19,
+     "firstN6": 26,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      1,
+      3,
+      2,
+      1,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.62,
+      "stone": 0.06,
+      "metal": 0,
+      "wealth": 0.09,
+      "knowledge": 0.01,
+      "influence": 0.38,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.53,
+      "wood": 0.01,
+      "stone": 0.01,
+      "metal": 0.34,
+      "wealth": 0.11,
+      "knowledge": 0.1,
+      "influence": 0,
+      "culture": 0.54
+     },
+     "discardedPerRound": {
+      "food": 0.33,
+      "materials": 1.79,
+      "wealth": 0.12,
+      "knowledge": 0,
+      "influence": 0.23
+     }
+    },
+    "animo": {
+     "meanMood": 2.29,
+     "shareAtZero": 0.08,
+     "shareShakenOrWorse": 0.56,
+     "governPerPlayerRound": 0.44,
+     "meanMoodWhenGoverned": 1.39,
+     "meanMoodWhenNot": 2.85,
+     "roundsGoverned": 55
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 4,
+     "attacks": 74,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 74,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 4.66,
+     "maxAlive": 6,
+     "firstAssaultRound": 10,
+     "assaultsOnPlayers": 74,
+     "worldWinShare": 1,
+     "undefendedAssaults": 73,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 74,
+     "outcomes": {
+      "DECISIVE": 74
+     },
+     "citiesCaptured": 0,
+     "casualties": 0
+    },
+    "resonance": {
+     "cycles": 15,
+     "byKind": {
+      "HYBRID": 1,
+      "PAIR": 8,
+      "CONFLUENCE": 2,
+      "DOMINANT": 4
+     },
+     "repercussionsPerCivilization": 3.75
+    },
+    "research": {
+     "perCivilization": 19.75,
+     "heritagesPerCivilization": 1.5
+    },
+    "time": {
+     "engineMsTotal": 42379,
+     "engineMsPerRoundMean": 1033.6,
+     "engineMsPerRoundMax": 2497,
+     "commandsPerPlayerRound": 11.36
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   },
+   {
+    "skill": "competent",
+    "players": 4,
+    "seed": 2,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "builder",
+      "prestige": 18,
+      "cities": 3,
+      "population": 5,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "trader",
+      "prestige": 29,
+      "cities": 2,
+      "population": 30,
+      "research": 28,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "explorer",
+      "prestige": 20,
+      "cities": 3,
+      "population": 17,
+      "research": 18,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "scholar",
+      "prestige": 24,
+      "cities": 2,
+      "population": 16,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 1661,
+    "rejected": 265,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 95,
+     "URBAN_ACTION:RULE_FAILURE": 81,
+     "PLAY_CARD:RULE_FAILURE": 65,
+     "LEADER_ABILITY:RULE_FAILURE": 8,
+     "MANAGE:INSUFFICIENT_RESOURCES": 1,
+     "MANAGE:INVALID_WORKED_HEXES": 13,
+     "PROPOSE_TREATY:RULE_FAILURE": 2
+    },
+    "orders": {
+     "totals": {
+      "CITY": 369,
+      "EXPEDITION": 134,
+      "ADVANCE": 97,
+      "INFLUENCE": 60,
+      "LEGACY": 2
+     },
+     "entropyBits": 1.68,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 2.08,
+     "meanOrdersCommitted": 4.76,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.36
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 5,
+      "25": 6,
+      "30": 6,
+      "35": 6
+     },
+     "firstN4": 14,
+     "firstN5": 18,
+     "firstN6": 25,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      2,
+      1,
+      1,
+      1,
+      4,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.2,
+      "stone": 0.19,
+      "metal": 0,
+      "wealth": 0.24,
+      "knowledge": 0.01,
+      "influence": 0.37,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.36,
+      "wood": 0.14,
+      "stone": 0.26,
+      "metal": 0.43,
+      "wealth": 0.01,
+      "knowledge": 0.09,
+      "influence": 0,
+      "culture": 0.52
+     },
+     "discardedPerRound": {
+      "food": 0.91,
+      "materials": 1.49,
+      "wealth": 0.27,
+      "knowledge": 0.01,
+      "influence": 0.24
+     }
+    },
+    "animo": {
+     "meanMood": 2.56,
+     "shareAtZero": 0.1,
+     "shareShakenOrWorse": 0.4,
+     "governPerPlayerRound": 0.34,
+     "meanMoodWhenGoverned": 1.59,
+     "meanMoodWhenNot": 3.03,
+     "roundsGoverned": 32
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 4,
+     "attacks": 50,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 50,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 3.86,
+     "maxAlive": 6,
+     "firstAssaultRound": 9,
+     "assaultsOnPlayers": 50,
+     "worldWinShare": 1,
+     "undefendedAssaults": 49,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 50,
+     "outcomes": {
+      "DECISIVE": 50
+     },
+     "citiesCaptured": 0,
+     "casualties": 1
+    },
+    "resonance": {
+     "cycles": 14,
+     "byKind": {
+      "HYBRID": 4,
+      "PAIR": 5,
+      "CONFLUENCE": 1,
+      "DOMINANT": 4
+     },
+     "repercussionsPerCivilization": 3.5
+    },
+    "research": {
+     "perCivilization": 20.5,
+     "heritagesPerCivilization": 1.5
+    },
+    "time": {
+     "engineMsTotal": 43719,
+     "engineMsPerRoundMean": 1066.28,
+     "engineMsPerRoundMax": 2419,
+     "commandsPerPlayerRound": 11.86
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   },
+   {
+    "skill": "competent",
+    "players": 4,
+    "seed": 3,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p4",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "trader",
+      "prestige": 24,
+      "cities": 2,
+      "population": 4,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "explorer",
+      "prestige": 22,
+      "cities": 2,
+      "population": 12,
+      "research": 15,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "scholar",
+      "prestige": 22,
+      "cities": 2,
+      "population": 20,
+      "research": 17,
+      "victories": 0,
+      "government": "MONARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "balanced",
+      "prestige": 29,
+      "cities": 2,
+      "population": 21,
+      "research": 27,
+      "victories": 0,
+      "government": "REPUBLIC",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 1599,
+    "rejected": 299,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 148,
+     "URBAN_ACTION:RULE_FAILURE": 75,
+     "LEADER_ABILITY:RULE_FAILURE": 9,
+     "PLAY_CARD:RULE_FAILURE": 62,
+     "PROPOSE_TREATY:RULE_FAILURE": 5
+    },
+    "orders": {
+     "totals": {
+      "CITY": 289,
+      "EXPEDITION": 158,
+      "ADVANCE": 84,
+      "INFLUENCE": 99,
+      "LEGACY": 0
+     },
+     "entropyBits": 1.82,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.68,
+     "meanOrdersCommitted": 4.5,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.28
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 4,
+      "25": 4,
+      "30": 5,
+      "35": 5
+     },
+     "firstN4": 12,
+     "firstN5": 30,
+     "firstN6": null,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      1,
+      0,
+      3,
+      2,
+      2,
+      0,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.49,
+      "stone": 0.21,
+      "metal": 0,
+      "wealth": 0.17,
+      "knowledge": 0.04,
+      "influence": 0.24,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.44,
+      "wood": 0.01,
+      "stone": 0.05,
+      "metal": 0.44,
+      "wealth": 0.16,
+      "knowledge": 0.04,
+      "influence": 0.31,
+      "culture": 0.41
+     },
+     "discardedPerRound": {
+      "food": 0.49,
+      "materials": 2.59,
+      "wealth": 0.25,
+      "knowledge": 0.01,
+      "influence": 0.18
+     }
+    },
+    "animo": {
+     "meanMood": 2.4,
+     "shareAtZero": 0.13,
+     "shareShakenOrWorse": 0.47,
+     "governPerPlayerRound": 0.13,
+     "meanMoodWhenGoverned": 2.03,
+     "meanMoodWhenNot": 2.56,
+     "roundsGoverned": 17
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 2,
+     "attacks": 35,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 35,
+     "shareOfAllCasualtiesInWorldBattles": 0,
+     "meanAlive": 2.66,
+     "maxAlive": 4,
+     "firstAssaultRound": 11,
+     "assaultsOnPlayers": 35,
+     "worldWinShare": 1,
+     "undefendedAssaults": 35,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 35,
+     "outcomes": {
+      "DECISIVE": 35
+     },
+     "citiesCaptured": 0,
+     "casualties": 0
+    },
+    "resonance": {
+     "cycles": 14,
+     "byKind": {
+      "CONFLUENCE": 5,
+      "PAIR": 5,
+      "HYBRID": 3,
+      "DOMINANT": 1
+     },
+     "repercussionsPerCivilization": 3.5
+    },
+    "research": {
+     "perCivilization": 19.25,
+     "heritagesPerCivilization": 1.25
+    },
+    "time": {
+     "engineMsTotal": 36770,
+     "engineMsPerRoundMean": 896.77,
+     "engineMsPerRoundMax": 1780,
+     "commandsPerPlayerRound": 11.42
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": false
+    }
+   },
+   {
+    "skill": "competent",
+    "players": 6,
+    "seed": 1,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p3",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "warrior",
+      "prestige": 16,
+      "cities": 2,
+      "population": 3,
+      "research": 11,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "builder",
+      "prestige": 21,
+      "cities": 3,
+      "population": 13,
+      "research": 22,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "trader",
+      "prestige": 24,
+      "cities": 2,
+      "population": 15,
+      "research": 23,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "explorer",
+      "prestige": 14,
+      "cities": 3,
+      "population": 24,
+      "research": 20,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p5",
+      "persona": "scholar",
+      "prestige": 24,
+      "cities": 2,
+      "population": 25,
+      "research": 22,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p6",
+      "persona": "balanced",
+      "prestige": 19,
+      "cities": 2,
+      "population": 25,
+      "research": 28,
+      "victories": 0,
+      "government": "REPUBLIC",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 2418,
+    "rejected": 324,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 124,
+     "URBAN_ACTION:RULE_FAILURE": 111,
+     "LEADER_ABILITY:RULE_FAILURE": 9,
+     "PLAY_CARD:RULE_FAILURE": 78,
+     "PROPOSE_TREATY:RULE_FAILURE": 2
+    },
+    "orders": {
+     "totals": {
+      "CITY": 543,
+      "EXPEDITION": 143,
+      "ADVANCE": 144,
+      "INFLUENCE": 172,
+      "LEGACY": 3
+     },
+     "entropyBits": 1.74,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 2.07,
+     "meanOrdersCommitted": 4.79,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.41
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 4,
+      "25": 5,
+      "30": 5,
+      "35": 5
+     },
+     "firstN4": 12,
+     "firstN5": 22,
+     "firstN6": null,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      1,
+      6,
+      2,
+      5,
+      0,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.26,
+      "stone": 0.21,
+      "metal": 0.16,
+      "wealth": 0.15,
+      "knowledge": 0.03,
+      "influence": 0.22,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.3,
+      "wood": 0.02,
+      "stone": 0.11,
+      "metal": 0.33,
+      "wealth": 0.14,
+      "knowledge": 0.11,
+      "influence": 0.07,
+      "culture": 0.67
+     },
+     "discardedPerRound": {
+      "food": 1.68,
+      "materials": 1.19,
+      "wealth": 0.15,
+      "knowledge": 0,
+      "influence": 0.07
+     }
+    },
+    "animo": {
+     "meanMood": 2.63,
+     "shareAtZero": 0.11,
+     "shareShakenOrWorse": 0.33,
+     "governPerPlayerRound": 0.32,
+     "meanMoodWhenGoverned": 0.93,
+     "meanMoodWhenNot": 3.03,
+     "roundsGoverned": 37
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 5,
+     "attacks": 68,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 68,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 4.69,
+     "maxAlive": 7,
+     "firstAssaultRound": 10,
+     "assaultsOnPlayers": 68,
+     "worldWinShare": 1,
+     "undefendedAssaults": 65,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 68,
+     "outcomes": {
+      "DECISIVE": 64,
+      "VICTORY": 4
+     },
+     "citiesCaptured": 0,
+     "casualties": 3
+    },
+    "resonance": {
+     "cycles": 23,
+     "byKind": {
+      "CONFLUENCE": 3,
+      "HYBRID": 11,
+      "PAIR": 7,
+      "DOMINANT": 2
+     },
+     "repercussionsPerCivilization": 3.83
+    },
+    "research": {
+     "perCivilization": 21,
+     "heritagesPerCivilization": 1.33
+    },
+    "time": {
+     "engineMsTotal": 86416,
+     "engineMsPerRoundMean": 2107.68,
+     "engineMsPerRoundMax": 4526,
+     "commandsPerPlayerRound": 11.51
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": false
+    }
+   },
+   {
+    "skill": "competent",
+    "players": 6,
+    "seed": 2,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "builder",
+      "prestige": 25,
+      "cities": 2,
+      "population": 2,
+      "research": 17,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "trader",
+      "prestige": 29,
+      "cities": 2,
+      "population": 6,
+      "research": 20,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "explorer",
+      "prestige": 25,
+      "cities": 3,
+      "population": 19,
+      "research": 13,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "scholar",
+      "prestige": 27,
+      "cities": 2,
+      "population": 15,
+      "research": 17,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p5",
+      "persona": "balanced",
+      "prestige": 27,
+      "cities": 2,
+      "population": 28,
+      "research": 27,
+      "victories": 0,
+      "government": "THEOCRACY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p6",
+      "persona": "warrior",
+      "prestige": 22,
+      "cities": 2,
+      "population": 23,
+      "research": 26,
+      "victories": 0,
+      "government": "THEOCRACY",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 2374,
+    "rejected": 401,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 198,
+     "URBAN_ACTION:RULE_FAILURE": 108,
+     "LEADER_ABILITY:RULE_FAILURE": 7,
+     "PLAY_CARD:RULE_FAILURE": 76,
+     "MANAGE:INSUFFICIENT_RESOURCES": 4,
+     "PROPOSE_TREATY:RULE_FAILURE": 5,
+     "DECLARE_WAR:RULE_FAILURE": 1,
+     "MANAGE:INVALID_WORKED_HEXES": 2
+    },
+    "orders": {
+     "totals": {
+      "CITY": 494,
+      "EXPEDITION": 223,
+      "ADVANCE": 134,
+      "INFLUENCE": 85,
+      "LEGACY": 0
+     },
+     "entropyBits": 1.7,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.76,
+     "meanOrdersCommitted": 4.46,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.39
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 5,
+      "25": 6,
+      "30": 6,
+      "35": 6
+     },
+     "firstN4": 13,
+     "firstN5": 16,
+     "firstN6": 25,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      2,
+      1,
+      1,
+      4,
+      4,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.15,
+      "stone": 0.41,
+      "metal": 0.04,
+      "wealth": 0.19,
+      "knowledge": 0,
+      "influence": 0.33,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.37,
+      "wood": 0.04,
+      "stone": 0.23,
+      "metal": 0.32,
+      "wealth": 0.03,
+      "knowledge": 0.11,
+      "influence": 0.08,
+      "culture": 0.58
+     },
+     "discardedPerRound": {
+      "food": 2.09,
+      "materials": 1.73,
+      "wealth": 0.16,
+      "knowledge": 0.02,
+      "influence": 0.28
+     }
+    },
+    "animo": {
+     "meanMood": 2.93,
+     "shareAtZero": 0.15,
+     "shareShakenOrWorse": 0.38,
+     "governPerPlayerRound": 0.3,
+     "meanMoodWhenGoverned": 1.32,
+     "meanMoodWhenNot": 3.46,
+     "roundsGoverned": 46
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 6,
+     "attacks": 88,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 88,
+     "shareOfAllCasualtiesInWorldBattles": 0,
+     "meanAlive": 5.06,
+     "maxAlive": 8,
+     "firstAssaultRound": 7,
+     "assaultsOnPlayers": 88,
+     "worldWinShare": 1,
+     "undefendedAssaults": 88,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 88,
+     "outcomes": {
+      "DECISIVE": 88
+     },
+     "citiesCaptured": 0,
+     "casualties": 0
+    },
+    "resonance": {
+     "cycles": 22,
+     "byKind": {
+      "CONFLUENCE": 4,
+      "HYBRID": 8,
+      "PAIR": 6,
+      "DOMINANT": 4
+     },
+     "repercussionsPerCivilization": 3.67
+    },
+    "research": {
+     "perCivilization": 20,
+     "heritagesPerCivilization": 1.33
+    },
+    "time": {
+     "engineMsTotal": 83536,
+     "engineMsPerRoundMean": 2037.42,
+     "engineMsPerRoundMax": 4616,
+     "commandsPerPlayerRound": 11.3
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": true,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   },
+   {
+    "skill": "competent",
+    "players": 6,
+    "seed": 3,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p6",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "trader",
+      "prestige": 29,
+      "cities": 4,
+      "population": 20,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "explorer",
+      "prestige": 18,
+      "cities": 2,
+      "population": 6,
+      "research": 13,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "scholar",
+      "prestige": 23,
+      "cities": 2,
+      "population": 19,
+      "research": 20,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "balanced",
+      "prestige": 21,
+      "cities": 2,
+      "population": 18,
+      "research": 26,
+      "victories": 0,
+      "government": "REPUBLIC",
+      "hegemony": null
+     },
+     {
+      "playerId": "p5",
+      "persona": "warrior",
+      "prestige": 19,
+      "cities": 2,
+      "population": 25,
+      "research": 17,
+      "victories": 0,
+      "government": "MONARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p6",
+      "persona": "builder",
+      "prestige": 30,
+      "cities": 3,
+      "population": 26,
+      "research": 10,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 2324,
+    "rejected": 313,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 129,
+     "URBAN_ACTION:RULE_FAILURE": 92,
+     "LEADER_ABILITY:RULE_FAILURE": 11,
+     "PLAY_CARD:RULE_FAILURE": 71,
+     "DECLARE_WAR:RULE_FAILURE": 1,
+     "MANAGE:INVALID_WORKED_HEXES": 9
+    },
+    "orders": {
+     "totals": {
+      "CITY": 564,
+      "EXPEDITION": 176,
+      "ADVANCE": 119,
+      "INFLUENCE": 133,
+      "LEGACY": 3
+     },
+     "entropyBits": 1.69,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 2.15,
+     "meanOrdersCommitted": 4.74,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.43
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 3,
+      "20": 4,
+      "25": 5,
+      "30": 5,
+      "35": 6
+     },
+     "firstN4": 17,
+     "firstN5": 22,
+     "firstN6": 35,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      3,
+      1,
+      4,
+      4,
+      2,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.31,
+      "stone": 0.59,
+      "metal": 0.01,
+      "wealth": 0.14,
+      "knowledge": 0.02,
+      "influence": 0.31,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.22,
+      "wood": 0.07,
+      "stone": 0,
+      "metal": 0.44,
+      "wealth": 0.12,
+      "knowledge": 0.15,
+      "influence": 0.1,
+      "culture": 0.52
+     },
+     "discardedPerRound": {
+      "food": 2.32,
+      "materials": 3.89,
+      "wealth": 0.18,
+      "knowledge": 0.01,
+      "influence": 0.34
+     }
+    },
+    "animo": {
+     "meanMood": 3.46,
+     "shareAtZero": 0.04,
+     "shareShakenOrWorse": 0.18,
+     "governPerPlayerRound": 0.17,
+     "meanMoodWhenGoverned": 2.72,
+     "meanMoodWhenNot": 3.63,
+     "roundsGoverned": 32
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 4,
+     "attacks": 57,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 57,
+     "shareOfAllCasualtiesInWorldBattles": 0,
+     "meanAlive": 3.66,
+     "maxAlive": 6,
+     "firstAssaultRound": 7,
+     "assaultsOnPlayers": 57,
+     "worldWinShare": 1,
+     "undefendedAssaults": 57,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 57,
+     "outcomes": {
+      "DECISIVE": 57
+     },
+     "citiesCaptured": 0,
+     "casualties": 0
+    },
+    "resonance": {
+     "cycles": 19,
+     "byKind": {
+      "PAIR": 6,
+      "CONFLUENCE": 3,
+      "DOMINANT": 3,
+      "HYBRID": 7
+     },
+     "repercussionsPerCivilization": 3.17
+    },
+    "research": {
+     "perCivilization": 17.33,
+     "heritagesPerCivilization": 1
+    },
+    "time": {
+     "engineMsTotal": 80725,
+     "engineMsPerRoundMean": 1968.86,
+     "engineMsPerRoundMax": 5245,
+     "commandsPerPlayerRound": 11.07
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   }
+  ],
+  "hardcore": [
+   {
+    "skill": "hardcore",
+    "players": 2,
+    "seed": 1,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "warrior",
+      "prestige": 24,
+      "cities": 2,
+      "population": 3,
+      "research": 8,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "builder",
+      "prestige": 32,
+      "cities": 3,
+      "population": 36,
+      "research": 27,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 749,
+    "rejected": 109,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 21,
+     "URBAN_ACTION:RULE_FAILURE": 29,
+     "PLAY_CARD:RULE_FAILURE": 59
+    },
+    "orders": {
+     "totals": {
+      "CITY": 190,
+      "EXPEDITION": 33,
+      "ADVANCE": 36,
+      "INFLUENCE": 8,
+      "LEGACY": 5
+     },
+     "entropyBits": 1.37,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.96,
+     "meanOrdersCommitted": 3.89,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.7
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 3,
+      "20": 4,
+      "25": 5,
+      "30": 5,
+      "35": 6
+     },
+     "firstN4": 20,
+     "firstN5": 23,
+     "firstN6": 33,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.36,
+      "stone": 0.01,
+      "metal": 0,
+      "wealth": 0.14,
+      "knowledge": 0,
+      "influence": 0.14,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.59,
+      "wood": 0.06,
+      "stone": 0.06,
+      "metal": 0.24,
+      "wealth": 0,
+      "knowledge": 0.09,
+      "influence": 0.01,
+      "culture": 1
+     },
+     "discardedPerRound": {
+      "food": 2.24,
+      "materials": 0.94,
+      "wealth": 0.14,
+      "knowledge": 0.04,
+      "influence": 0.03
+     }
+    },
+    "animo": {
+     "meanMood": 1.91,
+     "shareAtZero": 0.21,
+     "shareShakenOrWorse": 0.64,
+     "governPerPlayerRound": 0.8,
+     "meanMoodWhenGoverned": 0.53,
+     "meanMoodWhenNot": 2.87,
+     "roundsGoverned": 29
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 1,
+     "attacks": 37,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 37,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 2.46,
+     "maxAlive": 3,
+     "firstAssaultRound": 7,
+     "assaultsOnPlayers": 37,
+     "worldWinShare": 0.95,
+     "undefendedAssaults": 37,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 37,
+     "outcomes": {
+      "DECISIVE": 22,
+      "VICTORY": 8,
+      "TIE": 7
+     },
+     "citiesCaptured": 0,
+     "casualties": 1
+    },
+    "resonance": {
+     "cycles": 6,
+     "byKind": {
+      "HYBRID": 1,
+      "PAIR": 3,
+      "DOMINANT": 2
+     },
+     "repercussionsPerCivilization": 3
+    },
+    "research": {
+     "perCivilization": 17.5,
+     "heritagesPerCivilization": 1
+    },
+    "time": {
+     "engineMsTotal": 10489,
+     "engineMsPerRoundMean": 255.81,
+     "engineMsPerRoundMax": 695,
+     "commandsPerPlayerRound": 10.7
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": false,
+     "government": false,
+     "battle": true,
+     "fortification": true,
+     "siege": true,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   },
+   {
+    "skill": "hardcore",
+    "players": 2,
+    "seed": 2,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "builder",
+      "prestige": 19,
+      "cities": 3,
+      "population": 22,
+      "research": 17,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "trader",
+      "prestige": 31,
+      "cities": 2,
+      "population": 25,
+      "research": 29,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 855,
+    "rejected": 182,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 55,
+     "URBAN_ACTION:RULE_FAILURE": 45,
+     "PLAY_CARD:RULE_FAILURE": 75,
+     "MANAGE:INVALID_WORKED_HEXES": 7
+    },
+    "orders": {
+     "totals": {
+      "CITY": 168,
+      "EXPEDITION": 84,
+      "ADVANCE": 56,
+      "INFLUENCE": 5,
+      "LEGACY": 3
+     },
+     "entropyBits": 1.59,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.91,
+     "meanOrdersCommitted": 4.51,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.41
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 5,
+      "25": 5,
+      "30": 5,
+      "35": 5
+     },
+     "firstN4": 12,
+     "firstN5": 17,
+     "firstN6": null,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      1,
+      0,
+      1,
+      1,
+      2,
+      0,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.24,
+      "stone": 0,
+      "metal": 0,
+      "wealth": 0.37,
+      "knowledge": 0,
+      "influence": 0,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.39,
+      "wood": 0.19,
+      "stone": 0.56,
+      "metal": 0.46,
+      "wealth": 0,
+      "knowledge": 0,
+      "influence": 0.04,
+      "culture": 0.5
+     },
+     "discardedPerRound": {
+      "food": 0.79,
+      "materials": 0.61,
+      "wealth": 0.46,
+      "knowledge": 0.01,
+      "influence": 0
+     }
+    },
+    "animo": {
+     "meanMood": 2.7,
+     "shareAtZero": 0.04,
+     "shareShakenOrWorse": 0.46,
+     "governPerPlayerRound": 0.19,
+     "meanMoodWhenGoverned": 1.79,
+     "meanMoodWhenNot": 2.92,
+     "roundsGoverned": 12
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 0,
+     "attacks": 32,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 32,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 2,
+     "maxAlive": 2,
+     "firstAssaultRound": 10,
+     "assaultsOnPlayers": 32,
+     "worldWinShare": 0.75,
+     "undefendedAssaults": 32,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 32,
+     "outcomes": {
+      "VICTORY": 10,
+      "DECISIVE": 6,
+      "TIE": 16
+     },
+     "citiesCaptured": 0,
+     "casualties": 2
+    },
+    "resonance": {
+     "cycles": 8,
+     "byKind": {
+      "CONFLUENCE": 2,
+      "HYBRID": 2,
+      "PAIR": 4
+     },
+     "repercussionsPerCivilization": 4
+    },
+    "research": {
+     "perCivilization": 23,
+     "heritagesPerCivilization": 2
+    },
+    "time": {
+     "engineMsTotal": 9292,
+     "engineMsPerRoundMean": 226.61,
+     "engineMsPerRoundMax": 640,
+     "commandsPerPlayerRound": 12.21
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": false,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": false
+    }
+   },
+   {
+    "skill": "hardcore",
+    "players": 2,
+    "seed": 3,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "trader",
+      "prestige": 24,
+      "cities": 2,
+      "population": 5,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "explorer",
+      "prestige": 29,
+      "cities": 2,
+      "population": 4,
+      "research": 13,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 910,
+    "rejected": 222,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 104,
+     "URBAN_ACTION:RULE_FAILURE": 32,
+     "PLAY_CARD:RULE_FAILURE": 79,
+     "LEADER_ABILITY:RULE_FAILURE": 4,
+     "PROPOSE_TREATY:RULE_FAILURE": 3
+    },
+    "orders": {
+     "totals": {
+      "CITY": 140,
+      "EXPEDITION": 101,
+      "ADVANCE": 38,
+      "INFLUENCE": 63,
+      "LEGACY": 0
+     },
+     "entropyBits": 1.85,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 2.11,
+     "meanOrdersCommitted": 4.89,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.29
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 3,
+      "20": 4,
+      "25": 4,
+      "30": 4,
+      "35": 4
+     },
+     "firstN4": 18,
+     "firstN5": null,
+     "firstN6": null,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      0,
+      2,
+      2,
+      0,
+      0,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.27,
+      "stone": 0.4,
+      "metal": 0,
+      "wealth": 0.04,
+      "knowledge": 0,
+      "influence": 0.5,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.49,
+      "wood": 0.06,
+      "stone": 0,
+      "metal": 0.14,
+      "wealth": 0.14,
+      "knowledge": 0.16,
+      "influence": 0.16,
+      "culture": 0.5
+     },
+     "discardedPerRound": {
+      "food": 0.36,
+      "materials": 1.13,
+      "wealth": 0.01,
+      "knowledge": 0,
+      "influence": 0.37
+     }
+    },
+    "animo": {
+     "meanMood": 1.87,
+     "shareAtZero": 0.4,
+     "shareShakenOrWorse": 0.54,
+     "governPerPlayerRound": 0.34,
+     "meanMoodWhenGoverned": 0.7,
+     "meanMoodWhenNot": 2.26,
+     "roundsGoverned": 15
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 2,
+     "attacks": 54,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 54,
+     "shareOfAllCasualtiesInWorldBattles": 0,
+     "meanAlive": 3.54,
+     "maxAlive": 4,
+     "firstAssaultRound": 10,
+     "assaultsOnPlayers": 54,
+     "worldWinShare": 1,
+     "undefendedAssaults": 54,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 54,
+     "outcomes": {
+      "DECISIVE": 54
+     },
+     "citiesCaptured": 0,
+     "casualties": 0
+    },
+    "resonance": {
+     "cycles": 5,
+     "byKind": {
+      "CONFLUENCE": 1,
+      "PAIR": 2,
+      "DOMINANT": 2
+     },
+     "repercussionsPerCivilization": 2.5
+    },
+    "research": {
+     "perCivilization": 15.5,
+     "heritagesPerCivilization": 1.5
+    },
+    "time": {
+     "engineMsTotal": 16880,
+     "engineMsPerRoundMean": 411.69,
+     "engineMsPerRoundMax": 1004,
+     "commandsPerPlayerRound": 13
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": false,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": false
+    }
+   },
+   {
+    "skill": "hardcore",
+    "players": 4,
+    "seed": 1,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p3",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "warrior",
+      "prestige": 22,
+      "cities": 1,
+      "population": 2,
+      "research": 8,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "builder",
+      "prestige": 24,
+      "cities": 2,
+      "population": 18,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "trader",
+      "prestige": 37,
+      "cities": 2,
+      "population": 5,
+      "research": 22,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "explorer",
+      "prestige": 29,
+      "cities": 2,
+      "population": 16,
+      "research": 18,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 1638,
+    "rejected": 383,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 183,
+     "URBAN_ACTION:RULE_FAILURE": 63,
+     "PLAY_CARD:RULE_FAILURE": 130,
+     "LEADER_ABILITY:RULE_FAILURE": 4,
+     "PROPOSE_TREATY:RULE_FAILURE": 3
+    },
+    "orders": {
+     "totals": {
+      "CITY": 272,
+      "EXPEDITION": 177,
+      "ADVANCE": 72,
+      "INFLUENCE": 57,
+      "LEGACY": 0
+     },
+     "entropyBits": 1.74,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.52,
+     "meanOrdersCommitted": 4.13,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.46
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 5,
+      "25": 5,
+      "30": 5,
+      "35": 5
+     },
+     "firstN4": 12,
+     "firstN5": 18,
+     "firstN6": null,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      1,
+      1,
+      3,
+      2,
+      0,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.37,
+      "stone": 0.01,
+      "metal": 0,
+      "wealth": 0.23,
+      "knowledge": 0,
+      "influence": 0.17,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.54,
+      "wood": 0.06,
+      "stone": 0.04,
+      "metal": 0.34,
+      "wealth": 0.09,
+      "knowledge": 0.26,
+      "influence": 0.12,
+      "culture": 0.75
+     },
+     "discardedPerRound": {
+      "food": 0.42,
+      "materials": 1.18,
+      "wealth": 0.19,
+      "knowledge": 0,
+      "influence": 0.14
+     }
+    },
+    "animo": {
+     "meanMood": 2.2,
+     "shareAtZero": 0.18,
+     "shareShakenOrWorse": 0.56,
+     "governPerPlayerRound": 0.41,
+     "meanMoodWhenGoverned": 1.2,
+     "meanMoodWhenNot": 2.63,
+     "roundsGoverned": 49
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 4,
+     "attacks": 65,
+     "killedWhileCamped": 0,
+     "destroyed": 1,
+     "worldBattles": 65,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 4.37,
+     "maxAlive": 6,
+     "firstAssaultRound": 11,
+     "assaultsOnPlayers": 65,
+     "worldWinShare": 0.91,
+     "undefendedAssaults": 63,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 65,
+     "outcomes": {
+      "DECISIVE": 57,
+      "VICTORY": 3,
+      "TIE": 5
+     },
+     "citiesCaptured": 0,
+     "casualties": 4
+    },
+    "resonance": {
+     "cycles": 11,
+     "byKind": {
+      "CONFLUENCE": 2,
+      "PAIR": 5,
+      "HYBRID": 2,
+      "DOMINANT": 2
+     },
+     "repercussionsPerCivilization": 2.75
+    },
+    "research": {
+     "perCivilization": 16.5,
+     "heritagesPerCivilization": 1.25
+    },
+    "time": {
+     "engineMsTotal": 32724,
+     "engineMsPerRoundMean": 798.12,
+     "engineMsPerRoundMax": 1973,
+     "commandsPerPlayerRound": 11.7
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": true,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": false
+    }
+   },
+   {
+    "skill": "hardcore",
+    "players": 4,
+    "seed": 2,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "builder",
+      "prestige": 20,
+      "cities": 3,
+      "population": 10,
+      "research": 18,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "trader",
+      "prestige": 33,
+      "cities": 2,
+      "population": 31,
+      "research": 28,
+      "victories": 0,
+      "government": "MONARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "explorer",
+      "prestige": 18,
+      "cities": 3,
+      "population": 23,
+      "research": 21,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "scholar",
+      "prestige": 24,
+      "cities": 2,
+      "population": 21,
+      "research": 20,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 1692,
+    "rejected": 341,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 103,
+     "URBAN_ACTION:RULE_FAILURE": 86,
+     "PLAY_CARD:RULE_FAILURE": 130,
+     "LEADER_ABILITY:RULE_FAILURE": 9,
+     "MANAGE:INSUFFICIENT_RESOURCES": 1,
+     "MANAGE:INVALID_WORKED_HEXES": 10,
+     "PROPOSE_TREATY:RULE_FAILURE": 2
+    },
+    "orders": {
+     "totals": {
+      "CITY": 371,
+      "EXPEDITION": 129,
+      "ADVANCE": 101,
+      "INFLUENCE": 55,
+      "LEGACY": 0
+     },
+     "entropyBits": 1.64,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 2.08,
+     "meanOrdersCommitted": 4.69,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.4
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 5,
+      "25": 6,
+      "30": 6,
+      "35": 6
+     },
+     "firstN4": 12,
+     "firstN5": 16,
+     "firstN6": 25,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      2,
+      1,
+      4,
+      2,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.26,
+      "stone": 0.36,
+      "metal": 0.07,
+      "wealth": 0.3,
+      "knowledge": 0,
+      "influence": 0.21,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.27,
+      "wood": 0.13,
+      "stone": 0.11,
+      "metal": 0.53,
+      "wealth": 0,
+      "knowledge": 0.05,
+      "influence": 0.07,
+      "culture": 0.65
+     },
+     "discardedPerRound": {
+      "food": 1.11,
+      "materials": 2.18,
+      "wealth": 0.29,
+      "knowledge": 0.01,
+      "influence": 0.2
+     }
+    },
+    "animo": {
+     "meanMood": 2.83,
+     "shareAtZero": 0.03,
+     "shareShakenOrWorse": 0.29,
+     "governPerPlayerRound": 0.18,
+     "meanMoodWhenGoverned": 2.17,
+     "meanMoodWhenNot": 3.05,
+     "roundsGoverned": 21
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 1,
+     "attacks": 23,
+     "killedWhileCamped": 0,
+     "destroyed": 1,
+     "worldBattles": 23,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 1.94,
+     "maxAlive": 2,
+     "firstAssaultRound": 9,
+     "assaultsOnPlayers": 23,
+     "worldWinShare": 0.96,
+     "undefendedAssaults": 22,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 23,
+     "outcomes": {
+      "DECISIVE": 17,
+      "VICTORY": 5,
+      "TIE": 1
+     },
+     "citiesCaptured": 0,
+     "casualties": 3
+    },
+    "resonance": {
+     "cycles": 16,
+     "byKind": {
+      "HYBRID": 3,
+      "CONFLUENCE": 2,
+      "PAIR": 11
+     },
+     "repercussionsPerCivilization": 4
+    },
+    "research": {
+     "perCivilization": 21.75,
+     "heritagesPerCivilization": 1.5
+    },
+    "time": {
+     "engineMsTotal": 41299,
+     "engineMsPerRoundMean": 1007.26,
+     "engineMsPerRoundMax": 2335,
+     "commandsPerPlayerRound": 12.09
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": true,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   },
+   {
+    "skill": "hardcore",
+    "players": 4,
+    "seed": 3,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p1",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "trader",
+      "prestige": 27,
+      "cities": 2,
+      "population": 6,
+      "research": 21,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "explorer",
+      "prestige": 22,
+      "cities": 3,
+      "population": 27,
+      "research": 18,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "scholar",
+      "prestige": 20,
+      "cities": 2,
+      "population": 23,
+      "research": 20,
+      "victories": 0,
+      "government": "REPUBLIC",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "balanced",
+      "prestige": 25,
+      "cities": 2,
+      "population": 8,
+      "research": 26,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 1681,
+    "rejected": 325,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 96,
+     "URBAN_ACTION:RULE_FAILURE": 81,
+     "PLAY_CARD:RULE_FAILURE": 131,
+     "LEADER_ABILITY:RULE_FAILURE": 9,
+     "MANAGE:INSUFFICIENT_RESOURCES": 8
+    },
+    "orders": {
+     "totals": {
+      "CITY": 350,
+      "EXPEDITION": 118,
+      "ADVANCE": 95,
+      "INFLUENCE": 91,
+      "LEGACY": 0
+     },
+     "entropyBits": 1.73,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.91,
+     "meanOrdersCommitted": 4.67,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.34
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 4,
+      "25": 5,
+      "30": 5,
+      "35": 6
+     },
+     "firstN4": 12,
+     "firstN5": 24,
+     "firstN6": 32,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      2,
+      1,
+      3,
+      2,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.51,
+      "stone": 0.18,
+      "metal": 0,
+      "wealth": 0.14,
+      "knowledge": 0.02,
+      "influence": 0.23,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.36,
+      "wood": 0.01,
+      "stone": 0.09,
+      "metal": 0.31,
+      "wealth": 0.14,
+      "knowledge": 0.06,
+      "influence": 0.14,
+      "culture": 0.2
+     },
+     "discardedPerRound": {
+      "food": 1.04,
+      "materials": 2.21,
+      "wealth": 0.19,
+      "knowledge": 0,
+      "influence": 0.24
+     }
+    },
+    "animo": {
+     "meanMood": 2.7,
+     "shareAtZero": 0.07,
+     "shareShakenOrWorse": 0.35,
+     "governPerPlayerRound": 0.29,
+     "meanMoodWhenGoverned": 1.4,
+     "meanMoodWhenNot": 3.09,
+     "roundsGoverned": 29
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 4,
+     "attacks": 59,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 59,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 4.26,
+     "maxAlive": 6,
+     "firstAssaultRound": 11,
+     "assaultsOnPlayers": 59,
+     "worldWinShare": 1,
+     "undefendedAssaults": 57,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 59,
+     "outcomes": {
+      "DECISIVE": 59
+     },
+     "citiesCaptured": 0,
+     "casualties": 2
+    },
+    "resonance": {
+     "cycles": 16,
+     "byKind": {
+      "PAIR": 7,
+      "CONFLUENCE": 2,
+      "DOMINANT": 7
+     },
+     "repercussionsPerCivilization": 4
+    },
+    "research": {
+     "perCivilization": 21.25,
+     "heritagesPerCivilization": 1.5
+    },
+    "time": {
+     "engineMsTotal": 38174,
+     "engineMsPerRoundMean": 931.05,
+     "engineMsPerRoundMax": 1935,
+     "commandsPerPlayerRound": 12.01
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": true,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   },
+   {
+    "skill": "hardcore",
+    "players": 6,
+    "seed": 1,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p2",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "warrior",
+      "prestige": 18,
+      "cities": 2,
+      "population": 3,
+      "research": 8,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "builder",
+      "prestige": 28,
+      "cities": 2,
+      "population": 8,
+      "research": 22,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "trader",
+      "prestige": 23,
+      "cities": 2,
+      "population": 19,
+      "research": 23,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "explorer",
+      "prestige": 13,
+      "cities": 3,
+      "population": 22,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p5",
+      "persona": "scholar",
+      "prestige": 26,
+      "cities": 2,
+      "population": 24,
+      "research": 21,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p6",
+      "persona": "balanced",
+      "prestige": 16,
+      "cities": 2,
+      "population": 13,
+      "research": 25,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 2449,
+    "rejected": 443,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 150,
+     "URBAN_ACTION:RULE_FAILURE": 109,
+     "PLAY_CARD:RULE_FAILURE": 168,
+     "LEADER_ABILITY:RULE_FAILURE": 9,
+     "MANAGE:INSUFFICIENT_RESOURCES": 1,
+     "PROPOSE_TREATY:RULE_FAILURE": 6
+    },
+    "orders": {
+     "totals": {
+      "CITY": 505,
+      "EXPEDITION": 158,
+      "ADVANCE": 130,
+      "INFLUENCE": 152,
+      "LEGACY": 3
+     },
+     "entropyBits": 1.76,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.83,
+     "meanOrdersCommitted": 4.51,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.43
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 4,
+      "25": 5,
+      "30": 5,
+      "35": 5
+     },
+     "firstN4": 13,
+     "firstN5": 23,
+     "firstN6": null,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      1,
+      0,
+      3,
+      6,
+      3,
+      0,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.25,
+      "stone": 0.23,
+      "metal": 0.08,
+      "wealth": 0.11,
+      "knowledge": 0,
+      "influence": 0.19,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.4,
+      "wood": 0.04,
+      "stone": 0.03,
+      "metal": 0.29,
+      "wealth": 0.12,
+      "knowledge": 0.2,
+      "influence": 0.17,
+      "culture": 0.59
+     },
+     "discardedPerRound": {
+      "food": 1.2,
+      "materials": 1.32,
+      "wealth": 0.14,
+      "knowledge": 0.01,
+      "influence": 0.08
+     }
+    },
+    "animo": {
+     "meanMood": 2.46,
+     "shareAtZero": 0.14,
+     "shareShakenOrWorse": 0.42,
+     "governPerPlayerRound": 0.38,
+     "meanMoodWhenGoverned": 1.07,
+     "meanMoodWhenNot": 2.91,
+     "roundsGoverned": 50
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 3,
+     "attacks": 65,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 65,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 4,
+     "maxAlive": 5,
+     "firstAssaultRound": 9,
+     "assaultsOnPlayers": 65,
+     "worldWinShare": 0.97,
+     "undefendedAssaults": 58,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 65,
+     "outcomes": {
+      "DECISIVE": 49,
+      "VICTORY": 14,
+      "TIE": 2
+     },
+     "citiesCaptured": 0,
+     "casualties": 7
+    },
+    "resonance": {
+     "cycles": 21,
+     "byKind": {
+      "PAIR": 11,
+      "CONFLUENCE": 2,
+      "HYBRID": 6,
+      "DOMINANT": 2
+     },
+     "repercussionsPerCivilization": 3.5
+    },
+    "research": {
+     "perCivilization": 19.5,
+     "heritagesPerCivilization": 1.33
+    },
+    "time": {
+     "engineMsTotal": 83228,
+     "engineMsPerRoundMean": 2029.91,
+     "engineMsPerRoundMax": 4960,
+     "commandsPerPlayerRound": 11.66
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": false
+    }
+   },
+   {
+    "skill": "hardcore",
+    "players": 6,
+    "seed": 2,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p3",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "builder",
+      "prestige": 24,
+      "cities": 2,
+      "population": 2,
+      "research": 18,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "trader",
+      "prestige": 19,
+      "cities": 2,
+      "population": 9,
+      "research": 23,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "explorer",
+      "prestige": 26,
+      "cities": 3,
+      "population": 25,
+      "research": 19,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "scholar",
+      "prestige": 24,
+      "cities": 2,
+      "population": 7,
+      "research": 15,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p5",
+      "persona": "balanced",
+      "prestige": 25,
+      "cities": 2,
+      "population": 25,
+      "research": 23,
+      "victories": 0,
+      "government": "MONARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p6",
+      "persona": "warrior",
+      "prestige": 20,
+      "cities": 2,
+      "population": 27,
+      "research": 23,
+      "victories": 0,
+      "government": "AUTOCRACY",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 2447,
+    "rejected": 430,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 141,
+     "URBAN_ACTION:RULE_FAILURE": 109,
+     "PLAY_CARD:RULE_FAILURE": 161,
+     "LEADER_ABILITY:RULE_FAILURE": 8,
+     "MANAGE:INVALID_WORKED_HEXES": 7,
+     "MANAGE:INSUFFICIENT_RESOURCES": 1,
+     "DECLARE_WAR:RULE_FAILURE": 1,
+     "PROPOSE_TREATY:RULE_FAILURE": 2
+    },
+    "orders": {
+     "totals": {
+      "CITY": 532,
+      "EXPEDITION": 158,
+      "ADVANCE": 137,
+      "INFLUENCE": 93,
+      "LEGACY": 1
+     },
+     "entropyBits": 1.65,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 1.95,
+     "meanOrdersCommitted": 4.41,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.5
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 4,
+      "25": 5,
+      "30": 6,
+      "35": 6
+     },
+     "firstN4": 15,
+     "firstN5": 22,
+     "firstN6": 30,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      0,
+      1,
+      2,
+      7,
+      2,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.27,
+      "stone": 0.43,
+      "metal": 0.04,
+      "wealth": 0.19,
+      "knowledge": 0,
+      "influence": 0.31,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.4,
+      "wood": 0.06,
+      "stone": 0.22,
+      "metal": 0.32,
+      "wealth": 0.02,
+      "knowledge": 0.12,
+      "influence": 0.04,
+      "culture": 0.34
+     },
+     "discardedPerRound": {
+      "food": 2.37,
+      "materials": 1.93,
+      "wealth": 0.21,
+      "knowledge": 0.02,
+      "influence": 0.27
+     }
+    },
+    "animo": {
+     "meanMood": 3.24,
+     "shareAtZero": 0.06,
+     "shareShakenOrWorse": 0.37,
+     "governPerPlayerRound": 0.31,
+     "meanMoodWhenGoverned": 1.84,
+     "meanMoodWhenNot": 3.73,
+     "roundsGoverned": 53
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 4,
+     "attacks": 79,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 79,
+     "shareOfAllCasualtiesInWorldBattles": 1,
+     "meanAlive": 4.26,
+     "maxAlive": 6,
+     "firstAssaultRound": 6,
+     "assaultsOnPlayers": 79,
+     "worldWinShare": 1,
+     "undefendedAssaults": 74,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 79,
+     "outcomes": {
+      "DECISIVE": 79
+     },
+     "citiesCaptured": 0,
+     "casualties": 4
+    },
+    "resonance": {
+     "cycles": 21,
+     "byKind": {
+      "CONFLUENCE": 4,
+      "PAIR": 9,
+      "HYBRID": 3,
+      "DOMINANT": 5
+     },
+     "repercussionsPerCivilization": 3.5
+    },
+    "research": {
+     "perCivilization": 20.17,
+     "heritagesPerCivilization": 1.17
+    },
+    "time": {
+     "engineMsTotal": 83317,
+     "engineMsPerRoundMean": 2032.08,
+     "engineMsPerRoundMax": 4604,
+     "commandsPerPlayerRound": 11.65
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": false,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   },
+   {
+    "skill": "hardcore",
+    "players": 6,
+    "seed": 3,
+    "rounds": 35,
+    "status": "FINISHED",
+    "winner": {
+     "playerId": "p4",
+     "reason": "ROUND_LIMIT",
+     "round": 35
+    },
+    "finals": [
+     {
+      "playerId": "p1",
+      "persona": "trader",
+      "prestige": 26,
+      "cities": 2,
+      "population": 11,
+      "research": 21,
+      "victories": 0,
+      "government": "OLIGARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p2",
+      "persona": "explorer",
+      "prestige": 18,
+      "cities": 2,
+      "population": 5,
+      "research": 13,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p3",
+      "persona": "scholar",
+      "prestige": 23,
+      "cities": 2,
+      "population": 16,
+      "research": 20,
+      "victories": 0,
+      "government": "MONARCHY",
+      "hegemony": null
+     },
+     {
+      "playerId": "p4",
+      "persona": "balanced",
+      "prestige": 27,
+      "cities": 2,
+      "population": 23,
+      "research": 22,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p5",
+      "persona": "warrior",
+      "prestige": 18,
+      "cities": 3,
+      "population": 26,
+      "research": 14,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     },
+     {
+      "playerId": "p6",
+      "persona": "builder",
+      "prestige": 27,
+      "cities": 3,
+      "population": 23,
+      "research": 9,
+      "victories": 0,
+      "government": "PROTO_GOVERNANCE",
+      "hegemony": null
+     }
+    ],
+    "crashes": [],
+    "violations": [],
+    "commands": 2422,
+    "rejected": 406,
+    "rejectedReasons": {
+     "QUEUE_ORDER:RULE_FAILURE": 152,
+     "URBAN_ACTION:RULE_FAILURE": 89,
+     "PLAY_CARD:RULE_FAILURE": 152,
+     "LEADER_ABILITY:RULE_FAILURE": 8,
+     "MANAGE:INVALID_WORKED_HEXES": 4,
+     "PROPOSE_TREATY:RULE_FAILURE": 1
+    },
+    "orders": {
+     "totals": {
+      "CITY": 536,
+      "EXPEDITION": 201,
+      "ADVANCE": 113,
+      "INFLUENCE": 121,
+      "LEGACY": 3
+     },
+     "entropyBits": 1.7,
+     "maxEntropyBits": 2.32,
+     "repeatedPerPlayerRound": 2.04,
+     "meanOrdersCommitted": 4.64,
+     "shareOfRoundsWithTwoTypesOrFewer": 0.43
+    },
+    "urban": {
+     "maxLevelAtRound": {
+      "10": 3,
+      "15": 4,
+      "20": 4,
+      "25": 5,
+      "30": 5,
+      "35": 6
+     },
+     "firstN4": 13,
+     "firstN5": 21,
+     "firstN6": 31,
+     "firstN7": null,
+     "finalLevelDistribution": [
+      1,
+      2,
+      5,
+      5,
+      0,
+      1,
+      0
+     ]
+    },
+    "cofres": {
+     "capShare": {
+      "food": 0,
+      "wood": 0.23,
+      "stone": 0.6,
+      "metal": 0.03,
+      "wealth": 0.18,
+      "knowledge": 0.01,
+      "influence": 0.32,
+      "culture": 0
+     },
+     "emptyShare": {
+      "food": 0.3,
+      "wood": 0.03,
+      "stone": 0,
+      "metal": 0.45,
+      "wealth": 0.17,
+      "knowledge": 0.11,
+      "influence": 0.06,
+      "culture": 0.37
+     },
+     "discardedPerRound": {
+      "food": 1.64,
+      "materials": 3.43,
+      "wealth": 0.18,
+      "knowledge": 0,
+      "influence": 0.32
+     }
+    },
+    "animo": {
+     "meanMood": 3.27,
+     "shareAtZero": 0.04,
+     "shareShakenOrWorse": 0.2,
+     "governPerPlayerRound": 0.2,
+     "meanMoodWhenGoverned": 1.65,
+     "meanMoodWhenNot": 3.57,
+     "roundsGoverned": 37
+    },
+    "graus": {
+     "battlesBetweenPlayers": 0,
+     "higherGradeWinRate": null,
+     "comparableBattles": 0,
+     "equalGradeBattles": 0
+    },
+    "threats": {
+     "spawned": 4,
+     "attacks": 59,
+     "killedWhileCamped": 0,
+     "destroyed": 0,
+     "worldBattles": 59,
+     "shareOfAllCasualtiesInWorldBattles": 0,
+     "meanAlive": 3.71,
+     "maxAlive": 6,
+     "firstAssaultRound": 7,
+     "assaultsOnPlayers": 59,
+     "worldWinShare": 1,
+     "undefendedAssaults": 59,
+     "defendedAssaults3plus": 0,
+     "worldWinShareVs3plus": null,
+     "playerAttacksOnWorld": 0,
+     "playerWinShareOnWorld": null
+    },
+    "combat": {
+     "battles": 59,
+     "outcomes": {
+      "DECISIVE": 59
+     },
+     "citiesCaptured": 0,
+     "casualties": 0
+    },
+    "resonance": {
+     "cycles": 17,
+     "byKind": {
+      "PAIR": 4,
+      "CONFLUENCE": 4,
+      "DOMINANT": 4,
+      "HYBRID": 5
+     },
+     "repercussionsPerCivilization": 2.83
+    },
+    "research": {
+     "perCivilization": 16.5,
+     "heritagesPerCivilization": 1
+    },
+    "time": {
+     "engineMsTotal": 87116,
+     "engineMsPerRoundMean": 2124.73,
+     "engineMsPerRoundMax": 4889,
+     "commandsPerPlayerRound": 11.53
+    },
+    "coverage": {
+     "famine": true,
+     "devastatedCity": true,
+     "overextension": false,
+     "n7": false,
+     "ouChoice": true,
+     "heritage": true,
+     "repercussion": true,
+     "confluence": true,
+     "government": true,
+     "battle": true,
+     "fortification": true,
+     "siege": false,
+     "noSupply": false,
+     "band": true,
+     "pirate": true,
+     "hegemony": false,
+     "cityCaptured": false,
+     "n6": true
+    }
+   }
+  ]
+ },
+ "scenarios": [],
+ "grades": [
+  {
+   "family": "Infantaria",
+   "trials": 1500,
+   "gradeI": {
+    "attackerWins": 0.07866666666666666,
+    "defenderWins": 0.392,
+    "tie": 0.5293333333333333
+   },
+   "gradeII": {
+    "attackerWins": 0.098,
+    "defenderWins": 0.35333333333333333,
+    "tie": 0.5486666666666666
+   },
+   "gradeIII": {
+    "attackerWins": 0.126,
+    "defenderWins": 0.25733333333333336,
+    "tie": 0.6166666666666667
+   },
+   "gradeIIIDefending": {
+    "attackerWins": 0.09,
+    "defenderWins": 0.37466666666666665,
+    "tie": 0.5353333333333333
+   }
+  },
+  {
+   "family": "Guarda",
+   "trials": 1500,
+   "gradeI": {
+    "attackerWins": 0.09866666666666667,
+    "defenderWins": 0.3893333333333333,
+    "tie": 0.512
+   },
+   "gradeII": {
+    "attackerWins": 0.092,
+    "defenderWins": 0.394,
+    "tie": 0.514
+   },
+   "gradeIII": {
+    "attackerWins": 0.09066666666666667,
+    "defenderWins": 0.38333333333333336,
+    "tie": 0.526
+   },
+   "gradeIIIDefending": {
+    "attackerWins": 0.10333333333333333,
+    "defenderWins": 0.37933333333333336,
+    "tie": 0.5173333333333333
+   }
+  },
+  {
+   "family": "Arqueiros",
+   "trials": 1500,
+   "gradeI": {
+    "attackerWins": 0.07266666666666667,
+    "defenderWins": 0.3433333333333333,
+    "tie": 0.584
+   },
+   "gradeII": {
+    "attackerWins": 0.14866666666666667,
+    "defenderWins": 0.2793333333333333,
+    "tie": 0.572
+   },
+   "gradeIII": {
+    "attackerWins": 0.14266666666666666,
+    "defenderWins": 0.25933333333333336,
+    "tie": 0.598
+   },
+   "gradeIIIDefending": {
+    "attackerWins": 0.04666666666666667,
+    "defenderWins": 0.47733333333333333,
+    "tie": 0.476
+   }
+  },
+  {
+   "family": "Cavalaria",
+   "trials": 1500,
+   "gradeI": {
+    "attackerWins": 0.066,
+    "defenderWins": 0.3253333333333333,
+    "tie": 0.6086666666666667
+   },
+   "gradeII": {
+    "attackerWins": 0.06466666666666666,
+    "defenderWins": 0.32266666666666666,
+    "tie": 0.6126666666666667
+   },
+   "gradeIII": {
+    "attackerWins": 0.13466666666666666,
+    "defenderWins": 0.2613333333333333,
+    "tie": 0.604
+   },
+   "gradeIIIDefending": {
+    "attackerWins": 0.05,
+    "defenderWins": 0.4706666666666667,
+    "tie": 0.47933333333333333
+   }
+  },
+  {
+   "family": "Cerco (contra 3 Guardas e Paliçada)",
+   "trials": 1500,
+   "gradeI": {
+    "attackerWins": 0.05,
+    "defenderWins": 0.5133333333333333,
+    "tie": 0.43666666666666665
+   },
+   "gradeII": {
+    "attackerWins": 0.052,
+    "defenderWins": 0.5153333333333333,
+    "tie": 0.43266666666666664
+   },
+   "gradeIII": {
+    "attackerWins": 0.08266666666666667,
+    "defenderWins": 0.384,
+    "tie": 0.5333333333333333
+   },
+   "gradeIIIDefending": {
+    "attackerWins": 0,
+    "defenderWins": 0.9546666666666667,
+    "tie": 0.04533333333333334
+   }
+  },
+  {
+   "family": "Frota",
+   "trials": 1500,
+   "gradeI": {
+    "attackerWins": 0.09266666666666666,
+    "defenderWins": 0.39666666666666667,
+    "tie": 0.5106666666666667
+   },
+   "gradeII": {
+    "attackerWins": 0.09066666666666667,
+    "defenderWins": 0.37933333333333336,
+    "tie": 0.53
+   },
+   "gradeIII": {
+    "attackerWins": 0.084,
+    "defenderWins": 0.39666666666666667,
+    "tie": 0.5193333333333333
+   },
+   "gradeIIIDefending": {
+    "attackerWins": 0.10533333333333333,
+    "defenderWins": 0.36733333333333335,
+    "tie": 0.5273333333333333
+   }
+  }
+ ],
+ "bands": {
+  "trials": 1500,
+  "defence": [
+   {
+    "band": "I (Era I-II)",
+    "defenders": 0,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 0,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 0,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.7573333333333333,
+    "tie": 0.24266666666666667,
+    "defenderWins": 2.7755575615628914e-17
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 0,
+    "wall": "Fortaleza",
+    "attackerWins": 0.574,
+    "tie": 0.426,
+    "defenderWins": 5.551115123125783e-17
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 1,
+    "wall": "sem muralha",
+    "attackerWins": 0.6,
+    "tie": 0.4,
+    "defenderWins": 0
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 1,
+    "wall": "Paliçada",
+    "attackerWins": 0.2966666666666667,
+    "tie": 0.7033333333333334,
+    "defenderWins": 0
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 1,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.13666666666666666,
+    "tie": 0.7446666666666667,
+    "defenderWins": 0.11866666666666659
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 1,
+    "wall": "Fortaleza",
+    "attackerWins": 0.044,
+    "tie": 0.5493333333333333,
+    "defenderWins": 0.4066666666666666
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 2,
+    "wall": "sem muralha",
+    "attackerWins": 0.059333333333333335,
+    "tie": 0.6273333333333333,
+    "defenderWins": 0.31333333333333335
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 2,
+    "wall": "Paliçada",
+    "attackerWins": 0.012666666666666666,
+    "tie": 0.364,
+    "defenderWins": 0.6233333333333333
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 2,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0,
+    "tie": 0.18,
+    "defenderWins": 0.8200000000000001
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 2,
+    "wall": "Fortaleza",
+    "attackerWins": 0,
+    "tie": 0.06533333333333333,
+    "defenderWins": 0.9346666666666666
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 3,
+    "wall": "sem muralha",
+    "attackerWins": 0,
+    "tie": 0.09066666666666667,
+    "defenderWins": 0.9093333333333333
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 3,
+    "wall": "Paliçada",
+    "attackerWins": 0,
+    "tie": 0.03333333333333333,
+    "defenderWins": 0.9666666666666667
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 3,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0,
+    "tie": 0.0033333333333333335,
+    "defenderWins": 0.9966666666666667
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 3,
+    "wall": "Fortaleza",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 4,
+    "wall": "sem muralha",
+    "attackerWins": 0,
+    "tie": 0.0033333333333333335,
+    "defenderWins": 0.9966666666666667
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 4,
+    "wall": "Paliçada",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 4,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 4,
+    "wall": "Fortaleza",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 6,
+    "wall": "sem muralha",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 6,
+    "wall": "Paliçada",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 6,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "I (Era I-II)",
+    "defenders": 6,
+    "wall": "Fortaleza",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 0,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 0,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 0,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 0,
+    "wall": "Fortaleza",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 1,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 1,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 1,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 1,
+    "wall": "Fortaleza",
+    "attackerWins": 0.9833333333333333,
+    "tie": 0.016666666666666666,
+    "defenderWins": 5.204170427930421e-17
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 2,
+    "wall": "sem muralha",
+    "attackerWins": 0.9893333333333333,
+    "tie": 0.010666666666666666,
+    "defenderWins": 4.683753385137379e-17
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 2,
+    "wall": "Paliçada",
+    "attackerWins": 0.9146666666666666,
+    "tie": 0.08533333333333333,
+    "defenderWins": 4.163336342344337e-17
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 2,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.712,
+    "tie": 0.288,
+    "defenderWins": 5.551115123125783e-17
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 2,
+    "wall": "Fortaleza",
+    "attackerWins": 0.5113333333333333,
+    "tie": 0.4806666666666667,
+    "defenderWins": 0.008000000000000007
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 3,
+    "wall": "sem muralha",
+    "attackerWins": 0.5266666666666666,
+    "tie": 0.4666666666666667,
+    "defenderWins": 0.00666666666666671
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 3,
+    "wall": "Paliçada",
+    "attackerWins": 0.356,
+    "tie": 0.586,
+    "defenderWins": 0.05800000000000005
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 3,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.214,
+    "tie": 0.562,
+    "defenderWins": 0.22399999999999998
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 3,
+    "wall": "Fortaleza",
+    "attackerWins": 0.10533333333333333,
+    "tie": 0.42533333333333334,
+    "defenderWins": 0.4693333333333334
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 4,
+    "wall": "sem muralha",
+    "attackerWins": 0.12133333333333333,
+    "tie": 0.48133333333333334,
+    "defenderWins": 0.39733333333333337
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 4,
+    "wall": "Paliçada",
+    "attackerWins": 0.072,
+    "tie": 0.306,
+    "defenderWins": 0.6220000000000001
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 4,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.028,
+    "tie": 0.20666666666666667,
+    "defenderWins": 0.7653333333333333
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 4,
+    "wall": "Fortaleza",
+    "attackerWins": 0.010666666666666666,
+    "tie": 0.13066666666666665,
+    "defenderWins": 0.8586666666666667
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 6,
+    "wall": "sem muralha",
+    "attackerWins": 0.0013333333333333333,
+    "tie": 0.015333333333333332,
+    "defenderWins": 0.9833333333333334
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 6,
+    "wall": "Paliçada",
+    "attackerWins": 0,
+    "tie": 0.008,
+    "defenderWins": 0.992
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 6,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0,
+    "tie": 0.0006666666666666666,
+    "defenderWins": 0.9993333333333333
+   },
+   {
+    "band": "II (Era II)",
+    "defenders": 6,
+    "wall": "Fortaleza",
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 0,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 0,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 0,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 0,
+    "wall": "Fortaleza",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 1,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 1,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 1,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 1,
+    "wall": "Fortaleza",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 2,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 2,
+    "wall": "Paliçada",
+    "attackerWins": 0.9893333333333333,
+    "tie": 0.010666666666666666,
+    "defenderWins": 4.683753385137379e-17
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 2,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.9,
+    "tie": 0.1,
+    "defenderWins": -2.7755575615628914e-17
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 2,
+    "wall": "Fortaleza",
+    "attackerWins": 0.706,
+    "tie": 0.294,
+    "defenderWins": 5.551115123125783e-17
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 3,
+    "wall": "sem muralha",
+    "attackerWins": 0.7813333333333333,
+    "tie": 0.21866666666666668,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 3,
+    "wall": "Paliçada",
+    "attackerWins": 0.542,
+    "tie": 0.454,
+    "defenderWins": 0.003999999999999948
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 3,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.34,
+    "tie": 0.5913333333333334,
+    "defenderWins": 0.06866666666666654
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 3,
+    "wall": "Fortaleza",
+    "attackerWins": 0.20333333333333334,
+    "tie": 0.5606666666666666,
+    "defenderWins": 0.236
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 4,
+    "wall": "sem muralha",
+    "attackerWins": 0.23,
+    "tie": 0.5853333333333334,
+    "defenderWins": 0.18466666666666665
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 4,
+    "wall": "Paliçada",
+    "attackerWins": 0.12333333333333334,
+    "tie": 0.4766666666666667,
+    "defenderWins": 0.4
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 4,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.06866666666666667,
+    "tie": 0.33266666666666667,
+    "defenderWins": 0.5986666666666667
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 4,
+    "wall": "Fortaleza",
+    "attackerWins": 0.027333333333333334,
+    "tie": 0.19666666666666666,
+    "defenderWins": 0.776
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 6,
+    "wall": "sem muralha",
+    "attackerWins": 0.0006666666666666666,
+    "tie": 0.04,
+    "defenderWins": 0.9593333333333333
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 6,
+    "wall": "Paliçada",
+    "attackerWins": 0,
+    "tie": 0.020666666666666667,
+    "defenderWins": 0.9793333333333334
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 6,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0,
+    "tie": 0.006666666666666667,
+    "defenderWins": 0.9933333333333333
+   },
+   {
+    "band": "II (Era III+)",
+    "defenders": 6,
+    "wall": "Fortaleza",
+    "attackerWins": 0,
+    "tie": 0.0006666666666666666,
+    "defenderWins": 0.9993333333333333
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 0,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 0,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 0,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 0,
+    "wall": "Fortaleza",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 1,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 1,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 1,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 1,
+    "wall": "Fortaleza",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 2,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 2,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 2,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 2,
+    "wall": "Fortaleza",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 3,
+    "wall": "sem muralha",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 3,
+    "wall": "Paliçada",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 3,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 3,
+    "wall": "Fortaleza",
+    "attackerWins": 0.9993333333333333,
+    "tie": 0.0006666666666666666,
+    "defenderWins": 3.7621815385247004e-17
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 4,
+    "wall": "sem muralha",
+    "attackerWins": 0.916,
+    "tie": 0.084,
+    "defenderWins": -4.163336342344337e-17
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 4,
+    "wall": "Paliçada",
+    "attackerWins": 0.99,
+    "tie": 0.01,
+    "defenderWins": 8.673617379884035e-18
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 4,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.9306666666666666,
+    "tie": 0.06933333333333333,
+    "defenderWins": 2.7755575615628914e-17
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 4,
+    "wall": "Fortaleza",
+    "attackerWins": 0.814,
+    "tie": 0.18466666666666667,
+    "defenderWins": 0.0013333333333333808
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 6,
+    "wall": "sem muralha",
+    "attackerWins": 0.13866666666666666,
+    "tie": 0.35933333333333334,
+    "defenderWins": 0.502
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 6,
+    "wall": "Paliçada",
+    "attackerWins": 0.24066666666666667,
+    "tie": 0.47333333333333333,
+    "defenderWins": 0.286
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 6,
+    "wall": "Muralha de Pedra",
+    "attackerWins": 0.13533333333333333,
+    "tie": 0.4206666666666667,
+    "defenderWins": 0.444
+   },
+   {
+    "band": "III (Era V+)",
+    "defenders": 6,
+    "wall": "Fortaleza",
+    "attackerWins": 0.08066666666666666,
+    "tie": 0.30466666666666664,
+    "defenderWins": 0.6146666666666667
+   }
+  ],
+  "offence": [
+   {
+    "band": "I (Era I-II)",
+    "attackers": 2,
+    "attackerWins": 0.126,
+    "tie": 0.5966666666666667,
+    "defenderWins": 0.2773333333333333
+   },
+   {
+    "band": "I (Era I-II)",
+    "attackers": 3,
+    "attackerWins": 0.6893333333333334,
+    "tie": 0.298,
+    "defenderWins": 0.01266666666666666
+   },
+   {
+    "band": "I (Era I-II)",
+    "attackers": 4,
+    "attackerWins": 0.972,
+    "tie": 0.028,
+    "defenderWins": 2.42861286636753e-17
+   },
+   {
+    "band": "I (Era I-II)",
+    "attackers": 5,
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "I (Era I-II)",
+    "attackers": 6,
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "I (Era I-II)",
+    "attackers": 8,
+    "attackerWins": 1,
+    "tie": 0,
+    "defenderWins": 0
+   },
+   {
+    "band": "II (Era II)",
+    "attackers": 2,
+    "attackerWins": 0,
+    "tie": 0.0033333333333333335,
+    "defenderWins": 0.9966666666666667
+   },
+   {
+    "band": "II (Era II)",
+    "attackers": 3,
+    "attackerWins": 0.004666666666666667,
+    "tie": 0.13133333333333333,
+    "defenderWins": 0.864
+   },
+   {
+    "band": "II (Era II)",
+    "attackers": 4,
+    "attackerWins": 0.11933333333333333,
+    "tie": 0.4206666666666667,
+    "defenderWins": 0.46
+   },
+   {
+    "band": "II (Era II)",
+    "attackers": 5,
+    "attackerWins": 0.4826666666666667,
+    "tie": 0.424,
+    "defenderWins": 0.09333333333333332
+   },
+   {
+    "band": "II (Era II)",
+    "attackers": 6,
+    "attackerWins": 0.856,
+    "tie": 0.13666666666666666,
+    "defenderWins": 0.007333333333333358
+   },
+   {
+    "band": "II (Era II)",
+    "attackers": 8,
+    "attackerWins": 0.9993333333333333,
+    "tie": 0.0006666666666666666,
+    "defenderWins": 3.7621815385247004e-17
+   },
+   {
+    "band": "II (Era III+)",
+    "attackers": 2,
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "II (Era III+)",
+    "attackers": 3,
+    "attackerWins": 0.0013333333333333333,
+    "tie": 0.03933333333333333,
+    "defenderWins": 0.9593333333333334
+   },
+   {
+    "band": "II (Era III+)",
+    "attackers": 4,
+    "attackerWins": 0.06333333333333334,
+    "tie": 0.3273333333333333,
+    "defenderWins": 0.6093333333333333
+   },
+   {
+    "band": "II (Era III+)",
+    "attackers": 5,
+    "attackerWins": 0.33866666666666667,
+    "tie": 0.47,
+    "defenderWins": 0.19133333333333336
+   },
+   {
+    "band": "II (Era III+)",
+    "attackers": 6,
+    "attackerWins": 0.7693333333333333,
+    "tie": 0.20933333333333334,
+    "defenderWins": 0.021333333333333343
+   },
+   {
+    "band": "II (Era III+)",
+    "attackers": 8,
+    "attackerWins": 0.9986666666666667,
+    "tie": 0.0013333333333333333,
+    "defenderWins": -3.5778671692021646e-17
+   },
+   {
+    "band": "III (Era V+)",
+    "attackers": 2,
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "III (Era V+)",
+    "attackers": 3,
+    "attackerWins": 0,
+    "tie": 0,
+    "defenderWins": 1
+   },
+   {
+    "band": "III (Era V+)",
+    "attackers": 4,
+    "attackerWins": 0,
+    "tie": 0.016666666666666666,
+    "defenderWins": 0.9833333333333333
+   },
+   {
+    "band": "III (Era V+)",
+    "attackers": 5,
+    "attackerWins": 0.012666666666666666,
+    "tie": 0.106,
+    "defenderWins": 0.8813333333333333
+   },
+   {
+    "band": "III (Era V+)",
+    "attackers": 6,
+    "attackerWins": 0.10733333333333334,
+    "tie": 0.332,
+    "defenderWins": 0.5606666666666666
+   },
+   {
+    "band": "III (Era V+)",
+    "attackers": 8,
+    "attackerWins": 0.7606666666666667,
+    "tie": 0.204,
+    "defenderWins": 0.0353333333333333
+   }
+  ]
+ }
+}

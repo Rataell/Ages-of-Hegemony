@@ -1,0 +1,156 @@
+{
+  "session": {
+    "seats": 2,
+    "preset": "QUICK",
+    "worldPreset": "MIXED",
+    "seed": 42,
+    "rulesVersion": "v5.1b",
+    "events": 463,
+    "finalRound": 21,
+    "wallMs": 474780
+  },
+  "end": {
+    "winner": "player-2",
+    "reason": "ROUND_LIMIT",
+    "finalRound": 21
+  },
+  "contact": {
+    "firstContactRound": 6,
+    "contacts": [
+      {
+        "seats": "player-1~player-2",
+        "round": 6
+      }
+    ],
+    "firstTreatyRound": null,
+    "firstWarRound": 8,
+    "treaties": {},
+    "firstPlayerCombatRound": null
+  },
+  "combats": {
+    "total": 18,
+    "player": 0,
+    "world": 18,
+    "outcomes": {
+      "DECISIVE": 18
+    },
+    "deltaMean": 8.3,
+    "losses": 1,
+    "signatureEffects": 72
+  },
+  "threats": {
+    "events": {
+      "THREATS_GREW": 3,
+      "THREAT_MARCHING": 2,
+      "THREAT_ASSAULT": 18,
+      "THREAT_SPAWNED": 1
+    },
+    "firstAssaultRound": 9,
+    "firstSpawnRound": 9
+  },
+  "eraTurns": 6,
+  "research": {
+    "total": 13,
+    "firstRound": 2
+  },
+  "rejectedTotal": 6,
+  "perSeat": {
+    "player-1": {
+      "civilization": "aurelia",
+      "roundsClosed": 21,
+      "planningMs": {
+        "mean": 21932,
+        "median": 21211,
+        "max": 33949,
+        "total": 592174
+      },
+      "availableActionsMean": 40.7,
+      "commands": 126,
+      "commandsByType": {
+        "CHOOSE_AMBITIONS": 1,
+        "WORLD_CHOICE": 11,
+        "RESOLVE_CHOICE": 8,
+        "QUEUE_ORDER": 41,
+        "URBAN_ACTION": 32,
+        "READY": 27,
+        "MANAGE": 5,
+        "DECLARE_WAR": 1
+      },
+      "rejected": 3,
+      "rejectedByCode": {
+        "VERSION_CONFLICT": 3
+      },
+      "orders": {
+        "CITY": 24,
+        "EXPEDITION": 41,
+        "ADVANCE": 8,
+        "INFLUENCE": 1,
+        "LEGACY": 0
+      },
+      "repeatedOrders": 23,
+      "researched": 8,
+      "heritages": 0,
+      "resonanceCycles": 1,
+      "finalPopulation": 2,
+      "finalCities": 1,
+      "maxLevel": 1,
+      "firstLevelRound": {
+        "N4": null,
+        "N5": null,
+        "N6": null,
+        "N7": null
+      },
+      "prestige": 4,
+      "meanMood": 0.8,
+      "attacksSuffered": 18
+    },
+    "player-2": {
+      "civilization": "valgard",
+      "roundsClosed": 21,
+      "planningMs": {
+        "mean": 19037,
+        "median": 15268,
+        "max": 33292,
+        "total": 514011
+      },
+      "availableActionsMean": 23,
+      "commands": 128,
+      "commandsByType": {
+        "CHOOSE_AMBITIONS": 1,
+        "WORLD_CHOICE": 11,
+        "RESOLVE_CHOICE": 8,
+        "QUEUE_ORDER": 46,
+        "URBAN_ACTION": 30,
+        "READY": 27,
+        "MANAGE": 5
+      },
+      "rejected": 3,
+      "rejectedByCode": {
+        "VERSION_CONFLICT": 3
+      },
+      "orders": {
+        "CITY": 25,
+        "EXPEDITION": 46,
+        "ADVANCE": 5,
+        "INFLUENCE": 0,
+        "LEGACY": 0
+      },
+      "repeatedOrders": 29,
+      "researched": 5,
+      "heritages": 0,
+      "resonanceCycles": 1,
+      "finalPopulation": 2,
+      "finalCities": 1,
+      "maxLevel": 3,
+      "firstLevelRound": {
+        "N4": null,
+        "N5": null,
+        "N6": null,
+        "N7": null
+      },
+      "prestige": 21,
+      "meanMood": 0.8,
+      "attacksSuffered": 0
+    }
+  }
+}

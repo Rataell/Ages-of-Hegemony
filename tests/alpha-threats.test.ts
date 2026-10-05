@@ -265,6 +265,18 @@ describe('players against threats', () => {
     expect(AlphaStateSchema.safeParse(state).success).toBe(true);
   });
 
+  it('D-1: a fresh camp that the player strikes inside its window dies camped, pays its reward and never becomes a Bando', () => {
+    const { state, threat, stand } = fight(1, 'CAMPED');
+    threat.fresh = true;
+    activateThreats(state, { launch: true }); // an ATIVAR / Era turn in the same chain does nothing to it
+    expect(threat.status).toBe('CAMPED');
+    for (let i = 0; i < 4 && state.threats.length; i++) attack(state, threat, stand);
+    expect(state.threats).toHaveLength(0);
+    expect(threat.rewardPaid).toBe(true); expect(state.telemetry.threatKills).toBe(1);
+    activateThreats(state, { launch: true });
+    expect(state.threats.filter(item => item.status === 'MARCHING')).toHaveLength(0);
+  });
+
   it('a level III camp also pays Prestígio and an Encontro choice', () => {
     const { state, threat, stand } = fight(3, 'CAMPED');
     const prestige = state.players[0]!.prestige;

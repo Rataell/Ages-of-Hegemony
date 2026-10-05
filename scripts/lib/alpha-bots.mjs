@@ -189,6 +189,11 @@ export function candidates(box, id, persona) {
     if (!uo) continue;
     if (uo.explore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } });
     else {
+      // D-1 measurement: competent players sweep the ring 3–5 hexes from their cities, where a new Acampamento can stand, so a fresh camp can be found and struck inside its window.
+      const sweep = comp ? Object.keys(uo.moves).map(hex => ({ hex, tile: tileOf(state, hex) })).filter(s => s.tile && !['SEA', 'MOUNTAINS', 'UNKNOWN'].includes(s.tile.terrain) && s.tile.ownerId === null)
+        .map(s => ({ ...s, near: Math.min(...cities.map(c => dist(tileOf(state, c.hexId), s.tile))), seen: ctx.swept?.get(`${id}:${s.hex}`) ?? 0 })).filter(s => s.near >= 3 && s.near <= 5)
+        .sort((a, b) => a.seen - b.seen || a.hex.localeCompare(b.hex))[0] : null;
+      if (sweep) { (ctx.swept ??= new Map()).set(`${id}:${sweep.hex}`, round); add(46 * (persona.explore ?? 1), `sweep:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[sweep.hex] } }); continue; }
       const frontier = Object.keys(uo.moves).map(hex => ({ hex, tile: tileOf(state, hex) })).filter(s => s.tile).sort((a, b) => dist(tileOf(state, o.civilization.cities[0].hexId), b.tile) - dist(tileOf(state, o.civilization.cities[0].hexId), a.tile) || a.hex.localeCompare(b.hex))[0];
       if (frontier) add(38 * (persona.explore ?? 1), `scout:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[frontier.hex] } });
     }
