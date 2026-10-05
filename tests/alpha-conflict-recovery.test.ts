@@ -123,7 +123,9 @@ describe('stale multiplayer commands recover once', () => {
     const state = await game();
     const unit = state.units.find(u => u.ownerId === state.players[1]!.playerId)!;
     const from = state.core.map.find(t => t.id === unit.hexId)!;
-    const target = hexNeighbors(from).map(t => state.core.map.find(tile => tile.id === `${t.q},${t.r}`)).find(t => t && !['SEA', 'UNKNOWN'].includes(t.terrain))!;
+    // Only hexes of Regions open for Beto are legal steps (the capital sits on an outer hex of its Pátria).
+    const open = new Set(b.room.game!.view.visibleTerritory.map(t => t.id as string));
+    const target = hexNeighbors(from).map(t => state.core.map.find(tile => tile.id === `${t.q},${t.r}`)).find(t => t && open.has(t.id) && !['SEA', 'UNKNOWN', 'MOUNTAINS'].includes(t.terrain))!;
     const outcome = await b.send({ type: 'QUEUE_ORDER', order: { id: 'order-recover', type: 'MOVE', unitIds: [unit.id], path: [target.id] } });
     expect(outcome.retried).toBe(true);
     expect(outcome.reply.ok).toBe(true);
