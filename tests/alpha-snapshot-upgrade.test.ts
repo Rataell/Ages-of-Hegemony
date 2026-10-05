@@ -51,3 +51,17 @@ describe('V5.1a → V5.1b snapshot upgrade', () => {
     expect(deserializeAlphaState(JSON.stringify({ schemaVersion: 5 })).ok).toBe(false);
   });
 });
+
+describe('raid bands become Acampamentos (V5.1b threats)', () => {
+  it('migrates saved raidBands into level I/II camps with a public event, and parses again', () => {
+    const state = AlphaStateSchema.parse(JSON.parse(JSON.stringify(beginAlphaPlanning(createAlphaGame({ gameId: 'raid-up', seed: 3, preset: 'QUICK', players: [{ id: 'p1', name: 'A' }, { id: 'p2', name: 'B' }] })))));
+    const raw = JSON.parse(JSON.stringify(state)) as Record<string, unknown>;
+    const hex = state.threats[0]!.hexId;
+    delete raw.threats; raw.rulesVersion = 'v5.1a'; raw.raidBands = [{ id: 'raid-1', hexId: hex, strength: 2, lastMovedRound: 0 }, { id: 'raid-2', hexId: state.threats[1]!.hexId, strength: 3, lastMovedRound: 0 }];
+    const upgraded = AlphaStateSchema.parse(raw);
+    expect(upgraded.threats.map(t => [t.kind, t.level, t.status, t.hexId])).toEqual([['CAMP', 1, 'CAMPED', hex], ['CAMP', 2, 'CAMPED', state.threats[1]!.hexId]]);
+    expect('raidBands' in upgraded).toBe(false);
+    expect(upgraded.events.some(e => e.type === 'SAVE_UPGRADED' && e.audience === null && e.message.includes('Acampamentos'))).toBe(true);
+    expect(AlphaStateSchema.safeParse(upgraded).success).toBe(true);
+  });
+});

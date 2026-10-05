@@ -1,13 +1,13 @@
 import { liftLegacyCityCaps } from './alpha-turn.js';
-import { featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
+import { featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, threatComposition, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { initializeAlphaCards } from './alpha-cards.js';
 import { alphaRandomInteger, combineAlphaSeed, deterministicAlphaSeed } from './alpha-random.js';
-import { alphaEvent } from './alpha-events.js';
 import { applyCivilizationHeritage, kitExplorationKnowledge, kitExplorationReach } from './alpha-kits.js';
 import { alphaGainLegacy } from './alpha-resources.js';
+import { applyDiscovery, generateDiscoveries } from './alpha-discoveries.js';
 
 export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;actionsPerRound?:number;revealMap?:boolean}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
@@ -74,8 +74,8 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   const peoples=pick([...land].sort((a,b)=>reach(a).contest-reach(b).contest||reach(a).near-reach(b).near||a.id.localeCompare(b.id)),3,[]);
   const wild=pick([...land].sort((a,b)=>reach(b).near-reach(a).near||a.id.localeCompare(b.id)),2,peoples);
   state.independents=peoples.map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));
-  state.raidBands=wild.map((tile,index)=>({id:`raid-${index+1}`,hexId:tile.id,strength:2+index,lastMovedRound:0}));
-  applyCivilizationHeritage(state);initializeAlphaCards(state);return AlphaStateSchema.parse(state);
+  state.threats=wild.map((tile,index)=>({id:`camp-start-${index+1}`,kind:'CAMP' as const,hexId:tile.id,homeHexId:tile.id,level:1 as const,status:'CAMPED' as const,composition:threatComposition('CAMP',1,0),createdRound:0,lastActedRound:0,rewardPaid:false}));
+  applyCivilizationHeritage(state);initializeAlphaCards(state);generateDiscoveries(state);return AlphaStateSchema.parse(state);
 }
 export function visibleHexIds(state:AlphaState,actor:PlayerId):Set<string> {
   const player=state.core.players.find(p=>p.id===actor)!;
@@ -139,49 +139,11 @@ export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<Stra
   region.rotation=rotation;region.revealedBy.push(actor);
   const player=state.players.find(p=>p.playerId===actor)!;player.knownHexIds=[...new Set([...player.knownHexIds,...region.hexIds])].sort();player.exploredRegions++;player.prestige++;
   const knowledge=kitExplorationKnowledge(state,actor,region.hexIds);if(knowledge)alphaGainLegacy(state,actor,{knowledge});
+  applyDiscovery(state,actor,region,order.unitId);
 }
 
-function raidDefense(state:AlphaState,hexIdValue:string):number {
-  const units=state.units.filter(unit=>unit.hexId===hexIdValue);
-  const pieces=units.reduce((total,unit)=>total+state.rules.units[unit.kind].strength,0);
-  const city=state.core.players.flatMap(player=>player.civilization.cities).find(candidate=>candidate.hexId===hexIdValue);
-  const level=city?state.cities.find(meta=>meta.cityId===city.id)?.level:undefined;
-  return pieces+(level?['OUTPOST','HAMLET','VILLAGE','CITY','GREAT_CITY','METROPOLIS','IMPERIAL_METROPOLIS'].indexOf(level)+1:0);
-}
-
-/** One deterministic step per band at round end. Weak occupied targets are preferred and attacked on contact. */
-export function resolveRaidBands(state:AlphaState):void {
-  const byId=new Map(state.core.map.map(tile=>[tile.id,tile]));
-  const assets=[...new Set([
-    ...state.units.map(unit=>unit.hexId),
-    ...state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)),
-  ])].filter(id=>byId.has(id));
-  for(const band of [...state.raidBands].sort((a,b)=>a.id.localeCompare(b.id))){
-    if(band.lastMovedRound>=state.core.round)continue;
-    const current=byId.get(band.hexId);if(!current){band.lastMovedRound=state.core.round;continue;}
-    const targets=[...assets].sort((a,b)=>{
-      const weakA=Number(raidDefense(state,a)>=band.strength),weakB=Number(raidDefense(state,b)>=band.strength);
-      return weakA-weakB||hexDistance(current,byId.get(a)!)-hexDistance(current,byId.get(b)!)||a.localeCompare(b);
-    });
-    const target=targets[0];
-    if(target&&target!==band.hexId){
-      const step=hexNeighbors(current).map(point=>byId.get(hexId(point))).filter(tile=>tile&&!['SEA','UNKNOWN'].includes(tile.terrain))
-        .sort((a,b)=>hexDistance(a!,byId.get(target)!)-hexDistance(b!,byId.get(target)!)||a!.id.localeCompare(b!.id))[0];
-      if(step)band.hexId=step.id;
-    }
-    band.lastMovedRound=state.core.round;
-    if(!target||band.hexId!==target||raidDefense(state,target)>=band.strength)continue;
-    const victims=state.units.filter(unit=>unit.hexId===target).sort((a,b)=>state.rules.units[a.kind].strength-state.rules.units[b.kind].strength||a.id.localeCompare(b.id));
-    const lost=victims[0];if(lost)state.units=state.units.filter(unit=>unit.id!==lost.id);
-    const city=state.core.players.flatMap(player=>player.civilization.cities).find(candidate=>candidate.hexId===target);
-    if(city)city.stability=Math.max(0,city.stability-band.strength);
-    const owner=city?.ownerId??lost?.ownerId;
-    alphaEvent(state,'RAID_ATTACK',`${band.id} atacou ${target}${lost?` e eliminou ${lost.id}`:''}.`,owner?[owner]:null);
-  }
-}
-
-/** Bands move every round, so only those inside current vision are shown; a remembered hex would leak a live position. */
-export function raidBandView(state:AlphaState,actor:PlayerId){
+/** Threats move every round, so only those inside current vision are shown; a remembered hex would leak a live position. */
+export function threatView(state:AlphaState,actor:PlayerId){
   const visible=visibleHexIds(state,actor);
-  return state.raidBands.filter(band=>visible.has(band.hexId)).map(band=>({id:band.id,hexId:band.hexId,strength:band.strength,lastMovedRound:band.lastMovedRound}));
+  return state.threats.filter(threat=>visible.has(threat.hexId)||state.rules.revealMap).map(threat=>({id:threat.id,kind:threat.kind,hexId:threat.hexId,level:threat.level,status:threat.status,composition:threat.composition}));
 }

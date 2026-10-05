@@ -71,7 +71,7 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
     for(const id of path) {
       const target=state.core.map.find(t=>t.id===id);
       if(!target||!progress.knownHexIds.includes(id)||hexDistance(current,target)!==1||!canEnter(state,unit,id))throw new Error('Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.');
-      if(order.type==='MOVE'&&(!movementOpen(state,actor,target.ownerId)||enemyCityAt(state,actor,id)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)))throw new Error('Fronteira fechada, cidade inimiga ou presença de outra civilização: use uma ordem de conflito.');
+      if(order.type==='MOVE'&&(!movementOpen(state,actor,target.ownerId)||enemyCityAt(state,actor,id)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)||state.threats.some(t=>t.hexId===id)))throw new Error('Fronteira fechada, cidade inimiga, ameaça do mundo ou presença de outra civilização: use uma ordem de conflito.');
       cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];current=target;
     }
     if(cost>unitMovement(state,unit)+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind))throw new Error('Caminho excede a mobilidade da peça.');
@@ -81,11 +81,14 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
   if(order.type==='ATTACK') {
     const enemies=state.units.filter(u=>u.hexId===order.target&&u.ownerId!==actor);
     const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target&&c.ownerId!==actor);
-    if(!enemies.length&&!city)throw new Error('Não há adversário conhecido nesse destino.');
-    const defender=enemies[0]?.ownerId??city!.ownerId;
-    // A declaration planned this round resolves in Diplomacy, before Conflicts, so the attack may be reserved with it.
-    const declared=state.phase==='PLANNING'&&progress.plannedActions.some(action=>action.type==='DECLARE_WAR'&&action.targetId===defender);
-    if(!atWar(state,actor,defender)&&!declared)throw new Error('Declare guerra antes de ordenar um ataque a outra civilização.');
+    const threat=state.threats.some(t=>t.hexId===order.target);
+    if(!enemies.length&&!city&&!threat)throw new Error('Não há adversário conhecido nesse destino.');
+    if(enemies.length||city){
+      const defender=enemies[0]?.ownerId??city!.ownerId;
+      // A declaration planned this round resolves in Diplomacy, before Conflicts, so the attack may be reserved with it.
+      const declared=state.phase==='PLANNING'&&progress.plannedActions.some(action=>action.type==='DECLARE_WAR'&&action.targetId===defender);
+      if(!atWar(state,actor,defender)&&!declared)throw new Error('Declare guerra antes de ordenar um ataque a outra civilização.');
+    }
     if(new Set(units.map(u=>u?.hexId)).size!==1)throw new Error('Uma força de ataque deve partir do mesmo hex.');
   }
 }

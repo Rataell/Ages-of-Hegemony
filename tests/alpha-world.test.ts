@@ -28,6 +28,7 @@ describe('modular regions and fog of war',()=>{
     for(const worldPreset of ['MIXED','INLAND_SEA','ARCHIPELAGO'] as const)for(const seed of [23,42]){
       const state=beginAlphaPlanning(createAlphaGame({gameId:`corridor-${count}-${worldPreset}-${seed}`,seed,preset:'QUICK',worldPreset,players:Array.from({length:count},(_,i)=>({id:`p${i+1}`,name:`Pessoa ${i+1}`}))}));
       const actor=state.players[0]!.playerId,unit=state.units.find(candidate=>candidate.ownerId===actor)!;
+      state.regions.forEach(region=>{region.discovery={kind:'NONE',resolved:true,resolvedBy:null};});
       for(const region of state.regions.filter(candidate=>!candidate.revealedBy.includes(actor))){const edge=state.core.map.find(tile=>!region.hexIds.includes(tile.id)&&region.hexIds.some(id=>hexDistance(tile,state.core.map.find(candidate=>candidate.id===id)!)===1));expect(edge).toBeDefined();unit.hexId=edge!.id;exploreRegion(state,actor,{type:'EXPLORE',id:`reveal-${region.id}`,unitId:unit.id,target:region.hexIds[0]!,rotation:0});}
       const capitals=state.core.players.map(player=>player.civilization.cities[0]!.hexId),byId=new Map(state.core.map.map(tile=>[tile.id,tile]));
       const seen=new Set<string>(),queue=[capitals[0]!];

@@ -8,8 +8,9 @@ describe('deterministic complete alpha scenario',()=>{
     expect(AlphaStateSchema.safeParse(state).success).toBe(true);expect(state.core.status).toBe('FINISHED');
     expect(state.winner).toMatchObject({playerId:'p1',reason:'HEGEMONY'});
     expect(state.players[0]!.era).toBe('ASCENSION');expect(state.players[0]!.exploredRegions).toBe(1);
-    expect(state.battles).toHaveLength(1);expect(state.battles[0]!.losses.length).toBeGreaterThan(0);
-    expect(state.battles[0]!.retreat).not.toBeNull();
+    const duels=state.battles.filter(battle=>battle.attackerId!=='world'&&battle.defenderId!=='world');
+    expect(duels).toHaveLength(1);expect(duels[0]!.losses.length).toBeGreaterThan(0);
+    expect(duels[0]!.retreat).not.toBeNull();
     expect(state.projects).toHaveLength(1);expect(state.roundReports.some(r=>r.trade.wealth>0)).toBe(true);
     expect(state.players[0]!.research).toHaveLength(8);
     for(const command of ['PLAY_CARD','SETTLE','URBAN_ACTION','PROPOSE_TREATY','RESPOND_TREATY','DECLARE_WAR','DECLARE_HEGEMONY','BUILD_PROJECT'])expect(trace.some(t=>t.command===command)).toBe(true);

@@ -46,7 +46,9 @@ async function completeHttpMatch(playerCount: 2 | 4 | 6) {
       let view = await read(current.id, cookies[index]!);
       if (!view.game!.self.ambitionsChosen) await call({ operation: 'command', gameId: current.id, payload: { type: 'CHOOSE_AMBITIONS', expectedVersion: view.game!.version, cardIds: view.game!.self.ambitions.slice(0, 2) } }, cookies[index]);
       view = await read(current.id, cookies[index]!);
-      await call({ operation: 'command', gameId: current.id, payload: { type: 'URBAN_ACTION', expectedVersion: view.game!.version, cityId: `capital-${index + 1}`, action: 'PRODUCE' } }, cookies[index]);
+      // A city a Bando drove into Revolta only accepts Governar (canon §10): the bot governs it instead of producing.
+      const revolt = view.game!.cityStates.find(city => city.cityId === `capital-${index + 1}`)?.moodBand === 'REVOLT';
+      await call({ operation: 'command', gameId: current.id, payload: { type: 'URBAN_ACTION', expectedVersion: view.game!.version, cityId: `capital-${index + 1}`, action: revolt ? 'CIVIC_ACTION' : 'PRODUCE' } }, cookies[index]);
     }
     for (let index = 0; index < playerCount; index++) {
       const view = await read(current.id, cookies[index]!);

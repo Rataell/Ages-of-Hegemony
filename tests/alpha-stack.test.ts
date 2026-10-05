@@ -19,7 +19,7 @@ function arena(seed = 5) {
   const migrated = migrateSnapshotV3ToV4(core.value); if (!migrated.ok) throw new Error(migrated.error.message);
   const state = beginAlphaPlanning(migrated.value);
   state.players.forEach(player => { player.knownHexIds = state.core.map.map(tile => tile.id); });
-  state.units = [];
+  state.units = []; state.threats = [];
   return state;
 }
 let serial = 0;

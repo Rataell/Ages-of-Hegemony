@@ -1,5 +1,5 @@
 import {
-  type AlphaCity, type AlphaState, type AlphaUnit, type BattlePosture, type CombatConfig, type HexId, type PlayerId, type StrategicOrder, type TacticalFace,
+  WORLD_ID, type AlphaCity, type AlphaState, type AlphaUnit, type BattlePosture, type CombatConfig, type HexId, type PlayerId, type StrategicOrder, type TacticalFace,
 } from '@aoh/game-domain';
 import { hexNeighbors, hexId } from './hex.js';
 import { occupyCity } from './alpha-cities.js';
@@ -10,6 +10,7 @@ import { stackBlock, stackRoom } from './alpha-stack.js';
 import { isPort, settleCargo } from './alpha-naval.js';
 import { isSignature } from './alpha-kits.js';
 import { alphaEvent } from './alpha-events.js';
+import { landform, payThreatReward, removeThreatPieces, threatAt, threatName, threatPieces } from './alpha-threats.js';
 import { GRADE_NUMERALS, unitGrade } from './alpha-grades.js';
 import { casualtyCount, chooseLosses, fortificationBonus, isFortified, resolveShock, signaturePassives, sumOf, type Fort, type Modifier, type ShockPiece } from './alpha-shock.js';
 
@@ -78,6 +79,7 @@ export function combatPreview(state: AlphaState, actor: PlayerId, order: Order):
   const base = { dieFaces: config.dieFaces, thresholds, note: 'Cada peça de combate rola 1 dado tático na resolução; o resultado só existe depois da batalha. Δ = ataque − defesa.' };
   const terrain = state.core.map.find(tile => tile.id === order.target)?.terrain ?? 'UNKNOWN';
   if (blocked !== null) return { ok: false, blocked, target: order.target, terrain, ...base, attacker: { strength: 0, posture: order.posture, units: [], breakdown: [], total: 0 }, defender: null, advance: { total: 0, stays: 0, note: null } };
+  if (isThreatTarget(state, actor, order)) return threatPreview(state, actor, order, base, thresholds);
   const sides = sidesOf(state, actor, order);
   const attack = staticSide(state, sides, true), defend = staticSide(state, sides, false);
   const fortification: Fort | null = sides.meta ? { ...sides.meta.fortification } : null;
@@ -111,6 +113,7 @@ export function resolveBattle(state: AlphaState, actor: PlayerId, order: Order):
 /** The same resolution with some dice fixed. Used by tests to exercise each face and COMMAND without depending on a seed. */
 export function resolveBattleWithFaces(state: AlphaState, actor: PlayerId, order: Order, forced?: Record<string, TacticalFace>): void {
   validateMilitaryOrder(state, actor, order);
+  if (isThreatTarget(state, actor, order)) { resolveThreatAttack(state, actor, order, forced); return; }
   const sides = sidesOf(state, actor, order);
   const { attackers, defenders, defenderId, city } = sides;
   const tile = state.core.map.find(candidate => candidate.id === order.target)!;
@@ -185,4 +188,67 @@ function blockPort(state: AlphaState, attacker: PlayerId, defender: PlayerId, ta
   if (!city || !meta) return;
   meta.portBlockedUntil = state.core.round + 1; meta.portBlockedBy = attacker;
   alphaEvent(state, 'PORT_BLOCKED', `Abordagem: o porto de ${city.name} está bloqueado até o fim da próxima rodada.`, [attacker, defender]);
+}
+
+/** The target hex holds a world threat and no civilization's piece or city (design I-21). */
+export function isThreatTarget(state: AlphaState, actor: PlayerId, order: Order): boolean {
+  return threatAt(state, order.target) !== undefined && !state.units.some(unit => unit.hexId === order.target && unit.ownerId !== actor) && cityAt(state, order.target) === undefined;
+}
+
+function threatPreview(state: AlphaState, actor: PlayerId, order: Order, base: { dieFaces: readonly TacticalFace[]; thresholds: { tie: number; decisive: number }; note: string }, _thresholds: unknown): CombatPreview {
+  void _thresholds;
+  const threat = threatAt(state, order.target)!, tile = state.core.map.find(candidate => candidate.id === order.target)!;
+  const sides: Sides = { attackerId: actor, defenderId: WORLD_ID, attackers: state.units.filter(unit => order.unitIds.includes(unit.id)).sort(byId), defenders: [], city: undefined, meta: undefined, terrain: tile.terrain, hexId: order.target };
+  const attack = staticSide(state, sides, true), flat: Modifier[] = [];
+  push(flat, 'Terreno', landform(state, tile.terrain));
+  const seen = visibleHexIds(state, actor).has(order.target);
+  const room = stackRoom(state, actor, sides.attackers, order.target);
+  const power = (kind: AlphaUnit['kind']) => state.rules.units[kind].strength;
+  const pieces = threatPieces(threat);
+  const label = (unit: AlphaUnit) => { const grade = unitGrade(state, unit.ownerId, unit.kind); return { grade, grau: GRADE_NUMERALS[grade - 1]! }; };
+  const attackPieces = piecesOf(state, attack.fighters);
+  const attackBreakdown = [...attack.modifiers, ...signaturePassives(state, { pieces: attackPieces, posture: order.posture, flat: attack.modifiers }, true, { attacker: { pieces: attackPieces, posture: order.posture, flat: attack.modifiers }, defender: { pieces, posture: 'HOLD', flat }, terrain: tile.terrain, city: false, fortification: null })];
+  return {
+    ok: true, blocked: null, target: order.target, terrain: tile.terrain, ...base,
+    advance: { total: sides.attackers.length, stays: room.stays.length, note: null },
+    attacker: { strength: attack.fighters.reduce((total, unit) => total + power(unit.kind), 0), posture: order.posture, units: sides.attackers.map(unit => ({ id: unit.id, kind: unit.kind, strength: power(unit.kind), ...label(unit) })), breakdown: attackBreakdown, total: attack.fighters.reduce((total, unit) => total + power(unit.kind), 0) + sumOf(attackBreakdown) },
+    defender: seen ? { visible: true, strength: pieces.reduce((total, piece) => total + power(piece.kind), 0), units: pieces.map(piece => ({ kind: piece.kind, strength: power(piece.kind), grade: 1, grau: 'I' })), breakdown: flat, fortification: null, posture: 'UNKNOWN' } : { visible: false, strength: 0, units: [], breakdown: [], fortification: null, posture: 'UNKNOWN' },
+  };
+}
+
+/** A player attacks a camp, a Bando or a pirate hold with the same shock core (design I-21, I-22). */
+function resolveThreatAttack(state: AlphaState, actor: PlayerId, order: Order, forced?: Record<string, TacticalFace>): void {
+  const threat = threatAt(state, order.target)!, tile = state.core.map.find(candidate => candidate.id === order.target)!;
+  const attackers = state.units.filter(unit => order.unitIds.includes(unit.id)).sort(byId);
+  const sides: Sides = { attackerId: actor, defenderId: WORLD_ID, attackers, defenders: [], city: undefined, meta: undefined, terrain: tile.terrain, hexId: order.target };
+  const attack = staticSide(state, sides, true), flat: Modifier[] = [];
+  push(flat, 'Terreno', landform(state, tile.terrain));
+  const defenders = threatPieces(threat);
+  const shock = resolveShock(state, { attacker: { pieces: piecesOf(state, attack.fighters), posture: order.posture, flat: attack.modifiers }, defender: { pieces: defenders, posture: 'HOLD', flat }, terrain: tile.terrain, city: false, fortification: null, ...(forced ? { forced } : {}) });
+  const { delta, outcome } = shock;
+  const attackerLosses: string[] = [], threatLosses: string[] = [];
+  if (outcome === 'TIE') {
+    if (attack.fighters.length >= 2) attackerLosses.push(...chooseLosses(state, attack.fighters, 1));
+    if (defenders.length >= 2) threatLosses.push(...chooseLosses(state, defenders, 1));
+  } else if (delta > 0) threatLosses.push(...chooseLosses(state, defenders, casualtyCount(outcome)));
+  else attackerLosses.push(...chooseLosses(state, attack.fighters.length ? attack.fighters : attackers, casualtyCount(outcome)));
+  const destroyed = removeThreatPieces(state, threat, threatLosses);
+  state.units = state.units.filter(unit => !attackerLosses.includes(unit.id));
+  if (destroyed) { state.telemetry.threatLosses++; payThreatReward(state, actor, threat); }
+  const survivors = attackers.filter(unit => !attackerLosses.includes(unit.id));
+  const advances = destroyed && outcome !== 'TIE' && delta > 0;
+  if (advances) {
+    const { fits } = stackRoom(state, actor, survivors, order.target);
+    fits.forEach(unit => { unit.hexId = order.target; unit.carrierId = null; });
+  }
+  state.telemetry.threatAttacks++;
+  state.battles.push({
+    id: `battle-${state.battles.length + 1}`, round: state.core.round, hexId: order.target, attackerId: actor, defenderId: WORLD_ID,
+    attackerUnits: attackers.map(unit => unit.id), defenderUnits: defenders.map(piece => piece.id), attackerPosture: order.posture, defenderPosture: 'HOLD',
+    attackBreakdown: shock.attackBreakdown, defenseBreakdown: shock.defenseBreakdown, attackerTactical: shock.attackerRolls, defenderTactical: shock.defenderRolls, fortification: null,
+    attackStrength: shock.attackStrength, defenseStrength: shock.defenseStrength, attackModifiers: shock.attackModifiers, defenseModifiers: shock.defenseModifiers, attackTotal: shock.attackTotal, defenseTotal: shock.defenseTotal,
+    delta, outcome, winnerId: outcome !== 'TIE' && delta > 0 ? actor : WORLD_ID, losses: [...attackerLosses, ...threatLosses], retreat: advances ? null : attackers[0]!.hexId,
+  });
+  alphaEvent(state, 'THREAT_BATTLE', `${threatName(threat)} em ${order.target}: Δ ${delta > 0 ? '+' : ''}${delta}${destroyed ? ', destruído' : ''}.`, [actor]);
+  settleCargo(state);
 }

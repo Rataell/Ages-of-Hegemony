@@ -35,4 +35,5 @@ export * from './alpha-grades.js';
 export * from './alpha-shock.js';
 export * from './alpha-kits.js';
 export { applyOps, autoResolveChoices, addPendingChoice, pickRepercussion, registerAdvance, resolveChoice } from './alpha-resonance.js';
-export { applyThreatCommand } from './alpha-threats.js';
+export * from './alpha-threats.js';
+export * from './alpha-discoveries.js';

@@ -17,3 +17,4 @@ export * from './alpha-leaders.js';
 export * from './alpha-stack.js';
 export * from './alpha-civilization-kits.js';
 export * from './alpha-resonance.js';
+export * from './alpha-threats.js';

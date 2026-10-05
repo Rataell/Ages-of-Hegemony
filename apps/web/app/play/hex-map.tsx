@@ -31,7 +31,7 @@ type Props = {
   units?: readonly AlphaUnit[];
   /** Independent peoples and raid bands the player knows of (Alpha). */
   peoples?: readonly { hexId: string; type: string; attitude: string; integratedBy: string | null }[];
-  raids?: readonly { hexId: string; strength: number }[];
+  threats?: readonly { id: string; hexId: string; kind: 'CAMP' | 'PIRATE'; level: 1 | 2 | 3; status: 'CAMPED' | 'MARCHING' }[];
   art?: MapArt;
   selected: string | null;
   focus: string | null;
@@ -86,7 +86,7 @@ export const HexMap = memo(function HexMap({
   onSelect,
   units = [],
   peoples = [],
-  raids = [],
+  threats = [],
   art,
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -342,10 +342,10 @@ export const HexMap = memo(function HexMap({
               )}
               {/* Neutral powers: an independent people (house) or a raid band (crossed blades, with its strength). */}
               {(() => {
-                const people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null), raid = raids.find(r => r.hexId === tile.id);
+                const people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null), threat = threats.find(r => r.hexId === tile.id);
                 return <>
                   {people && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
-                  {raid && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className="alpha-raid"><rect x="-17" y="-10" width="34" height="20" rx="4" className="raid-badge" /><path d="M-11 6L-1 -5M-11 -5L-1 6" className="raid-glyph" /><text x="8" y="4" className="raid-count" textAnchor="middle">{raid.strength}</text><title>Bando saqueador · Força {raid.strength}</title></g>}
+                  {threat && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className={`alpha-raid alpha-threat kind-${threat.kind} status-${threat.status}`} data-level={threat.level}><rect x="-19" y="-10" width="38" height="20" rx="4" className="raid-badge" />{threat.kind === 'PIRATE' ? <path d="M-14 6L-3 6L-9 -6Z M-9 -6V7" className="raid-glyph" /> : threat.status === 'CAMPED' ? <path d="M-14 6L-8 -6L-2 6Z M-8 -6V6" className="raid-glyph" /> : <path d="M-13 6L-3 -5M-13 -5L-3 6" className="raid-glyph" />}<text x="9" y="4" className="raid-count" textAnchor="middle">{['I', 'II', 'III'][threat.level - 1]}</text><title>{threat.kind === 'PIRATE' ? (threat.status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : (threat.status === 'CAMPED' ? 'Acampamento' : 'Bando em marcha')} · Ameaça {['I', 'II', 'III'][threat.level - 1]}</title></g>}
                 </>;
               })()}
               {/* One badge per owner: the owner's colour, a soldier or a flag for civil pieces, and the count. Foreign pieces are outlined. */}

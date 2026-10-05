@@ -1,5 +1,5 @@
 import { ACTION_CLASS, ADVANCEMENTS, CityLevelSchema, GREAT_PROJECTS, elevateRequirement, ladderStep, nextLevel, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, raidBandView, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -30,7 +30,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     cityMarks:state.cities.flatMap(meta=>{const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.id===meta.cityId);if(!city||(meta.currentOwnerId!==actor&&!visible.has(city.hexId)&&!state.rules.revealMap))return [];/* A blockade of a rival's port would reveal a war between others: only the owner learns it. */const own=meta.currentOwnerId===actor;return [{cityId:meta.cityId,hexId:city.hexId,ownerId:meta.currentOwnerId,level:CityLevelSchema.options.indexOf(meta.level)+1,capacity:ladderStep(meta.level).capacity,capital:meta.capital,fortification:meta.fortification,blockaded:own?blockadedBy(state,city.hexId,actor)!==null:null}];}),
     culture:culturalPresenceView(state,actor),
     independents:independentPeopleView(state,actor),
-    raidBands:raidBandView(state,actor),
+    threats:threatView(state,actor),threatAlerts:threatAlerts(state,actor),explorationHints:explorationHints(state,actor),
     leaderBlock:leaderAbilityBlock(state,actor),
     stacks:stackView(state,actor),unitOptions:alphaUnitOptions(state,actor),claimOptions:alphaClaimOptions(state,actor),
     /** While reactions are open, the defender learns who attacks which of its hexes (never the force or posture). */
@@ -58,7 +58,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     frontier:state.core.map.filter(t=>!knownIds.has(t.id)&&!visible.has(t.id)&&explored.some(k=>hexDistance(k,t)===1)).map(t=>({id:t.id,q:t.q,r:t.r,visibility:'UNKNOWN' as const})),
     /** Rivals see a fleet, never its cargo. */
     units:state.units.filter(u=>u.ownerId===actor||(visible.has(u.hexId)&&!u.carrierId)).map(u=>({...u,supply:u.ownerId===actor?unitSupply(state,u):null})),
-    regions:state.regions.filter(r=>r.revealedBy.includes(actor)).map(r=>({id:r.id,templateId:r.templateId,hexIds:r.hexIds,rotation:r.rotation})),
+    regions:state.regions.filter(r=>r.revealedBy.includes(actor)).map(r=>({id:r.id,templateId:r.templateId,hexIds:r.hexIds,rotation:r.rotation,discovery:r.discovery?{kind:r.discovery.kind,resolved:r.discovery.resolved}:null})),
     roads:state.roads.filter(id=>visible.has(id)),occupations:state.occupations.filter(o=>o.occupierId===actor||o.previousOwnerId===actor),
     treaties:state.treaties.filter(t=>t.proposerId===actor||t.recipientId===actor),tradeOffers:tradeOfferView(state,actor),wars:state.wars.filter(pair=>pair.includes(actor)),
     routes:state.routes.filter(r=>r.ownerId===actor||economic.player.civilization.cities.some(c=>c.id===r.toCityId)),

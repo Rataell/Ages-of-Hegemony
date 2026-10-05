@@ -37,9 +37,9 @@ describe('alpha core turn and finish',()=>{
     expect(serializeAlphaState(state)).toBe(before);
   });
   it('executes existing management with its real costs and alpha command budget',()=>{
-    const state=setup();const result=applyAlphaCommand(state,p1,{type:'MANAGE',expectedVersion:0,command:{type:'CLAIM_HEX',playerId:p1,cityId:'c1',hexId:'1,0',expectedVersion:0}});
+    const state=setup();const influenceBefore=state.core.players[0]!.resources.influence;const result=applyAlphaCommand(state,p1,{type:'MANAGE',expectedVersion:0,command:{type:'CLAIM_HEX',playerId:p1,cityId:'c1',hexId:'1,0',expectedVersion:0}});
     expect(result.ok).toBe(true);if(!result.ok)return;
-    expect(result.value.core.players[0]?.resources.influence).toBe(29);expect(result.value.players[0]?.spentCommands).toBe(1);
+    expect(result.value.core.players[0]?.resources.influence).toBe(influenceBefore-1);expect(result.value.players[0]?.spentCommands).toBe(1);
     result.value.players[0]!.spentCommands=result.value.rules.actionsPerRound!;
     const before=serializeAlphaState(result.value);
     expect(applyAlphaCommand(result.value,p1,{type:'MANAGE',expectedVersion:result.value.version,command:{type:'ASSIGN_POPULATION',playerId:p1,cityId:'c1',workers:result.value.core.players[0]!.civilization.cities[0]!.workers,expectedVersion:result.value.core.version}})).toMatchObject({ok:true});

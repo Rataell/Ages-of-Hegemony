@@ -7,11 +7,12 @@ import { HERITAGE_ADVANCES, migrateResearch } from './alpha-web.js';
 import { ALPHA_CARDS, GREAT_PROJECTS } from './alpha-cards.js';
 import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
 import { civilizationKit } from './alpha-civilization-kits.js';
+import { RegionDiscoverySchema, ThreatSchema, WORLD_ID, threatComposition } from './alpha-threats.js';
 import { PendingChoiceSchema, ResonanceStateSchema, advancementDomains, advancementSource, emptyResonance } from './alpha-resonance.js';
 import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
   ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, LegacyAlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
-  BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, RaidBandSchema, TacticalFaceSchema,
+  BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, TacticalFaceSchema,
   TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, legacyToAlphaResources, type AlphaRoundPhase,
 } from './alpha-concept.js';
 
@@ -150,7 +151,7 @@ const AlphaStateBase = z.strictObject({
   players: z.array(StrategicPlayerSchema).min(2).max(6),
   initiative: z.array(PlayerIdSchema).min(2).max(6), units: z.array(UnitSchema),
   roads:z.array(HexIdSchema),
-  regions:z.array(z.strictObject({id:IdentifierSchema,templateId:IdentifierSchema,hexIds:z.array(HexIdSchema).length(7),rotation:z.number().int().min(0).max(5),revealedBy:z.array(PlayerIdSchema),discovery:z.record(z.string(),z.json()).optional()})),
+  regions:z.array(z.strictObject({id:IdentifierSchema,templateId:IdentifierSchema,hexIds:z.array(HexIdSchema).length(7),rotation:z.number().int().min(0).max(5),revealedBy:z.array(PlayerIdSchema),discovery:RegionDiscoverySchema.optional()})),
   occupations:z.array(z.strictObject({cityId:CityIdSchema,occupierId:PlayerIdSchema,previousOwnerId:PlayerIdSchema,sinceRound:P})),
   treaties:z.array(z.strictObject({id:IdentifierSchema,proposerId:PlayerIdSchema,recipientId:PlayerIdSchema,type:TreatyTypeSchema,status:z.enum(['PROPOSED','ACCEPTED','ACTIVE','DECLINED','ENDED']),deal:ResourceDealSchema,createdRound:P,expiresRound:P})),
   wars:z.array(z.tuple([PlayerIdSchema,PlayerIdSchema])),
@@ -165,10 +166,10 @@ const AlphaStateBase = z.strictObject({
   })).default([]),
   tradeOffers:z.array(TradeOfferSchema).default([]),
   independents:z.array(IndependentPeopleSchema).default([]),
-  raidBands:z.array(RaidBandSchema).default([]),
   worldPulse:z.strictObject({deck:z.array(IdentifierSchema),discard:z.array(IdentifierSchema),current:WorldPulseCardSchema.nullable(),resolvedRound:N}).default({deck:[],discard:[],current:null,resolvedRound:0}),
-  /** Placeholders filled by later V5.1b slices (world threats, Era turn); read-only data until then. */
-  threats:z.array(z.record(z.string(),z.json())).default([]),
+  /** World threats (V5.1b §21b): Acampamentos, Bandos and pirate Ancoradouros. */
+  threats:z.array(ThreatSchema).default([]),
+  /** Placeholder filled by the Era turn slice; read-only data until then. */
   eraTurn:z.record(z.string(),z.json()).nullable().default(null),
   roundLedgers:z.array(RoundLedgerSchema).default([]),
   resolutionEvents:z.array(ResolutionEventSchema).default([]),
@@ -267,8 +268,9 @@ const AlphaStateBase = z.strictObject({
   for (const event of state.events) if (event.round > state.core.round || event.audience?.some(id => !owners.has(id))) fail('Invalid event audience or round');
   if(new Set(state.resolutionEvents.map(event=>event.id)).size!==state.resolutionEvents.length)fail('Duplicate resolution event');
   for(const event of state.resolutionEvents)if(event.round>state.core.round||(event.actorId!==null&&!owners.has(event.actorId))||event.visibleTo?.some(id=>!owners.has(id)))fail('Invalid resolution event');
+  if(new Set(state.threats.map(t=>t.id)).size!==state.threats.length||state.threats.some(t=>!hexes.has(t.hexId)||!hexes.has(t.homeHexId)||t.composition.length===0))fail('Invalid threat');
   for(const battle of state.battles) {
-    if(!hexes.has(battle.hexId)||!owners.has(battle.attackerId)||!owners.has(battle.defenderId)||battle.attackerId===battle.defenderId||battle.round>state.core.round)fail('Invalid battle participants');
+    if(!hexes.has(battle.hexId)||(!owners.has(battle.attackerId)&&battle.attackerId!==WORLD_ID)||(!owners.has(battle.defenderId)&&battle.defenderId!==WORLD_ID)||battle.attackerId===battle.defenderId||battle.round>state.core.round)fail('Invalid battle participants');
     const legacyAttack=battle.attackDice?battle.attackDice[0]+battle.attackDice[1]:0,legacyDefense=battle.defenseDice?battle.defenseDice[0]+battle.defenseDice[1]:0;
     if(battle.attackTotal!==battle.attackStrength+battle.attackModifiers+legacyAttack||battle.defenseTotal!==battle.defenseStrength+battle.defenseModifiers+legacyDefense)fail('Battle arithmetic mismatch');
     if(!battle.attackDice&&(battle.attackBreakdown.reduce((n,m)=>n+m.amount,0)!==battle.attackModifiers||battle.defenseBreakdown.reduce((n,m)=>n+m.amount,0)!==battle.defenseModifiers))fail('Battle breakdown mismatch');
@@ -281,7 +283,7 @@ export function upgradeToV51b(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
   const input = raw as Record<string, unknown>;
   if (input.schemaVersion !== 5) return raw;
-  if (input.rulesVersion === 'v5.1b') return refreshCombatCatalog(input);
+  if (input.rulesVersion === 'v5.1b') return refreshCombatCatalog(migrateRaidBands(input));
   const { pressure: _dropped, ...rest } = input;
   void _dropped;
   const players = Array.isArray(rest.players) ? (rest.players as Record<string, unknown>[]).map(player => {
@@ -292,7 +294,21 @@ export function upgradeToV51b(raw: unknown): unknown {
   }) : rest.players;
   const events = Array.isArray(rest.events) ? rest.events as unknown[] : [];
   const round = typeof (rest.core as { round?: unknown } | undefined)?.round === 'number' ? (rest.core as { round: number }).round : 1;
-  return refreshCombatCatalog({ ...rest, rulesVersion: 'v5.1b', players, events: [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Partida atualizada para as regras V5.1b: a Pressão do Mundo foi substituída pela Ressonância.' }] });
+  return refreshCombatCatalog(migrateRaidBands({ ...rest, rulesVersion: 'v5.1b', players, events: [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Partida atualizada para as regras V5.1b: a Pressão do Mundo foi substituída pela Ressonância.' }] }));
+}
+/** I-5/I-21: the pre-V5.1b raid bands become level-I/II Acampamentos (a band of strength 3+ is level II). Saves without `raidBands` are untouched. */
+function migrateRaidBands(input: Record<string, unknown>): Record<string, unknown> {
+  if (!('raidBands' in input)) return input;
+  const { raidBands, ...rest } = input;
+  const round = typeof (rest.core as { round?: unknown } | undefined)?.round === 'number' ? (rest.core as { round: number }).round : 1;
+  const bands = Array.isArray(raidBands) ? raidBands as { id?: string; hexId?: string; strength?: number }[] : [];
+  const existing = Array.isArray(rest.threats) ? rest.threats as unknown[] : [];
+  const threats = bands.filter(band => typeof band.hexId === 'string').map((band, index) => {
+    const level = (band.strength ?? 2) >= 3 ? 2 : 1;
+    return { id: `camp-${band.id ?? index + 1}`, kind: 'CAMP', hexId: band.hexId, homeHexId: band.hexId, level, status: 'CAMPED', composition: threatComposition('CAMP', level, 0), createdRound: 0, lastActedRound: round, rewardPaid: false };
+  });
+  const events = Array.isArray(rest.events) ? rest.events as unknown[] : [];
+  return { ...rest, threats: [...existing, ...threats], events: threats.length ? [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Os bandos de fronteira agora são Acampamentos com Ameaça I–III (regras V5.1b).' }] : events };
 }
 /** I-13: saves whose combat config lacks the V5.1b `shock` marker get the V5.1b unit and combat catalogs, with a public event. */
 function refreshCombatCatalog(input: Record<string, unknown>): Record<string, unknown> {

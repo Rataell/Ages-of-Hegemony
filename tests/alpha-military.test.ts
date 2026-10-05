@@ -15,9 +15,9 @@ function setup():AlphaState {
 }
 describe('alpha military pieces',()=>{
   it('recruits through an owned city, pays real costs, and requires coastal fleet access',()=>{
-    const state=setup();setAlphaPhase(state,'URBAN_ACTIONS');const result=urban(state,p1,'RECRUIT',{unit:'INFANTRY'},'c1');
+    const state=setup();setAlphaPhase(state,'URBAN_ACTIONS');const materialsBefore=state.core.players[0]!.resources.materials;const result=urban(state,p1,'RECRUIT',{unit:'INFANTRY'},'c1');
     expect(result.ok).toBe(true);if(!result.ok)return;expect(result.value.units[0]?.kind).toBe('INFANTRY');
-    expect(result.value.core.players[0]?.resources.materials).toBe(28);expect(state.units).toHaveLength(0);
+    expect(result.value.core.players[0]?.resources.materials).toBe(materialsBefore-2);expect(state.units).toHaveLength(0);
     result.value.players[0]!.era='EXPANSION';result.value.cities.find(c=>c.cityId==='c1')!.urbanActionsUsed=0;
     expect(urban(result.value,p1,'RECRUIT',{unit:'FLEET'},'c1').ok).toBe(false);
   });

@@ -26,7 +26,7 @@ describe('projection privacy', () => {
   it('ships only an explicit list of top-level fields', () => {
     const view = alphaPlayerView(midRound(), p2)!;
     // Adding a field to the projection must be a deliberate edit of this list.
-    expect(Object.keys(view).sort()).toEqual(["actionClasses","actions","administration","advisorMarket","battles","cityDetails","cityMarks","cityStates","claimOptions","commandCapacity","costs","culture","declarations","economicEvents","events","finalStandings","frontier","gameId","grades","hegemony","incomingAttacks","independents","initiative","knownTerritory","leaderBlock","milestones","occupations","orderPreviews","phase","players","projects","raidBands","regions","roads","roundReports","routes","rules","schemaVersion","self","stacks","storage","tradeOffers","treaties","unitOptions","units","urban","version","view","wars","winner","worldDecisionPending","worldEvent","worldPulse"]);
+    expect(Object.keys(view).sort()).toEqual(["actionClasses","actions","administration","advisorMarket","battles","cityDetails","cityMarks","cityStates","claimOptions","commandCapacity","costs","culture","declarations","economicEvents","events","explorationHints","finalStandings","frontier","gameId","grades","hegemony","incomingAttacks","independents","initiative","knownTerritory","leaderBlock","milestones","occupations","orderPreviews","phase","players","projects","regions","roads","roundReports","routes","rules","schemaVersion","self","stacks","storage","threatAlerts","threats","tradeOffers","treaties","unitOptions","units","urban","version","view","wars","winner","worldDecisionPending","worldEvent","worldPulse"]);
     for (const forbidden of ['core', 'privateRng', 'seed', 'cards', 'tradeOffersAll', 'telemetry', 'roundLedgers', 'resolutionEvents']) expect(view).not.toHaveProperty(forbidden);
   });
 
@@ -67,6 +67,7 @@ describe('public city marks', () => {
     const rival = state.players.find(player => player.playerId === p1)!;
     rival.resonance.slots = [{ advancementId: 'web-writing', source: 'WEB', domains: ['KNOWLEDGE'] }];
     rival.resonance.marks = [{ advancementId: 'web-writing', domains: ['KNOWLEDGE'], round: 1 }];
+    state.players.forEach(player => { player.pendingChoices = []; });
     rival.pendingChoices = [{ id: 'choice-secret-xyz', source: 'REPERCUSSION', cardId: 'rep-dom-knowledge-1', title: 'Segredo do rival', text: '', createdRound: 1, mitigated: false, options: [{ id: 'a', label: 'A', ops: [] }, { id: 'b', label: 'B', ops: [] }] }];
     const seen = alphaPlayerView(state, p2)!, json = JSON.stringify(seen);
     expect(seen.players.find(player => player.id === p1)).toMatchObject({ resonanceFilled: 1, resonanceCycles: 0 });

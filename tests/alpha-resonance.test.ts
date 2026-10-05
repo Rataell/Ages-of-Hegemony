@@ -3,7 +3,8 @@ import { AlphaStateSchema, HERITAGE_ADVANCES, PlayerIdSchema, REPERCUSSION_CARDS
 import { applyAlphaCommand, autoResolveChoices, beginAlphaPlanning, createAlphaGame, registerAdvance } from '@aoh/game-engine';
 
 const [p1, p2] = ['p1', 'p2'].map(id => PlayerIdSchema.parse(id)) as [ReturnType<typeof PlayerIdSchema.parse>, ReturnType<typeof PlayerIdSchema.parse>];
-const fresh = (): AlphaState => beginAlphaPlanning(createAlphaGame({ gameId: 'resonance', seed: 7, preset: 'QUICK', players: [{ id: p1, name: 'A', civilization: 'valgard' }, { id: p2, name: 'B', civilization: 'meridia' }] }));
+const clearPulse = (state: AlphaState): AlphaState => { state.players.forEach(player => { player.pendingChoices = player.pendingChoices.filter(choice => choice.source !== 'PULSE'); }); return state; };
+const fresh = (): AlphaState => clearPulse(beginAlphaPlanning(createAlphaGame({ gameId: 'resonance', seed: 7, preset: 'QUICK', players: [{ id: p1, name: 'A', civilization: 'valgard' }, { id: p2, name: 'B', civilization: 'meridia' }] })));
 const me = (state: AlphaState) => state.players.find(player => player.playerId === p1)!;
 type D = typeof WebDomainSchema.options[number];
 const K = 'KNOWLEDGE' as D, L = 'LAND_AND_SEA' as D, S = 'STONE_AND_METAL' as D, G = 'GOVERNMENT' as D, T = 'TRADE' as D;

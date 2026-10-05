@@ -90,8 +90,8 @@ describe('neutral powers placement and options', () => {
     const state = begin(create({ gameId: `neutral-${count}`, seed: 7, preset: 'QUICK', players: Array.from({ length: count }, (_, i) => ({ id: `p${i + 1}`, name: `P${i + 1}` })) }));
     const at = (id: string) => state.core.map.find(tile => tile.id === id)!;
     const capitals = state.core.players.map(player => at(player.civilization.cities[0]!.hexId));
-    const sites = [...state.independents.map(people => people.hexId), ...state.raidBands.map(band => band.hexId)].map(at);
-    expect(state.independents).toHaveLength(3); expect(state.raidBands).toHaveLength(2);
+    const sites = [...state.independents.map(people => people.hexId), ...state.threats.filter(band => band.id.startsWith('camp-start-')).map(band => band.hexId)].map(at);
+    expect(state.independents).toHaveLength(3); expect(state.threats.filter(band => band.id.startsWith('camp-start-'))).toHaveLength(2);
     for (const site of sites) expect(Math.min(...capitals.map(capital => distance(capital, site)))).toBeGreaterThanOrEqual(3);
     for (const [i, a] of sites.entries()) for (const b of sites.slice(i + 1)) expect(distance(a, b)).toBeGreaterThanOrEqual(4);
   });

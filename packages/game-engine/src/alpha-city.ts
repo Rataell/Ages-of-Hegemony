@@ -5,6 +5,7 @@ import {
 import { tileYieldBreakdown } from './economy.js';
 import { alphaCanAfford, alphaPay } from './alpha-resources.js';
 import { hasUnlock } from './alpha-institutions.js';
+import { hexBlockedByThreat } from './alpha-threats.js';
 
 /**
  * The city rules of V5.1a (canon §4–§7): Capacity as the power of one activation, Elevar, population roles, sustenance and
@@ -71,7 +72,7 @@ export function cityYield(state: AlphaState, cityId: string): CityYield {
   if (capacity === 0) return { output, metal: 0, hexes: [], capacity, notes: ['Revolta: a cidade não produz.'] };
   const rules = state.core.config;
   const centre = state.core.map.find(tile => tile.id === city.hexId);
-  const worked = city.workedHexIds.slice(0, Math.min(capacity, city.workers.producers)).map(id => state.core.map.find(tile => tile.id === id)).filter(tile => tile !== undefined);
+  const worked = city.workedHexIds.slice(0, Math.min(capacity, city.workers.producers)).map(id => state.core.map.find(tile => tile.id === id)).filter((tile): tile is NonNullable<typeof tile> => tile !== undefined && !hexBlockedByThreat(state, tile.id));
   const farmBonus = state.players.find(player => player.playerId === ownerId)?.research.filter(id => ['web-irrigation', 'web-crop-rotation', 'web-agronomy'].includes(id)).length ?? 0;
   const tiles = centre ? [centre, ...worked] : worked;
   let metal = 0;

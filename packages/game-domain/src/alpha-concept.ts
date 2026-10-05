@@ -201,14 +201,23 @@ export const RaidBandSchema = z.strictObject({ id: IdentifierSchema, hexId: HexI
 
 export const WorldPulseTypeSchema = z.enum(['POSITIVE', 'NEGATIVE', 'MIXED']);
 export const WorldPulseModuleSchema = z.strictObject({ id: IdentifierSchema, text: z.string().min(1).max(240), resource: AlphaResourceTypeSchema.nullable(), amount: z.number().int().min(-10).max(10) });
-export const WorldPulseCardSchema = z.strictObject({ id: IdentifierSchema, name: z.string().min(1).max(120), type: WorldPulseTypeSchema, modules: z.array(WorldPulseModuleSchema).min(1).max(3) });
+/** Event command a Pulse may carry (canon §21b): SPAWN a threat of a kind, REINFORCE one or ACTIVATE them all. */
+export const PulseThreatCommandSchema = z.strictObject({ command: z.enum(['SPAWN', 'REINFORCE', 'ACTIVATE']), kind: z.enum(['LAND', 'PIRATE']).optional() });
+export const WorldPulseCardSchema = z.strictObject({
+  id: IdentifierSchema, name: z.string().min(1).max(120), type: WorldPulseTypeSchema, modules: z.array(WorldPulseModuleSchema).min(1).max(3),
+  /** A civilization that has researched one of these advances ignores the resource loss ("mitigado por"). */
+  mitigatedBy: z.array(IdentifierSchema).default([]),
+  command: PulseThreatCommandSchema.nullable().default(null),
+});
 export type WorldPulseCard = z.infer<typeof WorldPulseCardSchema>;
 
-const pulse = (id: string, name: string, type: z.infer<typeof WorldPulseTypeSchema>, resource: z.infer<typeof AlphaResourceTypeSchema> | null, amount: number): WorldPulseCard => ({
+const pulse = (id: string, name: string, type: z.infer<typeof WorldPulseTypeSchema>, resource: z.infer<typeof AlphaResourceTypeSchema> | null, amount: number, extra: { mitigatedBy?: string[]; command?: z.infer<typeof PulseThreatCommandSchema> } = {}): WorldPulseCard => ({
   id,
   name,
   type,
   modules: [{ id: `${id}-global`, text: `${name}: efeito global Alpha.`, resource, amount }],
+  mitigatedBy: extra.mitigatedBy ?? [],
+  command: extra.command ?? null,
 });
 
 export const WORLD_PULSE_CARDS: readonly WorldPulseCard[] = [
@@ -220,14 +229,14 @@ export const WORLD_PULSE_CARDS: readonly WorldPulseCard[] = [
   pulse('wp-quarry', 'Nova pedreira', 'POSITIVE', 'STONE', 2),
   pulse('wp-vein', 'Veio metálico', 'POSITIVE', 'METAL', 1),
   pulse('wp-calm-seas', 'Mares tranquilos', 'POSITIVE', 'WEALTH', 1),
-  pulse('wp-drought', 'Seca prolongada', 'NEGATIVE', 'FOOD', -2),
+  pulse('wp-drought', 'Seca prolongada', 'NEGATIVE', 'FOOD', -2, { mitigatedBy: ['web-irrigation'] }),
   pulse('wp-fire', 'Incêndios florestais', 'NEGATIVE', 'WOOD', -2),
   pulse('wp-collapse', 'Desabamento de minas', 'NEGATIVE', 'STONE', -2),
   pulse('wp-rust', 'Escassez de metal', 'NEGATIVE', 'METAL', -1),
   pulse('wp-panic', 'Pânico mercantil', 'NEGATIVE', 'WEALTH', -2),
   pulse('wp-dogma', 'Reação ao saber', 'NEGATIVE', 'KNOWLEDGE', -1),
   pulse('wp-scandal', 'Crise diplomática', 'NEGATIVE', 'INFLUENCE', -1),
-  pulse('wp-raiders', 'Bandos em marcha', 'NEGATIVE', null, 0),
+  pulse('wp-raiders', 'Bandos em marcha', 'NEGATIVE', null, 0, { command: { command: 'ACTIVATE' } }),
   pulse('wp-migration', 'Migrações', 'MIXED', 'FOOD', -1),
   pulse('wp-caravans', 'Caravanas errantes', 'MIXED', 'WEALTH', 1),
   pulse('wp-debate', 'Grande debate', 'MIXED', 'KNOWLEDGE', 1),
@@ -236,6 +245,13 @@ export const WORLD_PULSE_CARDS: readonly WorldPulseCard[] = [
   pulse('wp-refugees', 'Refugiados da fronteira', 'MIXED', null, 0),
   pulse('wp-storm', 'Tempestades costeiras', 'MIXED', 'WOOD', -1),
   pulse('wp-discovery', 'Descoberta inesperada', 'MIXED', 'METAL', 1),
+  // The six conditional Pulses of canon §18, each with its "mitigado por".
+  pulse('wp-regional-drought', 'Seca Regional', 'NEGATIVE', 'FOOD', -2, { mitigatedBy: ['web-irrigation'] }),
+  pulse('wp-bountiful-harvest', 'Colheita Farta', 'POSITIVE', 'FOOD', 3),
+  pulse('wp-epidemic', 'Epidemia', 'NEGATIVE', 'FOOD', -1, { mitigatedBy: ['web-sanitation'] }),
+  pulse('wp-migration-wave', 'Migração', 'MIXED', 'FOOD', 1, { command: { command: 'SPAWN', kind: 'LAND' }, mitigatedBy: ['web-guard-formations'] }),
+  pulse('wp-unstable-routes', 'Rotas Instáveis', 'NEGATIVE', 'WEALTH', -1, { command: { command: 'SPAWN', kind: 'PIRATE' }, mitigatedBy: ['web-coastal-routes'] }),
+  pulse('wp-shared-discovery', 'Descoberta Partilhada', 'POSITIVE', 'KNOWLEDGE', 2),
 ] as const;
 
 export const AlphaBalanceSchema = z.strictObject({
@@ -362,6 +378,8 @@ export const AlphaTelemetrySchema = z.strictObject({
   winner: PlayerIdSchema.nullable(), victoryReason: z.enum(['HEGEMONY', 'ROUND_LIMIT']).nullable(),
   /** Ressonância (V5.1b): completed cycles and how many of each composition kind. */
   resonanceCycles: N.default(0), resonanceByKind: z.record(z.string(), N).default({}),
+  /** World threats (V5.1b): spawned, attacks they made, camps destroyed while camped, and threats wiped out. */
+  threatsSpawned: N.default(0), threatAttacks: N.default(0), threatKills: N.default(0), threatLosses: N.default(0),
 });
 export type AlphaTelemetry = z.infer<typeof AlphaTelemetrySchema>;
 

@@ -11,7 +11,9 @@ import { alphaDrain, alphaGain, alphaLose, enforceStorageRecorded, ledgerOf } fr
 import { maintainCards, scoreAmbitions } from './alpha-cards.js';
 import { settleCargo, suspendBlockadedRoutes } from './alpha-naval.js';
 import { establishRoute, maintainTrade, manageDiplomacy, resolveInfluence, settleTreaties } from './alpha-diplomacy.js';
-import { exploreRegion, refreshKnowledge, resolveRaidBands, visibleHexIds } from './alpha-world.js';
+import { exploreRegion, refreshKnowledge, visibleHexIds } from './alpha-world.js';
+import { activateThreats, applyThreatCommand, growThreats, suspendThreatenedRoutes } from './alpha-threats.js';
+import { addPendingChoice } from './alpha-resonance.js';
 import { validateMilitaryOrder } from './alpha-military.js';
 import { resolveBattle } from './alpha-combat.js';
 import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
@@ -78,9 +80,14 @@ export function drawWorldPulse(state: AlphaState): void {
     const key = RESOURCE_OF_MODULE[module.resource];
     for (const player of state.players) {
       if (module.amount > 0) alphaGain(state, player.playerId, { [key]: module.amount } as Partial<AlphaResourcePool>);
+      else if (card.mitigatedBy.some(id => player.research.includes(id))) { state.telemetry.eventMitigations++; alphaEvent(state, 'PULSE_MITIGATED', `${card.name}: sua civilização mitigou a perda.`, [player.playerId]); }
       else alphaLose(state, player.playerId, { [key]: -module.amount } as Partial<AlphaResourcePool>);
     }
   }
+  // Each civilization may answer the Pulse: Prestígio or Cultura (canon §24 "Pulso (escolha) +1 Prestígio").
+  for (const player of state.players) addPendingChoice(state, player.playerId, { source: 'PULSE', cardId: card.id, title: card.name, text: 'Como sua civilização responde ao Pulso do mundo?', mitigated: false, options: [
+    { id: 'prestige', label: 'Aproveitar a ocasião: +1 Prestígio', ops: [{ op: 'PRESTIGE', n: 1 }] }, { id: 'culture', label: 'Registrar nas crônicas: +2 Cultura', ops: [{ op: 'GAIN', resource: 'culture', n: 2 }] }] });
+  if (card.command) applyThreatCommand(state, null, { op: 'THREAT', command: card.command.command, ...(card.command.kind ? { kind: card.command.kind } : {}) });
   state.telemetry.worldPulseEvents += 1;
   const effects = card.modules.filter(module => module.resource !== null && module.amount !== 0).map(module => `${module.amount > 0 ? '+' : '−'}${Math.abs(module.amount)} ${PULSE_RESOURCE_NAMES[module.resource!]}`);
   const message = `Pulso do mundo: ${card.name} — ${effects.length ? `${effects.join(', ')} para todas as civilizações` : 'sem efeito nos recursos'}.`;
@@ -99,7 +106,7 @@ export function openRound(state: AlphaState): void {
   passEraByCalendar(state);
   maintainCards(state);
   // A Pulse opens every Era (canon §18). S5 moves it to the Era turn; there is no other source of Pulses.
-  if ((state.core.round - 1) % state.rules.roundsPerEra === 0) drawWorldPulse(state);
+  if ((state.core.round - 1) % state.rules.roundsPerEra === 0) { drawWorldPulse(state); if (state.core.round > 1) { growThreats(state); activateThreats(state, { launch: true }); } }
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'ROUND_START');
   setAlphaPhase(state, 'PLANNING');
   alphaEvent(state, 'ROUND_STARTED', `Rodada ${state.core.round}: Planejamento.`);
@@ -121,7 +128,7 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         if (order.type === 'ATTACK') resolveBattle(candidate, id, order);
         refreshAlphaAdministration(candidate);
         refreshKnowledge(candidate); refreshHegemony(candidate);
-        const before = { units: new Map(state.units.map(unit => [unit.id, unit])), rules: state.rules, names: new Map(state.core.players.map(player => [player.id as string, player.name])) };
+        const before = { units: new Map(state.units.map(unit => [unit.id, unit])), rules: state.rules, names: new Map([...state.core.players.map(player => [player.id as string, player.name] as const), ['world', 'As Ameaças do Mundo'] as const]) };
         const message = order.type === 'ATTACK' ? battleMessage(before.names, candidate.battles.at(-1)!) : orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined);
         Object.assign(state, AlphaStateSchema.parse(candidate));
         alphaEvent(state, type, message, [id]);
@@ -255,7 +262,8 @@ function maintainCivilizations(state: AlphaState): void {
 function runMaintenance(state: AlphaState): void {
   maintainTrade(state);suspendBlockadedRoutes(state);
   settleTradeOffers(state);
-  resolveRaidBands(state);
+  if (state.core.round % 2 === 1) activateThreats(state, { launch: false });
+  suspendThreatenedRoutes(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'MAINTENANCE', { enforceStorage: false });
   maintainCivilizations(state);
   for (const player of state.players) enforceStorageRecorded(state, player.playerId);
