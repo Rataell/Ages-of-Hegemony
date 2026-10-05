@@ -1,3 +1,4 @@
+/* global structuredClone */
 // Read-only observer for the headless bots: attaches to playMatch's `scenario` hook (called at every PLANNING start) and records
 // what the investigation needs (threat timeline, contact milestones, Elevar bottlenecks, soldiers, Legado probes).
 // It never changes behaviour unless a `mutate` variant is passed (economist variants), and says so in the output.
