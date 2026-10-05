@@ -21,13 +21,14 @@ const ZERO7 = () => ({ food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledg
 const ERAS = D.AlphaEraSchema.options;
 const dist = (a, b) => E.hexDistance(a, b);
 
-export function createBotMatch({ seed = 1, players = 2, personas, rounds = 35, preset = 'STANDARD', worldPreset = 'MIXED' } = {}) {
+export const SKILLS = ['naive', 'competent', 'hardcore'];
+export function createBotMatch({ seed = 1, players = 2, personas, rounds = 35, preset = 'STANDARD', worldPreset = 'MIXED', skill = 'competent' } = {}) {
   const civs = D.CIVILIZATIONS.map(c => c.id);
   const seats = Array.from({ length: players }, (_, i) => ({ id: `p${i + 1}`, name: `Bot ${i + 1}`, civilization: civs[(i + seed) % civs.length], persona: (personas?.[i] ?? PERSONA_ORDER[(i + seed) % PERSONA_ORDER.length]) }));
   let state = E.createAlphaGame({ gameId: `bots-${seed}-${players}`, seed, preset, worldPreset, players: seats.map(({ id, name, civilization }) => ({ id, name, civilization })) });
   state = E.beginAlphaPlanning(state);
   if (rounds !== state.rules.roundLimit) { /* custom length: keep Eras of 5 rounds, only truncate */ }
-  const ctx = { activations: new Map(), seed, seats, rand: Object.fromEntries(seats.map((s, i) => [s.id, rng(seed * 7919 + i * 104729)])), failed: new Map(), counters: { commands: 0, rejected: 0, byType: {}, rejectedReasons: {} }, orderSeq: 0, maxRound: rounds, timings: [], violations: [], crashes: [], flags: {} };
+  const ctx = { skill, activations: new Map(), seed, seats, rand: Object.fromEntries(seats.map((s, i) => [s.id, rng(seed * 7919 + i * 104729)])), failed: new Map(), counters: { commands: 0, rejected: 0, byType: {}, rejectedReasons: {} }, orderSeq: 0, maxRound: rounds, timings: [], violations: [], crashes: [], flags: {} };
   return { state, ctx };
 }
 
@@ -38,7 +39,8 @@ function send(box, id, command) {
   catch (error) { ctx.crashes.push({ round: box.state.core.round, phase: box.state.phase, actor: id, command, message: String(error?.stack ?? error).slice(0, 600) }); return false; }
   ctx.counters.commands++;
   ctx.counters.byType[command.type] = (ctx.counters.byType[command.type] ?? 0) + 1;
-  if (!result.ok) { ctx.counters.rejected++; const key = `${command.type}:${result.error.code}`; ctx.counters.rejectedReasons[key] = (ctx.counters.rejectedReasons[key] ?? 0) + 1; ctx.lastError = result.error.message; return false; }
+  if (!result.ok) { ctx.counters.rejected++; const key = `${command.type}:${result.error.code}`; ctx.counters.rejectedReasons[key] = (ctx.counters.rejectedReasons[key] ?? 0) + 1; ctx.lastError = result.error.message; if (process.env.BOT_TRACE) console.error('REJ', box.state.core.round, id, command.type, command.action ?? command.command?.type ?? command.order?.type ?? '', '=>', result.error.message); return false; }
+  if (process.env.BOT_TRACE === 'ok') console.error('OK', box.state.core.round, id, command.type, command.action ?? command.command?.type ?? command.order?.type ?? '', command.unit ?? command.build?.district ?? command.build?.building ?? command.advancementId ?? '');
   box.state = result.value;
   if (command.type === 'URBAN_ACTION' && command.cityId) { const k = `${box.state.core.round}:${command.cityId}`; ctx.activations.set(k, (ctx.activations.get(k) ?? 0) + 1); }
   return true;
@@ -49,13 +51,24 @@ const tileOf = (state, hex) => state.core.map.find(t => t.id === hex);
 const nextOrderId = (box, id) => `bot-${id}-${box.state.core.round}-${++box.ctx.orderSeq}`;
 const failedKey = (box, id) => { const set = box.ctx.failed.get(`${id}:${box.state.core.round}`) ?? new Set(); box.ctx.failed.set(`${id}:${box.state.core.round}`, set); return set; };
 
+/** What the civilization is short of: the next Elevar of each city and a working floor per resource, minus the stock. */
+function deficits(state, id) {
+  const stock = me(state, id).resources, target = { food: 9, wood: 8, stone: 6, metal: 2, wealth: 6, knowledge: 6, influence: 4, culture: 0 };
+  for (const meta of state.cities.filter(c => c.currentOwnerId === id)) {
+    const next = D.nextLevel(meta.level), req = next ? D.elevateRequirement(next) : null;
+    if (req) for (const [k, v] of Object.entries(req.cost)) target[k] = Math.max(target[k] ?? 0, Math.min(14, v + 2));
+  }
+  return Object.fromEntries(Object.entries(target).map(([k, v]) => [k, Math.max(0, v - (stock[k] ?? 0))]));
+}
+
 /** Population roles from persona weights: producers carry food, the rest split by weight; soldiers stay as they are. */
 function assignPopulation(box, id, persona) {
   const o = owner(box.state, id), state = box.state;
   const enemies = state.wars.filter(pair => pair.includes(id)).length > 0;
   const threatened = (E.threatView(state, id) ?? []).length > 0;
   const armyNow = state.units.filter(u => u.ownerId === id && ['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE'].includes(u.kind)).length;
-  const wantArmy = (persona.army + (enemies ? 2 : 0) + (threatened ? 1 : 0)) * o.civilization.cities.length;
+  const comp = box.ctx.skill !== 'naive';
+  const wantArmy = (persona.army + (enemies ? 2 : 0) + (threatened ? 1 : 0) + (comp ? 1 : 0)) * o.civilization.cities.length;
   for (const city of o.civilization.cities) {
     const meta = state.cities.find(c => c.cityId === city.id);
     if (!meta || meta.status === 'OCCUPIED') continue;
@@ -68,7 +81,8 @@ function assignPopulation(box, id, persona) {
     const producers = Math.max(1, Math.ceil(free * (foodRich ? 0.3 : 0.5))), rest = free - producers;
     const stock = me(state, id).resources;
     const woodShort = stock.wood < 6 || (stock.stone < 3 && stock.wood < 9);
-    const roles = woodShort ? { artisans: 4, merchants: persona.roles.merchants / 2, scholars: persona.roles.scholars / 2 } : persona.roles;
+    const miss = box.ctx.skill === 'naive' ? null : deficits(state, id);
+    const roles = miss ? { artisans: 0.6 + miss.wood, merchants: 0.6 + miss.wealth, scholars: 0.6 + miss.knowledge } : woodShort ? { artisans: 4, merchants: persona.roles.merchants / 2, scholars: persona.roles.scholars / 2 } : persona.roles;
     const total = roles.artisans + roles.merchants + roles.scholars;
     let artisans = Math.floor(rest * roles.artisans / total), merchants = Math.floor(rest * roles.merchants / total);
     let scholars = Math.floor(rest * roles.scholars / total);
@@ -87,16 +101,25 @@ function assignWorkedHexes(box, id) {
   for (const city of o.civilization.cities) {
     const claimed = state.core.map.filter(t => t.controllerCityId === city.id && t.id !== city.hexId);
     if (!claimed.length) continue;
-    const needFood = p.resources.food < 9, needWood = p.resources.wood < 5;
-    const value = t => { const y = E.tileYieldBreakdown(t, rules).total; const stone = t.terrain === 'HILLS' || t.terrain === 'MOUNTAINS'; return (needFood ? y.food * 3 : y.food) + (needWood ? (stone ? y.materials : y.materials * 2) : y.materials * 1.5) + y.wealth; };
+    const needFood = p.resources.food < 9, needWood = p.resources.wood < 5, miss = box.ctx.skill === 'naive' ? null : deficits(state, id);
+    const value = t => { const y = E.tileYieldBreakdown(t, rules).total; const stone = t.terrain === 'HILLS' || t.terrain === 'MOUNTAINS'; if (miss) return y.food * (1 + miss.food * 0.5) + y.materials * (1 + (stone ? miss.stone : miss.wood) * 0.35) + y.wealth * (1 + miss.wealth * 0.3); return (needFood ? y.food * 3 : y.food) + (needWood ? (stone ? y.materials : y.materials * 2) : y.materials * 1.5) + y.wealth; };
     const pick = [...claimed].sort((a, b) => value(b) - value(a) || a.id.localeCompare(b.id)).slice(0, Math.max(1, city.workers.producers)).map(t => t.id).sort();
     if (pick.join() === [...city.workedHexIds].sort().join()) continue;
     send(box, id, { type: 'MANAGE', command: { type: 'ASSIGN_WORKED_HEXES', playerId: id, cityId: city.id, hexIds: pick, expectedVersion: state.core.version } });
   }
 }
 
+/** Web advances still missing for the next Elevar of any own city (first missing link of each prerequisite chain). */
+function elevateNeeds(state, id) {
+  const p = me(state, id), need = new Set();
+  const chase = nodeId => { const node = D.ADVANCEMENTS.find(a => a.id === nodeId); if (!node || p.research.includes(nodeId)) return; const missing = node.prerequisites.filter(q => !p.research.includes(q)); if (missing.length) missing.forEach(chase); else need.add(nodeId); };
+  for (const meta of state.cities.filter(c => c.currentOwnerId === id)) { const next = D.nextLevel(meta.level), req = next ? D.elevateRequirement(next) : null; if (req) req.advances.forEach(chase); }
+  return need;
+}
+
 function pickResearch(box, id, persona, options) {
   const p = me(box.state, id);
+  const needs = box.ctx.skill === 'naive' ? new Set() : elevateNeeds(box.state, id);
   const slotDomains = new Set(p.resonance.slots.flatMap(s => s.domains));
   const scored = options.filter(o => !o.blocked).map(o => {
     const node = D.ADVANCEMENTS.find(a => a.id === o.advancementId);
@@ -109,13 +132,14 @@ function pickResearch(box, id, persona, options) {
     score -= Math.min(10, Object.values(o.cost).reduce((a, b) => a + b, 0));
     if (node && ['web-agriculture', 'web-masonry', 'web-exchange', 'web-writing'].includes(node.id)) score += 12;
     if (node && ['web-urbanism', 'web-sanitation', 'web-world-metropolises', 'web-engineering'].includes(node.id)) score += 8;
+    if (needs.has(o.advancementId)) score += 45;
     return { o, score: score + box.ctx.rand[id]() * 6 };
   }).sort((a, b) => b.score - a.score);
   return scored.map(s => s.o);
 }
 
 /** Every command the bot would consider this moment, scored. The caller tries them best first. */
-function candidates(box, id, persona) {
+export function candidates(box, id, persona) {
   const { state, ctx } = box, round = state.core.round, p = me(state, id), o = owner(state, id);
   if (!o.civilization.cities.length) return [];
   const out = [], rand = ctx.rand[id];
@@ -124,6 +148,8 @@ function candidates(box, id, persona) {
   const eraIndex = ERAS.indexOf(p.era);
   const cities = o.civilization.cities, nCities = cities.length;
   const w = persona.weights;
+  const comp = ctx.skill !== 'naive', hard = ctx.skill === 'hardcore';
+  const threatsSeen = E.threatView(state, id) ?? [], alerts = E.threatAlerts(state, id) ?? [];
   const myUnits = state.units.filter(u => u.ownerId === id);
   const army = myUnits.filter(u => ['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE'].includes(u.kind));
   const enemies = state.wars.filter(pair => pair.includes(id)).map(pair => pair.find(x => x !== id));
@@ -163,6 +189,7 @@ function candidates(box, id, persona) {
     }
   }
   // Cities.
+  const reformCost = E.governmentOptions(state, id).cost, reserveInfluence = comp && eraIndex >= 1 && (round % state.rules.roundsPerEra === state.rules.roundsPerEra - 1 || E.isReformRound(state));
   cities.forEach((city, index) => {
     const meta = state.cities.find(c => c.cityId === city.id);
     const list = view.cities[city.id] ?? [];
@@ -170,29 +197,39 @@ function candidates(box, id, persona) {
     const used = ctx.activations.get(`${round}:${city.id}`) ?? 0;
     const free = list.filter(opt => !opt.blocked && (used === 0 || (used === 1 && meta.mood >= 4 && ['ELEVATE', 'RECRUIT'].includes(opt.action))) && (used < 2));
     const pick = (action, pred = () => true) => free.filter(opt => opt.action === action && pred(opt));
-    const mood = meta.mood;
+    const mood = meta.mood, here = army.filter(u => u.hexId === city.hexId && ['INFANTRY', 'GUARD'].includes(u.kind)).length;
     // Saving for Elevar: when only resources are missing, other spending waits.
     const saving = /Recursos/.test(E.elevateBlock(state, id, city.id) ?? '') ? 0.5 : 1;
-    if (pick('PRODUCE').length) add((index === 0 ? 86 : 78), `produce:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
-    if (pick('ELEVATE').length) add(90 * w.elevate, `elevate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'ELEVATE' });
-    if (mood <= 1 || (mood <= 2 && round % 3 === 0)) if (pick('PROMOTE_MOOD').length) add(mood === 0 ? 95 : 70, `govern:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PROMOTE_MOOD' });
+    const nearThreat = threatsSeen.some(t => dist(tileOf(state, city.hexId), tileOf(state, t.hexId)) <= 6) || alerts.some(a => a.cityId === city.id);
+    const needDef = hard ? (index === 0 ? Math.min(4, Math.max(0, eraIndex - 1)) : Math.min(2, (nearThreat ? 1 : 0) + (eraIndex >= 3 ? 1 : 0))) : comp ? Math.min(4, (nearThreat || enemies.length ? 2 : eraIndex >= 1 ? 2 : 1) + (nearThreat && eraIndex >= 2 ? 1 : 0)) : 0;
+    const foodLow = p.resources.food < 8 + nCities, miss = comp ? deficits(state, id) : null;
+    if (pick('PRODUCE').length) add(comp ? (foodLow ? 112 : 98) - index : (index === 0 ? 86 : 78), `produce:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
+    if (pick('ELEVATE').length) add((comp ? 140 : 90) * w.elevate, `elevate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'ELEVATE' });
+    const governNow = comp ? mood <= 3 : (mood <= 1 || (mood <= 2 && round % 3 === 0));
+    if (governNow) if (pick('PROMOTE_MOOD').length) add(comp ? (mood <= 1 ? 100 : mood <= 2 ? 93 : 71) : (mood === 0 ? 95 : 70), `govern:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PROMOTE_MOOD' });
     if (meta.status === 'OCCUPIED') if (pick('CIVIC_ACTION').length) add(80, `integrate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'CIVIC_ACTION' });
-    // Districts and buildings by persona priority.
-    for (const opt of pick('BUILD', x => x.build.kind === 'DISTRICT')) { const rank = persona.districts.indexOf(opt.build.district); if (rank >= 0) add((72 - rank * 4) * w.build * saving, `district:${city.id}:${opt.build.district}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build }); }
+    // Districts and buildings by persona priority; competent play puts food, storage and learning first.
+    for (const opt of pick('BUILD', x => x.build.kind === 'DISTRICT')) { const rank = persona.districts.indexOf(opt.build.district); if (rank >= 0) add((72 - rank * 4 + (comp && opt.build.district === 'AGRARIAN' ? (foodLow ? 24 : 10) : comp && opt.build.district === 'INDUSTRIAL' ? Math.min(26, miss.stone * 5) : comp && opt.build.district === 'COMMERCIAL' ? Math.min(24, miss.wealth * 4) : comp && opt.build.district === 'ACADEMIC' ? Math.min(20, miss.knowledge * 3) : 0)) * w.build * saving, `district:${city.id}:${opt.build.district}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build }); }
     for (const opt of pick('BUILD', x => x.build.kind === 'BUILDING')) {
       const isStorage = ['GRANARY', 'WAREHOUSE', 'TREASURY', 'MARKET', 'LIBRARY', 'WORKSHOP', 'BARRACKS', 'TEMPLE'].includes(opt.build.building);
-      add((isStorage ? 62 : 52) * w.build * saving, `building:${city.id}:${opt.build.building}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build });
+      const boost = comp ? ({ GRANARY: foodLow ? 26 : 12, MARKET: 10 + Math.min(14, miss.wealth * 3), LIBRARY: 12 + Math.min(12, miss.knowledge * 2), TEMPLE: mood <= 3 ? 14 : 4, WAREHOUSE: 6, WORKSHOP: Math.min(14, miss.wood * 2) }[opt.build.building] ?? 0) : 0;
+      add(((isStorage ? 62 : 52) + boost) * w.build * saving, `building:${city.id}:${opt.build.building}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build });
     }
-    const threatened = (E.threatView(state, id) ?? []).some(t => dist(tileOf(state, city.hexId), tileOf(state, t.hexId)) <= 4) || enemies.length > 0 || eraIndex >= 1 || (E.threatAlerts(state, id) ?? []).some(a => a.cityId === city.id);
-    for (const opt of pick('BUILD', x => x.build.kind === 'FORTIFICATION')) add((threatened ? 74 : eraIndex >= 2 ? 46 : 20) * w.fort, `fort:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build });
-    // Recruitment: keep the garrison at the persona's size, more for a warrior or in war.
-    const here = army.filter(u => u.hexId === city.hexId).length;
-    const alert = (E.threatAlerts(state, id) ?? []).some(a => a.cityId === city.id);
-    const want = persona.army + (enemies.length ? 2 : 0) + eraIndex + (alert ? 3 : 0) + (E.threatView(state, id)?.length ? 2 : 0);
-    if (here < want && army.length < want * Math.max(1, nCities)) {
-      const kinds = ['CAVALRY', 'SIEGE', 'RANGED', 'GUARD', 'INFANTRY'].filter(k => pick('RECRUIT', x => x.unit === k).length);
+    const threatened = nearThreat || enemies.length > 0 || eraIndex >= 1;
+    for (const opt of pick('BUILD', x => x.build.kind === 'FORTIFICATION')) add((comp ? (nearThreat || enemies.length ? (hard ? 140 : 92) : eraIndex >= 2 ? (hard ? 120 : 58) : 30) : (threatened ? 74 : eraIndex >= 2 ? 46 : 20)) * w.fort, `fort:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build });
+    // Recruitment: keep the garrison at the persona's size, more for a warrior or in war. Competent play first guarantees the defenders.
+    const alert = alerts.some(a => a.cityId === city.id);
+    const want = persona.army + (enemies.length ? 2 : 0) + eraIndex + (alert ? 3 : 0) + (threatsSeen.length ? 2 : 0);
+    const kindsAll = ['CAVALRY', 'SIEGE', 'RANGED', 'GUARD', 'INFANTRY'].filter(k => pick('RECRUIT', x => x.unit === k).length);
+    const smallCity = comp && city.population < (hard ? 10 : 12);
+    if (comp && here < needDef && !smallCity) {
+      const kind = kindsAll.includes('GUARD') ? 'GUARD' : kindsAll.includes('INFANTRY') ? 'INFANTRY' : null;
+      if (kind) add(alert || nearThreat || round >= 8 || eraIndex >= 1 ? 131 : 84, `defend:${city.id}:${kind}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: kind });
+    }
+    if (here < want && army.length < want * Math.max(1, nCities) && !smallCity) {
+      const kinds = kindsAll;
       const kind = enemies.length || persona === PERSONAS.warrior ? (kinds.find(k => k === 'SIEGE' && army.filter(u => u.kind === 'SIEGE').length < 2) ?? kinds[Math.floor(rand() * kinds.length)]) : (kinds.includes('GUARD') && here < 2 ? 'GUARD' : kinds.includes('INFANTRY') ? 'INFANTRY' : kinds[0]);
-      if (kind) add((alert ? 93 : here < 2 ? 80 : 56) * w.recruit * (enemies.length || alert ? 1 : saving), `recruit:${city.id}:${kind}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: kind });
+      if (kind) add((alert ? 93 : here < 2 ? 80 : 56) * (comp ? Math.min(1.1, w.recruit) * (foodLow ? 0.6 : 1) : w.recruit) * (enemies.length || alert ? 1 : saving), `recruit:${city.id}:${kind}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: kind });
     }
     if (nCities < wantCities && !myUnits.some(u => u.kind === 'PIONEER') && index === 0) if (pick('RECRUIT', x => x.unit === 'PIONEER').length) add(85, `recruit-pioneer`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'PIONEER' });
     if (eraIndex >= 1 && !myUnits.some(u => u.kind === 'EXPLORER') && index === 0 && (persona.explore ?? 0) > 0) if (pick('RECRUIT', x => x.unit === 'EXPLORER').length) add(60, 'recruit-explorer', { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'EXPLORER' });
@@ -206,17 +243,57 @@ function candidates(box, id, persona) {
     const cap = E.activationCapacity(state, city.id);
     const claimed = state.core.map.filter(t => t.controllerCityId === city.id && t.id !== city.hexId);
     const options = claims[city.id] ?? [];
-    if (options.length && claimed.length < cap + 1 && p.resources.influence >= 1) {
+    const keepInfluence = reserveInfluence && !E.governmentOptions(state, id).planned && p.resources.influence - 1 < reformCost;
+    if (options.length && claimed.length < cap + 1 && p.resources.influence >= 1 && !keepInfluence) {
       const centre = tileOf(state, city.hexId);
       const best = options.map(hex => tileOf(state, hex)).sort((a, b) => (['PLAINS', 'FOREST', 'HILLS'].indexOf(a.terrain) < 0) - (['PLAINS', 'FOREST', 'HILLS'].indexOf(b.terrain) < 0) || dist(centre, a) - dist(centre, b) || a.id.localeCompare(b.id))[0];
       add(claimed.length < cap ? 82 : 52, `claim:${city.id}:${best.id}`, { type: 'MANAGE', command: { type: 'CLAIM_HEX', playerId: id, cityId: city.id, hexId: best.id, expectedVersion: state.core.version } });
     }
-    for (const tile of claimed) { const improvement = IMPROVEMENT_FOR(tile); if (improvement) add(improvement === 'FARM' && p.resources.food > 12 ? 30 : 64, `improve:${tile.id}`, { type: 'MANAGE', command: { type: 'IMPROVE_HEX', playerId: id, hexId: tile.id, improvement, expectedVersion: state.core.version } }); }
+    for (const tile of claimed) { const improvement = IMPROVEMENT_FOR(tile); if (improvement) add(improvement === 'FARM' ? (p.resources.food > 12 ? 30 : comp ? 88 : 64) : comp && improvement === 'LUMBER_CAMP' && p.resources.wood > 12 ? 20 : 64, `improve:${tile.id}`, { type: 'MANAGE', command: { type: 'IMPROVE_HEX', playerId: id, hexId: tile.id, improvement, expectedVersion: state.core.version } }); }
   });
   // Research (Avanço Order).
   const researchRanked = pickResearch(box, id, persona, view.research);
-  if (researchRanked.length) { const opt = researchRanked[0]; add((researchRanked[0].blocked ? 0 : 1) * (88 + (w.research - 1) * 10), `research:${opt.advancementId}`, { type: 'URBAN_ACTION', cityId: cities[0].id, action: 'RESEARCH', advancementId: opt.advancementId }); }
-  // Military: attack, move toward the enemy, clear camps.
+  if (researchRanked.length) {
+    const heritageFirst = comp ? researchRanked.find(o => !D.ADVANCEMENTS.some(a => a.id === o.advancementId)) : null;
+    const opt = heritageFirst ?? researchRanked[0];
+    // Avanço is its own Order (E-1): any own city carries it, so the one with the most scholars does.
+    const labs = comp ? [...cities].filter(c => state.cities.find(x => x.cityId === c.id)?.status !== 'OCCUPIED').sort((a, b) => b.workers.scholars - a.workers.scholars || a.id.localeCompare(b.id)) : [cities[0]];
+    const lab = labs[0];
+    if (lab) add((opt.blocked ? 0 : 1) * (comp ? (round % 2 === 0 ? 99 : 82) : 88 + (w.research - 1) * 10), `research:${opt.advancementId}`, { type: 'URBAN_ACTION', cityId: lab.id, action: 'RESEARCH', advancementId: opt.advancementId });
+    // Hardcore players with Conhecimento to spare run a second line of research from another city in the same round.
+    if (hard && labs[1] && researchRanked[1] && p.resources.knowledge >= 7) add(89, `research2:${researchRanked[1].advancementId}`, { type: 'URBAN_ACTION', cityId: labs[1].id, action: 'RESEARCH', advancementId: researchRanked[1].advancementId });
+  }
+  // Military (competent): garrisons stay home, the surplus strikes Acampamentos early with a real stack and answers marching Bandos.
+  if (comp) {
+    const power = units => units.reduce((n, u) => n + state.rules.units[u.kind].strength, 0);
+    const compPower = t => t.composition.reduce((n, c) => n + state.rules.units[c.kind].strength * c.count, 0);
+    const cityHexes = new Set(cities.map(c => c.hexId));
+    const keepAt = hex => cityHexes.has(hex) ? (hard ? (hex === cities[0].hexId ? 2 : 1) : Math.min(4, (threatsSeen.length || enemies.length) ? 2 : eraIndex >= 1 ? 2 : 1)) : 0;
+    const strikeTargets = [];
+    for (const t of threatsSeen) if (t.kind === 'CAMP') strikeTargets.push({ hex: t.hexId, kind: 'threat', power: compPower(t), camped: t.status === 'CAMPED' });
+    for (const enemy of enemies) for (const c of owner(state, enemy)?.civilization.cities ?? []) strikeTargets.push({ hex: c.hexId, kind: 'enemy', power: 10 });
+    const stacks = new Map();
+    for (const u of army) if (!u.carrierId) { const g = stacks.get(u.hexId) ?? []; g.push(u); stacks.set(u.hexId, g); }
+    for (const [hex, units] of stacks) {
+      const keep = keepAt(hex), rank = u => (u.kind === 'GUARD' ? 0 : u.kind === 'INFANTRY' ? 1 : 2);
+      const sorted = [...units].sort((a, b) => rank(a) - rank(b) || a.id.localeCompare(b.id));
+      const usable = sorted.slice(keep).filter(u => unitOpts[u.id]?.moves !== undefined);
+      if (!usable.length) continue;
+      const here = tileOf(state, hex);
+      const reachable = strikeTargets.map(t => ({ ...t, d: dist(here, tileOf(state, t.hex)) })).filter(t => t.d <= (t.kind === 'threat' ? 8 : 9) && (t.kind === 'threat' ? (t.camped || t.d <= 4) : (persona.war <= round || hard))).sort((a, b) => a.d - b.d)[0];
+      if (!reachable) continue;
+      const required = reachable.kind === 'threat' ? Math.max(4, Math.ceil(reachable.power * (hard ? 1.35 : 1.6))) : 14;
+      if (reachable.d === 1) {
+        const order = { id: nextOrderId(box, id), type: 'ATTACK', unitIds: usable.map(u => u.id).slice(0, 12), target: reachable.hex, posture: persona.posture };
+        let preview = null; try { preview = E.combatPreview(state, id, order); } catch { /* ignore */ }
+        if (preview?.ok) { const diff = preview.defender?.visible ? preview.attacker.total - preview.defender.total : 2; if (diff >= (hard ? 1 : 2)) add(reachable.kind === 'threat' ? 91 : 83, `attack:${hex}:${reachable.hex}`, { type: 'QUEUE_ORDER', order }); }
+      } else if (power(usable) >= required) {
+        const first = unitOpts[usable[0].id];
+        const step = Object.keys(first.moves).filter(h => usable.every(u => unitOpts[u.id]?.moves[h])).map(h => ({ h, d: dist(tileOf(state, h), tileOf(state, reachable.hex)) })).filter(x => x.d < reachable.d).sort((a, b) => a.d - b.d || a.h.localeCompare(b.h))[0];
+        if (step) add(reachable.kind === 'threat' ? 87 : 66, `march:${hex}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: usable.map(u => u.id), path: first.moves[step.h] } });
+      }
+    }
+  } else {
   const groups = new Map();
   for (const u of army) if (!u.carrierId) { const g = groups.get(u.hexId) ?? []; g.push(u); groups.set(u.hexId, g); }
   const targets = [];
@@ -236,6 +313,7 @@ function candidates(box, id, persona) {
       if (reach) add(persona === PERSONAS.warrior ? 66 : 40, `march:${hex}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: usable.map(u => u.id).filter(uid => unitOpts[uid]?.moves[reach.h]).slice(0, 12), path: unitOpts[usable[0].id].moves[reach.h] } });
     }
   }
+  }
   // Diplomacy and war.
   const contacts = p.contacts.filter(c => c !== id && owner(state, c)?.civilization.cities.length > 0 && cities.length > 0);
   if (contacts.length) {
@@ -252,6 +330,23 @@ function candidates(box, id, persona) {
   for (const people of E.independentPeopleView(state, id) ?? []) { const act = (people.actions ?? []).find(a => !a.blocked); if (act) add(42, `people:${people.id}:${act.action}`, { type: 'INDEPENDENT_ACTION', peopleId: people.id, action: act.action }); }
   // Legacy projects.
   if (eraIndex >= 3) for (const project of D.GREAT_PROJECTS) for (const city of cities.slice(0, 2)) add(50, `project:${project.id}`, { type: 'BUILD_PROJECT', projectId: project.id, cityId: city.id });
+  if (comp) {
+    // Never eat the seed corn: a Recrutar that would leave Alimento below what the cities and pieces eat this round waits (unless a Bando is at the gate).
+    const sustain = cities.reduce((n, c) => n + Math.ceil(c.population / 2), 0) + Math.ceil(army.length / 2);
+    const foodCostOf = command => { const row = (view.cities[command.cityId] ?? []).find(o => o.action === command.action && (o.unit ?? null) === (command.unit ?? null) && (!command.build || JSON.stringify(o.build) === JSON.stringify(command.build))); return row?.cost?.food ?? 0; };
+    // Saving for Elevar: when a city lacks only resources, spending that would eat into them waits (defence against a Bando at the gate excepted).
+    const saveFor = {};
+    for (const city of cities) { const row = (view.cities[city.id] ?? []).find(o => o.action === 'ELEVATE'); if (row && /Recursos/.test(row.blocked ?? '')) for (const [k, v] of Object.entries(row.cost)) if (v > 0) saveFor[k] = Math.max(saveFor[k] ?? 0, v); }
+    const costOf = command => (view.cities[command.cityId] ?? []).find(o => o.action === command.action && (o.unit ?? null) === (command.unit ?? null) && (!command.build || JSON.stringify(o.build) === JSON.stringify(command.build)))?.cost ?? {};
+    return out.filter(c => {
+      if (c.command.type !== 'URBAN_ACTION' || !['RECRUIT', 'BUILD'].includes(c.command.action)) return true;
+      const urgent = (c.key.startsWith('defend') || c.key.startsWith('fort')) && (alerts.length > 0 || threatsSeen.some(t => t.status === 'MARCHING'));
+      if (urgent) return true;
+      if (p.resources.food - foodCostOf(c.command) + nCities * 2 < sustain + 1) return false;
+      const cost = costOf(c.command);
+      return !Object.entries(saveFor).some(([k, need]) => (cost[k] ?? 0) > 0 && p.resources[k] - cost[k] < need);
+    }).sort((a, b) => b.score - a.score);
+  }
   return out.sort((a, b) => b.score - a.score);
 }
 
@@ -272,7 +367,7 @@ export function botPlan(box, id) {
   const p0 = me(box.state, id);
   if (p0.leader && !p0.leader.eraAbilityUsed && box.state.core.round % box.state.rules.roundsPerEra === 3) send(box, id, { type: 'LEADER_ABILITY' });
   const hand = me(box.state, id).hand.slice();
-  if (hand.length && box.state.core.round % 2 === 0) for (const card of hand) { if (send(box, id, { type: 'PLAY_CARD', cardId: card })) break; }
+  if (hand.length && (box.state.core.round % 2 === 0 || box.ctx.skill === 'hardcore')) for (const card of hand) { if (send(box, id, { type: 'PLAY_CARD', cardId: card })) break; }
   for (const t of box.state.treaties.filter(t => t.status === 'PROPOSED' && t.recipientId === id)) send(box, id, { type: 'RESPOND_TREATY', treatyId: t.id, accept: true });
   for (const t of box.state.tradeOffers.filter(t => t.status === 'PROPOSED' && t.recipientId === id)) send(box, id, { type: 'RESPOND_TRADE', offerId: t.id, accept: true });
   const failed = failedKey(box, id);
@@ -281,7 +376,8 @@ export function botPlan(box, id) {
     if (usage.used >= usage.limit) break;
     const list = candidates(box, id, persona).filter(c => !failed.has(c.key));
     let done = false;
-    for (const c of list.slice(0, 12)) { if (send(box, id, c.command)) { done = true; failed.add(c.key + '#' + usage.used); break; } failed.add(c.key); }
+    // Try every candidate best-first (a rejected one is remembered for the round): the plan ends only when nothing valid is left.
+    for (const c of list) { if (send(box, id, c.command)) { done = true; failed.add(c.key + '#' + usage.used); break; } failed.add(c.key); }
     if (!done) break;
   }
 }
