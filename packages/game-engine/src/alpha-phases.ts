@@ -20,6 +20,7 @@ import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
 import { applyRecurringEffects, passEraByCalendar } from './alpha-institutions.js';
 import { performUrbanAction } from './alpha-urban.js';
 import { kitFoodUpkeep } from './alpha-kits.js';
+import { recordRoundTelemetry, snapshotOrders } from './alpha-telemetry.js';
 import { applyGovernmentRoundStart } from './alpha-government.js';
 import { enterEraTurn, finishEraTurn, isEraTurnDue } from './alpha-era-turn.js';
 
@@ -313,6 +314,7 @@ export function prestigeRanking(state: AlphaState): PlayerId[] {
 /** END_ROUND: score, close reports, check victory, rotate initiative, increment the round and open the next WORLD_PULSE. */
 function endRound(state: AlphaState): void {
   buildRoundReports(state);
+  recordRoundTelemetry(state);
   refreshHegemony(state);
   const hegemon = hegemonyWinner(state);
   if (hegemon) {
@@ -355,6 +357,7 @@ export function advanceAfterReady(state: AlphaState): void {
   for (let guard = 0; guard < 16; guard++) {
     switch (state.phase) {
       case 'PLANNING': {
+        snapshotOrders(state);
         state.players.forEach(player => { player.ready = false; });
         state.cities.forEach(city => { city.urbanActionsUsed = 0; });
         setAlphaPhase(state, 'URBAN_ACTIONS');

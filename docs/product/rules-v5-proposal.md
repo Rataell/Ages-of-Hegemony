@@ -63,7 +63,9 @@ Excedente é perdido no fim da fase de Manutenção, salvo conversão permitida 
 | 6 | Metrópole | 14 | 3 | 5 | 4 | 8 |
 | 7 | Metrópole Imperial | 18 | 4 | 6 | 5 | 10 |
 
-Habitantes máximos por nível: o mínimo do nível seguinte − 1 (Imperial: 20). A cidade cresce até o teto e para; só volta a crescer depois de Elevar.
+Habitantes máximos por nível: o mínimo do nível seguinte (Posto 4, Aldeia 6, Vila 8, Cidade 11, Grande Cidade 14, Metrópole 18; Imperial: 20). A cidade cresce até o teto e para; só volta a crescer depois de Elevar.
+
+> **Erratum de implementação (I-37, `openspec/changes/rules-v51b-engine/design.md`).** O texto original dizia "mínimo do nível seguinte − 1", o que impedia Elevar (N2 exige 4 habitantes e o Posto parava em 3). Descoberto pelo playtest com bots; nenhum outro número muda.
 
 **Elevar** (ação da Ordem Cidade). A cidade sobe um nível quando cumpre as três condições:
 

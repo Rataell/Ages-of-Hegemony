@@ -199,6 +199,8 @@ export function mobilizationBlock(state: AlphaState, cityId: string, kind: strin
   const entry = state.rules.units[kind as never] as { domain: string; strength: number } | undefined;
   if (!entry || entry.domain !== 'LAND' || entry.strength === 0) return null;
   if (pair.city.workers.soldiers + pair.city.workers.unassigned < 1) return 'Sem Soldado nem habitante Disponível para mobilizar.';
+  // I-38: mobilization never empties a city. Found by the bot playtest: a one-habitant colony recruited itself down to 0.
+  if (pair.city.population <= 1) return 'A cidade precisa manter ao menos 1 habitante: não pode mobilizar o último.';
   return null;
 }
 export function mobilize(state: AlphaState, cityId: string, kind: string): void {
@@ -238,7 +240,9 @@ export function mirrorDevelopment(state: AlphaState): void {
   }
 }
 /** Writes a city back into the core (the core keeps cities immutable). */
-export function replaceCity(state: AlphaState, cityId: string, next: CityState): void {
+export function replaceCity(state: AlphaState, cityId: string, original: CityState): void {
+  // I-39: a city never works more hexes than it has Produtores. Famine, mobilization or capture can remove a Produtor; the last worked hexes are released.
+  const next = original.workedHexIds.length > original.workers.producers ? { ...original, workedHexIds: original.workedHexIds.slice(0, original.workers.producers) } : original;
   for (const player of state.core.players) {
     const index = player.civilization.cities.findIndex(candidate => candidate.id === cityId);
     if (index >= 0) { player.civilization = { ...player.civilization, cities: player.civilization.cities.map((candidate, i) => i === index ? next : candidate) }; return; }

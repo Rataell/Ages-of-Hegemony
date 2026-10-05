@@ -36,7 +36,7 @@ function initialTelemetry(core: GameState, preset: AlphaState['rules']['worldPre
     unitRecruitment: {}, battles: 0, battleResults: {}, casualties: 0, citiesFounded: 0, citiesCaptured: 0,
     cityIntegration: 0, moodSamples: [], researchByDomain: {}, worldPulseEvents: 0, eventMitigations: 0,
     culturalContests: 0, culturalContestResults: {}, prestigeBySource: {}, hegemonyDeclarations: 0,
-    hegemonyInterruptions: 0, winner: null, victoryReason: null, resonanceCycles: 0, resonanceByKind: {}, threatsSpawned: 0, threatAttacks: 0, threatKills: 0, threatLosses: 0,
+    hegemonyInterruptions: 0, winner: null, victoryReason: null, roundLog: [], pendingOrders: {}, resonanceCycles: 0, resonanceByKind: {}, threatsSpawned: 0, threatAttacks: 0, threatKills: 0, threatLosses: 0,
   };
 }
 

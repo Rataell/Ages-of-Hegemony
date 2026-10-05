@@ -29,7 +29,7 @@ export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,
   state.units=state.units.filter(u=>u.id!==unitId);
   const newCity=player.civilization.cities.find(c=>c.hexId===tile.id)!;
   state.cities.push({cityId:newCity.id,originalOwnerId:actor,currentOwnerId:actor,nativeIdentity:state.players.find(p=>p.playerId===actor)!.civilization??`native-${actor}`,status:'OWNED',integration:100,mood:4,level:cityLevelForPopulation(newCity.population),capital:player.civilization.capitalCityId===newCity.id,districts:newCity.districts.map(d=>d.type),buildings:[],fortification:{level:'NONE',state:'INTACT'},foreignPresence:[],localCohesion:50,culturalAnchor:null,urbanActionsUsed:0,allocationRound:0,portBlockedUntil:0,portBlockedBy:null});
-  state.core.version++;state.core.eventLog.push(founded.value);
+  state.core.version++;state.core.eventLog.push(founded.value);state.telemetry.citiesFounded++;
   player.civilization=refreshAdministration(player.civilization,state.core.config,state.core.map);
 }
 
@@ -55,7 +55,7 @@ export function occupyCity(state:AlphaState,actor:PlayerId,cityId:CityId):void {
   state.routes=state.routes.filter(r=>r.fromCityId!==cityId&&r.toCityId!==cityId);
   for(const project of state.projects)if(project.cityId===cityId)project.ownerId=actor;
   state.occupations=state.occupations.filter(o=>o.cityId!==cityId);
-  if(!liberated)state.occupations.push({cityId,occupierId:actor,previousOwnerId:previous.id,sinceRound:state.core.round});
+  if(!liberated){state.occupations.push({cityId,occupierId:actor,previousOwnerId:previous.id,sinceRound:state.core.round});state.telemetry.citiesCaptured++;}
   const meta=state.cities.find(c=>c.cityId===cityId);
   if(meta){
     const civilization=culturalIdentityOf(state,actor);

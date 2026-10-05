@@ -163,7 +163,7 @@ describe('V5.1b privacy walk (4 players: planning, conflicts, Era turn)', () => 
   it('hides a region discovery from players who did not reveal it', () => {
     const state = walkStart();
     const region = state.regions[state.regions.length - 1]!;
-    region.discovery = { kind: 'RUIN', resolved: false };
+    region.discovery = { kind: 'RUIN', resolved: false, resolvedBy: null };
     region.revealedBy = [p1];
     for (const viewer of [p2, p3, p4]) expect(JSON.stringify(alphaPlayerView(state, viewer)!.regions)).not.toContain(region.id);
     expect(alphaPlayerView(state, p1)!.regions.find(item => item.id === region.id)!.discovery).toMatchObject({ kind: 'RUIN' });

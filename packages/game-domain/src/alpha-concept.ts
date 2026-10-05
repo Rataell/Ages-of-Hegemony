@@ -375,6 +375,21 @@ export const ALPHA_ERA_MILESTONES: readonly AlphaEraMilestone[] = [
   { cities: 3, population: 10, territory: 11, districts: 5, research: 10, development: 3, contacts: 2, government: true, requiredCriteria: 5 },
 ];
 
+/** One civilization's figures for one round, written at the close of the round (V5.1b playtest telemetry). Never projected to players. */
+export const RoundTelemetrySchema = z.strictObject({
+  round: P, era: z.string(), playerId: PlayerIdSchema,
+  /** Orders committed this round by type, and how many were repeats of a type already used (sum of count - 1). */
+  orders: z.record(z.string(), N), repeatedOrders: N,
+  /** Resources this round in the five ledger pools: produced (production + mining + trade + institutions + other), spent, lost, discarded over the cap. */
+  produced: z.record(z.string(), N), spent: z.record(z.string(), N), lost: z.record(z.string(), N), discarded: z.record(z.string(), N),
+  /** Closing stock in the eight resources and how many sit at their limit. */
+  stock: z.record(z.string(), N), atCap: z.array(z.string()),
+  population: N, cities: N, cityLevels: z.array(N.max(7)), moods: z.array(N.max(6)), governed: N,
+  researched: N, heritages: N, resonanceSlots: N, resonanceCycles: N,
+  pulse: z.string().nullable(), combats: z.record(z.string(), N), casualties: N, victories: N,
+  threatsAlive: z.record(z.string(), N), prestige: N, hegemonyPaths: z.record(z.string(), N),
+});
+export type RoundTelemetry = z.infer<typeof RoundTelemetrySchema>;
 export const AlphaTelemetrySchema = z.strictObject({
   version: z.string(), preset: MapPresetSchema, seed: N, players: P, rounds: P, durationMs: N,
   actionsByType: z.record(z.string(), N), productionByResource: AlphaResourcePoolSchema,
@@ -388,6 +403,10 @@ export const AlphaTelemetrySchema = z.strictObject({
   resonanceCycles: N.default(0), resonanceByKind: z.record(z.string(), N).default({}),
   /** World threats (V5.1b): spawned, attacks they made, camps destroyed while camped, and threats wiped out. */
   threatsSpawned: N.default(0), threatAttacks: N.default(0), threatKills: N.default(0), threatLosses: N.default(0),
+  /** Per-round, per-civilization log, bounded to the last 260 entries (6 players × 35 rounds plus slack). */
+  roundLog: z.array(RoundTelemetrySchema).max(260).default([]),
+  /** Orders each civilization committed when planning closed this round; consumed by the round log. */
+  pendingOrders: z.record(z.string(), z.record(z.string(), N)).default({}),
 });
 export type AlphaTelemetry = z.infer<typeof AlphaTelemetrySchema>;
 

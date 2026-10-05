@@ -46,13 +46,13 @@ describe('sustenance and growth (canon V5.1a §7): forecast and maintenance use 
     const after = produceRound(structuredClone(state));
     expect(capital(after).population).toBe(before + 1);
     expect(capital(after).workers.unassigned).toBe(capital(state).workers.unassigned + 1);
-    // Posto holds 3: the next Crescer is refused until Elevar.
+    // Posto holds 4 (I-37): the next Crescer is refused until Elevar.
     const full = structuredClone(after); seed(full, { food: 15 });
     const city = capital(full); city.population = populationCeiling('OUTPOST'); city.workers = { ...city.workers, unassigned: city.population - city.workers.producers - city.workers.artisans - city.workers.merchants - city.workers.scholars - city.workers.soldiers };
     const capped = growthForecast(full, p1).cities[0]!;
     expect(capped.capped).toBe(true);
-    expect(capped.ceiling).toBe(3);
-    expect(capital(produceRound(full)).population).toBe(3);
+    expect(capped.ceiling).toBe(4);
+    expect(capital(produceRound(full)).population).toBe(4);
   });
 
   it('charges 2 Alimento where a Celeiro stands', () => {
@@ -86,7 +86,8 @@ describe('mobilization (canon §6) and Elevar (canon §4)', () => {
     city.population = 4; city.workers = { producers: 2, artisans: 0, merchants: 0, scholars: 0, soldiers: 1, unassigned: 1 };
     const after = must(state, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'INFANTRY' });
     let resolved = after; for (const id of ['p1', 'p2']) resolved = must(resolved, { type: 'READY' }, id);
-    expect(capital(resolved).population).toBe(3);
+    // 4 → 3 by mobilization, then Crescer may bring it back to the ceiling in the same Manutenção.
+    expect(capital(resolved).population).toBe(resolved.events.some(event => event.type === 'POPULATION_GROWN' && event.round === state.core.round) ? 4 : 3);
     expect(capital(resolved).workers.soldiers).toBe(0);
     expect(resolved.units.some(unit => unit.kind === 'INFANTRY' && unit.ownerId === p1)).toBe(true);
   });

@@ -16,7 +16,7 @@ export const CITY_LADDER: readonly CityLadderStep[] = [
   { level: 'METROPOLIS', minPopulation: 14, capacity: 3, slots: 5, supplyReach: 4, garrison: 8 },
   { level: 'IMPERIAL_METROPOLIS', minPopulation: 18, capacity: 4, slots: 6, supplyReach: 5, garrison: 10 },
 ];
-/** Population an Imperial Metropolis can hold; every other level stops one short of the next level's minimum. */
+/** Population an Imperial Metropolis can hold; every other level stops at the next level's minimum (I-37). */
 export const IMPERIAL_POPULATION_CEILING = 20;
 
 export const levelIndex = (level: CityLevel): number => CityLevelSchema.options.indexOf(level);
@@ -28,10 +28,13 @@ export function levelSupportedByPopulation(population: number): CityLevel {
   for (const step of CITY_LADDER) if (population >= step.minPopulation) supported = step.level;
   return supported;
 }
-/** Habitants a city of this built level can hold before it must Elevar. */
+/**
+ * Habitants a city of this built level can hold before it must Elevar. I-37: the ceiling is the next level's minimum (a Posto
+ * grows to 4 and waits for Elevar); the canon's "minimum − 1" made Elevar unreachable.
+ */
 export function populationCeiling(level: CityLevel): number {
   const next = nextLevel(level);
-  return next ? ladderStep(next).minPopulation - 1 : IMPERIAL_POPULATION_CEILING;
+  return next ? ladderStep(next).minPopulation : IMPERIAL_POPULATION_CEILING;
 }
 /** Effective level = the lower of the built level and the level the population supports; the built level never drops by itself. */
 export const effectiveLevel = (built: CityLevel, population: number): CityLevel =>

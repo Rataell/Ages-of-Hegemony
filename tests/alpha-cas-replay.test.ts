@@ -4,7 +4,7 @@ import { PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, serializeAlphaState } from '@aoh/game-engine';
 import { readyAll } from './alpha-rounds.js';
 
-const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
+const p1 = PlayerIdSchema.parse('p1');
 type Step = { actor: typeof p1; command: Record<string, unknown> };
 const hash = (state: AlphaState) => createHash('sha256').update(serializeAlphaState(state)).digest('hex');
 const apply = (state: AlphaState, step: Step, version = state.version) => applyAlphaCommand(state, step.actor, { ...step.command, expectedVersion: version });

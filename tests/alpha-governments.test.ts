@@ -357,7 +357,7 @@ describe('Web trade rules wired in S6', () => {
   });
   it('Mercado Regional lets Riqueza cover 60% of a Construir cost (50% otherwise)', () => {
     const state = urban();
-    const cost = { food: 0, wood: 5, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 };
+    const cost = { food: 0, wood: 5, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0, culture: 0 };
     Object.assign(pool(state), { wood: 2, wealth: 20 }); sync(state);
     // 3 of 5 wood missing = 60%: refused at 50% and allowed with Mercado Regional, but only for Construir.
     expect(alphaCanAfford(state, p1, cost)).toBe(false);
