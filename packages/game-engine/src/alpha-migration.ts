@@ -99,7 +99,7 @@ export function migrateSnapshotV4ToV5(input: unknown): Result<AlphaState, AlphaE
   const phase = ({ MAINTENANCE: 'WORLD_PULSE', PLANNING: 'PLANNING', RESOLUTION: 'ORDERS_MOVEMENT', REACTION: 'CONFLICTS', END_ROUND: 'END_ROUND' } as const)[raw.core.phase];
   const candidate = {
     ...raw, schemaVersion: 5, rulesVersion: 'v5.1b', alphaVersion: '0.1.0-alpha.1', phase, rules, players,
-    units: (raw.units ?? []).map(unit => ({ ...unit, kind: unit.kind === 'SETTLER' ? 'PIONEER' : unit.kind })),
+    units: (raw.units ?? []).map(unit => ({ ...unit, kind: ['SETTLER', 'PIONEER', 'EXPLORER'].includes(String(unit.kind)) ? 'COLONIST' : unit.kind })),
     cities, tradeOffers: [], independents: [], threats: [],
     worldPulse: { deck: WORLD_PULSE_CARDS.map(card => card.id), discard: [], current: null, resolvedRound: 0 },
     telemetry: initialTelemetry(raw.core, 'MIXED'),

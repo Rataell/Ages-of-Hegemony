@@ -13,7 +13,7 @@ describe('Graus I–III come from the Web (canon §12b)', () => {
       expect(gradeFor(rule.II, kind), kind).toBe(2);
       expect(gradeFor([...rule.II, ...rule.III], kind), kind).toBe(3);
     }
-    expect(gradeFor(ALL_ADVANCES, 'EXPLORER')).toBe(1);
+    expect(gradeFor(ALL_ADVANCES, 'COLONIST')).toBe(1);
   });
 
   it('Cavalaria III needs both Doutrina Naval and Guerra de Movimento; Guarda III needs Defesa Profunda', () => {

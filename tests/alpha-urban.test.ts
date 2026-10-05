@@ -226,10 +226,10 @@ describe('urban actions: RECRUIT', () => {
   });
 
   it('recruits civilian pieces without a Military district or any soldiers', () => {
-    for (const unit of ['EXPLORER', 'ENVOY', 'PIONEER'] as const) {
+    for (const unit of ['COLONIST', 'ENVOY', 'COLONIST'] as const) {
       const state = urban();
       // The starting Explorer has left the capital, freeing the civilian stack (limit 2) for the recruit.
-      state.units = state.units.filter(piece => piece.kind !== 'EXPLORER');
+      state.units = state.units.filter(piece => piece.kind !== 'COLONIST');
       expect(coreCity(state).districts.some(d => d.type === 'MILITARY')).toBe(false);
       expect(coreCity(state).workers.soldiers).toBe(0);
       Object.assign(pool(state), { food: 10, wealth: 10, influence: 8, wood: 6, stone: 6 });

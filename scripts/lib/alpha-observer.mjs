@@ -122,7 +122,7 @@ export function makeObserver({ variant = 'baseline' } = {}) {
     }
     if (variant === 'scout') {
       for (const o of st.core.players) {
-        const explorer = box.state.units.find(u => u.ownerId === o.id && u.kind === 'EXPLORER'); if (!explorer) continue;
+        const explorer = box.state.units.find(u => u.ownerId === o.id && u.kind === 'COLONIST'); if (!explorer) continue;
         const rivals = box.state.core.players.filter(x => x.id !== o.id && x.civilization.cities[0]);
         const goal = rivals.map(x => x.civilization.cities[0].hexId).sort((a, b) => dist(box.state, explorer.hexId, a) - dist(box.state, explorer.hexId, b))[0];
         const opts = E.alphaUnitOptions(box.state, o.id)[explorer.id]; if (!goal || !opts?.moves) continue;

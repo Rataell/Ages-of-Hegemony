@@ -21,7 +21,7 @@ export function scriptedMatchSetup():AlphaState {
   for(const player of state.players){player.resources.food=1000;const owner=state.core.players.find(p=>p.id===player.playerId)!;owner.resources={...owner.resources,food:1000};}
   state.players.forEach(p=>p.knownHexIds=state.core.map.map(t=>t.id));
   state.regions=[{id:'demonstration-region',templateId:'homeland-1',hexIds:['0,0','1,0','1,-1','0,-1','-1,0','-1,1','0,1'].map(id=>HexIdSchema.parse(id)),rotation:0,revealedBy:[]}];
-  state.units=[{id:'pioneer',ownerId:p1,kind:'PIONEER',hexId:HexIdSchema.parse('2,0'),recruitedRound:1},
+  state.units=[{id:'pioneer',ownerId:p1,kind:'COLONIST',hexId:HexIdSchema.parse('2,0'),recruitedRound:1},
     ...Array.from({length:10},(_,i)=>({id:`army-${i}`,ownerId:p1,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('8,0'),recruitedRound:1})),
     ...Array.from({length:4},(_,i)=>({id:`defender-${i}`,ownerId:p2,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('9,0'),recruitedRound:1}))];
   // The script builds two districts per city and recruits once: give the built levels room (canon §5) and a Soldado (canon §6).

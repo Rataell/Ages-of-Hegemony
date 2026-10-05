@@ -82,7 +82,7 @@ describe('tactical faces', () => {
   });
 
   it('records one die per fighting unit and none for civilians', () => {
-    const { battle } = fight({ attackers: ['INFANTRY', 'GUARD'], defenders: ['INFANTRY', 'PIONEER'] }, { a1: 'EMPTY', a2: 'EMPTY', d1: 'EMPTY' });
+    const { battle } = fight({ attackers: ['INFANTRY', 'GUARD'], defenders: ['INFANTRY', 'COLONIST'] }, { a1: 'EMPTY', a2: 'EMPTY', d1: 'EMPTY' });
     expect(battle.attackerTactical.map(r => r.unitId)).toEqual(['a1', 'a2']);
     expect(battle.defenderTactical.map(r => r.unitId)).toEqual(['d1']);
     expect(battle.defenderUnits).toEqual(['d1', 'd2']);
@@ -249,7 +249,7 @@ describe('resolution', () => {
   });
 
   it('reads Δ: 2–4 is a victory (loser loses 1, weakest first), 5+ is decisive (loses 2)', () => {
-    const win = fight({ attackers: ['INFANTRY', 'INFANTRY', 'INFANTRY', 'INFANTRY'], defenders: ['EXPLORER', 'INFANTRY', 'GUARD'] }, { ...faces('IMPACT', 'a1', 'a2', 'a3', 'a4'), d2: 'EMPTY', d3: 'EMPTY' });
+    const win = fight({ attackers: ['INFANTRY', 'INFANTRY', 'INFANTRY', 'INFANTRY'], defenders: ['COLONIST', 'INFANTRY', 'GUARD'] }, { ...faces('IMPACT', 'a1', 'a2', 'a3', 'a4'), d2: 'EMPTY', d3: 'EMPTY' });
     expect(win.battle.outcome).toBe('DECISIVE');
     expect(win.battle.losses).toHaveLength(2);
     expect(win.battle.losses[0]).toBe('d2');
@@ -295,7 +295,7 @@ describe('determinism, replay and privacy', () => {
   });
 
   it('draws exactly one random number per fighting unit, attackers first, in unit-id order', () => {
-    const { state, order } = arena({ attackers: ['INFANTRY', 'GUARD'], defenders: ['INFANTRY', 'PIONEER', 'CAVALRY'] });
+    const { state, order } = arena({ attackers: ['INFANTRY', 'GUARD'], defenders: ['INFANTRY', 'COLONIST', 'CAVALRY'] });
     const counter = state.privateRng.counter;
     resolveBattle(state, p1, order);
     expect(state.privateRng.counter - counter).toBe(4);

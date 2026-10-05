@@ -76,7 +76,7 @@ describe('v4 to v5 migration', () => {
     const migrated = ok(v4);
     expect(migrated.units).toHaveLength(source.units.length);
     expect(migrated.units.some(u => (u.kind as string) === 'SETTLER')).toBe(false);
-    expect(migrated.units.filter(u => u.kind === 'PIONEER')).toHaveLength(source.units.filter(u => u.kind === 'PIONEER').length);
+    expect(migrated.units.filter(u => u.kind === 'COLONIST')).toHaveLength(source.units.filter(u => u.kind === 'COLONIST').length);
   });
 
   it('reads the old sixth Era HEGEMONY as Ascensão (Era VII) whether or not Hegemony was declared', () => {

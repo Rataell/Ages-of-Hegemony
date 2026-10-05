@@ -50,7 +50,7 @@ describe('per-piece order options', () => {
   });
 
   it('reports founding blocks exactly as the action does, in Portuguese', () => {
-    const state = setup(), actor = state.players[0]!.playerId, pioneer = state.units.find(unit => unit.ownerId === actor && unit.kind === 'PIONEER')!;
+    const state = setup(), actor = state.players[0]!.playerId, pioneer = state.units.find(unit => unit.ownerId === actor && unit.kind === 'COLONIST')!;
     const atCapital = alphaUnitOptions(state, actor)[pioneer.id]!.settleBlock;
     expect(atCapital).toMatch(/^Funde em terra firme/);
     expect(() => settleWithPioneer(structuredClone(state), actor, pioneer.id, 'Teste')).toThrow(atCapital!);
@@ -59,7 +59,7 @@ describe('per-piece order options', () => {
     expect(alphaUnitOptions(state, actor)[pioneer.id]!.settleBlock).toBeNull();
     const infantry = { ...pioneer, id: 'probe-infantry', kind: 'INFANTRY' as const };
     state.units.push(infantry);
-    expect(alphaUnitOptions(state, actor)['probe-infantry']!.settleBlock).toBe('Somente Pioneiros fundam cidades.');
+    expect(alphaUnitOptions(state, actor)['probe-infantry']!.settleBlock).toBe('Somente Colonos fundam cidades.');
   });
 
   it('projects options and warehouse limits only for the viewer', () => {
@@ -105,7 +105,7 @@ describe('names players read', () => {
     expect(produce).toBe('Celeiro Áureo produziu +2 Alimento, +1 Conhecimento.');
     const unit = before.units.find(candidate => candidate.ownerId === actor)!;
     const move = orderMessage(before, actor, { id: 'm', type: 'MOVE', unitIds: [unit.id], path: [unit.hexId] });
-    expect(move).toBe(`Pessoa 1: Pioneiro moveu-se para ${unit.hexId}.`);
+    expect(move).toBe(`Pessoa 1: Colono moveu-se para ${unit.hexId}.`);
     expect(`${produce} ${move}`).not.toMatch(/\b[A-Z]{4,}(_[A-Z]+)*\b/);
   });
 });
@@ -147,7 +147,7 @@ describe('research reservations', () => {
   it('refuses reserving the same advancement in a second city while planning', async () => {
     const { settleWithPioneer, applyAlphaCommand: run, urbanOptions } = await import('@aoh/game-engine');
     let state = setup();
-    const actor = state.players[0]!.playerId, pioneer = state.units.find(unit => unit.ownerId === actor && unit.kind === 'PIONEER')!;
+    const actor = state.players[0]!.playerId, pioneer = state.units.find(unit => unit.ownerId === actor && unit.kind === 'COLONIST')!;
     pioneer.hexId = state.core.map.find(tile => ['PLAINS', 'HILLS', 'FOREST'].includes(tile.terrain) && tile.ownerId === null && state.core.players.every(player => player.civilization.cities.every(city => hexDistance(tile, state.core.map.find(t => t.id === city.hexId)!) >= 4)))!.id;
     state.players[0]!.resources = { ...state.players[0]!.resources, food: 20, wood: 10, stone: 10, wealth: 20, knowledge: 20 };
     settleWithPioneer(state, actor, pioneer.id, 'Segunda');

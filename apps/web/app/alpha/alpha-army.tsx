@@ -3,8 +3,8 @@ import { stackCategory, stackLabel, type StackCategory, type StackView } from '@
 import { alphaLabel as text } from './alpha-copy';
 
 type Unit = { id: string; kind: string; hexId: string; supply?: { supplied: boolean } | null };
-/** Pieces that never fight. The legacy SETTLER id is migrated to PIONEER on load (alpha-migration). */
-const CIVILIAN = new Set(['EXPLORER', 'PIONEER', 'ENVOY']);
+/** Pieces that never fight. The legacy SETTLER id is migrated to COLONIST on load (alpha-migration). */
+const CIVILIAN = new Set(['COLONIST', 'COLONIST', 'ENVOY']);
 
 /** "Infantaria ×8 · Guarda ×2": one entry per class, in first-seen order. */
 export function composition(units: Unit[]) {

@@ -63,7 +63,7 @@ describe('alpha city capture and integration',()=>{
   });
   it('founds outside the administrative radius by consuming a pioneer and the shared founding cost',()=>{
     const state=setup(),actor=state.players[0]!.playerId;
-    state.units.push({id:'pioneer',ownerId:actor,kind:'PIONEER',hexId:state.core.map[2]!.id,recruitedRound:1});
+    state.units.push({id:'pioneer',ownerId:actor,kind:'COLONIST',hexId:state.core.map[2]!.id,recruitedRound:1});
     const before={...state.core.players[0]!.resources};
     const result=applyAlphaCommand(state,actor,{type:'SETTLE',expectedVersion:state.version,unitId:'pioneer',name:'Travessia'});
     if(!result.ok)throw new Error(result.error.message);
@@ -75,7 +75,7 @@ describe('alpha city capture and integration',()=>{
   });
   it('prevents foreign pioneer use, crowded sites and spending a pioneer already committed to an order',()=>{
     const state=setup(),actor=state.players[0]!.playerId;
-    state.units.push({id:'pioneer',ownerId:actor,kind:'PIONEER',hexId:state.core.map[1]!.id,recruitedRound:1});
+    state.units.push({id:'pioneer',ownerId:actor,kind:'COLONIST',hexId:state.core.map[1]!.id,recruitedRound:1});
     const command={type:'SETTLE',expectedVersion:state.version,unitId:'pioneer',name:'Travessia'};
     expect(applyAlphaCommand(state,state.players[1]!.playerId,command).ok).toBe(false);
     expect(applyAlphaCommand(state,actor,command).ok).toBe(false);
@@ -85,7 +85,7 @@ describe('alpha city capture and integration',()=>{
   });
   it('keeps a civilization active after losing its final city and lets a surviving pioneer rebuild',()=>{
     let state=setup();const former=state.players[0]!.playerId,actor=state.players[1]!.playerId,cityId=state.core.players[0]!.civilization.capitalCityId!;
-    state.units.push({id:'survivor',ownerId:former,kind:'PIONEER',hexId:state.core.map[2]!.id,recruitedRound:1});
+    state.units.push({id:'survivor',ownerId:former,kind:'COLONIST',hexId:state.core.map[2]!.id,recruitedRound:1});
     occupyCity(state,actor,cityId);refreshKnowledge(state);
     expect(state.core.players[0]!.civilization.capitalCityId).toBeNull();expect(state.core.status).toBe('ACTIVE');
     const result=applyAlphaCommand(state,former,{type:'SETTLE',expectedVersion:state.version,unitId:'survivor',name:'Retorno'});

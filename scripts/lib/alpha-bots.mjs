@@ -170,7 +170,7 @@ export function candidates(box, id, persona) {
   }
   // Pioneers: found cities.
   const wantCities = persona.settle + (eraIndex >= 3 ? 1 : 0);
-  for (const unit of myUnits.filter(u => u.kind === 'PIONEER')) {
+  for (const unit of myUnits.filter(u => u.kind === 'COLONIST')) {
     const uo = unitOpts[unit.id];
     if (!uo) continue;
     if (uo.settleBlock === null && nCities < 7) add(96, `settle:${unit.id}`, { type: 'SETTLE', unitId: unit.id, name: `Colônia ${id}-${round}-${nCities + 1}` });
@@ -184,7 +184,7 @@ export function candidates(box, id, persona) {
     }
   }
   // Explorers.
-  for (const unit of myUnits.filter(u => u.kind === 'EXPLORER')) {
+  for (const unit of myUnits.filter(u => u.kind === 'COLONIST')) {
     const uo = unitOpts[unit.id];
     if (!uo) continue;
     if (uo.explore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } });
@@ -241,8 +241,8 @@ export function candidates(box, id, persona) {
       const kind = enemies.length || persona === PERSONAS.warrior ? (kinds.find(k => k === 'SIEGE' && army.filter(u => u.kind === 'SIEGE').length < 2) ?? kinds[Math.floor(rand() * kinds.length)]) : (kinds.includes('GUARD') && here < 2 ? 'GUARD' : kinds.includes('INFANTRY') ? 'INFANTRY' : kinds[0]);
       if (kind) add((alert ? 93 : here < 2 ? 80 : 56) * (comp ? Math.min(1.1, w.recruit) * (foodLow ? 0.6 : 1) : w.recruit) * (enemies.length || alert ? 1 : saving), `recruit:${city.id}:${kind}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: kind });
     }
-    if (nCities < wantCities && !myUnits.some(u => u.kind === 'PIONEER') && index === 0) if (pick('RECRUIT', x => x.unit === 'PIONEER').length) add(85, `recruit-pioneer`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'PIONEER' });
-    if (eraIndex >= 1 && !myUnits.some(u => u.kind === 'EXPLORER') && index === 0 && (persona.explore ?? 0) > 0) if (pick('RECRUIT', x => x.unit === 'EXPLORER').length) add(60, 'recruit-explorer', { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'EXPLORER' });
+    if (nCities < wantCities && !myUnits.some(u => u.kind === 'COLONIST') && index === 0) if (pick('RECRUIT', x => x.unit === 'COLONIST').length) add(85, `recruit-pioneer`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'COLONIST' });
+    if (eraIndex >= 1 && !myUnits.some(u => u.kind === 'COLONIST') && index === 0 && (persona.explore ?? 0) > 0) if (pick('RECRUIT', x => x.unit === 'COLONIST').length) add(60, 'recruit-explorer', { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'COLONIST' });
     if (state.routes.some(r => r.ownerId === id && r.fromCityId === city.id && !r.suspended)) if (pick('SUPPORT_TRADE').length) add(48, `trade:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'SUPPORT_TRADE' });
   });
   // Territory: claim hexes around each city (Influência 1) and improve them; both are Cidade Orders.

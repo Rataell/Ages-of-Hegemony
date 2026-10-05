@@ -13,7 +13,7 @@
 import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { ADVANCEMENTS, HERITAGE_ADVANCES } from '@aoh/game-domain';
-const KIND_LABEL = { EXPLORER: 'Explorador', PIONEER: 'Pioneiro', ENVOY: 'Enviado', INFANTRY: 'Infantaria', GUARD: 'Guarda', RANGED: 'Arqueiros', CAVALRY: 'Cavalaria', SIEGE: 'Cerco', FLEET: 'Frota', COASTAL_VESSEL: 'Embarcação' };
+const KIND_LABEL = { COLONIST: 'Explorador', COLONIST: 'Pioneiro', ENVOY: 'Enviado', INFANTRY: 'Infantaria', GUARD: 'Guarda', RANGED: 'Arqueiros', CAVALRY: 'Cavalaria', SIEGE: 'Cerco', FLEET: 'Frota', COASTAL_VESSEL: 'Embarcação' };
 
 const arg = new Map(process.argv.slice(2).map(a => { const [k, v] = a.replace(/^--/, '').split('='); return [k, v ?? true]; }));
 const PORT = Number(process.env.ALPHA_LOCAL_PORT ?? 3001), BASE = `http://127.0.0.1:${PORT}`;
@@ -297,10 +297,10 @@ function nextIntent(seat, tried) {
   for (const intent of priority) {
     const key = intent; if (tried.has(key)) continue;
     switch (intent) {
-      case 'settle': { const p = myUnits.find(u => u.kind === 'PIONEER' && !hasOrder(u) && g.unitOptions[u.id]?.settleBlock === null); if (p) return { intent, unit: p, pieceKind: 'settle' }; break; }
-      case 'move-explorer': { const u = myUnits.find(x => x.kind === 'EXPLORER' && !hasOrder(x) && !g.unitOptions[x.id]?.explore.length); const dest = u && towardFrontier(g, u); if (u && dest) return { intent, unit: { ...u, dest }, pieceKind: 'move' }; break; }
-      case 'move-pioneer': { const u = myUnits.find(x => x.kind === 'PIONEER' && !hasOrder(x) && g.unitOptions[x.id]?.settleBlock !== null); const dest = u && towardFrontier(g, u, cities); if (u && dest) return { intent, unit: { ...u, dest }, pieceKind: 'move' }; break; }
-      case 'explore': { const u = myUnits.find(x => ['EXPLORER', 'COASTAL_VESSEL'].includes(x.kind) && !hasOrder(x) && g.unitOptions[x.id]?.explore.length); if (u) return { intent, unit: u, pieceKind: 'explore' }; break; }
+      case 'settle': { const p = myUnits.find(u => u.kind === 'COLONIST' && !hasOrder(u) && g.unitOptions[u.id]?.settleBlock === null); if (p) return { intent, unit: p, pieceKind: 'settle' }; break; }
+      case 'move-explorer': { const u = myUnits.find(x => x.kind === 'COLONIST' && !hasOrder(x) && !g.unitOptions[x.id]?.explore.length); const dest = u && towardFrontier(g, u); if (u && dest) return { intent, unit: { ...u, dest }, pieceKind: 'move' }; break; }
+      case 'move-pioneer': { const u = myUnits.find(x => x.kind === 'COLONIST' && !hasOrder(x) && g.unitOptions[x.id]?.settleBlock !== null); const dest = u && towardFrontier(g, u, cities); if (u && dest) return { intent, unit: { ...u, dest }, pieceKind: 'move' }; break; }
+      case 'explore': { const u = myUnits.find(x => ['COLONIST', 'COASTAL_VESSEL'].includes(x.kind) && !hasOrder(x) && g.unitOptions[x.id]?.explore.length); if (u) return { intent, unit: u, pieceKind: 'explore' }; break; }
       case 'elevate': for (const c of cities) { const o = options(c.id).find(x => x.action === 'ELEVATE'); if (o && usedCity(c.id) < cap) return { intent, city: c, kind: 'elevate', option: o }; } break;
       case 'research': if (g.urban.research.some(o => o.blocked === null) && g.actions.byOrder.ADVANCE < 1) return { intent, research: true }; break;
       case 'produce': for (const c of cities) { const o = options(c.id).find(x => x.action === 'PRODUCE'); if (o && usedCity(c.id) < cap && !g.self.plannedActions.some(a => a.type === 'URBAN_ACTION' && a.cityId === c.id && a.action === 'PRODUCE')) return { intent, city: c, kind: 'produce' }; } break;
@@ -312,18 +312,18 @@ function nextIntent(seat, tried) {
       } break;
       case 'recruit-army': case 'recruit-pioneer': for (const c of cities) {
         const list = options(c.id).filter(x => x.action === 'RECRUIT');
-        const want = intent === 'recruit-pioneer' ? list.find(x => x.unit === 'PIONEER') : list.find(x => x.unit === 'INFANTRY' || x.unit === 'GUARD');
-        if (want && usedCity(c.id) < cap && (intent === 'recruit-pioneer' ? myUnits.filter(u => u.kind === 'PIONEER').length < 1 : myUnits.filter(u => !['EXPLORER', 'PIONEER', 'ENVOY'].includes(u.kind)).length < 4)) return { intent, city: c, kind: 'recruit', option: want };
+        const want = intent === 'recruit-pioneer' ? list.find(x => x.unit === 'COLONIST') : list.find(x => x.unit === 'INFANTRY' || x.unit === 'GUARD');
+        if (want && usedCity(c.id) < cap && (intent === 'recruit-pioneer' ? myUnits.filter(u => u.kind === 'COLONIST').length < 1 : myUnits.filter(u => !['COLONIST', 'COLONIST', 'ENVOY'].includes(u.kind)).length < 4)) return { intent, city: c, kind: 'recruit', option: want };
       } break;
-      case 'seek-contact': { const u = myUnits.find(x => x.kind === 'EXPLORER' && !hasOrder(x)); const dest = u && closest(u, goal(u.hexId)); if (u && dest && dest !== u.hexId) return { intent, unit: { ...u, dest }, pieceKind: 'move' }; break; }
-      case 'march-foe': { if (seat.persona !== 'warrior' && !wars.size) break; const a = myUnits.find(x => !['EXPLORER', 'PIONEER', 'ENVOY'].includes(x.kind) && !hasOrder(x)); const dest = a && closest(a, goal(a.hexId)); if (a && dest && dest !== a.hexId && hexDist(dest, goal(a.hexId)) < hexDist(a.hexId, goal(a.hexId))) return { intent, unit: { ...a, dest }, pieceKind: 'move' }; break; }
+      case 'seek-contact': { const u = myUnits.find(x => x.kind === 'COLONIST' && !hasOrder(x)); const dest = u && closest(u, goal(u.hexId)); if (u && dest && dest !== u.hexId) return { intent, unit: { ...u, dest }, pieceKind: 'move' }; break; }
+      case 'march-foe': { if (seat.persona !== 'warrior' && !wars.size) break; const a = myUnits.find(x => !['COLONIST', 'COLONIST', 'ENVOY'].includes(x.kind) && !hasOrder(x)); const dest = a && closest(a, goal(a.hexId)); if (a && dest && dest !== a.hexId && hexDist(dest, goal(a.hexId)) < hexDist(a.hexId, goal(a.hexId))) return { intent, unit: { ...a, dest }, pieceKind: 'move' }; break; }
       case 'attack': { // war first: only at war and with an enemy piece next to my army
         if (!wars.size) break;
-        const army = myUnits.filter(u => !['EXPLORER', 'PIONEER', 'ENVOY'].includes(u.kind) && !hasOrder(u));
+        const army = myUnits.filter(u => !['COLONIST', 'COLONIST', 'ENVOY'].includes(u.kind) && !hasOrder(u));
         const foes = [...(g.units ?? []).filter(u => wars.has(u.ownerId)), ...foreign.filter(c => wars.has(c.ownerId ?? c.currentOwnerId))];
         for (const a of army) { const f = foes.find(x => hexDist(x.hexId, a.hexId) === 1); if (f) return { intent, unit: { ...a, target: f.hexId }, pieceKind: 'attack' }; }
         break; }
-      case 'move-army': { const a = myUnits.find(u => !['EXPLORER', 'PIONEER', 'ENVOY'].includes(u.kind) && !hasOrder(u)); const dest = a && Object.keys(g.unitOptions[a.id]?.moves ?? {}).sort((x, y) => hexDist(y, cities[0]?.hexId ?? a.hexId) - hexDist(x, cities[0]?.hexId ?? a.hexId))[0]; if (a && dest && g.view.round % 3 === 0) return { intent, unit: { ...a, dest }, pieceKind: 'move' }; break; }
+      case 'move-army': { const a = myUnits.find(u => !['COLONIST', 'COLONIST', 'ENVOY'].includes(u.kind) && !hasOrder(u)); const dest = a && Object.keys(g.unitOptions[a.id]?.moves ?? {}).sort((x, y) => hexDist(y, cities[0]?.hexId ?? a.hexId) - hexDist(x, cities[0]?.hexId ?? a.hexId))[0]; if (a && dest && g.view.round % 3 === 0) return { intent, unit: { ...a, dest }, pieceKind: 'move' }; break; }
       case 'trade-route': break; // routes live in the Diplomacia tab; handled by diplomacyTurn
       default: break;
     }

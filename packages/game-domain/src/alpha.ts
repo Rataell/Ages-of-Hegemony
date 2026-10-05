@@ -34,11 +34,13 @@ export const AlphaRulesSchema = z.strictObject({
   /** Orders per round (canon §1: 5 by default, 3–6 configurable). Matches saved with the old 7-action economy read 6. */
   actionsPerRound: z.preprocess(value => typeof value === 'number' ? Math.min(6, Math.max(3, value)) : value, z.number().int().min(3).max(6).optional()),
   hegemonyHoldRounds: P, handLimit: P, advisorLimit: P, unitLimit: P,
+  /** Colonos each civilization starts with (canon change 2026-10-05: one civil piece replaces Explorador + Pioneiro). Older saves read 2. */
+  startingColonists: z.number().int().min(1).max(3).default(2),
   integrationCost:ResourcePoolSchema,occupationStabilityPenalty:N,
   hegemonyRequirements:z.record(HegemonyPathSchema,z.array(z.strictObject({metric:HegemonyMetricSchema,minimum:P})).min(3)),
   cardsPerRound:P,eventEvery:P,roadCost:ResourcePoolSchema,advisorCost:ResourcePoolSchema,treatyDuration:P,routeIncome:N,foreignRouteIncome:N,
   /** Classes added later (e.g. COASTAL_VESSEL) are filled from the catalogue, so older saved matches stay valid. */
-  units:z.preprocess(value=>value&&typeof value==='object'?{...alphaUnitCatalog(),...value}:value,z.record(AlphaUnitClassSchema,UnitCatalogEntrySchema)),
+  units:z.preprocess(value=>{if(!value||typeof value!=='object')return value;const {EXPLORER:_e,PIONEER:_p,...rest}=value as Record<string,unknown>;void _e;void _p;return {...alphaUnitCatalog(),...rest};},z.record(AlphaUnitClassSchema,UnitCatalogEntrySchema)),
   movementCosts:z.record(z.enum(['UNKNOWN','PLAINS','FOREST','HILLS','MOUNTAINS','COAST','SEA']),P), supplyRadius:P,
   milestones:z.array(AlphaEraMilestoneSchema).min(1),
   planningSeconds: z.union([z.literal(0), z.literal(180), z.literal(300), z.literal(480), z.literal(3600), z.literal(14400), z.literal(28800)]),
@@ -52,7 +54,7 @@ export type AlphaRules = z.infer<typeof AlphaRulesSchema>;
 export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED', actionsPerRound = 5): AlphaRules {
   const roundsPerEra = { QUICK: 3, STANDARD: 5, EPIC: 7 }[preset];
   return AlphaRulesSchema.parse({ preset, roundLimit: AlphaEraSchema.options.length * roundsPerEra, roundsPerEra, baseCommandPoints: 4, actionsPerRound,
-    hegemonyHoldRounds: 2, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
+    hegemonyHoldRounds: 2, startingColonists: 2, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
     integrationCost:{food:0,materials:0,wealth:0,knowledge:0,influence:3},occupationStabilityPenalty:15,
     hegemonyRequirements:{
       MILITARY:[{metric:'strength',minimum:12},{metric:'victories',minimum:2},{metric:'foreignPresence',minimum:2}],
@@ -285,7 +287,16 @@ const AlphaStateBase = z.strictObject({
   }
 });
 /** V5.1a → V5.1b upgrade (never silent: a public SAVE_UPGRADED event is appended). Catalog refresh for combat arrives with the combat slice. */
-export function upgradeToV51b(raw: unknown): unknown { return migrateGreatProjects(fillGovernments(upgradeBody(raw))); }
+export function upgradeToV51b(raw: unknown): unknown { return migrateColonists(migrateGreatProjects(fillGovernments(upgradeBody(raw)))); }
+/** Canon change: Explorador and Pioneiro became one Colono. Pieces of the old classes are renamed in place (ids stay) and the save says so. */
+function migrateColonists(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const input = value as Record<string, unknown>, units = Array.isArray(input.units) ? input.units as { kind?: string }[] : [];
+  if (!units.some(unit => ['EXPLORER', 'PIONEER', 'SETTLER'].includes(unit.kind ?? ''))) return value;
+  const events = Array.isArray(input.events) ? input.events as unknown[] : [];
+  const round = typeof (input.core as { round?: unknown } | undefined)?.round === 'number' ? (input.core as { round: number }).round : 1;
+  return { ...input, units: units.map(unit => ['EXPLORER', 'PIONEER', 'SETTLER'].includes(unit.kind ?? '') ? { ...unit, kind: 'COLONIST' } : unit), events: [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Explorador e Pioneiro agora são uma só peça: o Colono.' }] };
+}
 /** D-3: saved Grandes Projetos (one completed step each) become completed Obras de Legado; the old ids are mapped and nothing is dropped silently. */
 function migrateGreatProjects(value: unknown): unknown {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return value;

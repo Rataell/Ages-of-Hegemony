@@ -147,13 +147,13 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     {
       const planned=await game();
       // Only the starting Explorer exists until the planned recruitment resolves.
-      expect(planned.units.filter(u=>u.ownerId===planned.players[0]!.playerId&&u.kind==='EXPLORER')).toHaveLength(1);
+      expect(planned.units.filter(u=>u.ownerId===planned.players[0]!.playerId&&u.kind==='COLONIST')).toHaveLength(1);
       expect(planned.players[1]!.research).not.toContain('web-agriculture');
     }
     await bothConfirm('Confirmar planejamento','3 / 21');
     {
       const after=await game();
-      expect(after.units.filter(u=>u.ownerId===after.players[0]!.playerId&&u.kind==='EXPLORER')).toHaveLength(2);
+      expect(after.units.filter(u=>u.ownerId===after.players[0]!.playerId&&u.kind==='COLONIST')).toHaveLength(2);
       expect(after.players[1]!.research).toContain('web-agriculture');
     }
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
@@ -165,7 +165,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     expect((await game()).players[0]!.research).toHaveLength(0);
     {
       const beforeMove=await game(),ana=beforeMove.players[0]!.playerId,beto=beforeMove.players[1]!.playerId;
-      const explorer=beforeMove.units.find(unit=>unit.ownerId===ana&&unit.kind==='EXPLORER')!,from=beforeMove.core.map.find(tile=>tile.id===explorer.hexId)!;
+      const explorer=beforeMove.units.find(unit=>unit.ownerId===ana&&unit.kind==='COLONIST')!,from=beforeMove.core.map.find(tile=>tile.id===explorer.hexId)!;
       const betoVision=visibleHexIds(beforeMove,beto);
       const target=beforeMove.core.map.find(tile=>beforeMove.players[0]!.knownHexIds.includes(tile.id)&&!['SEA','UNKNOWN'].includes(tile.terrain)&&!beforeMove.units.some(unit=>unit.hexId===tile.id)&&hexDistance(from,tile)===1&&!betoVision.has(tile.id))!;
       expect(target).toBeDefined();

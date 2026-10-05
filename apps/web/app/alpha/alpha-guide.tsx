@@ -28,8 +28,7 @@ export function AlphaGuide({ game, onClose }: { game: AlphaPlayerView; onClose: 
       <h3>Peças</h3>
       <p>Selecione peças no Conselho: o mapa destaca para onde podem ir e o que podem explorar. Cada peça recebe uma ordem por rodada.</p>
       <ul>
-        <li><b>{units.PIONEER.name}</b> — funda uma nova cidade onde está (custo de fundação; longe o bastante de outras cidades).</li>
-        <li><b>{units.EXPLORER.name}</b> — movimento {units.EXPLORER.movement}; explora uma região vizinha e revela seus 7 hexes.</li>
+        <li><b>{units.COLONIST.name}</b> — movimento {units.COLONIST.movement}; explora uma região vizinha e revela seus 7 hexes (e encerra o movimento nessa Ordem), ou funda uma cidade onde está (custo de fundação; longe o bastante de outras cidades) e é consumido. Descobrir e fundar na mesma Ordem não é possível: primeiro descobre, depois coloniza.</li>
         <li><b>Militares</b> — atacam peças ou cidades vizinhas de quem está em guerra com você. Longe das suas cidades e territórios ficam sem suprimento e lutam pior.</li>
       </ul>
       <h3>Contato, diplomacia e guerra</h3>

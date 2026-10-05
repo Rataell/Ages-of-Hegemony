@@ -207,7 +207,7 @@ describe('what a Bando does', () => {
     // Exposed civilians: an Explorador alone on the next hex dies without a battle.
     const state2 = setup(), t2 = camp(state2, origin(state2, 4), { status: 'MARCHING' });
     const step = tile(state2, landTarget(state2, t2)!.path[0]!);
-    state2.units = [{ id: 'lone', ownerId: p1, kind: 'EXPLORER', hexId: step.id as never, recruitedRound: 1 }];
+    state2.units = [{ id: 'lone', ownerId: p1, kind: 'COLONIST', hexId: step.id as never, recruitedRound: 1 }];
     activateThreats(state2, { launch: false });
     expect(state2.units.find(u => u.id === 'lone')).toBeUndefined();
     expect(state2.battles).toHaveLength(0);
@@ -353,7 +353,7 @@ describe('V51B-05 · the Bando target is authoritative public information, filte
   /** A marching camp whose engine target is p1's own capital, watched by a p2 scout that sees the Bando but not the city. */
   function marching(): { state: AlphaState; band: Threat } {
     const state = setup(), start = origin(state, 5), band = camp(state, start, { status: 'MARCHING' });
-    state.units = state.units.filter(unit => unit.ownerId !== p2 || unit.kind !== 'EXPLORER');
+    state.units = state.units.filter(unit => unit.ownerId !== p2 || unit.kind !== 'COLONIST');
     const scout = state.units.find(unit => unit.ownerId === p2)!; scout.hexId = band.hexId as never;
     return { state, band };
   }

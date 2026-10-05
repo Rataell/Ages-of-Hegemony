@@ -50,7 +50,7 @@ async function planTowardContact(round){
   for(const [index,{page,label}] of seats.entries()){
     const game=games[index];if(!game)continue;
     if(game.self.contacts.length>0)continue;
-    const unit=game.units.find(candidate=>candidate.ownerId===game.self.playerId&&(candidate.kind==='PIONEER'||candidate.kind==='EXPLORER'));if(!unit)continue;
+    const unit=game.units.find(candidate=>candidate.ownerId===game.self.playerId&&(candidate.kind==='COLONIST'||candidate.kind==='COLONIST'));if(!unit)continue;
     const visible=game.view.visibleTerritory,tiles=[...visible,...game.knownTerritory,...game.frontier];
     const byId=new Map(tiles.map(tile=>[tile.id,tile])),origin=byId.get(unit.hexId);if(!origin)continue;
     const target=directedTargets.get(index);if(!target||game.self.contacts.includes(target.playerId))continue;

@@ -46,7 +46,7 @@ describe('naval vertical slice (DEC-014)', () => {
     const { state, capital, coast, sea } = harbour();
     recruitUnit(state, p1, capital.id, 'FLEET');
     const fleet = state.units.find(unit => unit.kind === 'FLEET')!;
-    const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'EXPLORER')!;
+    const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'COLONIST')!;
     expect(alphaUnitOptions(state, p1)[explorer.id]!.embark).toContain(fleet.id);
     let next = must(state, p1, { type: 'EMBARK', unitIds: [explorer.id], fleetId: fleet.id });
     const aboard = next.units.find(unit => unit.id === explorer.id)!;
@@ -107,10 +107,10 @@ describe('naval vertical slice (DEC-014)', () => {
     const { state, capital } = harbour();
     recruitUnit(state, p1, capital.id, 'FLEET');
     const fleet = state.units.find(unit => unit.kind === 'FLEET')!;
-    const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'EXPLORER')!;
+    const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'COLONIST')!;
     const next = must(state, p1, { type: 'EMBARK', unitIds: [explorer.id], fleetId: fleet.id });
     // Let p2 see the harbour.
-    for (const id of [fleet.hexId, ...around(next, fleet.hexId)]) next.units.push({ id: `watch-${id}`, ownerId: p2, kind: 'EXPLORER', hexId: capital.hexId, recruitedRound: 1, carrierId: null });
+    for (const id of [fleet.hexId, ...around(next, fleet.hexId)]) next.units.push({ id: `watch-${id}`, ownerId: p2, kind: 'COLONIST', hexId: capital.hexId, recruitedRound: 1, carrierId: null });
     const view = alphaPlayerView(next, p2)!;
     expect(view.units.some(unit => unit.id === explorer.id)).toBe(false);
     expect(alphaPlayerView(next, p1)!.units.find(unit => unit.id === explorer.id)?.carrierId).toBe(fleet.id);
@@ -144,11 +144,11 @@ describe('naval vertical slice (DEC-014)', () => {
     recruitUnit(state, p1, capital.id, 'COASTAL_VESSEL');
     const boat = state.units.find(unit => unit.kind === 'COASTAL_VESSEL')!;
     expect(['COAST', 'SEA']).toContain(tile(state, boat.hexId).terrain);
-    const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'EXPLORER')!;
+    const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'COLONIST')!;
     const next = must(state, p1, { type: 'EMBARK', unitIds: [explorer.id], fleetId: boat.id });
     expect(next.units.find(unit => unit.id === explorer.id)!.carrierId).toBe(boat.id);
     state.units.push({ id: 'second', ownerId: p1, kind: 'INFANTRY', hexId: capital.hexId, recruitedRound: 1, carrierId: null });
-    expect(applyAlphaCommand(next, p1, { type: 'EMBARK', expectedVersion: next.version, unitIds: ['pioneer-1'], fleetId: boat.id }).ok).toBe(false);
+    expect(applyAlphaCommand(next, p1, { type: 'EMBARK', expectedVersion: next.version, unitIds: ['colonist-1-1'], fleetId: boat.id }).ok).toBe(false);
     next.wars.push(['p1', 'p2'] as never);
     expect(blockadedBy(next, next.core.players[1]!.civilization.cities[0]!.hexId, p2)).toBeNull();
     expect(AlphaStateSchema.safeParse(next).success).toBe(true);

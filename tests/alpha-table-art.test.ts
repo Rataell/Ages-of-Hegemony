@@ -16,9 +16,9 @@ describe('table art (Experience V2.2)', () => {
     expect(count(breached, 'line')).toBeGreaterThan(count(intact, 'line'));
     expect(breached).toContain('<circle');
   });
-  it('gives Explorer, Pioneer and Envoy their own silhouettes, not a shared disc (UXDEC-018)', () => {
-    const shapes = ['EXPLORER', 'PIONEER', 'ENVOY'].map(kind => pieceArt(kind, SEAT_COLORS[0]));
-    expect(new Set(shapes).size).toBe(3);
+  it('gives Colono and Envoy their own silhouettes, not a shared disc (UXDEC-018)', () => {
+    const shapes = ['COLONIST', 'ENVOY'].map(kind => pieceArt(kind, SEAT_COLORS[0]));
+    expect(new Set(shapes).size).toBe(2);
     for (const svg of shapes) expect(svg).not.toMatch(/<circle r="14\.5"/);
   });
   it('keeps gold out of the seat palette (UXDEC-020)', () => {

@@ -18,7 +18,7 @@ import { casualtyCount, chooseLosses, resolveShock, type Fort, type Modifier, ty
  * Ancoradouros with their own cap. A threat is not an `AlphaUnit`: its pieces are descriptors for the shock core, so the
  * world fights with exactly the engine players use.
  */
-const CIVILIANS = new Set<AlphaUnit['kind']>(['EXPLORER', 'PIONEER', 'ENVOY']);
+const CIVILIANS = new Set<AlphaUnit['kind']>(['COLONIST', 'ENVOY']);
 const IMPASSABLE_LAND = new Set(['SEA', 'UNKNOWN']);
 const tileMap = (state: AlphaState) => new Map(state.core.map.map(tile => [tile.id as string, tile]));
 export const eraIndexOf = (state: AlphaState): number => AlphaEraSchema.options.indexOf(eraForRound(state.core.round, state.rules.roundsPerEra));

@@ -64,7 +64,7 @@ export function battleMessage(names: Map<string, string>, battle: Battle): strin
   return `${attacker} atacou ${defender} em ${battle.hexId} ${reading} (Ataque ${battle.attackTotal} × Defesa ${battle.defenseTotal}, Δ ${delta > 0 ? '+' : ''}${delta}).`;
 }
 
-/** "Beto perdeu Infantaria. Ana perdeu Pioneiro, Explorador." Uses the pieces as they were before the battle removed them. */
+/** "Beto perdeu Infantaria. Ana perdeu Colono." Uses the pieces as they were before the battle removed them. */
 export function lossesMessage(before: { units: Map<string, { kind: string; ownerId: string }>; rules: AlphaState['rules']; names: Map<string, string> }, losses: readonly string[]): string {
   const byOwner = new Map<string, string[]>();
   for (const id of losses) { const unit = before.units.get(id); if (!unit) continue; byOwner.set(unit.ownerId, [...(byOwner.get(unit.ownerId) ?? []), before.rules.units[unit.kind as keyof AlphaState['rules']['units']].name]); }

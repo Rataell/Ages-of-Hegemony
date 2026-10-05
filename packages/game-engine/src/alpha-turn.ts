@@ -150,7 +150,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     } else if(command.type==='SETTLE') {
       const hexId=state.units.find(unit=>unit.id===command.unitId&&unit.ownerId===actor)?.hexId;
       settleWithPioneer(state,actor,command.unitId,command.name);refreshKnowledge(state);
-      alphaEvent(state,'CITY_FOUNDED','Pioneiro estabeleceu uma nova cidade.',[actor]);
+      alphaEvent(state,'CITY_FOUNDED','Um Colono fundou uma nova cidade.',[actor]);
       if(hexId){const city=state.core.players.find(owner=>owner.id===actor)!.civilization.cities.find(item=>item.hexId===hexId)!;const visibleTo=state.players.map(owner=>owner.playerId).filter(playerId=>playerId===actor||visibleHexIds(state,playerId).has(hexId));resolutionEvent(state,{type:'FOUNDATION',actorId:actor,visibleTo,message:`${city.name} foi fundada.`,hexId,cityId:city.id,unitIds:[command.unitId]});}
     } else if(command.type==='DECLARE_HEGEMONY') {
       declareHegemony(state,actor,command.path);

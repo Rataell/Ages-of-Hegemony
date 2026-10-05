@@ -93,7 +93,7 @@ export function kitTradeBonus(state: AlphaState, parties: readonly PlayerId[]): 
  * Cartographers (reveal regions up to two hexes away).
  */
 export const isSignature = (state: AlphaState, unit: Pick<AlphaUnit, 'ownerId' | 'kind'>) => { const kit = civilizationKit(state.players.find(p => p.playerId === unit.ownerId)?.civilization); return !!kit && kit.signature.item.status === 'ACTIVE' && kit.signature.family === unit.kind; };
-export const kitExplorationReach = (state: AlphaState, unit: AlphaUnit) => civilizationOf(state, unit.ownerId) === 'elyra' && unit.kind === 'EXPLORER' ? 2 : 1;
+export const kitExplorationReach = (state: AlphaState, unit: AlphaUnit) => civilizationOf(state, unit.ownerId) === 'elyra' && unit.kind === 'COLONIST' ? 2 : 1;
 
 /** Starting heritage, applied once when the match is created. Pieces that do not fit the capital stand on a free neighbour. */
 export function applyCivilizationHeritage(state: AlphaState): void {
@@ -116,7 +116,7 @@ export function applyCivilizationHeritage(state: AlphaState): void {
       if (quarry) quarry.improvement = 'QUARRY';
     }
     if (civ === 'meridia') player.resources.wealth += 3;
-    if (civ === 'thalos' || civ === 'elyra') place('EXPLORER', 2);
+    if (civ === 'thalos' || civ === 'elyra') place('COLONIST', 2);
     if (civ === 'saren') { place('ENVOY', 1); player.resources.influence += 2; }
     if (civ === 'veyra') { place('ENVOY', 1); place('ENVOY', 2); }
     if (civ === 'kor' && meta && meta.fortification.level === 'NONE') meta.fortification = { level: 'PALISADE', state: 'INTACT' };

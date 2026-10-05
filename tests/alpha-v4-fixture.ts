@@ -18,7 +18,7 @@ export function toV4Snapshot(state: AlphaState): Loose {
     delete player.resources; delete player.legacyCulturalTrack;
     if (player.era === 'ASCENSION') player.era = 'EMPIRES';
   }
-  for (const unit of raw.units as Loose[]) if (unit.kind === 'PIONEER') unit.kind = 'SETTLER';
+  for (const unit of raw.units as Loose[]) if (unit.kind === 'COLONIST') unit.kind = 'SETTLER';
   for (const battle of raw.battles as Loose[]) for (const key of ['attackerPosture', 'defenderPosture', 'attackBreakdown', 'defenseBreakdown', 'attackerTactical', 'defenderTactical', 'fortification']) delete battle[key];
   for (const report of raw.roundReports as Loose[]) { for (const key of ['mining', 'discarded', 'production', 'other', 'losses', 'expenses']) delete report[key]; }
   return raw;
