@@ -11,7 +11,7 @@ function reveal(state: AlphaState, kind: DiscoveryKind, regionIndex = 0) {
   const region = frontier(state).find(candidate => candidate.hexIds.some(id => state.core.map.find(t => t.id === id)!.terrain !== 'SEA'))!;
   void regionIndex;
   region.discovery = { kind, resolved: kind === 'NONE', resolvedBy: null };
-  const unit = state.units.find(u => u.ownerId === p1 && u.kind === 'COLONIST')!;
+  const unit = state.units.find(u => u.ownerId === p1 && u.kind === 'PIONEER')!;
   const edge = state.core.map.find(tile => !region.hexIds.includes(tile.id) && !['SEA', 'UNKNOWN'].includes(tile.terrain) && region.hexIds.some(id => hexDistance(tile, state.core.map.find(c => c.id === id)!) === 1))!;
   unit.hexId = edge.id as never; state.players[0]!.knownHexIds = state.core.map.map(t => t.id);
   state.players[0]!.pendingChoices = [];

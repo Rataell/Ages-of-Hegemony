@@ -61,12 +61,12 @@ async function plan(p, round) {
   // pieces
   const g2 = (await room(p)).game, mine = g2.units.filter(u => u.ownerId === id);
   const ship = mine.find(u => u.kind === 'COASTAL_VESSEL' || u.kind === 'FLEET');
-  if (ship && !mine.some(u => u.carrierId)) { const land = mine.find(u => !u.carrierId && ['INFANTRY', 'COLONIST'].includes(u.kind) && g2.unitOptions[u.id]?.embark?.includes(ship.id)); if (land) await cmd(p, { type: 'EMBARK', unitIds: [land.id], fleetId: ship.id }); }
+  if (ship && !mine.some(u => u.carrierId)) { const land = mine.find(u => !u.carrierId && ['INFANTRY', 'PIONEER'].includes(u.kind) && g2.unitOptions[u.id]?.embark?.includes(ship.id)); if (land) await cmd(p, { type: 'EMBARK', unitIds: [land.id], fleetId: ship.id }); }
   for (const u of mine.filter(u => u.carrierId)) { const d = g2.unitOptions[u.id]?.disembark ?? []; if (d.length && round % 2 === 0) await cmd(p, { type: 'DISEMBARK', unitIds: [u.id], hexId: d[d.length - 1] }); }
   const g3 = (await room(p)).game; let queued = 0;
   for (const u of g3.units.filter(u => u.ownerId === id && !u.carrierId)) {
     const o = g3.unitOptions[u.id]; if (!o) continue;
-    if (u.kind === 'COLONIST' && round >= 2 && o.settleBlock === null) { await cmd(p, { type: 'SETTLE', unitId: u.id, name: 'Nova ' + p.label }); continue; }
+    if (u.kind === 'PIONEER' && round >= 2 && o.settleBlock === null) { await cmd(p, { type: 'SETTLE', unitId: u.id, name: 'Nova ' + p.label }); continue; }
     if (u.kind === 'ENVOY' && round >= 4) { const near = g3.view.visibleCities.find(c => c.ownerId !== id); if (near) { await cmd(p, { type: 'QUEUE_ORDER', order: { id: `inf-${round}-${u.id}`, type: 'INFLUENCE', unitId: u.id, target: near.hexId } }); continue; } }
     if (o.explore?.length) { await cmd(p, { type: 'QUEUE_ORDER', order: { id: `o-${round}-${u.id}`, type: 'EXPLORE', unitId: u.id, target: o.explore[0].hexIds[0], rotation: 0 } }); queued++; continue; }
     const enemy = g3.units.find(e => e.ownerId !== id && !e.carrierId); const atWar = g3.wars.length > 0;

@@ -22,8 +22,8 @@ describe('civilization kits applied by the engine', () => {
     expect(own(game('saren'), 'ENVOY')).toBe(1);
     expect(raw('saren').players[0]!.resources.influence).toBe(start.influence + 2);
     expect(own(game('veyra'), 'ENVOY')).toBe(2);
-    expect(own(game('thalos'), 'COLONIST')).toBe(3); // 2 starting Colonos + 1 heritage
-    expect(own(game('elyra'), 'COLONIST')).toBe(3);
+    expect(own(game('thalos'), 'PIONEER')).toBe(3); // 2 starting Pioneiros + 1 heritage
+    expect(own(game('elyra'), 'PIONEER')).toBe(3);
     expect(game('kor').cities.find(city => city.capital && city.currentOwnerId === p1)!.fortification.level).toBe('PALISADE');
     expect(raw('meridia').players[0]!.resources.wealth).toBe(start.wealth + 3);
     expect(raw('orinth').players[0]!.resources.knowledge).toBe(start.knowledge + 2);
@@ -77,7 +77,7 @@ describe('civilization kits applied by the engine', () => {
     const state = game('aurelia', 'valgard');
     expect(isSignature(state, { ownerId: p2, kind: 'GUARD' })).toBe(true);
     expect(isSignature(state, { ownerId: p1, kind: 'GUARD' })).toBe(false);
-    expect(kitExplorationReach(game('elyra'), { id: 'x', ownerId: p1, kind: 'COLONIST', hexId: '0,0' as never, recruitedRound: 1, carrierId: null })).toBe(2);
+    expect(kitExplorationReach(game('elyra'), { id: 'x', ownerId: p1, kind: 'PIONEER', hexId: '0,0' as never, recruitedRound: 1, carrierId: null })).toBe(2);
     const capital = state.core.players[1]!.civilization.cities[0]!;
     state.cities.find(city => city.cityId === capital.id)!.fortification = { level: 'PALISADE', state: 'INTACT' };
     const near = hexNeighbors(state.core.map.find(t => t.id === capital.hexId)!).map(hexId).find(id => state.core.map.some(t => t.id === id && !['SEA', 'UNKNOWN'].includes(t.terrain)))!;

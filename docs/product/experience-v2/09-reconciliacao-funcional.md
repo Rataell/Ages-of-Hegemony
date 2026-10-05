@@ -86,17 +86,17 @@ Um sistema pode ter mais de uma classe.
 | **Pioneiro** | funda cidades/postos; coloniza e melhora território quando a regra permitir | não explora além da visão normal | `PIONEER` (o antigo `SETTLER` já migra para `PIONEER`, `alpha-migration.ts:102`) | Pioneiro | manter; remover `SETTLER` das listas de UI legadas |
 | **Enviado** | diplomacia, integração, influência e projeção cultural | não luta | `ENVOY` | **Emissário** | trocar o rótulo para **Enviado** (UI, docs, catálogo); manter o ID `ENVOY` |
 
-### Ocorrências de “Colono” e proposta de migração
+### Ocorrências de “Pioneiro” e proposta de migração
 
 | Onde | Texto | Tipo | Proposta |
 |---|---|---|---|
-| Bíblia, prancha 11 (lista de peças) | “Colono · Funda cidades e ocupa territórios livres” | **nome da peça** | → **Pioneiro** |
-| Bíblia, prancha 08 (escada) | “Fundação por Colono” | nome da peça | → “Fundação por Pioneiro” |
+| Bíblia, prancha 11 (lista de peças) | “Pioneiro · Funda cidades e ocupa territórios livres” | **nome da peça** | → **Pioneiro** |
+| Bíblia, prancha 08 (escada) | “Fundação por Pioneiro” | nome da peça | → “Fundação por Pioneiro” |
 | Bíblia, prancha 13 (embarque) | “soldado, explorador, colono, enviado…” | nome da peça | → pioneiro |
-| Bíblia, prancha 01 (Era II) | “Colonos · distritos básicos” | nome da peça | → “Pioneiros · distritos básicos” |
-| Bíblia, prancha 20 (Confederação) | “Colonos custam menos” | nome da peça | → “Pioneiros custam menos” |
-| Bíblia, civ Dravik (dados) | “Colonos custam 1 Comida a menos” | nome da peça | → Pioneiros |
-| Bíblia, peças exclusivas | “Sacerdote-Colono”, “Colono-Guerreiro”, “Colono de Estrada” | nome de variante da peça | → “Sacerdote-Pioneiro”, “Pioneiro-Guerreiro”, “Pioneiro de Estrada” (a revisar com o kit) |
+| Bíblia, prancha 01 (Era II) | “Pioneiros · distritos básicos” | nome da peça | → “Pioneiros · distritos básicos” |
+| Bíblia, prancha 20 (Confederação) | “Pioneiros custam menos” | nome da peça | → “Pioneiros custam menos” |
+| Bíblia, civ Dravik (dados) | “Pioneiros custam 1 Comida a menos” | nome da peça | → Pioneiros |
+| Bíblia, peças exclusivas | “Sacerdote-Pioneiro”, “Pioneiro-Guerreiro”, “Pioneiro de Estrada” | nome de variante da peça | → “Sacerdote-Pioneiro”, “Pioneiro-Guerreiro”, “Pioneiro de Estrada” (a revisar com o kit) |
 | Bíblia, carta “Missão Colonial” · categoria “Colonização” | conceito (ato de colonizar) | **conceito** | **manter** |
 | Bíblia, código (`mini('colono')`) | chave interna do desenho | interno | renomear para `pioneiro` quando o desenho for revisto |
 | Alpha, `alpha-army.tsx:6`, `hex-map.tsx:306` | `'SETTLER'` em listas de civis | legado de ID | remover após confirmar que nenhum save ativo mantém `SETTLER` (a migração já converte) |

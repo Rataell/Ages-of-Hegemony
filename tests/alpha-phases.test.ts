@@ -267,7 +267,7 @@ describe('structured resolution visibility', () => {
     const target = movementFixture(state);
     const targetTile = state.core.map.find(tile => tile.id === target)!;
     const observerHex = state.core.map.find(tile => tile.id !== target && tile.id !== state.units[0]!.hexId && !['SEA', 'UNKNOWN'].includes(tile.terrain) && hexDistance(tile, targetTile) === 1)!.id;
-    state.units.push({ id: 'beto-observer', ownerId: p2, kind: 'COLONIST', hexId: observerHex, recruitedRound: 1 });
+    state.units.push({ id: 'beto-observer', ownerId: p2, kind: 'PIONEER', hexId: observerHex, recruitedRound: 1 });
     expect(visibleHexIds(state, p2).has(target)).toBe(true);
     state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'visible-move', type: 'MOVE', unitIds: ['u1'], path: [target] } });
     state = readyAll(state);

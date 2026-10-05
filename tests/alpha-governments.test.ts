@@ -255,7 +255,7 @@ describe('Confederação', () => {
   it('advantage: founding costs 1 Madeira less', () => {
     const spent = (government: Government) => {
       const state = game(government);
-      const pioneer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'COLONIST')!;
+      const pioneer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'PIONEER')!;
       const capital = state.core.map.find(tile => tile.id === city(state).hexId)!;
       const site = state.core.map.find(tile => tile.ownerId === null && ['PLAINS', 'FOREST', 'HILLS'].includes(tile.terrain) && Math.max(Math.abs(tile.q - capital.q), Math.abs(tile.r - capital.r), Math.abs(tile.q + tile.r - capital.q - capital.r)) === 3)!;
       pioneer.hexId = site.id;

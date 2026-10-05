@@ -50,7 +50,7 @@ test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative tar
   })!;
   const band = spawnThreat(near, 'CAMP')!; band.hexId = start.id as never; band.homeHexId = start.id as never; band.status = 'MARCHING'; band.fresh = false; band.level = 2;
   band.composition = [{ kind: 'INFANTRY', count: 3 }, { kind: 'RANGED', count: 1 }];
-  const watcher = near.units.find(u => u.ownerId === near.players[0]!.playerId && u.kind === 'COLONIST')!; watcher.hexId = start.id as never;
+  const watcher = near.units.find(u => u.ownerId === near.players[0]!.playerId && u.kind === 'PIONEER')!; watcher.hexId = start.id as never;
   let page = await serve(browser, near);
   await select(page, start.id);
   await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo: cidade');
@@ -63,7 +63,7 @@ test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative tar
     const probe = spawnThreat(far, 'CAMP')!; probe.hexId = t.id as never; probe.status = 'MARCHING'; const ok = landTarget(far, probe)?.id === rival.id; far.threats = far.threats.filter(x => x.id !== probe.id); return ok;
   })!;
   const wild = spawnThreat(far, 'CAMP')!; wild.hexId = spot.id as never; wild.homeHexId = spot.id as never; wild.status = 'MARCHING'; wild.fresh = false;
-  far.units.find(u => u.ownerId === far.players[0]!.playerId && u.kind === 'COLONIST')!.hexId = spot.id as never;
+  far.units.find(u => u.ownerId === far.players[0]!.playerId && u.kind === 'PIONEER')!.hexId = spot.id as never;
   page = await serve(browser, far);
   await select(page, spot.id);
   await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo além da névoa');
@@ -74,7 +74,7 @@ test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative tar
   const fresh = base(), keep = capitalOf(fresh, 0), keepTile = fresh.core.map.find(t => t.id === keep.hexId)!;
   const site = land(fresh).find(t => hexDistance(keepTile, t) === 2 && t.ownerId === null && !fresh.units.some(u => u.hexId === t.id))!;
   const camp = spawnThreat(fresh, 'CAMP')!; camp.hexId = site.id as never; camp.homeHexId = site.id as never; camp.fresh = true;
-  fresh.units.find(u => u.ownerId === fresh.players[0]!.playerId && u.kind === 'COLONIST')!.hexId = site.id as never;
+  fresh.units.find(u => u.ownerId === fresh.players[0]!.playerId && u.kind === 'PIONEER')!.hexId = site.id as never;
   page = await serve(browser, fresh);
   await select(page, site.id);
   await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Recém-surgido');

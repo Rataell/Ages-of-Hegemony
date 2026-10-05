@@ -134,7 +134,7 @@ export function fortificationArt(level: string, state: string, r: number) {
  * 32-unit design box. Every piece on the map is its own silhouette in the seat color with an ink outline — the civil pieces
  * too (UXDEC-018: no generic discs on the map). Discs are kept for inhabitants inside a city.
  */
-export type PieceKind = 'INFANTRY' | 'GUARD' | 'RANGED' | 'CAVALRY' | 'SIEGE' | 'FLEET' | 'COLONIST' | 'ENVOY' | 'COASTAL_VESSEL';
+export type PieceKind = 'INFANTRY' | 'GUARD' | 'RANGED' | 'CAVALRY' | 'SIEGE' | 'FLEET' | 'PIONEER' | 'ENVOY' | 'COASTAL_VESSEL';
 const SHAPES: Record<PieceKind, (c: string) => string> = {
   INFANTRY: c => `<path d="M-11,-1 L11,-1 L11,10 Q11,13 8,13 L-8,13 Q-11,13 -11,10 Z" fill="${c}"/>` + [-7, 0, 7].map(x => `<path d="M${x - 1.6},-1 L${x - 1.6},-9 L${x},-14.5 L${x + 1.6},-9 L${x + 1.6},-1 Z" fill="${c}"/>`).join('') + `<path d="M-11,4 L11,4" stroke="${INK}" stroke-width="1.3"/>`,
   GUARD: c => `<path d="M0,-14 C9,-14 12,-11 12,-8 L12,2 C12,9 6,13 0,15 C-6,13 -12,9 -12,2 L-12,-8 C-12,-11 -9,-14 0,-14 Z" fill="${c}"/><path d="M0,-11 L0,12" stroke="${INK}" stroke-width="1.4"/><circle cy="-1" r="3" fill="${c}" stroke="${INK}" stroke-width="1.4"/>`,
@@ -144,12 +144,12 @@ const SHAPES: Record<PieceKind, (c: string) => string> = {
   FLEET: c => `<path d="M-15,-5 L7,-5 Q14,-3 16,0 Q14,3 7,5 L-15,5 Q-17,5 -17,3 L-17,-3 Q-17,-5 -15,-5 Z" fill="${c}"/><path d="M-8,-5 l-2,-5 M-2,-5 l-2,-5 M4,-5 l-2,-5 M-8,5 l-2,5 M-2,5 l-2,5 M4,5 l-2,5" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/><path d="M-12,0 L8,0" stroke="${INK}" stroke-width="1.3"/>`,
   // Coastal vessel: a short open boat with two oars a side — explores the coast, never fights.
   COASTAL_VESSEL: c => `<path d="M-12,-5 L5,-5 Q12,-3 14,0 Q12,3 5,5 L-12,5 Q-14,5 -14,3 L-14,-3 Q-14,-5 -12,-5 Z" fill="${c}"/><path d="M-6,-5 l-2,-6 M2,-5 l-2,-6 M-6,5 l-2,6 M2,5 l-2,6" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/><circle cx="-3" r="2.2" fill="${INK}"/>`,
-  // Colono (original silhouette): a small caravan — arched cover on two wheels with a founding banner on a pole. A group that travels and settles.
-  COLONIST: c => `<path d="M-15,8 L-15,-1 Q-15,-10 -4,-10 Q7,-10 7,-1 L7,8 Z" fill="${c}"/><path d="M-9,8 L-9,1 Q-6,-3 -3,1 L-3,8 Z" fill="${INK}"/><circle cx="-10" cy="11" r="4" fill="${c}"/><circle cx="3" cy="11" r="4" fill="${c}"/><circle cx="-10" cy="11" r="1.3" fill="${INK}"/><circle cx="3" cy="11" r="1.3" fill="${INK}"/><path d="M12,13 L12,-14" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M12,-14 L20,-10 L12,-6 Z" fill="${c}"/>`,
+  // Pioneiro (original silhouette): a small caravan — arched cover on two wheels with a founding banner on a pole. A group that travels and settles.
+  PIONEER: c => `<path d="M-15,8 L-15,-1 Q-15,-10 -4,-10 Q7,-10 7,-1 L7,8 Z" fill="${c}"/><path d="M-9,8 L-9,1 Q-6,-3 -3,1 L-3,8 Z" fill="${INK}"/><circle cx="-10" cy="11" r="4" fill="${c}"/><circle cx="3" cy="11" r="4" fill="${c}"/><circle cx="-10" cy="11" r="1.3" fill="${INK}"/><circle cx="3" cy="11" r="1.3" fill="${INK}"/><path d="M12,13 L12,-14" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M12,-14 L20,-10 L12,-6 Z" fill="${c}"/>`,
   // Envoy: a sealed letter — diplomacy, integration, influence.
   ENVOY: c => `<rect x="-13" y="-9" width="26" height="18" rx="2" fill="${c}"/><path d="M-12,-8 L0,1.5 L12,-8" stroke="${INK}" stroke-width="1.7" fill="none" stroke-linejoin="round"/><circle cy="2.5" r="4.2" fill="#b44a3a" stroke="${INK}" stroke-width="1.3"/>`,
 };
-export const CIVIL_PIECES: ReadonlySet<string> = new Set(['COLONIST', 'ENVOY']);
+export const CIVIL_PIECES: ReadonlySet<string> = new Set(['PIONEER', 'ENVOY']);
 /** `signature`: the civilization's signature variant of this family (drawn with a star, as in the atlas). */
 export function pieceArt(kind: string, color: string, px = 36, count = 0, signature = false) {
   const shape = SHAPES[kind as PieceKind] ?? SHAPES.INFANTRY, body = shape(color), s = px / 32;

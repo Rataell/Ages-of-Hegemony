@@ -15,7 +15,7 @@ function midRound(): AlphaState {
   state = must(state, p1, { type: 'CHOOSE_AMBITIONS', cardIds: state.players[0]!.ambitions.slice(0, 2) });
   const city = state.cities.find(meta => meta.currentOwnerId === p1)!.cityId;
   state = must(state, p1, { type: 'URBAN_ACTION', cityId: city, action: 'PRODUCE', planId: 'secret-urban' });
-  const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'COLONIST')!;
+  const explorer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'PIONEER')!;
   const reachable = Object.keys((alphaPlayerView(state, p1)!.unitOptions)[explorer.id]!.moves)[0]!;
   state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'secret-order', type: 'MOVE', unitIds: [explorer.id], path: alphaPlayerView(state, p1)!.unitOptions[explorer.id]!.moves[reachable] } });
   state = must(state, p1, { type: 'PROPOSE_TRADE', recipientId: p3, offerType: 'GIFT', offer: { food: 1, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 }, request: { food: 0, wood: 0, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 }, treatyTerms: [], dueRound: null });

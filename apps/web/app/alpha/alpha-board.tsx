@@ -52,7 +52,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const tile=game.view.visibleTerritory.find(t=>t.id===selected);
   const ownUnits=game.units.filter(u=>u.ownerId===room.selfPlayerId);
   const chosen=ownUnits.filter(u=>units.includes(u.id));
-  // A piece that no longer exists (Colono that founded a city, a casualty) must not stay in the selection: its id would be sent with the next order and the server would refuse the whole order.
+  // A piece that no longer exists (Pioneiro that founded a city, a casualty) must not stay in the selection: its id would be sent with the next order and the server would refuse the whole order.
   const liveKey=ownUnits.map(u=>u.id).join();
   useEffect(()=>{setUnits(current=>{const live=current.filter(id=>ownUnits.some(u=>u.id===id));return live.length===current.length?current:live;});},[liveKey]);
   /** Same arithmetic as the server, computed from the projected stack view before any command is sent. */
@@ -65,7 +65,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const movePath=selected&&chosen.length>0&&sameHex&&options.length===chosen.length&&options.every(o=>o.moves[selected])?options[0]!.moves[selected]!:null;
   const groupBlock=movePath?stackViewVerdict(game.stacks,chosen.map(u=>stackCategory(game.rules.units[u.kind]!)),selected!):null;
   const exploreChoice=chosen.length===1&&selected?options[0]?.explore.find(r=>r.hexIds.includes(selected))??null:null;
-  const settle=chosen.length===1&&chosen[0]!.kind==='COLONIST'&&selected===origin?options[0]?.settleBlock??null:undefined;
+  const settle=chosen.length===1&&chosen[0]!.kind==='PIONEER'&&selected===origin?options[0]?.settleBlock??null:undefined;
   const foreignCity=game.view.visibleCities.find(c=>c.hexId===selected);
   const foreignHere=!!selected&&(!!foreignCity||game.units.some(u=>u.hexId===selected&&u.ownerId!==room.selfPlayerId));
   const fighters=chosen.every(u=>(game.rules.units[u.kind]?.strength??0)>0);
@@ -76,7 +76,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const defenderName=game.players.find(p=>p.id===defenderId)?.name??'esta civilização';
   const envoyMission=chosen.length===1&&chosen[0]!.kind==='ENVOY'&&!!foreignCity&&adjacent;
   const targetName=!selected?'nenhum':foreignCity?`${foreignCity.name} (${game.players.find(p=>p.id===foreignCity.ownerId)?.name??'estrangeira'})`:tile?`${text(tile.terrain)} · ${selected}${defenderId?` · peças de ${defenderName}`:''}`:`Região desconhecida · ${selected}`;
-  /** "Movimento · Colono → 4,6": what moves, and where, instead of the bare order type. */
+  /** "Movimento · Pioneiro → 4,6": what moves, and where, instead of the bare order type. */
   const orderLabel=(order:typeof game.self.orders[number])=>{
     const ids='unitIds' in order?order.unitIds:'unitId' in order?[order.unitId]:[];
     const who=ids.length?compositionText(game.units.filter(u=>ids.includes(u.id))):'';

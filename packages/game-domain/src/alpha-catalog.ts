@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { NonNegativeIntegerSchema as N, ResourcePoolSchema, TerrainTypeSchema, emptyResourcePool } from './core.js';
 import { AlphaEraSchema } from './alpha-concept.js';
 
-export const AlphaUnitClassSchema = z.enum(['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE', 'FLEET', 'COLONIST', 'ENVOY', 'COASTAL_VESSEL']);
+export const AlphaUnitClassSchema = z.enum(['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE', 'FLEET', 'PIONEER', 'ENVOY', 'COASTAL_VESSEL']);
 export const UnitCatalogEntrySchema = z.strictObject({
   name: z.string(), cost: ResourcePoolSchema, metal: N.default(0), upkeep: ResourcePoolSchema, movement: N.min(1), strength: N,
   domain: z.enum(['LAND', 'SEA']), terrainModifiers: z.record(TerrainTypeSchema, z.number().int().min(-10).max(10)), cityModifier: N,
@@ -34,7 +34,7 @@ export function alphaUnitCatalog(): Record<z.infer<typeof AlphaUnitClassSchema>,
     SIEGE: { ...make('Engenho de cerco', pool({ materials: 4, wealth: 1 }), 1, 1, 'Brecha: +2 contra cidade fortificada e abre Integridade.'), metal: 2, era: 'CIVILIZATION', militaryInfrastructure: true, cargo: 2 },
     FLEET: { ...make('Frota', pool({ materials: 3, wealth: 2 }), 3, 3, 'Abordagem: bloqueia o porto inimigo. Carrega 2 peças (3 no Grau II).'), metal: 1, domain: 'SEA', era: 'EXPANSION', transport: 2 },
     /** Canon change (2026-10-05): Explorador and Pioneiro are one civil piece. It explores or founds, never both in the same Order; without combat. */
-    COLONIST: make('Colono', pool({ food: 3, materials: 2 }), 3, 0, 'Explora regiões e funda cidades. Civil, sem combate.'),
+    PIONEER: make('Pioneiro', pool({ food: 3, materials: 2 }), 3, 0, 'Explora regiões e funda cidades. Civil, sem combate.'),
     ENVOY: { ...make('Enviado', pool({ wealth: 2, influence: 1 }), 3, 0, 'Diplomacia e presença cultural.'), upkeep: pool({ wealth: 1 }) },
     /** First naval class (naval audit): Era I, explores and crosses the coast, carries one piece, never fights. */
     COASTAL_VESSEL: { ...make('Embarcação Costeira', pool({ materials: 2, wealth: 1 }), 3, 0, 'Explora a costa e leva uma peça. Não combate.'), upkeep: pool({ wealth: 1 }), domain: 'SEA', transport: 1 },

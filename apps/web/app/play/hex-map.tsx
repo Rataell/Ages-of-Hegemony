@@ -383,7 +383,7 @@ export const HexMap = memo(function HexMap({
                 const owners = [...new Set(here.map(u => u.ownerId))].sort((a, b) => Number(b === data.view.player.id) - Number(a === data.view.player.id));
                 return <g transform="translate(0 40)">{owners.slice(0, 2).map((ownerId, slot) => {
                   const mine = here.filter(u => u.ownerId === ownerId), index = data.players.findIndex(p => p.id === ownerId), own = ownerId === data.view.player.id;
-                  const military = mine.some(u => !['COLONIST', 'COLONIST', 'ENVOY'].includes(u.kind));
+                  const military = mine.some(u => !['PIONEER', 'PIONEER', 'ENVOY'].includes(u.kind));
                   const kinds = [...mine.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
                   const x = owners.length > 1 ? (slot === 0 ? -26 : 26) : 0;
                   return <g key={ownerId} transform={`translate(${x} 0)`} className={`alpha-unit-stack owner-${index + 1} ${own ? 'own' : 'foreign'}`}>

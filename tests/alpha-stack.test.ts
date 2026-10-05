@@ -89,10 +89,10 @@ describe('land military limit 6 / 7 / 8', () => {
 
 describe('civilians', () => {
   it('have their own stack of 2, separate from the army', () => {
-    const state = arena(); put(state, p1, 'INFANTRY', '3,0', 6); put(state, p1, 'COLONIST', '3,0');
-    expect(stackCategory(state.rules.units.COLONIST)).toBe('civilians');
+    const state = arena(); put(state, p1, 'INFANTRY', '3,0', 6); put(state, p1, 'PIONEER', '3,0');
+    expect(stackCategory(state.rules.units.PIONEER)).toBe('civilians');
     expect(stackCategory(state.rules.units.ENVOY)).toBe('civilians');
-    const [second, third] = put(state, p1, 'COLONIST', '2,0', 2);
+    const [second, third] = put(state, p1, 'PIONEER', '2,0', 2);
     expect(accepted(move(state, [second!], '3,0'))).toBe(true);
     put(state, p1, 'ENVOY', '3,0');
     expect(blocked(move(state, [third!], '3,0'))).toBe(true);
@@ -100,11 +100,11 @@ describe('civilians', () => {
   });
 
   it('do not use military room and military pieces do not use civilian room', () => {
-    const state = arena(); put(state, p1, 'COLONIST', '3,0', 2);
+    const state = arena(); put(state, p1, 'PIONEER', '3,0', 2);
     const [soldier] = put(state, p1, 'INFANTRY', '2,0');
     expect(accepted(move(state, [soldier!], '3,0'))).toBe(true);
     const full = arena(); put(full, p1, 'INFANTRY', '3,0', 6);
-    const [scout] = put(full, p1, 'COLONIST', '2,0');
+    const [scout] = put(full, p1, 'PIONEER', '2,0');
     expect(accepted(move(full, [scout!], '3,0'))).toBe(true);
   });
 
@@ -204,8 +204,8 @@ describe('RECRUIT', () => {
   });
 
   it('checks civilians and fleets against their own stacks', () => {
-    const state = recruitable(); put(state, p1, 'COLONIST', '0,0', 2);
-    expect(recruitBlock(state, p1, 'c1', 'COLONIST')).toContain('Civis 2/2');
+    const state = recruitable(); put(state, p1, 'PIONEER', '0,0', 2);
+    expect(recruitBlock(state, p1, 'c1', 'PIONEER')).toContain('Civis 2/2');
     expect(recruitBlock(state, p1, 'c1', 'INFANTRY')).toBeNull();
     put(state, p1, 'FLEET', '0,0', 4);
     expect(recruitBlock(state, p1, 'c1', 'FLEET')).toContain('Frota 4/4');
@@ -332,7 +332,7 @@ describe('preview and server parity', () => {
   it('the projected view gives the same verdict as the engine for every occupancy and mover mix', () => {
     const targets = ['0,0', '2,0', '9,0'];
     let compared = 0;
-    for (const target of targets) for (const kind of ['INFANTRY', 'COLONIST', 'FLEET'] as const) for (const upgrade of [[], [commandOne, commandTwo, naval, doctrine]] as const) {
+    for (const target of targets) for (const kind of ['INFANTRY', 'PIONEER', 'FLEET'] as const) for (const upgrade of [[], [commandOne, commandTwo, naval, doctrine]] as const) {
       const state = arena(); research(state, ...upgrade);
       if (upgrade.length) cityMeta(state).fortification = { level: 'FORTRESS', state: 'INTACT' };
       const from = target === '9,0' ? '8,0' : '1,0';
