@@ -85,15 +85,20 @@ describe('independent peoples', () => {
 });
 
 describe('neutral powers placement and options', () => {
-  it.each([2, 3, 4, 5, 6])('places peoples and raid bands away from every capital and apart from each other (%i players)', async count => {
+  it.each([2, 3, 4, 5, 6])('places peoples away from every capital and apart; opening camps follow the canon site rule (%i players)', async count => {
     const { beginAlphaPlanning: begin, createAlphaGame: create, hexDistance: distance } = await import('@aoh/game-engine');
     const state = begin(create({ gameId: `neutral-${count}`, seed: 7, preset: 'QUICK', players: Array.from({ length: count }, (_, i) => ({ id: `p${i + 1}`, name: `P${i + 1}` })) }));
     const at = (id: string) => state.core.map.find(tile => tile.id === id)!;
     const capitals = state.core.players.map(player => at(player.civilization.cities[0]!.hexId));
-    const sites = [...state.independents.map(people => people.hexId), ...state.threats.filter(band => band.id.startsWith('camp-start-')).map(band => band.hexId)].map(at);
-    expect(state.independents).toHaveLength(3); expect(state.threats.filter(band => band.id.startsWith('camp-start-'))).toHaveLength(2);
-    for (const site of sites) expect(Math.min(...capitals.map(capital => distance(capital, site)))).toBeGreaterThanOrEqual(3);
-    for (const [i, a] of sites.entries()) for (const b of sites.slice(i + 1)) expect(distance(a, b)).toBeGreaterThanOrEqual(4);
+    const peoples = state.independents.map(people => at(people.hexId));
+    expect(state.independents).toHaveLength(3); expect(state.threats.filter(threat => threat.kind === 'CAMP' && threat.createdRound <= 1)).toHaveLength(2);
+    for (const site of peoples) expect(Math.min(...capitals.map(capital => distance(capital, site)))).toBeGreaterThanOrEqual(3);
+    for (const [i, a] of peoples.entries()) for (const b of peoples.slice(i + 1)) expect(distance(a, b)).toBeGreaterThanOrEqual(4);
+    // E-2: canon §21b — an unclaimed hex 3–5 hexes from some city, never adjacent to one.
+    for (const camp of state.threats.map(threat => at(threat.hexId))) {
+      const nearest = Math.min(...capitals.map(capital => distance(capital, camp)));
+      expect(nearest).toBeGreaterThanOrEqual(3); expect(nearest).toBeLessThanOrEqual(5); expect(camp.ownerId).toBeNull();
+    }
   });
 
   it('projects each action with what is still missing, and refuses negotiating with a friendly people', async () => {

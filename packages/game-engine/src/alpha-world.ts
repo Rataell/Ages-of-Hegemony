@@ -1,5 +1,5 @@
 import { liftLegacyCityCaps } from './alpha-turn.js';
-import { featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, threatComposition, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
+import { featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
@@ -8,6 +8,7 @@ import { alphaRandomInteger, combineAlphaSeed, deterministicAlphaSeed } from './
 import { applyCivilizationHeritage, kitExplorationKnowledge, kitExplorationReach } from './alpha-kits.js';
 import { alphaGainLegacy } from './alpha-resources.js';
 import { applyDiscovery, generateDiscoveries } from './alpha-discoveries.js';
+import { spawnThreat } from './alpha-threats.js';
 
 export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;actionsPerRound?:number;revealMap?:boolean}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
@@ -66,15 +67,15 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   const occupied=new Set(state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)));
   const neutral=state.core.map.filter(tile=>!occupied.has(tile.id)&&!['SEA','UNKNOWN'].includes(tile.terrain)).sort((a,b)=>a.id.localeCompare(b.id));
   // Independent peoples sit in contested ground: about as far from a seat's capital as from its nearest rival's, at least
-  // 3 hexes from any capital and 4 from each other. Raid bands start in the wilderness, as far from every capital as possible.
+  // 3 hexes from any capital and 4 from each other. 
   const capitals=state.core.players.map(player=>state.core.map.find(tile=>tile.id===player.civilization.cities[0]!.hexId)!);
   const reach=(tile:{q:number;r:number})=>{const distances=capitals.map(capital=>hexDistance(capital,tile)).sort((a,b)=>a-b);return {near:distances[0]!,contest:(distances[1]??distances[0]!)-distances[0]!};};
   const land=neutral.filter(tile=>reach(tile).near>=3);
   const pick=(candidates:typeof land,count:number,taken:typeof land)=>{const chosen:typeof land=[];for(const tile of candidates){if(chosen.length===count)break;if([...taken,...chosen].every(other=>hexDistance(other,tile)>=4))chosen.push(tile);}return chosen;};
   const peoples=pick([...land].sort((a,b)=>reach(a).contest-reach(b).contest||reach(a).near-reach(b).near||a.id.localeCompare(b.id)),3,[]);
-  const wild=pick([...land].sort((a,b)=>reach(b).near-reach(a).near||a.id.localeCompare(b.id)),2,peoples);
   state.independents=peoples.map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));
-  state.threats=wild.map((tile,index)=>({id:`camp-start-${index+1}`,kind:'CAMP' as const,hexId:tile.id,homeHexId:tile.id,level:1 as const,status:'CAMPED' as const,composition:threatComposition('CAMP',1,0),createdRound:0,lastActedRound:0,rewardPaid:false}));
+  // The two opening Acampamentos obey the same site rule as every later one (canon §21b: unclaimed, 3–5 hexes from a city, out of sight), not "as far as possible" (E-2).
+  state.threats=[];for(let index=0;index<2;index++)spawnThreat(state,'CAMP');state.telemetry.threatsSpawned=0;
   applyCivilizationHeritage(state);initializeAlphaCards(state);generateDiscoveries(state);return AlphaStateSchema.parse(state);
 }
 export function visibleHexIds(state:AlphaState,actor:PlayerId):Set<string> {

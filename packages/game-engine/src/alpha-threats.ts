@@ -67,7 +67,7 @@ function sitesFor(state: AlphaState, kind: ThreatKind, within?: readonly string[
 
 function newThreat(state: AlphaState, kind: ThreatKind, tile: HexTile): Threat {
   const threat: Threat = {
-    id: `${kind === 'CAMP' ? 'camp' : 'pirate'}-r${state.core.round}-e${state.events.length}`, kind, hexId: tile.id, homeHexId: tile.id, level: 1, status: 'CAMPED',
+    id: `${kind === 'CAMP' ? 'camp' : 'pirate'}-r${state.core.round}-e${state.events.length}-n${state.threats.length + 1}`, kind, hexId: tile.id, homeHexId: tile.id, level: 1, status: 'CAMPED',
     composition: threatComposition(kind, 1, eraIndexOf(state)), createdRound: state.core.round, lastActedRound: state.core.round, rewardPaid: false,
   };
   state.threats.push(threat); state.telemetry.threatsSpawned++;
