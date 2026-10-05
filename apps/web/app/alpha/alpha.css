@@ -595,6 +595,9 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 
 /* S7b: marching Bando heading (dashed, neutral), government list notes and the recruit count. */
 .alpha-threat-heading { stroke: #e59a86; stroke-width: 2.4; stroke-dasharray: 5 6; stroke-linecap: round; opacity: .85; pointer-events: none; }
+.alpha-threat-intent.is-target .alpha-threat-heading { stroke-dasharray: none; stroke-width: 3; opacity: .95; }
+.alpha-threat-aim { fill: none; stroke: #e59a86; stroke-width: 2; opacity: .9; pointer-events: none; }
+.alpha-threat.is-fresh .raid-badge { stroke-dasharray: 3 3; opacity: .8; }
 .alpha-government li > span { display: grid; gap: 1px; }
 .alpha-government li > span small { color: #8a8372; font-size: 11px; line-height: 1.25; }
 .alpha-government li[data-unlocked='false'] > span { opacity: .6; }

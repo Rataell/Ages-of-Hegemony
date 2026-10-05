@@ -4,7 +4,7 @@ import type { LocalView } from '@aoh/server/local-play';
 import type { AlphaUnit, HexTile } from '@aoh/game-domain';
 import { label, roman } from './presentation';
 import { clampCentre, clampZoom, mapFrame, position, tileSummary, viewBoxOf } from './map-frame';
-import { axialDistance, type CivilizationMark } from '@aoh/game-domain';
+import { type CivilizationMark } from '@aoh/game-domain';
 import { CIVIL_PIECES, bannerArt, borderStrokes, cityArt, fortificationArt, pieceArt, seedOf } from '../alpha/table-art';
 
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
@@ -31,7 +31,8 @@ type Props = {
   units?: readonly AlphaUnit[];
   /** Independent peoples and raid bands the player knows of (Alpha). */
   peoples?: readonly { hexId: string; type: string; attitude: string; integratedBy: string | null }[];
-  threats?: readonly { id: string; hexId: string; kind: 'CAMP' | 'PIRATE'; level: 1 | 2 | 3; status: 'CAMPED' | 'MARCHING' }[];
+  /** Threats with the intention the engine decided (V51B-05): the map only draws what it receives. */
+  threats?: readonly { id: string; hexId: string; kind: 'CAMP' | 'PIRATE'; level: 1 | 2 | 3; status: 'CAMPED' | 'MARCHING'; fresh?: boolean; intent?: { state: string; targetKind: string | null; targetKnown: boolean; targetId: string | null; targetHexId: string | null; distance: number | null; nextHexId: string | null } }[];
   art?: MapArt;
   selected: string | null;
   focus: string | null;
@@ -350,7 +351,7 @@ export const HexMap = memo(function HexMap({
                 const people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null), threat = threats.find(r => r.hexId === tile.id);
                 return <>
                   {people && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
-                  {threat && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className={`alpha-raid alpha-threat kind-${threat.kind} status-${threat.status}`} data-level={threat.level}><rect x="-19" y="-10" width="38" height="20" rx="4" className="raid-badge" />{threat.kind === 'PIRATE' ? <path d="M-14 6L-3 6L-9 -6Z M-9 -6V7" className="raid-glyph" /> : threat.status === 'CAMPED' ? <path d="M-14 6L-8 -6L-2 6Z M-8 -6V6" className="raid-glyph" /> : <path d="M-13 6L-3 -5M-13 -5L-3 6" className="raid-glyph" />}<text x="9" y="4" className="raid-count" textAnchor="middle">{['I', 'II', 'III'][threat.level - 1]}</text><title>{threat.kind === 'PIRATE' ? (threat.status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : (threat.status === 'CAMPED' ? 'Acampamento' : 'Bando em marcha')} · Ameaça {['I', 'II', 'III'][threat.level - 1]}</title></g>}
+                  {threat && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className={`alpha-raid alpha-threat kind-${threat.kind} status-${threat.status}${threat.fresh ? ' is-fresh' : ''}`} data-level={threat.level}><rect x="-19" y="-10" width="38" height="20" rx="4" className="raid-badge" />{threat.kind === 'PIRATE' ? <path d="M-14 6L-3 6L-9 -6Z M-9 -6V7" className="raid-glyph" /> : threat.status === 'CAMPED' ? <path d="M-14 6L-8 -6L-2 6Z M-8 -6V6" className="raid-glyph" /> : <path d="M-13 6L-3 -5M-13 -5L-3 6" className="raid-glyph" />}<text x="9" y="4" className="raid-count" textAnchor="middle">{['I', 'II', 'III'][threat.level - 1]}</text><title>{threat.kind === 'PIRATE' ? (threat.status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : (threat.status === 'CAMPED' ? 'Acampamento' : 'Bando em marcha')} · Ameaça {['I', 'II', 'III'][threat.level - 1]}</title></g>}
                 </>;
               })()}
               {/* One badge per owner: the owner's colour, a soldier or a flag for civil pieces, and the count. Foreign pieces are outlined. */}
@@ -431,13 +432,13 @@ export const HexMap = memo(function HexMap({
             <text className="city-name art-city-name" y="3" {...(natural > fitted ? { textLength: fitted, lengthAdjust: 'spacingAndGlyphs' } : {})}>{name}</text>
           </g>];
         })}</g>}
-        {threats.some(t => t.status === 'MARCHING' && t.kind === 'CAMP') && <g className="threat-heading" aria-hidden="true">{threats.filter(t => t.status === 'MARCHING' && t.kind === 'CAMP').flatMap(threat => {
-          // Likely heading: the nearest city this player can see (the canon targets the nearest reachable city). Drawn dashed and only when that city is visible.
-          const [tq, tr] = threat.hexId.split(',').map(Number);
-          const goal = cities.map(city => { const [cq, cr] = city.hexId.split(',').map(Number); return { city, d: axialDistance({ q: tq ?? 0, r: tr ?? 0 }, { q: cq ?? 0, r: cr ?? 0 }), cq: cq ?? 0, cr: cr ?? 0 }; }).sort((a, b) => a.d - b.d || (a.city.hexId < b.city.hexId ? -1 : 1))[0];
-          if (!goal || goal.d === 0) return [];
-          const from = position(tq ?? 0, tr ?? 0), to = position(goal.cq, goal.cr);
-          return [<line key={threat.id} x1={from.x} y1={from.y} x2={to.x} y2={to.y} className="alpha-threat-heading"><title>Rumo provável de {threat.id}: a cidade visível mais próxima.</title></line>];
+        {threats.some(t => t.intent?.nextHexId || t.intent?.targetHexId) && <g className="threat-heading" aria-hidden="true">{threats.flatMap(threat => {
+          // Authoritative intention from the engine: a line to the target when it is inside the player's vision, else only the next step. Nothing is estimated here.
+          const aim = threat.intent?.targetKnown && threat.intent.targetHexId ? threat.intent.targetHexId : threat.intent?.nextHexId;
+          if (!aim || aim === threat.hexId) return [];
+          const [tq, tr] = threat.hexId.split(',').map(Number), [aq, ar] = aim.split(',').map(Number);
+          const from = position(tq ?? 0, tr ?? 0), to = position(aq ?? 0, ar ?? 0), exact = threat.intent?.targetKnown === true;
+          return [<g key={threat.id} className={`alpha-threat-intent${exact ? ' is-target' : ' is-step'}`}><line x1={from.x} y1={from.y} x2={to.x} y2={to.y} className="alpha-threat-heading" /><circle cx={to.x} cy={to.y} r={exact ? 15 : 6} className="alpha-threat-aim" /><title>{exact ? `Alvo de ${threat.id}: ${threat.intent!.targetKind === 'CITY' ? 'cidade' : threat.intent!.targetKind === 'PORT' ? 'porto' : 'rota'} ${threat.intent!.targetId}, a ${threat.intent!.distance} hex(es).` : `Próximo passo de ${threat.id}; o alvo está além da névoa.`}</title></g>];
         })}</g>}
       </svg>
 

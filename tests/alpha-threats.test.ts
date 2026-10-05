@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, ENCOUNTER_CARDS, PlayerIdSchema, WORLD_ID, threatComposition, threatPieceIds, type AlphaState, type Threat } from '@aoh/game-domain';
+import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 import {
   activateThreats, applyThreatCommand, beginAlphaPlanning, createAlphaGame, growThreats, hexBlockedByThreat, hexDistance, hexNeighbors, hexId,
-  landTarget, matureThreats, resolveBattleWithFaces, spawnThreat, suspendThreatenedRoutes, threatCap, threatView, visibleHexIds,
+  landTarget, matureThreats, resolveBattleWithFaces, threatIntent, spawnThreat, suspendThreatenedRoutes, threatCap, threatView, visibleHexIds,
 } from '@aoh/game-engine';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
@@ -333,5 +334,69 @@ describe('D-1 · Acampamento RECÉM-SURGIDO', () => {
   it('opening camps are not fresh', () => {
     const game = createAlphaGame({ gameId: 'open-camps', seed: 5, preset: 'STANDARD', players: [{ id: 'p1', name: 'A' }, { id: 'p2', name: 'B' }] });
     expect(game.threats.every(threat => threat.fresh === false)).toBe(true);
+  });
+});
+
+describe('V51B-05 · the Bando target is authoritative public information, filtered by the fog', () => {
+  /** A marching camp whose engine target is p1's own capital, watched by a p2 scout that sees the Bando but not the city. */
+  function marching(): { state: AlphaState; band: Threat } {
+    const state = setup(), start = origin(state, 5), band = camp(state, start, { status: 'MARCHING' });
+    state.units = state.units.filter(unit => unit.ownerId !== p2 || unit.kind !== 'EXPLORER');
+    const scout = state.units.find(unit => unit.ownerId === p2)!; scout.hexId = band.hexId as never;
+    return { state, band };
+  }
+
+  it('is computed by the same functions the engine acts with: the next hex is where the Bando goes', () => {
+    const { state, band } = marching();
+    const intent = threatIntent(state, band), goal = landTarget(state, band)!;
+    expect(intent).toMatchObject({ state: 'MARCHING', targetKind: 'CITY', targetId: goal.id, targetHexId: goal.hex, nextHexId: goal.path[0], distance: goal.path.length });
+    activateThreats(state, { launch: false });
+    expect(band.hexId).toBe(intent.nextHexId);
+  });
+
+  it('reveals target, distance and id only when the target hex is in the viewer\'s vision', () => {
+    const { state, band } = marching();
+    const goal = landTarget(state, band)!;
+    const stranger = threatView(state, p2).find(item => item.id === band.id)!;
+    expect(stranger.intent).toMatchObject({ state: 'MARCHING', targetKind: 'CITY', targetKnown: false, targetId: null, targetHexId: null, distance: null });
+    const owner = threatView(state, p1);
+    expect(owner).toEqual([]); // p1 does not see the Bando yet: the intention does not leak the Bando either
+    // Give p1 a piece beside the Bando: it now sees the Bando and, because the target is p1's own city, the target.
+    const scout = state.units.find(unit => unit.ownerId === p1)!; scout.hexId = band.hexId as never;
+    const seen = threatView(state, p1).find(item => item.id === band.id)!;
+    expect(seen.intent).toMatchObject({ targetKnown: true, targetId: goal.id, targetHexId: goal.hex, distance: goal.path.length });
+    // Intent is only ever exposed for visible threats.
+    expect(visibleHexIds(state, p1).has(band.hexId)).toBe(true);
+  });
+
+  it('shows the next step only when that hex is visible, and never a hidden target through a visible next step', () => {
+    const { state, band } = marching();
+    const view = threatView(state, p2).find(item => item.id === band.id)!;
+    expect(view.intent.nextHexId === null || visibleHexIds(state, p2).has(view.intent.nextHexId)).toBe(true);
+    expect(JSON.stringify(view)).not.toContain(landTarget(state, band)!.hex);
+  });
+
+  it('a CAMPED camp has no target and says whether it is fresh', () => {
+    const state = setup(), spawned = spawnThreat(state, 'CAMP')!;
+    const intent = threatIntent(state, spawned);
+    expect(intent).toMatchObject({ state: 'FRESH', targetKind: null, targetId: null, targetHexId: null, nextHexId: null, distance: null });
+    spawned.fresh = false;
+    expect(threatIntent(state, spawned).state).toBe('WAITING');
+    state.rules.revealMap = true;
+    expect(threatView(state, p1).find(item => item.id === spawned.id)).toMatchObject({ fresh: false, intent: { state: 'WAITING', targetKnown: false } });
+  });
+
+  it('is deterministic: the same state gives the same intention', () => {
+    const { state, band } = marching();
+    expect(threatIntent(structuredClone(state), structuredClone(band))).toEqual(threatIntent(state, band));
+  });
+
+  it('the player projection carries the filtered intention and nothing about threats out of sight', () => {
+    const { state, band } = marching();
+    const view = alphaPlayerView(state, p2)!;
+    const mine = view.threats.find(item => item.id === band.id)!;
+    expect(mine.intent.targetKnown).toBe(false);
+    expect(JSON.stringify(view.threats)).not.toContain(landTarget(state, band)!.hex);
+    expect(alphaPlayerView(state, p1)!.threats.find(item => item.id === band.id)).toBeUndefined();
   });
 });

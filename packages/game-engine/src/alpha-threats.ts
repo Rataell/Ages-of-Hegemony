@@ -159,22 +159,22 @@ function cityValue(state: AlphaState, hex: string): number {
 }
 
 /** Land target (canon §21b): reachable by land, nearest city, lowest defence, highest value, then id. */
-export function landTarget(state: AlphaState, threat: Threat): { hex: string; path: string[] } | null {
-  const map = tileMap(state), options = allCities(state).map(city => ({ hex: city.hexId as string, path: pathTo(state, threat, new Set([city.hexId]), map) })).filter((option): option is { hex: string; path: string[] } => option.path !== null);
+export function landTarget(state: AlphaState, threat: Threat): { hex: string; path: string[]; id: string } | null {
+  const map = tileMap(state), options = allCities(state).map(city => ({ hex: city.hexId as string, id: city.id as string, path: pathTo(state, threat, new Set([city.hexId]), map) })).filter((option): option is { hex: string; id: string; path: string[] } => option.path !== null);
   options.sort((a, b) => a.path.length - b.path.length || cityDefense(state, a.hex) - cityDefense(state, b.hex) || cityValue(state, b.hex) - cityValue(state, a.hex) || (a.hex < b.hex ? -1 : 1));
   return options[0] ?? null;
 }
 
 /** Pirate target: the richest maritime route (longest sea path, then nearest), else the nearest port with the fewest Frotas. */
-export function seaTarget(state: AlphaState, threat: Threat): { hex: string; path: string[]; kind: 'ROUTE' | 'PORT' } | null {
+export function seaTarget(state: AlphaState, threat: Threat): { hex: string; path: string[]; kind: 'ROUTE' | 'PORT'; id: string } | null {
   const map = tileMap(state), from = map.get(threat.hexId)!;
   const routes = state.routes.map(route => ({ route, sea: (route.path as string[]).filter(id => map.get(id)?.terrain === 'SEA') })).filter(item => item.sea.length > 0)
     .sort((a, b) => b.sea.length - a.sea.length || byId(a.route, b.route));
-  for (const { sea } of routes) {
+  for (const { route, sea } of routes) {
     const nearest = [...sea].sort((a, b) => hexDistance(from, map.get(a)!) - hexDistance(from, map.get(b)!) || (a < b ? -1 : 1))[0]!;
-    if (nearest === threat.hexId) return { hex: nearest, path: [], kind: 'ROUTE' };
+    if (nearest === threat.hexId) return { hex: nearest, path: [], kind: 'ROUTE', id: route.id as string };
     const path = pathTo(state, threat, new Set([nearest]), map);
-    if (path) return { hex: nearest, path, kind: 'ROUTE' };
+    if (path) return { hex: nearest, path, kind: 'ROUTE', id: route.id as string };
   }
   const ports = allCities(state).filter(city => isPort(state, city.hexId)).map(city => ({ city, fleets: state.units.filter(unit => unit.ownerId === city.ownerId && unit.kind === 'FLEET' && hexDistance(map.get(unit.hexId)!, map.get(city.hexId)!) <= 1).length }));
   const options = ports.flatMap(({ city, fleets }) => {
@@ -183,7 +183,21 @@ export function seaTarget(state: AlphaState, threat: Threat): { hex: string; pat
     return reached ? [{ hex: reached.id, path: reached.path, fleets, city }] : [];
   }).sort((a, b) => a.path.length - b.path.length || a.fleets - b.fleets || (a.city.id < b.city.id ? -1 : 1));
   const best = options[0];
-  return best ? { hex: best.hex, path: best.path, kind: 'PORT' } : null;
+  return best ? { hex: best.hex, path: best.path, kind: 'PORT', id: best.city.id as string } : null;
+}
+
+/**
+ * The authoritative intention of a threat (V51B-05): what the engine will do with it, computed by the very functions `actThreat`
+ * uses, so the client never estimates. Unfiltered: the projection decides what a viewer may see.
+ */
+export interface ThreatIntent { state: 'FRESH' | 'WAITING' | 'MARCHING' | 'IDLE'; targetKind: 'CITY' | 'ROUTE' | 'PORT' | null; targetId: string | null; targetHexId: string | null; nextHexId: string | null; distance: number | null }
+export function threatIntent(state: AlphaState, threat: Threat): ThreatIntent {
+  const none = { targetKind: null, targetId: null, targetHexId: null, nextHexId: null, distance: null };
+  if (threat.status === 'CAMPED') return { state: threat.fresh ? 'FRESH' : 'WAITING', ...none };
+  const sea = threat.kind === 'PIRATE' ? seaTarget(state, threat) : null, land = threat.kind === 'PIRATE' ? null : landTarget(state, threat);
+  const target = sea ?? land;
+  if (!target) return { state: 'IDLE', ...none };
+  return { state: 'MARCHING', targetKind: sea ? sea.kind : 'CITY', targetId: target.id, targetHexId: target.hex, nextHexId: target.path[0] ?? null, distance: target.path.length };
 }
 
 const speedOf = (threat: Threat): number => threat.kind === 'CAMP' && threat.level >= 2 && threat.composition.some(entry => entry.kind === 'CAVALRY') ? 2 : 1;

@@ -8,7 +8,7 @@ import { alphaRandomInteger, combineAlphaSeed, deterministicAlphaSeed } from './
 import { applyCivilizationHeritage, kitExplorationKnowledge, kitExplorationReach } from './alpha-kits.js';
 import { alphaGainLegacy } from './alpha-resources.js';
 import { applyDiscovery, generateDiscoveries } from './alpha-discoveries.js';
-import { spawnThreat } from './alpha-threats.js';
+import { spawnThreat, threatIntent } from './alpha-threats.js';
 
 export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;actionsPerRound?:number;revealMap?:boolean}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
@@ -143,8 +143,16 @@ export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<Stra
   applyDiscovery(state,actor,region,order.unitId);
 }
 
-/** Threats move every round, so only those inside current vision are shown; a remembered hex would leak a live position. */
+/**
+ * Threats move every round, so only those inside current vision are shown; a remembered hex would leak a live position.
+ * The intention (target, next hex, distance) is public information decided by the engine, but never reaches past the fog:
+ * the target and its distance only when the target hex is in the viewer's vision, the next hex only when it is.
+ */
 export function threatView(state:AlphaState,actor:PlayerId){
-  const visible=visibleHexIds(state,actor);
-  return state.threats.filter(threat=>visible.has(threat.hexId)||state.rules.revealMap).map(threat=>({id:threat.id,kind:threat.kind,hexId:threat.hexId,level:threat.level,status:threat.status,composition:threat.composition}));
+  const visible=visibleHexIds(state,actor),all=state.rules.revealMap;
+  return state.threats.filter(threat=>visible.has(threat.hexId)||all).map(threat=>{
+    const intent=threatIntent(state,threat),known=intent.targetHexId!==null&&(all||visible.has(intent.targetHexId));
+    return {id:threat.id,kind:threat.kind,hexId:threat.hexId,level:threat.level,status:threat.status,composition:threat.composition,fresh:threat.fresh,
+      intent:{state:intent.state,targetKind:intent.targetKind,targetKnown:known,targetId:known?intent.targetId:null,targetHexId:known?intent.targetHexId:null,distance:known?intent.distance:null,nextHexId:intent.nextHexId!==null&&(all||visible.has(intent.nextHexId))?intent.nextHexId:null}};
+  });
 }
