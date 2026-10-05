@@ -1,0 +1,128 @@
+[
+  {
+    "viewport": [
+      1366,
+      768
+    ],
+    "inspector": "open",
+    "hexes": 33,
+    "offscreen": 0,
+    "covered": 3,
+    "hexWidthPx": 93,
+    "territoryBBoxShare": 0.546,
+    "territoryWidthShare": 0.584,
+    "territoryHeightShare": 0.935,
+    "stage": [
+      0,
+      0,
+      1366,
+      768
+    ],
+    "scrollsGlobally": false
+  },
+  {
+    "viewport": [
+      1366,
+      768
+    ],
+    "inspector": "folded",
+    "hexes": 33,
+    "offscreen": 0,
+    "covered": 2,
+    "hexWidthPx": 93,
+    "territoryBBoxShare": 0.546,
+    "territoryWidthShare": 0.584,
+    "territoryHeightShare": 0.935,
+    "stage": [
+      0,
+      0,
+      1366,
+      768
+    ],
+    "scrollsGlobally": false
+  },
+  {
+    "viewport": [
+      1440,
+      900
+    ],
+    "inspector": "open",
+    "hexes": 33,
+    "offscreen": 0,
+    "covered": 1,
+    "hexWidthPx": 109,
+    "territoryBBoxShare": 0.607,
+    "territoryWidthShare": 0.649,
+    "territoryHeightShare": 0.935,
+    "stage": [
+      0,
+      0,
+      1440,
+      900
+    ],
+    "scrollsGlobally": false
+  },
+  {
+    "viewport": [
+      1440,
+      900
+    ],
+    "inspector": "folded",
+    "hexes": 33,
+    "offscreen": 0,
+    "covered": 0,
+    "hexWidthPx": 109,
+    "territoryBBoxShare": 0.607,
+    "territoryWidthShare": 0.649,
+    "territoryHeightShare": 0.935,
+    "stage": [
+      0,
+      0,
+      1440,
+      900
+    ],
+    "scrollsGlobally": false
+  },
+  {
+    "viewport": [
+      1280,
+      720
+    ],
+    "inspector": "open",
+    "hexes": 33,
+    "offscreen": 0,
+    "covered": 3,
+    "hexWidthPx": 88,
+    "territoryBBoxShare": 0.547,
+    "territoryWidthShare": 0.585,
+    "territoryHeightShare": 0.935,
+    "stage": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "scrollsGlobally": false
+  },
+  {
+    "viewport": [
+      1280,
+      720
+    ],
+    "inspector": "folded",
+    "hexes": 33,
+    "offscreen": 0,
+    "covered": 2,
+    "hexWidthPx": 88,
+    "territoryBBoxShare": 0.547,
+    "territoryWidthShare": 0.585,
+    "territoryHeightShare": 0.935,
+    "stage": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "scrollsGlobally": false
+  }
+]

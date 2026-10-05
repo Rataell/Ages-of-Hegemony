@@ -600,3 +600,12 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-government li[data-unlocked='false'] > span { opacity: .6; }
 .alpha-recruit-count { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .alpha-recruit-count select { min-width: 52px; }
+
+/* Map frame (playtest, item 6): on desktop the atlas fits the FREE rectangle between the strip, the tray and the open inspector, so no hex
+   (least of all the selected city) hides under a panel, and the known territory uses the room the panels leave. Mobile keeps the full-bleed map. */
+@media (min-width: 901px) {
+  .alpha-mesa .world-column { background: radial-gradient(ellipse at 50% 50%, var(--surface-elevated), var(--map-ground) 85%); }
+  .alpha-mesa .alpha-table .map-stage { background: transparent; top: calc(10px + var(--strip-height) + 6px); bottom: calc(12px + var(--tray-height) + 6px); }
+  .alpha-mesa .alpha-table[data-inspector='open'] .map-stage { right: calc(12px + min(380px, calc(100vw - 24px)) + 6px); }
+  .alpha-mesa .alpha-table .map-tools { bottom: 12px; left: 16px; }
+}

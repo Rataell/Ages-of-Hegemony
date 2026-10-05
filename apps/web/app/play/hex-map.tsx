@@ -96,7 +96,12 @@ export const HexMap = memo(function HexMap({
   const [moved, setMoved] = useState(false);
 
   const tiles = data.view.visibleTerritory;
-  const frame = useMemo(() => mapFrame(tiles), [tiles]);
+  // Fit what the player knows, not the fog around it: unexplored frontier hexes would otherwise shrink the whole atlas into a small island.
+  // They stay inside the frame by half a hex (padding), still visible and clickable as explore targets; zooming out shows them whole.
+  const frame = useMemo(() => {
+    const known = tiles.filter(tile => tile.terrain !== 'UNKNOWN');
+    return known.length >= 3 ? mapFrame(known, { padding: 70 }) : mapFrame(tiles);
+  }, [tiles]);
   const current = view ?? { cx: frame.cx, cy: frame.cy, zoom: 1 };
   const focusTile = tiles.find(t => t.id === focus);
   // Once the player has zoomed in, selecting a piece or city brings it to the centre; a fitted atlas already shows everything.

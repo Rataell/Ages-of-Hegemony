@@ -45,6 +45,8 @@ export function cityActionGate(game:AlphaPlayerView,cityId:string|null,action:st
   if(game.self.ready)return 'Você já confirmou esta fase.';
   const state=cityId?game.cityStates.find(c=>c.cityId===cityId):undefined;
   if(!state)return 'Selecione uma cidade sua no mapa.';
+  // Canon §2 (E-1): pesquisar é a Ordem Avanço; a cidade só a carrega e não gasta ativação.
+  if(action==='RESEARCH')return null;
   if(state.status==='OCCUPIED'&&action!=='CIVIC_ACTION')return 'Cidade ocupada: só a Ação cívica está disponível.';
   if(state.plannedUrbanActions>=game.rules.balance.cityActions)return 'Esta cidade já possui sua ação planejada nesta rodada.';
   return null;
