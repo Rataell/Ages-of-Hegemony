@@ -7,15 +7,6 @@ import { alphaLabel as text } from './alpha-copy';
 import { cityActionGate } from './alpha-panels';
 import type { AlphaSend } from './alpha-board';
 
-/** Governments of canon §16 as the Tabuleiro states them: two advantages and one limitation. Conselho is the starting form. */
-export const GOVERNMENT_FACTS: Record<string, { name: string; pros: [string, string]; con: string }> = {
-  PROTO_GOVERNANCE: { name: 'Conselho', pros: ['Governar custa 1 a menos', 'Capacidade Administrativa +1'], con: 'No máximo 1 segunda ativação por rodada' },
-  MONARCHY: { name: 'Monarquia', pros: ['Capital +1 Capacidade', 'Recrutar na capital ignora a Capacidade'], con: 'Mudar de capital custa 2 Ordens' },
-  REPUBLIC: { name: 'República', pros: ['Até 2 Ambições pontuadas por Era', '+1 Manobra na mão'], con: 'Declarar guerra custa 1 Influência extra e 1 Ordem Influência' },
-  OLIGARCHY: { name: 'Oligarquia', pros: ['Rotas +1 Riqueza', 'Riqueza cobre 60% de qualquer custo material'], con: 'Cidades Abaladas não geram Riqueza' },
-  THEOCRACY: { name: 'Teocracia', pros: ['Templo recupera Ânimo 1× por rodada sem Ordem', 'Cultura +1 por cidade com Templo'], con: 'Saber: o 1º avanço de cada Era custa +1 Conhecimento' },
-  CONFEDERATION: { name: 'Confederação', pros: ['Capacidade Administrativa +2', 'Fundar custa −1 Madeira'], con: 'A Capacidade da capital nunca passa de 3' },
-};
 const COMPOSITION_NAME = { DOMINANT: 'Dominante', HYBRID: 'Híbrida', PAIR: 'Par', CONFLUENCE: 'Confluência' } as const;
 const DOMAIN_CLASS = (domains: readonly WebDomain[]) => `d-${domains[0]}${domains[1] ? ` d2-${domains[1]}` : ''}`;
 const ERAS = AlphaEraSchema.options;
@@ -44,10 +35,10 @@ export function ChoiceParchment({ choice, locked, send }: { choice: AlphaPlayerV
 }
 
 export function AlphaCivBoard({ game, selfName, cityId, locked, send, onClose }: { game: AlphaPlayerView; selfName: string; cityId: string | null; locked: boolean; send: AlphaSend; onClose: () => void }) {
-  const self = game.self, civ = game.view.player.civilization;
+  const self = game.self;
   const identity = CIVILIZATIONS.find(c => c.id === self.civilization), kit = civilizationKit(self.civilization);
   const leader = LEADERS.find(l => l.id === self.leader?.leaderId);
-  const gov = GOVERNMENT_FACTS[civ.government] ?? GOVERNMENT_FACTS.PROTO_GOVERNANCE!;
+  const gov = game.government.current;
   const eraIndex = ERAS.indexOf(self.era);
   const slots = self.resonance.slots, composition = slots.length ? classifyResonance(slots) : null;
   const [selected, setSelected] = useState<string | null>(null);
@@ -140,7 +131,7 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, onClose }:
         {kit ? <ul><li><b>Traço</b> {kit.trait.text}</li><li><b>Assinatura</b> {kit.signature.name} · {kit.signature.item.text}</li><li><b>Limitação</b> {kit.limitation.text}</li></ul> : <p>Escolha uma civilização.</p>}
         <div className="alpha-civ-pair">
           <article className="alpha-civ-leader"><small>Líder</small><h4>{leader?.name ?? '—'}</h4>{leader && <><p>{leader.passiveAbility.name}: {leader.passiveAbility.description}</p><p><b>{self.leader?.eraAbilityUsed ? 'Poder usado nesta Era' : 'Poder disponível'}</b> · {leader.eraAbility.name}</p></>}</article>
-          <article className="alpha-civ-government"><small>Governo</small><h4>{gov.name}</h4><ul><li>＋ {gov.pros[0]}</li><li>＋ {gov.pros[1]}</li><li>－ {gov.con}</li></ul></article>
+          <article className="alpha-civ-government"><small>Governo</small><h4>{gov.name}</h4><ul>{gov.advantages.map(line => <li key={line}>＋ {line}</li>)}<li>－ {gov.limitation}</li></ul></article>
         </div>
       </section>
     </div>

@@ -4,7 +4,7 @@ import type { LocalView } from '@aoh/server/local-play';
 import type { AlphaUnit, HexTile } from '@aoh/game-domain';
 import { label, roman } from './presentation';
 import { clampCentre, clampZoom, mapFrame, position, tileSummary, viewBoxOf } from './map-frame';
-import type { CivilizationMark } from '@aoh/game-domain';
+import { axialDistance, type CivilizationMark } from '@aoh/game-domain';
 import { CIVIL_PIECES, bannerArt, borderStrokes, cityArt, fortificationArt, pieceArt, seedOf } from '../alpha/table-art';
 
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
@@ -425,6 +425,14 @@ export const HexMap = memo(function HexMap({
             <rect x={-Math.max(26, fitted / 2 + 5)} y="-7" width={Math.max(52, fitted + 10)} height="13" rx="3" className="city-banner-bg" />
             <text className="city-name art-city-name" y="3" {...(natural > fitted ? { textLength: fitted, lengthAdjust: 'spacingAndGlyphs' } : {})}>{name}</text>
           </g>];
+        })}</g>}
+        {threats.some(t => t.status === 'MARCHING' && t.kind === 'CAMP') && <g className="threat-heading" aria-hidden="true">{threats.filter(t => t.status === 'MARCHING' && t.kind === 'CAMP').flatMap(threat => {
+          // Likely heading: the nearest city this player can see (the canon targets the nearest reachable city). Drawn dashed and only when that city is visible.
+          const [tq, tr] = threat.hexId.split(',').map(Number);
+          const goal = cities.map(city => { const [cq, cr] = city.hexId.split(',').map(Number); return { city, d: axialDistance({ q: tq ?? 0, r: tr ?? 0 }, { q: cq ?? 0, r: cr ?? 0 }), cq: cq ?? 0, cr: cr ?? 0 }; }).sort((a, b) => a.d - b.d || (a.city.hexId < b.city.hexId ? -1 : 1))[0];
+          if (!goal || goal.d === 0) return [];
+          const from = position(tq ?? 0, tr ?? 0), to = position(goal.cq, goal.cr);
+          return [<line key={threat.id} x1={from.x} y1={from.y} x2={to.x} y2={to.y} className="alpha-threat-heading"><title>Rumo provável de {threat.id}: a cidade visível mais próxima.</title></line>];
         })}</g>}
       </svg>
 
