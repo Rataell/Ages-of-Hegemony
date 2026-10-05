@@ -233,14 +233,22 @@ describe('what never gets retried', () => {
     expect(lobby.sent).toHaveLength(1);
   });
 
-  it('never sends a third time: two conflicts end with a clear message and a refreshed screen', async () => {
-    const s = script([conflict, conflict], [{ ok: true, value: room(7) }, { ok: true, value: room(8) }]);
-    const outcome = await sendWithRecovery(s.transport, envelope);
-    expect(s.sent).toHaveLength(2);
-    expect((s.sent[1]!.payload as { expectedVersion: number }).expectedVersion).toBe(7);
+  it('retries up to three times with a fresh version each time, then ends with a clear message and a refreshed screen', async () => {
+    const s = script([conflict, conflict, conflict, conflict], [{ ok: true, value: room(7) }, { ok: true, value: room(8) }, { ok: true, value: room(9) }, { ok: true, value: room(10) }]);
+    const outcome = await sendWithRecovery(s.transport, envelope, { delay: async () => {} });
+    expect(s.sent).toHaveLength(4);
+    expect(s.sent.map(body => (body.payload as { expectedVersion: number }).expectedVersion)).toEqual([3, 7, 8, 9]);
     expect(outcome.retried).toBe(true);
     expect(outcome.reply).toEqual({ ok: false, error: { code: 'VERSION_CONFLICT', message: CONFLICT_AFTER_RETRY } });
-    expect(outcome.latest!.version).toBe(8);
+    expect(outcome.latest!.version).toBe(10);
+  });
+
+  it('succeeds on the third retry after two more lost races (6 seats confirming in the same second)', async () => {
+    const ok: Reply = { ok: true, value: room(11) };
+    const s = script([conflict, conflict, conflict, ok], [{ ok: true, value: room(7) }, { ok: true, value: room(8) }, { ok: true, value: room(9) }]);
+    const outcome = await sendWithRecovery(s.transport, envelope, { delay: async () => {} });
+    expect(outcome.reply).toEqual(ok);
+    expect(s.sent).toHaveLength(4);
   });
 
   it('only recovers game commands and lobby actions, and keeps the version in every request', async () => {
