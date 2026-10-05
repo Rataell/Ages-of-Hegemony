@@ -77,6 +77,8 @@ const defaults: GameRulesConfig = {
     OLIGARCHY: { ...government, wealthBonusPercent: 10, commercialWealthBonusPercent: 15, futureInequalityStabilityPenalty: 2 },
     THEOCRACY: { ...government, globalStability: 2, futureInfluenceBonusPercent: 10, futureReformFlexibilityPenalty: 1 },
     CONFEDERATION: { ...government, capacityPerCity: 1, multiCityStability: 2, commandPointsDelta: -1 },
+    /** V5.1b governments live in the Alpha engine (`governmentEffects`), never in these legacy Estabilidade modifiers. */
+    MERITOCRACY: { ...government }, AUTOCRACY: { ...government },
   },
   administrativeRules: { baseCapacity: 3, loadPerCity: 1, developmentStep: 2, populationStep: 5, overextensionStabilityPenalty: 3, overextensionEconomicPercent: 90 },
   stabilityThresholds: { criticalMax: 19, unstableMax: 39, tenseMax: 59, stableMax: 79 },

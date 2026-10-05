@@ -292,7 +292,7 @@ describe('urban actions: RESEARCH', () => {
 
 describe('urban actions: PROMOTE_MOOD', () => {
   it('Governar spends 2 Riqueza (no Cultura in store) to raise mood one step in a Capacity-1 city', () => {
-    const state = urban();
+    const state = urban(); state.core.players[0]!.civilization.government = 'THEOCRACY'; // the Conselho recovers its first level for free
     const wealth = pool(state).wealth, mood = meta(state).mood;
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'PROMOTE_MOOD' });
     expect(meta(after).mood).toBe(mood + 1);
@@ -307,7 +307,7 @@ describe('urban actions: PROMOTE_MOOD', () => {
   });
 
   it('needs the wealth', () => {
-    const state = urban();
+    const state = urban(); state.core.players[0]!.civilization.government = 'THEOCRACY';
     pool(state).wealth = 1; state.core.players[0]!.resources = alphaToLegacyResources(pool(state));
     expect(act(state, p1, c1, { action: 'PROMOTE_MOOD' }).ok).toBe(false);
   });

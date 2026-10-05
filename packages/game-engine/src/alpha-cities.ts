@@ -1,6 +1,7 @@
 import { CityIdSchema, cityLevelForPopulation, connectedTo, type AlphaState, type CityId, type PlayerId } from '@aoh/game-domain';
 import { refreshAdministration } from './civilization.js';
 import { alphaResourcePayment } from './alpha-resources.js';
+import { governmentEffects } from './alpha-government.js';
 import { foundCityAt } from './founding.js';
 import { culturalIdentityOf, refreshCulturalMetrics } from './alpha-culture.js';
 
@@ -11,6 +12,11 @@ const FOUNDING_REFUSALS:Record<string,(distance:number)=>string>={
   INSUFFICIENT_RESOURCES:()=>'Recursos insuficientes para fundar a cidade.',
   UNKNOWN_HEX:()=>'Hex desconhecido.',
 };
+/** Fundar custa 1 Madeira a menos sob a Confederação (canon §16); the discount comes off the material cost. */
+function foundingPayment(state:AlphaState,actor:PlayerId){
+  const pay=alphaResourcePayment(state),discount=governmentEffects(state,actor).foundingWoodDiscount;
+  return discount===0?pay:(corePlayer:Parameters<typeof pay>[0],cost:Parameters<typeof pay>[1])=>pay(corePlayer,{...cost,materials:Math.max(0,cost.materials-discount)});
+}
 export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,name:string):void {
   const pioneer=state.units.find(u=>u.id===unitId&&u.ownerId===actor&&u.kind==='PIONEER');
   if(!pioneer)throw new Error('Escolha um Pioneiro próprio para fundar uma cidade.');
@@ -18,7 +24,7 @@ export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,
   const tile=state.core.map.find(t=>t.id===pioneer.hexId)!;
   if(tile.ownerId!==null&&tile.ownerId!==actor||state.units.some(u=>u.hexId===tile.id&&u.ownerId!==actor))throw new Error('Não é possível fundar em território ou presença estrangeira.');
   const player=state.core.players.find(p=>p.id===actor)!;
-  const founded=foundCityAt(state.core,player,state.core.map,{type:'FOUND_CITY',playerId:actor,cityId:CityIdSchema.parse(`city-${actor}-${state.version}`),hexId:tile.id,name,expectedVersion:state.core.version},state.core.version+1,alphaResourcePayment(state));
+  const founded=foundCityAt(state.core,player,state.core.map,{type:'FOUND_CITY',playerId:actor,cityId:CityIdSchema.parse(`city-${actor}-${state.version}`),hexId:tile.id,name,expectedVersion:state.core.version},state.core.version+1,foundingPayment(state,actor));
   if(!founded.ok)throw new Error(FOUNDING_REFUSALS[founded.error.code]?.(state.core.config.territory.minimumCityDistance)??founded.error.message);
   state.units=state.units.filter(u=>u.id!==unitId);
   const newCity=player.civilization.cities.find(c=>c.hexId===tile.id)!;
@@ -53,7 +59,9 @@ export function occupyCity(state:AlphaState,actor:PlayerId,cityId:CityId):void {
   const meta=state.cities.find(c=>c.cityId===cityId);
   if(meta){
     const civilization=culturalIdentityOf(state,actor);
-    meta.currentOwnerId=actor;meta.status=liberated?'OWNED':'OCCUPIED';meta.integration=liberated?100:0;meta.capital=recipient.civilization.capitalCityId===cityId;
+    meta.currentOwnerId=actor;meta.status=liberated?'OWNED':'OCCUPIED';meta.integration=liberated?100:0;
+    // Autocracia (canon §16): a conquered city begins in Revolta (Integração already starts at 0).
+    if(!liberated&&governmentEffects(state,actor).conqueredCityStartsInRevolt)meta.mood=Math.min(meta.mood,1);meta.capital=recipient.civilization.capitalCityId===cityId;
     meta.foreignPresence=meta.foreignPresence.filter(presence=>presence.civilizationId!==civilization);if(meta.culturalAnchor===civilization)meta.culturalAnchor=null;
   }
   refreshCulturalMetrics(state);

@@ -35,6 +35,7 @@ export function urbanActionMessage(before: AlphaState, after: AlphaState, actor:
     case 'PROMOTE_MOOD': return `${cityName} investiu no ânimo da população.`;
     case 'SUPPORT_TRADE': return `${cityName} sustentou o comércio.`;
     case 'CIVIC_ACTION': return `${cityName} realizou uma ação cívica.`;
+    case 'MOVE_CAPITAL': return `${cityName} tornou-se a capital.`;
     case 'ELEVATE': return `${cityName} foi elevada de nível.`;
   }
 }

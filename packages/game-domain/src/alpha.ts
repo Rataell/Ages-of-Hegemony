@@ -97,7 +97,7 @@ export const StrategicOrderSchema = z.discriminatedUnion('type', [
 ]);
 export type StrategicOrder = z.infer<typeof StrategicOrderSchema>;
 export const PlannedActionSchema = z.discriminatedUnion('type',[
-  z.strictObject({id:IdentifierSchema,type:z.literal('URBAN_ACTION'),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),advancementId:IdentifierSchema.optional()}),
+  z.strictObject({id:IdentifierSchema,type:z.literal('URBAN_ACTION'),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),count:z.number().int().min(1).max(6).optional(),advancementId:IdentifierSchema.optional()}),
   z.strictObject({id:IdentifierSchema,type:z.literal('PROPOSE_TREATY'),recipientId:PlayerIdSchema,treaty:TreatyTypeSchema,deal:ResourceDealSchema}),
   z.strictObject({id:IdentifierSchema,type:z.literal('DECLARE_WAR'),targetId:PlayerIdSchema}),
   /** An Influência Order reserved in the last round of an Era; it executes at step 5 of the Era turn (canon §16, I-7). */
@@ -284,7 +284,16 @@ const AlphaStateBase = z.strictObject({
   }
 });
 /** V5.1a → V5.1b upgrade (never silent: a public SAVE_UPGRADED event is appended). Catalog refresh for combat arrives with the combat slice. */
-export function upgradeToV51b(raw: unknown): unknown {
+export function upgradeToV51b(raw: unknown): unknown { return fillGovernments(upgradeBody(raw)); }
+/** Matches saved before Meritocracia and Autocracia exist carry no legacy modifier row for them; they read as the neutral Conselho row (the Alpha never uses these rows). */
+function fillGovernments(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const input = value as Record<string, unknown>, core = input.core as { config?: { governmentModifiers?: Record<string, unknown> } } | undefined;
+  const table = core?.config?.governmentModifiers;
+  if (!table || !table.PROTO_GOVERNANCE || (table.MERITOCRACY && table.AUTOCRACY)) return value;
+  return { ...input, core: { ...core, config: { ...core.config, governmentModifiers: { ...table, MERITOCRACY: table.MERITOCRACY ?? table.PROTO_GOVERNANCE, AUTOCRACY: table.AUTOCRACY ?? table.PROTO_GOVERNANCE } } } };
+}
+function upgradeBody(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
   const input = raw as Record<string, unknown>;
   if (input.schemaVersion !== 5) return raw;
@@ -327,7 +336,7 @@ function refreshCombatCatalog(input: Record<string, unknown>): Record<string, un
 export const AlphaStateSchema = z.preprocess(upgradeToV51b, AlphaStateBase);
 export type AlphaState = z.infer<typeof AlphaStateBase>;
 export const AlphaCommandSchema = z.discriminatedUnion('type', [
-  z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,planId:IdentifierSchema.optional(),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),advancementId:IdentifierSchema.optional()}),
+  z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,planId:IdentifierSchema.optional(),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),count:z.number().int().min(1).max(6).optional(),advancementId:IdentifierSchema.optional()}),
   z.strictObject({type:z.literal('PROPOSE_TRADE'),expectedVersion:N,recipientId:PlayerIdSchema,offerType:z.enum(['TRADE_INSTANT','GIFT','FUTURE_PROMISE','LOAN']),offer:AlphaResourcePoolSchema,request:AlphaResourcePoolSchema,treatyTerms:z.array(IdentifierSchema).max(4),dueRound:P.nullable()}),
   z.strictObject({type:z.literal('RESPOND_TRADE'),expectedVersion:N,offerId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('CONTEST_PRESENCE'),expectedVersion:N,cityId:CityIdSchema,defenderCivilizationId:IdentifierSchema}),

@@ -1,5 +1,6 @@
 import { AlphaOrderTypeSchema, emptyOrderCount, orderTypeForOrder, orderTypeForPlanned, type AlphaState, type AlphaOrderType, type PlayerId } from '@aoh/game-domain';
 import { institutionBonus } from './alpha-institutions.js';
+import { governmentEffects } from './alpha-government.js';
 
 export interface AlphaActionUsage {
   used:number;
@@ -23,12 +24,14 @@ export function alphaActionCapacity(state:AlphaState,playerId:PlayerId):number {
 
 export function alphaActionUsage(state:AlphaState,playerId:PlayerId):AlphaActionUsage {
   const player=state.players.find(candidate=>candidate.playerId===playerId);
-  const reserved=(player?.orders.length??0)+(player?.plannedActions.length??0);
+  // Moving the capital occupies more than one Order under some governments (Monarquia: 2).
+  const heavy=(player?.plannedActions.filter(action=>action.type==='URBAN_ACTION'&&action.action==='MOVE_CAPITAL').length??0)*(governmentEffects(state,playerId).moveCapitalOrders-1);
+  const reserved=(player?.orders.length??0)+(player?.plannedActions.length??0)+heavy;
   const byOrder=emptyOrderCount();
   if(player){
     for(const type of AlphaOrderTypeSchema.options)byOrder[type]+=player.ordersSpent[type]??0;
     for(const order of player.orders)byOrder[orderTypeForOrder(order)]+=1;
-    for(const action of player.plannedActions)byOrder[orderTypeForPlanned(action)]+=1;
+    for(const action of player.plannedActions)byOrder[orderTypeForPlanned(action)]+=action.type==='URBAN_ACTION'&&action.action==='MOVE_CAPITAL'?governmentEffects(state,playerId).moveCapitalOrders:1;
   }
   return {used:(player?.spentCommands??0)+reserved,reserved,limit:alphaActionCapacity(state,playerId),byOrder};
 }

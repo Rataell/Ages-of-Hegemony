@@ -3,9 +3,10 @@ import {
   type AlphaCity, type AlphaResourcePool, type AlphaState, type CityLevel, type CityState, type PlayerId,
 } from '@aoh/game-domain';
 import { tileYieldBreakdown } from './economy.js';
-import { alphaCanAfford, alphaPay } from './alpha-resources.js';
+import { alphaCanAfford, alphaGain, alphaPay } from './alpha-resources.js';
 import { hasUnlock } from './alpha-institutions.js';
 import { hexBlockedByThreat } from './alpha-threats.js';
+import { governmentEffects } from './alpha-government.js';
 
 /**
  * The city rules of V5.1a (canon §4–§7): Capacity as the power of one activation, Elevar, population roles, sustenance and
@@ -33,6 +34,23 @@ export function cityLevels(meta: AlphaCity, city: CityState): { built: CityLevel
 }
 
 /**
+ * The Capacity the city operates with before Ânimo: the effective Capacity of its level, plus the capital's government and
+ * Centralização bonus (Monarquia +1, Centralização +1) and capped by the Confederação limitation (canon §16, §12).
+ */
+export function operatingCapacity(state: AlphaState, cityId: string): number {
+  const pair = cityPair(state, cityId);
+  if (!pair) return 0;
+  let capacity = cityLevels(pair.meta, pair.city).capacity;
+  const owner = state.core.players.find(player => player.id === pair.ownerId);
+  if (owner && owner.civilization.capitalCityId === cityId) {
+    const effects = governmentEffects(state, pair.ownerId);
+    capacity += effects.capitalCapacityBonus + (hasUnlock(state, pair.ownerId, 'rule:capital-capacity-plus-1') ? 1 : 0);
+    if (effects.capitalCapacityCap !== null) capacity = Math.min(capacity, effects.capitalCapacityCap);
+  }
+  return capacity;
+}
+
+/**
  * Capacity of the next activation (canon §4, §10): effective Capacity, −1 (min 1) when Abalada, +1 on the first activation
  * of a Próspera city. A Revolta city has no productive Capacity.
  */
@@ -41,7 +59,7 @@ export function activationCapacity(state: AlphaState, cityId: string): number {
   if (!pair) return 0;
   const band = moodBand(pair.meta.mood);
   if (band === 'REVOLT') return 0;
-  const base = cityLevels(pair.meta, pair.city).capacity;
+  const base = operatingCapacity(state, cityId);
   if (band === 'SHAKEN') return Math.max(1, base - 1);
   if (band === 'PROSPEROUS' && pair.meta.urbanActionsUsed === 0) return base + 1;
   return base;
@@ -51,9 +69,9 @@ export const activationsAllowed = (meta: AlphaCity): number => moodBand(meta.moo
 
 /** Buildings that let the third and later pairs of a role yield (canon §6). */
 const ROLE_BUILDING: Record<'artisans' | 'merchants' | 'scholars', string> = { artisans: 'WORKSHOP', merchants: 'MARKET', scholars: 'LIBRARY' };
-const pairs = (count: number, building: string, meta: AlphaCity): number => {
-  const all = Math.floor(count / 2);
-  return meta.buildings.includes(building as never) ? all : Math.min(all, 2);
+const pairs = (count: number, building: string, meta: AlphaCity, perOne = false): number => {
+  const all = perOne ? count : Math.floor(count / 2);
+  return meta.buildings.includes(building as never) ? all : Math.min(all, perOne ? 4 : 2);
 };
 
 export interface CityYield { output: AlphaResourcePool; /** Metal from mines on deposits, credited as mining. */ metal: number; hexes: string[]; capacity: number; notes: string[] }
@@ -89,7 +107,8 @@ export function cityYield(state: AlphaState, cityId: string): CityYield {
   output.food += Math.floor(idleProducers / 2);
   output.wood += pairs(city.workers.artisans, ROLE_BUILDING.artisans, meta);
   output.wealth += pairs(city.workers.merchants, ROLE_BUILDING.merchants, meta);
-  output.knowledge += pairs(city.workers.scholars, ROLE_BUILDING.scholars, meta);
+  const effects = governmentEffects(state, ownerId);
+  output.knowledge += pairs(city.workers.scholars, ROLE_BUILDING.scholars, meta, effects.scholarYieldsPerOne);
   for (const district of meta.districts) {
     if (district === 'AGRARIAN') output.food += 2;
     else if (district === 'COMMERCIAL') output.wealth += 1;
@@ -98,7 +117,8 @@ export function cityYield(state: AlphaState, cityId: string): CityYield {
     else if (district === 'CULTURAL') output.culture += 1;
     else if (district === 'MARITIME') output.food += 1;
   }
-  if (meta.buildings.includes('TEMPLE')) output.culture += 1;
+  if (meta.buildings.includes('TEMPLE')) output.culture += 1 + effects.templeCulture;
+  if (effects.shakenCitiesProduceNoWealth && moodBand(meta.mood) === 'SHAKEN' && output.wealth > 0) { output.wealth = 0; notes.push('Oligarquia: cidade Abalada não gera Riqueza.'); }
   if (worked.length < city.workedHexIds.length) notes.push(`Capacidade ${capacity}: ${city.workedHexIds.length - worked.length} hex(es) trabalhado(s) ficam fora desta ativação.`);
   return { output, metal, hexes: tiles.map(tile => tile.id), capacity, notes };
 }
@@ -154,6 +174,22 @@ export function growCost(state: AlphaState, cityId: string): number {
 }
 export function canGrow(meta: AlphaCity, city: CityState): boolean {
   return city.population < populationCeiling(meta.level);
+}
+
+/**
+ * Pieces one Recrutar activation may raise (canon §4: "peças recrutadas ≤ Capacidade", and §5: the Militar district recruits
+ * without the Capacity limit). The Soldados always bound it (mobilization). Monarquia lifts the limit in the capital;
+ * Meritocracia caps it at 1 (canon §16).
+ */
+export function recruitLimit(state: AlphaState, actor: PlayerId, cityId: string): number {
+  const pair = cityPair(state, cityId);
+  if (!pair) return 0;
+  const effects = governmentEffects(state, actor);
+  const isCapital = state.core.players.find(player => player.id === actor)?.civilization.capitalCityId === cityId;
+  const unlimited = pair.city.districts.some(district => district.type === 'MILITARY') || (isCapital && effects.capitalRecruitIgnoresCapacity);
+  let limit = unlimited ? 6 : Math.max(1, activationCapacity(state, cityId));
+  if (effects.recruitPerActivationMax !== null) limit = Math.min(limit, effects.recruitPerActivationMax);
+  return limit;
 }
 
 /** Mobilization (canon §6): a land piece takes one Soldado, or a Disponível when no Soldado is assigned. */
@@ -229,7 +265,7 @@ export function administration(state: AlphaState, actor: PlayerId): Administrati
     capital: owner.civilization.capitalCityId && metas.some(meta => meta.cityId === owner.civilization.capitalCityId) ? 1 : 0,
     districts: metas.filter(meta => meta.districts.includes('ADMINISTRATIVE')).length,
     chancellery: metas.some(meta => meta.buildings.includes('CHANCELLERY')) ? 1 : 0,
-    government: owner.civilization.government === 'CONFEDERATION' ? 2 : owner.civilization.government === 'PROTO_GOVERNANCE' ? 1 : 0,
+    government: governmentEffects(state, actor).administrationBonus,
     web: (hasUnlock(state, actor, 'rule:admin-capacity-plus-1') ? progress.research.filter(id => ['web-codes', 'web-urbanism'].includes(id)).length : 0),
   };
   const capacity = parts.base + parts.capital + parts.districts + parts.chancellery + parts.government + parts.web;
@@ -252,7 +288,7 @@ export function governBlock(state: AlphaState, actor: PlayerId, cityId: string):
   const pair = cityPair(state, cityId);
   if (!pair || pair.ownerId !== actor) return 'Escolha uma cidade própria.';
   if (pair.meta.mood >= 6 && pair.meta.fortification.state === 'INTACT') return 'A cidade já está Próspera e íntegra: Governar não tem o que recuperar.';
-  if (pair.meta.mood < 6 && !alphaCanAfford(state, actor, governCost(state, actor))) return 'Governar custa 1 Cultura ou 2 Riqueza por nível de Ânimo.';
+  if (pair.meta.mood < 6 && governmentEffects(state, actor).governFreeLevels === 0 && !alphaCanAfford(state, actor, governCost(state, actor))) return 'Governar custa 1 Cultura ou 2 Riqueza por nível de Ânimo.';
   return null;
 }
 /** Applies Governar: pays level by level while there is Capacity and Ânimo to recover; repairs one fortification step (1 Pedra, free with Fortificação). Returns what happened. */
@@ -260,12 +296,17 @@ export function governCity(state: AlphaState, actor: PlayerId, cityId: string): 
   const blocked = governBlock(state, actor, cityId);
   if (blocked) throw new Error(blocked);
   const pair = cityPair(state, cityId)!;
-  const reach = Math.max(1, cityLevels(pair.meta, pair.city).capacity);
+  const reach = Math.max(1, operatingCapacity(state, cityId));
+  const effects = governmentEffects(state, actor);
   let moodGained = 0;
-  while (moodGained < reach && pair.meta.mood < 6 && alphaCanAfford(state, actor, governCost(state, actor))) {
-    alphaPay(state, actor, governCost(state, actor));
+  while (moodGained < reach && pair.meta.mood < 6) {
+    // Conselho: the first level of each Governar is free (canon §16 "Governar custa 1 a menos").
+    const free = moodGained < effects.governFreeLevels;
+    if (!free && !alphaCanAfford(state, actor, governCost(state, actor))) break;
+    if (!free) alphaPay(state, actor, governCost(state, actor));
     pair.meta.mood += 1; moodGained += 1;
   }
+  if (effects.governKnowledge > 0) alphaGain(state, actor, { knowledge: effects.governKnowledge }, { category: 'other' });
   let repaired = false;
   if (pair.meta.fortification.state !== 'INTACT') {
     const free = hasUnlock(state, actor, 'rule:free-repair');

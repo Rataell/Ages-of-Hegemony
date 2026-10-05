@@ -20,6 +20,7 @@ import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
 import { applyRecurringEffects, passEraByCalendar } from './alpha-institutions.js';
 import { performUrbanAction } from './alpha-urban.js';
 import { kitFoodUpkeep } from './alpha-kits.js';
+import { applyGovernmentRoundStart } from './alpha-government.js';
 import { enterEraTurn, finishEraTurn, isEraTurnDue } from './alpha-era-turn.js';
 
 /**
@@ -111,6 +112,7 @@ export function openRound(state: AlphaState): void {
   // The first Pulse opens the match (Era I); every later Pulse is drawn at step 3 of the Era turn (canon §18, §22).
   if (state.core.round === 1) drawWorldPulse(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'ROUND_START');
+  applyGovernmentRoundStart(state);
   setAlphaPhase(state, 'PLANNING');
   alphaEvent(state, 'ROUND_STARTED', `Rodada ${state.core.round}: Planejamento.`);
   resolutionEvent(state,{type:'ROUND_EVENT',actorId:null,visibleTo:null,message:`Rodada ${state.core.round} iniciada.`,unitIds:[]});
@@ -171,7 +173,7 @@ function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['ty
         performUrbanAction(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'URBAN_ACTION'}>);
         alphaEvent(candidate,action.action,`Ação planejada executada: ${action.action}.`,[actor]);
         const city=candidate.core.players.flatMap(player=>player.civilization.cities).find(item=>item.id===action.cityId)!;
-        const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',ELEVATE:'CONSTRUCTION',PROMOTE_MOOD:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT'} as const)[action.action];
+        const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',ELEVATE:'CONSTRUCTION',PROMOTE_MOOD:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT',MOVE_CAPITAL:'ROUND_EVENT'} as const)[action.action];
         const visibleTo=action.action==='BUILD'?viewersAt(candidate,city.hexId,[actor]):[actor];
         resolutionEvent(candidate,{type,actorId:actor,visibleTo,message:urbanActionMessage(state,candidate,actor,action,city.name),hexId:city.hexId,cityId:city.id,unitIds:[]});
       }else{

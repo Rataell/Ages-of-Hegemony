@@ -7,7 +7,7 @@ export function migrateSnapshotV2ToV3(input: unknown): Result<GameState, GameRul
   if (!parsed.success) return err({ code: 'INVALID_STATE', message: `Invalid v2 snapshot: ${parsed.error.message}` });
   const old = parsed.data;
   const cities = old.players.flatMap((player) => player.civilization.cities);
-  const config = { ...old.config, territory: createDefaultTerritoryRules() };
+  const config = { ...old.config, territory: createDefaultTerritoryRules(), governmentModifiers: { ...old.config.governmentModifiers, MERITOCRACY: old.config.governmentModifiers.PROTO_GOVERNANCE, AUTOCRACY: old.config.governmentModifiers.PROTO_GOVERNANCE } };
   const map: HexTile[] = old.map.map((hex) => {
     const city = cities.find((city) => city.hexId === hex.id);
     return { ...hex, terrain: 'UNKNOWN', features: [], ownerId: city?.ownerId ?? null, controllerCityId: city?.id ?? null, improvement: null };

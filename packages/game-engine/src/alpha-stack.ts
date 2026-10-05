@@ -2,6 +2,7 @@ import {
   stackCategory, stackVerdict, type AlphaState, type AlphaUnit, type PlayerId, type StackCategory, type StackHex, type StackUsage, type StackView,
 } from '@aoh/game-domain';
 
+import { governmentEffects } from './alpha-government.js';
 const CATEGORIES: readonly StackCategory[] = ['military', 'civilians', 'fleets'];
 export const unitCategory = (state: AlphaState, unit: AlphaUnit): StackCategory => stackCategory(state.rules.units[unit.kind]);
 const cityAt = (state: AlphaState, hexId: string) => state.core.players.flatMap(player => player.civilization.cities).find(city => city.hexId === hexId);
@@ -10,7 +11,9 @@ const researched = (state: AlphaState, owner: PlayerId, id: string) => state.pla
 /** Command II implies Command I: the second advancement requires the first in the catalogue. */
 function landLimit(state: AlphaState, owner: PlayerId): number {
   const config = state.rules.balance.stack;
-  return researched(state, owner, config.upgrades.commandTwo) ? config.militaryCommandTwo : researched(state, owner, config.upgrades.commandOne) ? config.militaryCommandOne : config.military;
+  const base = researched(state, owner, config.upgrades.commandTwo) ? config.militaryCommandTwo : researched(state, owner, config.upgrades.commandOne) ? config.militaryCommandOne : config.military;
+  // Autocracia (canon §16): Exército máximo +1.
+  return base + governmentEffects(state, owner).armyMaxBonus;
 }
 /** Base garrison plus military district, fortification level and protection doctrine, capped. */
 function garrisonLimit(state: AlphaState, owner: PlayerId, cityId: string): number {

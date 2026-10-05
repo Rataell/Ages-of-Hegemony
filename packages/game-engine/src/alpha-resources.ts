@@ -4,6 +4,7 @@ import {
 } from '@aoh/game-domain';
 import { sum } from './arithmetic.js';
 import { leaderStorageBonus } from './alpha-leaders.js';
+import { governmentEffects } from './alpha-government.js';
 import type { ResourcePayment } from './resources.js';
 
 /**
@@ -63,7 +64,7 @@ export function alphaCanAfford(state: AlphaState, actor: PlayerId, rawCost: Reso
   if (pool.food < cost.food || pool.knowledge < cost.knowledge || pool.influence < cost.influence) return false;
   const shortages = (['wood', 'stone', 'metal'] as const).reduce((total, key) => total + Math.max(0, cost[key] - pool[key]), 0);
   const materialCost = cost.wood + cost.stone + cost.metal;
-  if (shortages > Math.floor(materialCost * state.rules.balance.wealthMaterialCostPercentMax / 100)) return false;
+  if (shortages > Math.floor(materialCost * Math.max(state.rules.balance.wealthMaterialCostPercentMax, governmentEffects(state, actor).wealthCoverPercent) / 100)) return false;
   return pool.wealth >= cost.wealth + shortages * state.rules.balance.wealthConversionRate;
 }
 

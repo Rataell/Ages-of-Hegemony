@@ -3,6 +3,8 @@ import { alphaCanAfford, alphaGain, alphaPay } from './alpha-resources.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
 import { culturalIdentityOf, establishCulturalPresence } from './alpha-culture.js';
 import { kitTreatyRounds } from './alpha-kits.js';
+import { governmentEffects } from './alpha-government.js';
+import { emptyAlphaResourcePool } from '@aoh/game-domain';
 function enterWar(state:AlphaState,actor:PlayerId,target:PlayerId):void {
   if(atWar(state,actor,target))return;
   state.wars.push([actor,target].sort() as [PlayerId,PlayerId]);
@@ -38,6 +40,9 @@ export function diplomacyBlock(state:AlphaState,actor:PlayerId,command:Diplomati
   if(command.type==='DECLARE_WAR'){
     if(atWar(state,actor,target))return 'As civilizações já estão em guerra.';
     if(player.plannedActions.some(action=>action.type==='DECLARE_WAR'&&action.targetId===target))return 'Uma declaração de guerra contra esta civilização já está planejada.';
+    // República (canon §16): declaring war costs 1 Influência extra (the Influência Order is the declaration's own).
+    const extra=governmentEffects(state,actor).warExtraInfluence;
+    if(extra>0&&!alphaCanAfford(state,actor,{...emptyAlphaResourcePool(),influence:extra}))return `Sob a República, declarar guerra custa ${extra} Influência.`;
     return null;
   }
   const sameTreaty=(proposerId:PlayerId,recipientId:PlayerId,type:typeof command.treaty)=>
@@ -57,6 +62,8 @@ export function manageDiplomacy(state:AlphaState,actor:PlayerId,command:Extract<
     if(command.type==='DECLARE_WAR') {
       // Only the original defender calls partners; no recursive alliance chain.
       const defenders=state.initiative.filter(id=>id!==actor&&id!==target&&(hasTreaty(state,target,id,'DEFENSIVE_PACT')||hasTreaty(state,target,id,'ALLIANCE')));
+      const extra=governmentEffects(state,actor).warExtraInfluence;
+      if(extra>0)alphaPay(state,actor,{...emptyAlphaResourcePool(),influence:extra});
       enterWar(state,actor,target);
       for(const defender of defenders)enterWar(state,defender,actor);
       return;

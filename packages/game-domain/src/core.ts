@@ -64,7 +64,7 @@ export type PopulationAllocation = z.infer<typeof PopulationAllocationSchema>;
 export const unassignedPopulation = (population: number): PopulationAllocation => ({ producers: 0, artisans: 0, merchants: 0, scholars: 0, soldiers: 0, unassigned: population });
 export const CitySpecializationSchema = z.enum(['AGRARIAN', 'COMMERCIAL', 'ACADEMIC', 'ADMINISTRATIVE', 'MILITARY', 'INDUSTRIAL', 'CULTURAL']);
 export type CitySpecialization = z.infer<typeof CitySpecializationSchema>;
-export const GovernmentTypeSchema = z.enum(['MONARCHY', 'REPUBLIC', 'OLIGARCHY', 'THEOCRACY', 'CONFEDERATION']);
+export const GovernmentTypeSchema = z.enum(['MONARCHY', 'REPUBLIC', 'OLIGARCHY', 'THEOCRACY', 'CONFEDERATION', 'MERITOCRACY', 'AUTOCRACY']);
 export type GovernmentType = z.infer<typeof GovernmentTypeSchema>;
 export const GovernmentSchema = z.enum(['PROTO_GOVERNANCE', ...GovernmentTypeSchema.options]);
 export type Government = z.infer<typeof GovernmentSchema>;

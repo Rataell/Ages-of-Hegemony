@@ -4,6 +4,7 @@ import { sum } from './arithmetic.js';
 import { alphaEvent } from './alpha-events.js';
 import { cardEffects } from './alpha-cards.js';
 import { kitAdvancementCost } from './alpha-kits.js';
+import { governmentEffects, knowledgeAdvancesThisEra } from './alpha-government.js';
 import { registerAdvance } from './alpha-resonance.js';
 export function institutionEffects(state:AlphaState,actor:PlayerId):AlphaEffect[] {
   const player=state.players.find(p=>p.playerId===actor)!;
@@ -61,7 +62,14 @@ export function applyRecurringEffects(state:AlphaState,actor:PlayerId,timing:Eff
 /** Why an advancement cannot be researched now, or null. Pure: used by the action and by the client preview. */
 /** Cost of a Web node or a Heritage advance for this player (the kit may adjust Web costs). */
 export function advanceCost(state:AlphaState,actor:PlayerId,id:string){
-  const node=ADVANCEMENTS.find(a=>a.id===id);if(node)return kitAdvancementCost(state,actor,node);
+  const node=ADVANCEMENTS.find(a=>a.id===id);
+  if(node){
+    const cost={...kitAdvancementCost(state,actor,node)};
+    // Teocracia (canon §16): the first Saber advance of each Era costs 1 more Conhecimento.
+    const extra=governmentEffects(state,actor).firstKnowledgeAdvanceExtraCost;
+    if(extra>0&&node.domain==='KNOWLEDGE'&&!node.convergence&&knowledgeAdvancesThisEra(state,actor)===0)cost.knowledge+=extra;
+    return cost;
+  }
   return heritageAdvance(id)?.cost??{food:0,materials:0,wealth:0,knowledge:0,influence:0};
 }
 export function researchBlock(state:AlphaState,actor:PlayerId,id:string):string|null {

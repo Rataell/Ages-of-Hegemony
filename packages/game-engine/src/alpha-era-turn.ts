@@ -1,5 +1,6 @@
 import { AlphaEraSchema, ERA_TURN_STEPS, GovernmentTypeSchema, eraForRound, eraNumeral, emptyAlphaResourcePool, type AlphaState, type GovernmentType, type PlayerId } from '@aoh/game-domain';
 import { alphaEvent } from './alpha-events.js';
+import { GOVERNMENT_NAMES, governmentEffects, governmentTable } from './alpha-government.js';
 import { alphaCanAfford, alphaPay } from './alpha-resources.js';
 import { citySustenance, refreshAlphaAdministration } from './alpha-city.js';
 import { hasUnlock } from './alpha-institutions.js';
@@ -19,7 +20,6 @@ export const isEraTurnDue = (state: AlphaState): boolean => state.core.round % s
 /** The round whose planning may reserve the Influência Order for a government reform. */
 export const isReformRound = isEraTurnDue;
 
-export const GOVERNMENT_NAMES: Record<GovernmentType, string> = { MONARCHY: 'Monarquia', REPUBLIC: 'República', OLIGARCHY: 'Oligarquia', THEOCRACY: 'Teocracia', CONFEDERATION: 'Confederação' };
 /** Influência paid for a reform: 4 up to Era III, 6 afterwards (canon §16). */
 export const reformCost = (era: string): number => ['FOUNDATION', 'EXPANSION', 'CONSOLIDATION'].includes(era) ? 4 : 6;
 
@@ -29,6 +29,7 @@ export function governmentReformBlock(state: AlphaState, actor: PlayerId, govern
   const owner = state.core.players.find(candidate => candidate.id === actor)!;
   if (owner.civilization.government === government) return 'Sua civilização já vive sob este governo.';
   if (!hasUnlock(state, actor, `government:${government}`)) return 'Este governo exige o avanço da Teia que o abre.';
+  if (government === 'AUTOCRACY' && !player.research.includes('web-fortification')) return 'A Autocracia exige Centralização e Fortificação.';
   if (player.governmentReformEra === player.era) return 'Cada civilização reforma o governo no máximo uma vez por Era.';
   if (!alphaCanAfford(state, actor, { ...emptyAlphaResourcePool(), influence: reformCost(player.era) })) return `A reforma custa ${reformCost(player.era)} Influência.`;
   return null;
@@ -39,9 +40,11 @@ export function governmentOptions(state: AlphaState, actor: PlayerId) {
   const player = state.players.find(candidate => candidate.playerId === actor)!;
   const planned = player.plannedActions.find(action => action.type === 'GOVERNMENT_REFORM');
   return {
+    /** The government in force: its name, two advantages and one limitation (canon §16), straight from `governmentEffects`. */
+    current: (({ government, name, advantages, limitation }) => ({ government, name, advantages, limitation }))(governmentEffects(state, actor)),
     window: isEraTurnDue(state), cost: reformCost(player.era), reformedThisEra: player.governmentReformEra === player.era,
     planned: planned?.type === 'GOVERNMENT_REFORM' ? planned.government : null,
-    options: GovernmentTypeSchema.options.map(government => ({ government, name: GOVERNMENT_NAMES[government], unlocked: hasUnlock(state, actor, `government:${government}`), block: governmentReformBlock(state, actor, government) })),
+    options: GovernmentTypeSchema.options.map(government => ({ government, name: GOVERNMENT_NAMES[government], advantages: governmentTable(government).advantages, limitation: governmentTable(government).limitation, unlocked: hasUnlock(state, actor, `government:${government}`), block: governmentReformBlock(state, actor, government) })),
   };
 }
 

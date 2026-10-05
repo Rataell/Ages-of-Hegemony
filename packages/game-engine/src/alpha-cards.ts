@@ -1,5 +1,6 @@
 import { ALPHA_CARDS, GREAT_PROJECTS, AlphaEraSchema, civilizationKit, type AlphaState, type PlayerId, type AlphaCommand, type AlphaEffect } from '@aoh/game-domain';
 import { alphaGainLegacy, alphaPay } from './alpha-resources.js';
+import { governmentEffects } from './alpha-government.js';
 import { alphaRandomInteger } from './alpha-random.js';
 function shuffled(state:AlphaState,ids:string[]):string[]{
   const deck=[...ids];for(let i=deck.length-1;i>0;i--){const j=alphaRandomInteger(state,i+1);[deck[i],deck[j]]=[deck[j]!,deck[i]!];}return deck;
@@ -95,9 +96,12 @@ export function renewManeuvers(state:AlphaState):void {
   const back=state.cards.discarded.filter(id=>reactions.has(id));
   if(back.length){state.cards.discarded=state.cards.discarded.filter(id=>!reactions.has(id));state.cards.strategyDeck=shuffled(state,[...state.cards.strategyDeck,...back]);}
   for(const player of state.players){
-    if(player.hand.length>=state.rules.handLimit)continue;
-    if(!state.cards.strategyDeck.length)reshuffleStrategy(state);
-    const next=state.cards.strategyDeck.shift();if(next)player.hand.push(next);
+    // República (canon §16): one more Manobra kept in hand and drawn at each Era turn.
+    const bonus=governmentEffects(state,player.playerId).handBonus;
+    for(let draw=0;draw<1+bonus&&player.hand.length<state.rules.handLimit+bonus;draw++){
+      if(!state.cards.strategyDeck.length)reshuffleStrategy(state);
+      const next=state.cards.strategyDeck.shift();if(next)player.hand.push(next);
+    }
   }
 }
 /** Era turn step 7: one unfinished Ambição may be swapped for the next one in the deck, once per Era turn. */
@@ -121,7 +125,7 @@ export function scoreAmbitions(state:AlphaState):number {
   for(const player of state.players) {
     if(!player.ambitionsChosen)continue;const core=state.core.players.find(p=>p.id===player.playerId)!;
     const metrics={cities:core.civilization.cities.length,territory:state.core.map.filter(t=>t.ownerId===player.playerId).length,research:player.research.length,districts:core.civilization.cities.reduce((n,c)=>n+c.districts.length,0),routes:state.routes.filter(r=>r.ownerId===player.playerId&&!r.suspended).length,treaties:state.treaties.filter(t=>t.status==='ACTIVE'&&[t.proposerId,t.recipientId].includes(player.playerId)).length,victories:player.victories,culture:core.civilization.cities.filter(c=>c.districts.some(d=>d.type==='CULTURAL')).length};
-    const limit=core.civilization.government==='REPUBLIC'?2:1;
+    const limit=governmentEffects(state,player.playerId).ambitionsPerEra;
     const met=player.ambitions.filter(id=>{const objective=ALPHA_CARDS.find(c=>c.id===id)!.objective!;return !player.completedAmbitions.includes(id)&&metrics[objective.metric]>=objective.threshold;})
       .sort((a,b)=>ALPHA_CARDS.find(c=>c.id===b)!.objective!.prestige-ALPHA_CARDS.find(c=>c.id===a)!.objective!.prestige||a.localeCompare(b));
     for(const id of met.slice(0,limit)){player.completedAmbitions.push(id);player.prestige+=ALPHA_CARDS.find(c=>c.id===id)!.objective!.prestige;scored++;}

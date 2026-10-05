@@ -9,6 +9,7 @@ import { blockadedBy, isCarried, isPort, launchHex } from './alpha-naval.js';
 import { kitMovement, kitSupplyBonus, kitUnitCost } from './alpha-kits.js';
 import { mobilizationBlock } from './alpha-city.js';
 import { unitMovement } from './alpha-grades.js';
+import { governmentEffects } from './alpha-government.js';
 
 /** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
 export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):string|null {
@@ -46,6 +47,9 @@ export function canEnter(state:AlphaState,unit:AlphaUnit,target:HexId):boolean {
 export function unitSupply(state:AlphaState,unit:AlphaUnit):{supplied:boolean;reason:string} {
   const player=state.core.players.find(p=>p.id===unit.ownerId)!;
   const tile=state.core.map.find(t=>t.id===unit.hexId)!;
+  // Autocracia (canon §16): own pieces within 1 hex of a road are always supplied.
+  const near=governmentEffects(state,unit.ownerId).suppliedNearRoad;
+  if(near>0&&state.roads.some(id=>{const road=state.core.map.find(t=>t.id===id);return road!==undefined&&hexDistance(road,tile)<=near;}))return {supplied:true,reason:'Autocracia: a 1 hex de uma estrada.'};
   const cities=player.civilization.cities.filter(c=>!state.occupations.some(o=>o.cityId===c.id));
   if(cities.some(c=>hexDistance(state.core.map.find(t=>t.id===c.hexId)!,tile)<=state.rules.supplyRadius+leaderSupplyBonus(state,unit.ownerId)+kitSupplyBonus(state,unit)))return {supplied:true,reason:'Dentro do alcance de uma cidade própria.'};
   const byId=new Map(state.core.map.map(t=>[t.id,t]));const seen=new Set<HexId>();const queue=cities.map(c=>c.hexId);

@@ -6,7 +6,8 @@ import { applyCommand } from './engine.js';
 import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
-import { activationsAllowed, administration, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilize, moodBand } from './alpha-city.js';
+import { governmentEffects } from './alpha-government.js';
+import { activationsAllowed, administration, recruitLimit, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilize, moodBand } from './alpha-city.js';
 import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
@@ -29,7 +30,7 @@ export function syncCityMetadata(state: AlphaState): void {
 
 type UrbanAction = UrbanCommand['action'];
 type BuildTarget = NonNullable<UrbanCommand['build']>;
-interface UrbanParams { build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string }
+interface UrbanParams { build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string; count?: number }
 
 /** Gates every urban action shares: phase, readiness, ownership, occupation and remaining city actions. */
 function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction): string | null {
@@ -47,8 +48,28 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
   // Sobre-extensão (canon §4): no second activation anywhere.
   const allowed=Math.min(state.rules.balance.cityActions,activationsAllowed(meta),administration(state,actor).overextended?1:2);
   if(moodBand(meta.mood)==='REVOLT'&&action!=='PROMOTE_MOOD'&&action!=='CIVIC_ACTION')return 'Cidade em Revolta: só Governar (Ânimo e integração) está disponível.';
+  // Conselho (canon §16): at most one second activation per round in the whole civilization.
+  const secondLimit=governmentEffects(state,actor).secondActivationsPerRound;
+  if(secondLimit!==null&&(state.phase==='PLANNING'?planned>=1:meta.urbanActionsUsed>=1)){
+    const others=state.cities.filter(other=>other.currentOwnerId===actor&&other.cityId!==cityId);
+    const seconds=others.filter(other=>(state.phase==='PLANNING'?state.players.find(player=>player.playerId===actor)!.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.cityId===other.cityId).length:other.urbanActionsUsed)>=2).length;
+    if(seconds>=secondLimit)return 'Conselho: no máximo uma segunda ativação por rodada em toda a civilização.';
+  }
   if(state.phase==='PLANNING'&&planned>=allowed)return allowed===1?'Esta cidade já possui sua ação planejada para esta rodada.':'Esta cidade já tem as duas ativações planejadas nesta rodada.';
   if (state.phase==='URBAN_ACTIONS'&&meta.urbanActionsUsed >= allowed) return 'Esta cidade já usou suas ativações nesta rodada.';
+  return null;
+}
+
+/** Recrutar for `count` pieces: the Capacity rule of canon §4, then every piece must be recruitable in turn (resources, Soldados, stack). */
+function recruitCountBlock(state: AlphaState, actor: PlayerId, cityId: string, unit: NonNullable<UrbanCommand['unit']>, count: number): string | null {
+  if (count > recruitLimit(state, actor, cityId)) return `Esta ativação recruta no máximo ${recruitLimit(state, actor, cityId)} peça(s).`;
+  if (count === 1) return recruitBlock(state, actor, cityId, unit);
+  const trial = structuredClone(state);
+  for (let index = 0; index < count; index++) {
+    const blocked = recruitBlock(trial, actor, cityId, unit);
+    if (blocked) return count > 1 && index > 0 ? `Só ${index} das ${count} peças podem ser recrutadas: ${blocked}` : blocked;
+    recruitUnit(trial, actor, cityId, unit); mobilize(trial, cityId, unit);
+  }
   return null;
 }
 
@@ -87,7 +108,7 @@ export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, a
     case 'PRODUCE': return null;
     case 'ELEVATE': return elevateBlock(state, actor, cityId);
     case 'BUILD': return params.build ? buildBlock(state, actor, cityId, params.build) : 'Escolha o que construir.';
-    case 'RECRUIT': return params.unit ? recruitBlock(state, actor, cityId, params.unit) : 'Escolha a peça a recrutar.';
+    case 'RECRUIT': return params.unit ? recruitCountBlock(state, actor, cityId, params.unit, params.count ?? 1) : 'Escolha a peça a recrutar.';
     case 'RESEARCH': {
       if (!params.advancementId) return 'Escolha o avanço a pesquisar.';
       // While planning, a second city cannot reserve an advancement another city already reserved: it would be a lost action.
@@ -97,6 +118,8 @@ export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, a
     case 'PROMOTE_MOOD': return governBlock(state, actor, cityId);
     case 'SUPPORT_TRADE':
       return state.routes.some(route => route.ownerId === actor && route.fromCityId === cityId && !route.suspended) ? null : 'A cidade não origina nenhuma rota comercial ativa.';
+    case 'MOVE_CAPITAL':
+      return state.core.players.find(player => player.id === actor)?.civilization.capitalCityId === cityId ? 'Esta cidade já é a capital.' : null;
     case 'CIVIC_ACTION': {
       if (meta.status !== 'OCCUPIED' && !state.occupations.some(occupation => occupation.cityId === cityId)) return null;
       const occupation = state.occupations.find(candidate => candidate.cityId === cityId && candidate.occupierId === actor);
@@ -117,7 +140,10 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
     return next ? alphaCostWithMetal(state, actor, balance.fortification[next].cost, balance.fortification[next].metal) : zero;
   }
   if (action === 'ELEVATE') { const next = nextLevel(cityMeta?.level ?? 'OUTPOST'); return next ? elevateRequirement(next)!.cost : zero; }
-  if (action === 'RECRUIT' && params.unit) { const price = kitUnitCost(state, actor, params.unit); return alphaCostWithMetal(state, actor, price.cost, price.metal); }
+  if (action === 'RECRUIT' && params.unit) {
+    const price = kitUnitCost(state, actor, params.unit), one = alphaCostWithMetal(state, actor, price.cost, price.metal), count = params.count ?? 1;
+    return Object.fromEntries(ALPHA_RESOURCE_KEYS.map(key => [key, one[key] * count])) as AlphaResourcePool;
+  }
   if (action === 'RESEARCH' && params.advancementId) return alphaCostWithMetal(state, actor, advanceCost(state, actor, params.advancementId), 0);
   if (action === 'PROMOTE_MOOD') return governCost(state, actor);
   if (action === 'CIVIC_ACTION' && cityMeta?.status === 'OCCUPIED') return { ...zero, influence: state.rules.integrationCost.influence };
@@ -160,9 +186,10 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     for (const building of BuildingTypeSchema.options) list.push(option(state, actor, id, 'BUILD', { build: { kind: 'BUILDING', building } }, `Novo edifício${listOf(territory.buildings[building].production) ? ` · ${listOf(territory.buildings[building].production)}` : ''}`));
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
     list.push(option(state, actor, id, 'BUILD', { build: { kind: 'FORTIFICATION' } }, next ? `Fortificação ${next}` : 'Fortificação máxima'));
-    for (const unit of AlphaUnitClassSchema.options) list.push(option(state, actor, id, 'RECRUIT', { unit }, `Força ${state.rules.units[unit].strength} · Movimento ${state.rules.units[unit].movement}`));
+    for (const unit of AlphaUnitClassSchema.options) list.push(option(state, actor, id, 'RECRUIT', { unit }, `Força ${state.rules.units[unit].strength} · Movimento ${state.rules.units[unit].movement} · até ${recruitLimit(state, actor, id)} peça(s) por ativação`));
     list.push(option(state, actor, id, 'PROMOTE_MOOD', {}, `Governar: +1 Ânimo por nível pago (1 Cultura ou 2 Riqueza), até ${produced.capacity} nível(is); repara 1 passo de fortificação por 1 Pedra`));
-    list.push(option(state, actor, id, 'SUPPORT_TRADE', {}, `Renda de rota: +${state.rules.routeIncome} Riqueza por rota originada`));
+    list.push(option(state, actor, id, 'SUPPORT_TRADE', {}, `Renda de rota: +${state.rules.routeIncome + governmentEffects(state, actor).routeWealth} Riqueza por rota originada`));
+    list.push(option(state, actor, id, 'MOVE_CAPITAL', {}, `Mover a capital para cá (${governmentEffects(state, actor).moveCapitalOrders} Ordem(ns)); a Administração, a Capacidade da capital e a guarnição acompanham`));
     list.push(option(state, actor, id, 'CIVIC_ACTION', {}, occupied ? `Integração +${balance.integrationPerAction + leaderIntegrationBonus(state, actor)}%` : `+${balance.civicInfluence} Influência e coesão local`));
     cities[id] = list;
   }
@@ -178,8 +205,8 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
   return { cities, research };
 }
 
-function rejectExtras(command: UrbanCommand, allowed: readonly ('build' | 'unit' | 'advancementId')[]): void {
-  for (const key of ['build', 'unit', 'advancementId'] as const) {
+function rejectExtras(command: UrbanCommand, allowed: readonly ('build' | 'unit' | 'advancementId' | 'count')[]): void {
+  for (const key of ['build', 'unit', 'advancementId', 'count'] as const) {
     if (command[key] !== undefined && !allowed.includes(key)) throw new Error(`A ação ${command.action} não aceita o parâmetro ${key}.`);
   }
 }
@@ -198,7 +225,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
   if (gate) throw new Error(gate);
   if (!meta || !city) throw new Error('Escolha uma cidade própria.');
   const occupied = meta.status === 'OCCUPIED' || state.occupations.some(occupation => occupation.cityId === city.id);
-  const blocked = urbanBlock(state, actor, command.cityId, command.action, { ...(command.build ? { build: command.build } : {}), ...(command.unit ? { unit: command.unit } : {}), ...(command.advancementId ? { advancementId: command.advancementId } : {}) });
+  const blocked = urbanBlock(state, actor, command.cityId, command.action, { ...(command.build ? { build: command.build } : {}), ...(command.unit ? { unit: command.unit } : {}), ...(command.advancementId ? { advancementId: command.advancementId } : {}), ...(command.count ? { count: command.count } : {}) });
   if (blocked) throw new Error(blocked);
   const telemetry = state.telemetry;
   let message = '';
@@ -250,12 +277,13 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       break;
     }
     case 'RECRUIT': {
-      rejectExtras(command, ['unit']);
+      rejectExtras(command, ['unit', 'count']);
       if (!command.unit) throw new Error('Escolha a peça a recrutar.');
-      recruitUnit(state, actor, city.id, command.unit);
-      mobilize(state, city.id, command.unit);
-      telemetry.unitRecruitment[command.unit] = (telemetry.unitRecruitment[command.unit] ?? 0) + 1;
-      message = `${city.name} recrutou uma peça.`;
+      const count = command.count ?? 1;
+      if (count > recruitLimit(state, actor, city.id)) throw new Error(`Esta ativação recruta no máximo ${recruitLimit(state, actor, city.id)} peça(s).`);
+      for (let index = 0; index < count; index++) { recruitUnit(state, actor, city.id, command.unit); mobilize(state, city.id, command.unit); }
+      telemetry.unitRecruitment[command.unit] = (telemetry.unitRecruitment[command.unit] ?? 0) + count;
+      message = count === 1 ? `${city.name} recrutou uma peça.` : `${city.name} recrutou ${count} peças.`;
       break;
     }
     case 'RESEARCH': {
@@ -278,11 +306,18 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       const routes = state.routes.filter(route => route.ownerId === actor && route.fromCityId === city.id && !route.suspended);
       if (routes.length === 0) throw new Error('A cidade não origina nenhuma rota comercial ativa.');
       for (const route of routes) {
-        alphaGainLegacy(state, actor, { wealth: Math.max(0, state.rules.routeIncome + kitRouteIncome(state, actor)) }, { category: 'trade' });
+        alphaGainLegacy(state, actor, { wealth: governmentEffects(state, actor).shakenCitiesProduceNoWealth && moodBand(meta.mood) === 'SHAKEN' ? 0 : Math.max(0, state.rules.routeIncome + kitRouteIncome(state, actor) + governmentEffects(state, actor).routeWealth) }, { category: 'trade' });
         const receiver = state.core.players.find(player => player.civilization.cities.some(candidate => candidate.id === route.toCityId));
         if (receiver && receiver.id !== actor) alphaGainLegacy(state, receiver.id, { wealth: state.rules.foreignRouteIncome }, { category: 'trade' });
       }
       message = `${city.name} sustentou ${routes.length} rota(s) comercial(is).`;
+      break;
+    }
+    case 'MOVE_CAPITAL': {
+      rejectExtras(command, []);
+      owner.civilization = { ...owner.civilization, capitalCityId: city.id };
+      for (const other of state.cities) if (other.currentOwnerId === actor) other.capital = other.cityId === city.id;
+      message = `${city.name} é a nova capital.`;
       break;
     }
     case 'CIVIC_ACTION': {
