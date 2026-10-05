@@ -9,6 +9,8 @@ npm install                                  # só na primeira vez
 ALPHA_PLAYTEST_LOG=1 npm run dev:alpha       # terminal 1: servidor local com o log de métricas ligado
 ```
 
+Se aparecer "A porta 3001 já está em uso", há um servidor antigo: `lsof -nP -tiTCP:3001 -sTCP:LISTEN | xargs kill` e rode de novo.
+
 Abra **http://127.0.0.1:3001/alpha** (use `127.0.0.1`, não `localhost`). As partidas ficam em memória: reiniciar o servidor apaga tudo.
 Se não quiser medir, rode só `npm run dev:alpha`.
 
