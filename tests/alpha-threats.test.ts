@@ -355,42 +355,40 @@ describe('D-1 · Acampamento RECÉM-SURGIDO', () => {
   });
 });
 
-describe('V51B-05 · the Bando target is authoritative public information, filtered by the fog', () => {
-  /** A marching camp whose engine target is p1's own capital, watched by a p2 scout that sees the Bando but not the city. */
-  function marching(): { state: AlphaState; band: Threat } {
+describe('V51B-05 · the Bando target is authoritative public information; a Bando in a closed Region is not on the table', () => {
+  /** A marching camp whose engine target is p1's capital. `open` turns the Region it stands in into a public one (somebody explored it). */
+  function marching(open: boolean): { state: AlphaState; band: Threat } {
     const state = setup(), start = origin(state, 5), band = camp(state, start, { status: 'MARCHING' });
-    const scout = state.units.find(unit => unit.ownerId === p2 && unit.kind === 'PIONEER')!; scout.hexId = band.hexId as never;
+    if (open) state.regions.find(region => region.hexIds.includes(start as never))!.revealedBy.push(p2);
     return { state, band };
   }
 
   it('is computed by the same functions the engine acts with: the next hex is where the Bando goes', () => {
-    const { state, band } = marching();
+    const { state, band } = marching(true);
     const intent = threatIntent(state, band), goal = landTarget(state, band)!;
     expect(intent).toMatchObject({ state: 'MARCHING', targetKind: 'CITY', targetId: goal.id, targetHexId: goal.hex, nextHexId: goal.path[0], distance: goal.path.length });
     activateThreats(state, { launch: false });
     expect(band.hexId).toBe(intent.nextHexId);
   });
 
-  it('reveals target, distance and id only when the target hex is in the viewer\'s vision', () => {
-    const { state, band } = marching();
+  it('on an open Region the Bando and its intention are public: every seat reads the same target', () => {
+    const { state, band } = marching(true);
     const goal = landTarget(state, band)!;
-    const stranger = threatView(state, p2).find(item => item.id === band.id)!;
-    expect(stranger.intent).toMatchObject({ state: 'MARCHING', targetKind: 'CITY', targetKnown: false, targetId: null, targetHexId: null, distance: null });
-    const owner = threatView(state, p1);
-    expect(owner).toEqual([]); // p1 does not see the Bando yet: the intention does not leak the Bando either
-    // Give p1 a piece beside the Bando: it now sees the Bando and, because the target is p1's own city, the target.
-    const scout = state.units.find(unit => unit.ownerId === p1)!; scout.hexId = band.hexId as never;
-    const seen = threatView(state, p1).find(item => item.id === band.id)!;
-    expect(seen.intent).toMatchObject({ targetKnown: true, targetId: goal.id, targetHexId: goal.hex, distance: goal.path.length });
-    // Intent is only ever exposed for visible threats.
-    expect(visibleHexIds(state, p1).has(band.hexId)).toBe(true);
+    for (const viewer of [p1, p2]) {
+      const seen = threatView(state, viewer).find(item => item.id === band.id)!;
+      expect(seen, String(viewer)).toBeDefined();
+      expect(seen.intent).toMatchObject({ state: 'MARCHING', targetKind: 'CITY', targetKnown: true, targetId: goal.id, targetHexId: goal.hex, distance: goal.path.length });
+    }
   });
 
-  it('shows the next step only when that hex is visible, and never a hidden target through a visible next step', () => {
-    const { state, band } = marching();
-    const view = threatView(state, p2).find(item => item.id === band.id)!;
-    expect(view.intent.nextHexId === null || visibleHexIds(state, p2).has(view.intent.nextHexId)).toBe(true);
-    expect(JSON.stringify(view)).not.toContain(landTarget(state, band)!.hex);
+  it('a Bando in a Region nobody explored is not on the table: no position, target or intention reaches any seat', () => {
+    const { state, band } = marching(false);
+    for (const viewer of [p1, p2]) {
+      expect(threatView(state, viewer).find(item => item.id === band.id)).toBeUndefined();
+      const view = alphaPlayerView(state, viewer)!;
+      expect(view.threats.find(item => item.id === band.id)).toBeUndefined();
+      expect(JSON.stringify(view.threats)).not.toContain(band.hexId);
+    }
   });
 
   it('a CAMPED camp has no target and says whether it is fresh', () => {
@@ -404,16 +402,12 @@ describe('V51B-05 · the Bando target is authoritative public information, filte
   });
 
   it('is deterministic: the same state gives the same intention', () => {
-    const { state, band } = marching();
+    const { state, band } = marching(true);
     expect(threatIntent(structuredClone(state), structuredClone(band))).toEqual(threatIntent(state, band));
   });
 
-  it('the player projection carries the filtered intention and nothing about threats out of sight', () => {
-    const { state, band } = marching();
-    const view = alphaPlayerView(state, p2)!;
-    const mine = view.threats.find(item => item.id === band.id)!;
-    expect(mine.intent.targetKnown).toBe(false);
-    expect(JSON.stringify(view.threats)).not.toContain(landTarget(state, band)!.hex);
-    expect(alphaPlayerView(state, p1)!.threats.find(item => item.id === band.id)).toBeUndefined();
+  it('the player projection carries the public intention', () => {
+    const { state, band } = marching(true);
+    for (const viewer of [p1, p2]) expect(alphaPlayerView(state, viewer)!.threats.find(item => item.id === band.id)!.intent.targetKnown).toBe(true);
   });
 });

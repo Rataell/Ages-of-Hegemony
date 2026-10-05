@@ -10,10 +10,13 @@ describe('modular regions and fog of war',()=>{
     expect(new Set(REGION_TEMPLATES.map(r=>r.id)).size).toBe(30);
     expect(serializeAlphaState(setup())).toBe(serializeAlphaState(setup()));
   });
-  it.each([2,4,6])('supports %i players on a 210-hex modular board without sending it to every client',count=>{
+  it.each([2,4,6])('supports %i players on a 210-hex modular board: Pátrias open, frontier closed',count=>{
     const state=setup(count);expect(state.core.map).toHaveLength(210);
     const view=alphaPlayerView(state,PlayerIdSchema.parse('p1'))!;
-    expect(view.view.visibleTerritory).toHaveLength(7);expect(view.view.visibleCities).toHaveLength(0);
+    // Every Pátria is open and public from the first snapshot; the frontier is closed and carries no terrain.
+    expect(view.view.visibleTerritory).toHaveLength(7*count);expect(view.view.visibleCities).toHaveLength(count-1);
+    expect(view.board.filter(region=>!region.closed)).toHaveLength(count);expect(view.board.filter(region=>region.closed)).toHaveLength(30-count);
+    for(const city of view.view.visibleCities)expect(city.population).toBeNull();
     expect(view).not.toHaveProperty('core');expect(view).not.toHaveProperty('seed');expect(view).not.toHaveProperty('rng');
     expect(view.players[1]).not.toHaveProperty('hand');expect(view.players[1]).not.toHaveProperty('orders');
   });
@@ -21,7 +24,7 @@ describe('modular regions and fog of war',()=>{
     const state=setup(count),capitals=state.core.players.map(player=>state.core.map.find(tile=>tile.id===player.civilization.cities[0]!.hexId)!);
     for(const [index,capital] of capitals.entries()){
       const nearest=Math.min(...capitals.filter((_,other)=>other!==index).map(other=>hexDistance(capital,other)));
-      expect(nearest).toBeLessThanOrEqual(9);
+      expect(nearest).toBeLessThanOrEqual(10);
     }
   });
   it.each([2,4,6])('keeps all %i-player capitals connected by land across Alpha world presets',count=>{

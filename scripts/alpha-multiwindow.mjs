@@ -64,7 +64,10 @@ async function run(count) {
   await Promise.all(players.map(p => p.page.locator('.world-map').waitFor()));
   const result = { players: count, viewport: `${VW}x${VH}`, startedAfterMs: Date.now() - started, events: [], notes: [] };
   for (const p of players) await dismiss(p);
-  await shot(host, '02-mesa-inteira-tudo-oculto'); await shot(guests[0] ?? host, '03-patrias-dos-outros');
+  await shot(host, '02-patrias-abertas-fronteiras-fechadas'); await shot(guests[0] ?? host, '03-patrias-dos-outros');
+  // Table visibility is not Contato: every Pátria is on the table, nobody has a diplomatic contact yet; frontier Regions start closed.
+  const first = await Promise.all(players.map(async p => { const g = (await room(p)).game; return { openRegions: g.board.filter(r => !r.closed).length, closedRegions: g.board.filter(r => r.closed).length, capitalsVisible: g.view.visibleCities.length + 1, contacts: g.self.contacts.length }; }));
+  result.atStart = first;
   // Mesa / Focar
   await host.page.locator('.map-tools').getByRole('button', { name: 'Focar' }).click(); await nap(300); await shot(host, '10-visao-foco');
   await host.page.locator('.map-tools').getByRole('button', { name: 'Mesa' }).click(); await nap(300); await shot(host, '09-visao-mesa');
@@ -83,7 +86,33 @@ async function run(count) {
     for (const choice of (await room(p)).game.self.pendingChoices ?? []) await cmd(p, { type: 'RESOLVE_CHOICE', choiceId: choice.id, optionId: choice.options[0].id });
   }
   for (const p of players) await prepare(p);
-  // ---- Round 1: every seat explores a closed Region at the same time ----
+  // ---- Round 1: the capital stands at the centre of its open Pátria, so each seat first walks a Pioneiro to the edge; everybody must see the piece move ----
+  const NB = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
+  const edgeOf = (g, id) => { const closed = new Set(g.board.filter(r => r.closed).flatMap(r => r.hexIds)); const [q, r] = id.split(',').map(Number); return NB.some(([dq, dr]) => closed.has(`${q + dq},${r + dr}`)); };
+  const mine0 = async p => { const room0 = await room(p), g = room0.game; return { g, units: g.units.filter(u => u.ownerId === g.view.player.id) }; };
+  const edgeMoves = [];
+  for (const p of players) {
+    const { g, units } = await mine0(p);
+    const unit = units.find(u => u.kind === 'PIONEER' && g.unitOptions[u.id]);
+    const options = unit ? g.unitOptions[unit.id].moves : {}, taken = new Set(g.units.map(u => u.hexId));
+    const dest = unit ? Object.keys(options).filter(id => edgeOf(g, id) && !taken.has(id)).sort((a, b) => options[a].length - options[b].length)[0] : null;
+    if (!dest) { result.notes.push(`${p.letter}: no edge hex to walk to in round 1`); continue; }
+    const res = await cmd(p, { type: 'QUEUE_ORDER', order: { id: `edge-${p.letter}`, type: 'MOVE', unitIds: [unit.id], path: options[dest] } });
+    edgeMoves.push({ p, unit, dest, res });
+  }
+  {
+    const ok0 = edgeMoves.filter(m => m.res.ok), q0 = m => sel(m.dest).split(', ').map(x => `${x} .art-stack`).join(', ');
+    const base0 = await Promise.all(players.map(p => Promise.all(ok0.map(m => present(p, q0(m))))));
+    const w0 = players.map(p => Promise.all(ok0.map(m => observe(p, `!!document.querySelector(arg)`, q0(m)))));
+    const readyEach = async () => { let last = null; for (const p of players) { last = await cmd(p, { type: 'READY' }); } return last; };
+    const last0 = await readyEach();
+    const seen0 = await Promise.all(w0); await nap(400);
+    const logs0 = await Promise.all(players.map(syncLog));
+    players.forEach((p, i) => { const push = logs0[i].find(e => e.kind === 'push' && e.version === last0.version); result.events.push({ change: `${ok0.length} Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)`, observer: p.letter, validBaseline: base0[i].every(v => !v), sentToSeenMs: seen0[i].every(Boolean) ? Math.max(...seen0[i]) - last0.sentAt : null, serverSavedToPushMs: push ? push.t - push.serverAt : null, serverSavedToSeenMs: push && seen0[i].every(Boolean) ? Math.max(...seen0[i]) - push.serverAt : null, seen: seen0[i].filter(Boolean).length + '/' + ok0.length }); });
+    await shot(guests[0] ?? host, '04b-pioneiros-andaram-vistos-por-todos');
+    for (const p of players) await prepare(p);
+  }
+  // ---- Round 2: every seat explores a closed Region at the same time ----
   const mine = async p => { const g = (await room(p)).game; return { g, me: (await room(p)).selfPlayerId, units: g.units.filter(u => u.ownerId === (g.view.player.id)) }; };
   const planned = [];
   for (const p of players) {
@@ -97,7 +126,9 @@ async function run(count) {
   const before = await Promise.all(players.map(regionBacks));
   await shot(guests[0] ?? host, '05a-antes-da-regiao-virar');
   // observers: every window waits for its own count of face-down pieces to drop by the number of explored Regions
-  const need = planned.filter(x => x.res.ok).length;
+  // Two seats can pick the same frontier Region (2p neighbours): only distinct Regions flip.
+  const probe = (await room(host)).game;
+  const need = new Set(planned.filter(x => x.res.ok).map(x => probe.board.find(r => r.hexIds.includes(x.target.target))?.id)).size;
   const watchers = players.map((p, i) => observe(p, '(()=>document.querySelectorAll("svg.world-map .region-back").length<=arg)()', before[i] - need));
   // all but the last confirm first; the last READY triggers the simultaneous resolution
   const readyAll = async () => { let last = null; for (const p of players) { last = await cmd(p, { type: 'READY' }); last.p = p; } return last; };
@@ -109,11 +140,11 @@ async function run(count) {
   const appliedOf = (log, version) => log.find(e => e.kind === 'applied' && e.version >= version);
   players.forEach((p, i) => {
     const push = pushOf(logs[i], lastReady.version), applied = appliedOf(logs[i], lastReady.version);
-    result.events.push({ change: `${need} Região(ões) virada(s) na resolução da rodada 1`, observer: p.letter, sentToSeenMs: seen[i] ? seen[i] - lastReady.sentAt : null, serverSavedToPushMs: push ? push.t - push.serverAt : null, pushToAppliedMs: push && applied ? applied.t - push.t : null, receivedPushToSeenMs: push && seen[i] ? seen[i] - push.t : null, serverSavedToSeenMs: push && seen[i] ? seen[i] - push.serverAt : null });
+    result.events.push({ change: `${need} Região(ões) virada(s) na resolução da rodada 2`, observer: p.letter, sentToSeenMs: seen[i] ? seen[i] - lastReady.sentAt : null, serverSavedToPushMs: push ? push.t - push.serverAt : null, pushToAppliedMs: push && applied ? applied.t - push.t : null, receivedPushToSeenMs: push && seen[i] ? seen[i] - push.t : null, serverSavedToSeenMs: push && seen[i] ? seen[i] - push.serverAt : null });
   });
   await shot(guests[0] ?? host, '05b-regiao-virou-nos-outros'); await shot(host, '08-mapa-parcialmente-descoberto');
   result.regionBacksBefore = before; result.regionBacksAfter = await Promise.all(players.map(regionBacks));
-  // ---- Round 2: each seat moves the Pioneiro into the Region it just revealed; everyone must see the piece ----
+  // ---- Round 3: each seat moves the Pioneiro into the Region it just revealed; everyone must see the piece ----
   for (const p of players) await prepare(p);
   const moves = [];
   for (const p of players) {
@@ -123,7 +154,7 @@ async function run(count) {
     const region = g.board.find(r => !r.closed && r.homeOf === null && r.hexIds.some(id => options[id]));
     const taken = new Set(g.units.map(u => u.hexId));
     const dest = region ? region.hexIds.filter(id => options[id] && !taken.has(id)).sort((a, b) => options[b].length - options[a].length)[0] : null;
-    if (!unit || !dest) { result.notes.push(`${p.letter}: no move into a public Region in round 2`); continue; }
+    if (!unit || !dest) { result.notes.push(`${p.letter}: no move into a public Region in round 3`); continue; }
     const res = await cmd(p, { type: 'QUEUE_ORDER', order: { id: `move-${p.letter}`, type: 'MOVE', unitIds: [unit.id], path: options[dest] } });
     moves.push({ p, unit, dest, res });
   }
@@ -137,13 +168,17 @@ async function run(count) {
   const logs2 = await Promise.all(players.map(syncLog));
   players.forEach((p, i) => { const push = pushOf(logs2[i], last2.version); result.events.push({ change: `${ok2.length} Pioneiro(s) moveram para Regiões públicas (todos veem)`, observer: p.letter, validBaseline: baseline2[i].every(v => !v), sentToSeenMs: seen2[i].every(Boolean) ? Math.max(...seen2[i]) - last2.sentAt : null, serverSavedToPushMs: push ? push.t - push.serverAt : null, serverSavedToSeenMs: push && seen2[i].every(Boolean) ? Math.max(...seen2[i]) - push.serverAt : null, seen: seen2[i].filter(Boolean).length + '/' + ok2.length }); });
   await shot(guests[0] ?? host, '07-peças-movidas-vistas-por-todos');
-  // ---- Round 3: whoever can, founds a city (an immediate command): everyone must see it appear ----
+  // The third round of an Era closes with the Era turn: every seat answers its pending choices and confirms before the next Planning opens.
+  for (let guard = 0; guard < 3 && (await room(host)).game.phase === 'ERA_TURN'; guard++) {
+    for (const p of players) { for (const choice of (await room(p)).game.self.pendingChoices ?? []) await cmd(p, { type: 'RESOLVE_CHOICE', choiceId: choice.id, optionId: choice.options[0].id }); await cmd(p, { type: 'READY' }); }
+  }
+  // ---- Round 4: whoever can, founds a city (an immediate command): everyone must see it appear ----
   for (const p of players) await prepare(p);
   let founded = null;
   for (const p of players) {
     const { g, units } = await mine(p);
     const unit = units.find(u => u.kind === 'PIONEER' && g.unitOptions[u.id]?.settleBlock === null);
-    if (!unit) continue;
+    if (!unit) { const why = units.filter(u => u.kind === 'PIONEER').map(u => g.unitOptions[u.id]?.settleBlock).filter(Boolean)[0]; if (why) result.notes.push(`${p.letter}: cannot found yet: ${why}`); continue; }
     const others = players.filter(o => o !== p);
     const hex = unit.hexId, cityQuery = `${sel(hex).split(', ').map(x => `${x} .city-anchor`).join(', ')}`;
     const baseline3 = await Promise.all(others.map(o => present(o, cityQuery))), probes = others.map(o => observe(o, `!!document.querySelector(arg)`, cityQuery, 6000));
@@ -154,7 +189,7 @@ async function run(count) {
     others.forEach((o, i) => { const push = pushOf(log[i], res.version); result.events.push({ change: `${p.letter} fundou um Posto`, observer: o.letter, validBaseline: !baseline3[i], sentToSeenMs: seenFound[i] ? seenFound[i] - res.sentAt : null, serverSavedToPushMs: push ? push.t - push.serverAt : null, serverSavedToSeenMs: push && seenFound[i] ? seenFound[i] - push.serverAt : null }); });
     founded = p; await shot(others[0] ?? host, '04-nova-cidade-nos-outros'); break;
   }
-  if (!founded) result.notes.push('nobody could found a city in round 3 (distance/cost): not measured here');
+  if (!founded) result.notes.push('nobody could found a city in round 4 (distance/cost): not measured here');
   const crash = await Promise.all(players.map(p => p.page.evaluate(() => document.querySelectorAll('.alpha-error, [role="alert"]').length)));
   result.alertsOnScreen = crash;
   const all = result.events.filter(e => e.validBaseline !== false).map(e => e.serverSavedToSeenMs).filter(v => typeof v === 'number');

@@ -1,0 +1,102 @@
+{
+ "players": 2,
+ "viewport": "1280x720",
+ "startedAfterMs": 506,
+ "events": [
+  {
+   "change": "2 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "A",
+   "validBaseline": true,
+   "sentToSeenMs": 90,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 45,
+   "seen": "2/2"
+  },
+  {
+   "change": "2 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 130,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 85,
+   "seen": "2/2"
+  },
+  {
+   "change": "1 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "A",
+   "sentToSeenMs": 238,
+   "serverSavedToPushMs": 16,
+   "pushToAppliedMs": 86,
+   "receivedPushToSeenMs": 179,
+   "serverSavedToSeenMs": 195
+  },
+  {
+   "change": "1 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "B",
+   "sentToSeenMs": 275,
+   "serverSavedToPushMs": 16,
+   "pushToAppliedMs": 120,
+   "receivedPushToSeenMs": 216,
+   "serverSavedToSeenMs": 232
+  },
+  {
+   "change": "2 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "A",
+   "validBaseline": true,
+   "sentToSeenMs": null,
+   "serverSavedToPushMs": 6,
+   "serverSavedToSeenMs": null,
+   "seen": "1/2"
+  },
+  {
+   "change": "2 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": null,
+   "serverSavedToPushMs": 6,
+   "serverSavedToSeenMs": null,
+   "seen": "1/2"
+  },
+  {
+   "change": "A fundou um Posto",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 314,
+   "serverSavedToPushMs": 35,
+   "serverSavedToSeenMs": 270
+  }
+ ],
+ "notes": [],
+ "atStart": [
+  {
+   "openRegions": 2,
+   "closedRegions": 28,
+   "capitalsVisible": 2,
+   "contacts": 0
+  },
+  {
+   "openRegions": 2,
+   "closedRegions": 28,
+   "capitalsVisible": 2,
+   "contacts": 0
+  }
+ ],
+ "inspectorShift": 0,
+ "regionBacksBefore": [
+  28,
+  28
+ ],
+ "regionBacksAfter": [
+  27,
+  27
+ ],
+ "alertsOnScreen": [
+  0,
+  0
+ ],
+ "summary": {
+  "samples": 5,
+  "meanServerSavedToSeenMs": 165,
+  "maxServerSavedToSeenMs": 270
+ }
+}

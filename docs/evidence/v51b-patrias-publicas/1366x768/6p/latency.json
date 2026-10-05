@@ -1,0 +1,278 @@
+{
+ "players": 6,
+ "viewport": "1366x768",
+ "startedAfterMs": 778,
+ "events": [
+  {
+   "change": "6 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "A",
+   "validBaseline": true,
+   "sentToSeenMs": 530,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 387,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 464,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 321,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "C",
+   "validBaseline": true,
+   "sentToSeenMs": 374,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 231,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "D",
+   "validBaseline": true,
+   "sentToSeenMs": 326,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 183,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "E",
+   "validBaseline": true,
+   "sentToSeenMs": 300,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 157,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "F",
+   "validBaseline": true,
+   "sentToSeenMs": 277,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 134,
+   "seen": "6/6"
+  },
+  {
+   "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "A",
+   "sentToSeenMs": 633,
+   "serverSavedToPushMs": 23,
+   "pushToAppliedMs": 204,
+   "receivedPushToSeenMs": 302,
+   "serverSavedToSeenMs": 325
+  },
+  {
+   "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "B",
+   "sentToSeenMs": 743,
+   "serverSavedToPushMs": 23,
+   "pushToAppliedMs": 371,
+   "receivedPushToSeenMs": 412,
+   "serverSavedToSeenMs": 435
+  },
+  {
+   "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "C",
+   "sentToSeenMs": 547,
+   "serverSavedToPushMs": 23,
+   "pushToAppliedMs": 104,
+   "receivedPushToSeenMs": 216,
+   "serverSavedToSeenMs": 239
+  },
+  {
+   "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "D",
+   "sentToSeenMs": 858,
+   "serverSavedToPushMs": 23,
+   "pushToAppliedMs": 489,
+   "receivedPushToSeenMs": 527,
+   "serverSavedToSeenMs": 550
+  },
+  {
+   "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "E",
+   "sentToSeenMs": 1008,
+   "serverSavedToPushMs": 23,
+   "pushToAppliedMs": 576,
+   "receivedPushToSeenMs": 677,
+   "serverSavedToSeenMs": 700
+  },
+  {
+   "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "F",
+   "sentToSeenMs": 481,
+   "serverSavedToPushMs": 23,
+   "pushToAppliedMs": 51,
+   "receivedPushToSeenMs": 150,
+   "serverSavedToSeenMs": 173
+  },
+  {
+   "change": "6 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "A",
+   "validBaseline": true,
+   "sentToSeenMs": 994,
+   "serverSavedToPushMs": 46,
+   "serverSavedToSeenMs": 527,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 531,
+   "serverSavedToPushMs": 8,
+   "serverSavedToSeenMs": 64,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "C",
+   "validBaseline": true,
+   "sentToSeenMs": 647,
+   "serverSavedToPushMs": 8,
+   "serverSavedToSeenMs": 180,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "D",
+   "validBaseline": true,
+   "sentToSeenMs": 683,
+   "serverSavedToPushMs": 8,
+   "serverSavedToSeenMs": 216,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "E",
+   "validBaseline": true,
+   "sentToSeenMs": 725,
+   "serverSavedToPushMs": 8,
+   "serverSavedToSeenMs": 258,
+   "seen": "6/6"
+  },
+  {
+   "change": "6 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "F",
+   "validBaseline": true,
+   "sentToSeenMs": 902,
+   "serverSavedToPushMs": 8,
+   "serverSavedToSeenMs": 435,
+   "seen": "6/6"
+  },
+  {
+   "change": "A fundou um Posto",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 254,
+   "serverSavedToPushMs": 32,
+   "serverSavedToSeenMs": 183
+  },
+  {
+   "change": "A fundou um Posto",
+   "observer": "C",
+   "validBaseline": true,
+   "sentToSeenMs": 312,
+   "serverSavedToPushMs": 32,
+   "serverSavedToSeenMs": 241
+  },
+  {
+   "change": "A fundou um Posto",
+   "observer": "D",
+   "validBaseline": true,
+   "sentToSeenMs": 639,
+   "serverSavedToPushMs": 32,
+   "serverSavedToSeenMs": 568
+  },
+  {
+   "change": "A fundou um Posto",
+   "observer": "E",
+   "validBaseline": true,
+   "sentToSeenMs": 554,
+   "serverSavedToPushMs": 32,
+   "serverSavedToSeenMs": 483
+  },
+  {
+   "change": "A fundou um Posto",
+   "observer": "F",
+   "validBaseline": true,
+   "sentToSeenMs": 384,
+   "serverSavedToPushMs": 32,
+   "serverSavedToSeenMs": 313
+  }
+ ],
+ "notes": [],
+ "atStart": [
+  {
+   "openRegions": 6,
+   "closedRegions": 24,
+   "capitalsVisible": 6,
+   "contacts": 0
+  },
+  {
+   "openRegions": 6,
+   "closedRegions": 24,
+   "capitalsVisible": 6,
+   "contacts": 0
+  },
+  {
+   "openRegions": 6,
+   "closedRegions": 24,
+   "capitalsVisible": 6,
+   "contacts": 0
+  },
+  {
+   "openRegions": 6,
+   "closedRegions": 24,
+   "capitalsVisible": 6,
+   "contacts": 0
+  },
+  {
+   "openRegions": 6,
+   "closedRegions": 24,
+   "capitalsVisible": 6,
+   "contacts": 0
+  },
+  {
+   "openRegions": 6,
+   "closedRegions": 24,
+   "capitalsVisible": 6,
+   "contacts": 0
+  }
+ ],
+ "inspectorShift": 0,
+ "regionBacksBefore": [
+  24,
+  24,
+  24,
+  24,
+  24,
+  24
+ ],
+ "regionBacksAfter": [
+  20,
+  20,
+  20,
+  20,
+  20,
+  20
+ ],
+ "alertsOnScreen": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
+ ],
+ "summary": {
+  "samples": 23,
+  "meanServerSavedToSeenMs": 318,
+  "maxServerSavedToSeenMs": 700
+ }
+}

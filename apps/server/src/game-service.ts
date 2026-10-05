@@ -12,6 +12,8 @@ export interface TrustedVisibility {
   readonly visibleCityIds: readonly CityId[];
   readonly knownGovernmentPlayerIds: readonly PlayerId[];
   readonly visibleHexIds?: readonly HexId[];
+  /** Alpha: another civilization's population is private even when its city is public. */
+  readonly hidePopulation?: boolean;
 }
 function inspectYield(tile: HexTile, state: GameState) {
   try { return { yield: tileYieldBreakdown(tile, state.config).total, yieldError: null }; }
@@ -39,7 +41,7 @@ export function playerView(state: GameState, playerId: PlayerId, visibility: Tru
       .map((tile) => ({ id: tile.id, q: tile.q, r: tile.r, terrain: tile.terrain, features: tile.features, ownerId: tile.ownerId, controllerCityId: tile.controllerCityId, improvement: tile.improvement, ...inspectYield(tile, state) })),
     visibleCities: state.players.filter((owner) => owner.id !== playerId).flatMap((owner) => owner.civilization.cities
       .filter((city) => visibility.visibleCityIds.includes(city.id))
-      .map((city) => ({ id: city.id, ownerId: city.ownerId, hexId: city.hexId, name: city.name, population: city.population, development: city.development, specialization: city.specialization }))),
+      .map((city) => ({ id: city.id, ownerId: city.ownerId, hexId: city.hexId, name: city.name, population: visibility.hidePopulation ? null : city.population, development: city.development, specialization: city.specialization }))),
     knownGovernments: state.players.filter((owner) => owner.id !== playerId && visibility.knownGovernmentPlayerIds.includes(owner.id))
       .map((owner) => ({ playerId: owner.id, government: owner.civilization.government })),
   });

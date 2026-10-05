@@ -247,22 +247,20 @@ describe('structured resolution visibility', () => {
     ]);
   });
 
-  it('shows Ana her move and withholds its identifiers from Beto outside his vision', () => {
+  it('shows Ana her move and, because the Pátria is public, Beto too: the table shares every resolved move', () => {
     let state = started(89);
     const target = movementFixture(state);
-    expect(visibleHexIds(state, p2).has(target)).toBe(false);
-    state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'hidden-move', type: 'MOVE', unitIds: ['u1'], path: [target] } });
+    expect(visibleHexIds(state, p2).has(target)).toBe(true);
+    state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'public-move', type: 'MOVE', unitIds: ['u1'], path: [target] } });
+    expect(state.players[1]!.orders).toEqual([]); // the order itself stayed private while planned
     state = readyAll(state);
-
     const ana = state.roundReports.find(report => report.playerId === p1 && report.round === 1)!.resolution;
     const beto = state.roundReports.find(report => report.playerId === p2 && report.round === 1)!.resolution;
     expect(ana).toContainEqual(expect.objectContaining({ type: 'MOVEMENT', actorId: p1, hexId: target, unitIds: ['u1'] }));
-    expect(beto.some(event => event.type === 'MOVEMENT')).toBe(false);
-    expect(JSON.stringify(beto)).not.toContain(target);
-    expect(JSON.stringify(beto)).not.toContain('u1');
+    expect(beto).toContainEqual(expect.objectContaining({ type: 'MOVEMENT', actorId: p1, hexId: target }));
   });
 
-  it('shows Beto Ana\'s move when Beto can see its resolved destination', () => {
+  it('keeps showing Beto the move after he explores the Region too (nothing hides again)', () => {
     let state = started(90);
     const target = movementFixture(state);
     // The table shares open Regions: once Beto has explored the Region of the destination, Ana's move there is public.

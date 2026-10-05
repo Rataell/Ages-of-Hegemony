@@ -41,7 +41,7 @@ const select = async (page: Page, hexId: string) => {
 };
 const shot = (page: Page, name: string) => page.screenshot({ path: `${evidence}/SEEDED-${name}.png` });
 
-test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative target; beyond the fog it only says so', async ({ browser }) => {
+test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative target; the target of a Bando on the open table is public', async ({ browser }) => {
   await mkdir(evidence, { recursive: true });
   // 1. target inside vision: a Bando 3 hexes from Ana's capital, marching on it; Ana sees the line and the target.
   const near = base(), home = capitalOf(near, 0), homeTile = near.core.map.find(t => t.id === home.hexId)!;
@@ -50,31 +50,31 @@ test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative tar
   })!;
   const band = spawnThreat(near, 'CAMP')!; band.hexId = start.id as never; band.homeHexId = start.id as never; band.status = 'MARCHING'; band.fresh = false; band.level = 2;
   band.composition = [{ kind: 'INFANTRY', count: 3 }, { kind: 'RANGED', count: 1 }];
-  const watcher = near.units.find(u => u.ownerId === near.players[0]!.playerId && u.kind === 'PIONEER')!; watcher.hexId = start.id as never;
+  near.regions.find(region => region.hexIds.includes(start.id as never))!.revealedBy.push(near.players[0]!.playerId); // the Region was explored: the Bando is on the table
   let page = await serve(browser, near);
   await select(page, start.id);
   await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo: cidade');
   await expect(page.locator('.alpha-threat-intent.is-target')).toHaveCount(1);
   await shot(page, '1-bando-alvo-visivel');
 
-  // 2. target beyond the fog: Ana's scout stands beside a Bando that marches on Beto's far capital.
+  // 2. the target is a rival's Pátria: public as well (every Pátria is open), so the line runs to Beto's capital.
   const far = base(), rival = capitalOf(far, 1), rivalTile = far.core.map.find(t => t.id === rival.hexId)!;
   const spot = land(far).filter(t => hexDistance(rivalTile, t) === 3 && !far.units.some(u => u.hexId === t.id)).find(t => {
     const probe = spawnThreat(far, 'CAMP')!; probe.hexId = t.id as never; probe.status = 'MARCHING'; const ok = landTarget(far, probe)?.id === rival.id; far.threats = far.threats.filter(x => x.id !== probe.id); return ok;
   })!;
   const wild = spawnThreat(far, 'CAMP')!; wild.hexId = spot.id as never; wild.homeHexId = spot.id as never; wild.status = 'MARCHING'; wild.fresh = false;
-  far.units.find(u => u.ownerId === far.players[0]!.playerId && u.kind === 'PIONEER')!.hexId = spot.id as never;
+  far.regions.find(region => region.hexIds.includes(spot.id as never))!.revealedBy.push(far.players[0]!.playerId);
   page = await serve(browser, far);
   await select(page, spot.id);
-  await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo além da névoa');
-  await expect(page.locator('.alpha-threat-intent.is-target')).toHaveCount(0);
-  await shot(page, '2-bando-alvo-alem-da-nevoa');
+  await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo: cidade');
+  await expect(page.locator('.alpha-threat-intent.is-target')).toHaveCount(1);
+  await shot(page, '2-bando-alvo-patria-rival');
 
   // 3. RECÉM-SURGIDO: a fresh Acampamento in sight says it cannot leave yet.
   const fresh = base(), keep = capitalOf(fresh, 0), keepTile = fresh.core.map.find(t => t.id === keep.hexId)!;
   const site = land(fresh).find(t => hexDistance(keepTile, t) === 2 && t.ownerId === null && !fresh.units.some(u => u.hexId === t.id))!;
   const camp = spawnThreat(fresh, 'CAMP')!; camp.hexId = site.id as never; camp.homeHexId = site.id as never; camp.fresh = true;
-  fresh.units.find(u => u.ownerId === fresh.players[0]!.playerId && u.kind === 'PIONEER')!.hexId = site.id as never;
+  fresh.regions.find(region => region.hexIds.includes(site.id as never))!.revealedBy.push(fresh.players[0]!.playerId);
   page = await serve(browser, fresh);
   await select(page, site.id);
   await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Recém-surgido');

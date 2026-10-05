@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
-import { alphaUnitOptions, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, hexDistance, hexId, hexNeighbors } from '@aoh/game-engine';
+import { alphaUnitOptions, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, hexDistance, hexId, hexNeighbors, refreshKnowledge } from '@aoh/game-engine';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
 
@@ -10,12 +10,15 @@ function ringedCapital(): { state: AlphaState; ring: string[]; target: string; s
   const capital = state.core.players[1]!.civilization.cities[0]!, center = state.core.map.find(t => t.id === capital.hexId)!;
   const ring = hexNeighbors(center).map(hexId).filter(id => state.core.map.some(t => t.id === id && !['SEA', 'UNKNOWN'].includes(t.terrain)));
   for (const id of ring) { const tile = state.core.map.find(t => t.id === id)!; tile.ownerId = p2; tile.controllerCityId = capital.id; }
-  const start = state.core.map.filter(t => hexDistance(t, center) === 2 && !['SEA', 'UNKNOWN'].includes(t.terrain) && t.ownerId !== p2 && hexNeighbors(t).map(hexId).some(n => ring.includes(n))).sort((a, b) => a.id.localeCompare(b.id))[0]!;
+  const start = state.core.map.filter(t => hexDistance(t, center) === 2 && !['SEA', 'UNKNOWN', 'MOUNTAINS'].includes(t.terrain) && t.ownerId !== p2 && hexNeighbors(t).map(hexId).some(n => ring.includes(n) && state.core.map.find(x => x.id === n)!.terrain !== 'MOUNTAINS')).sort((a, b) => a.id.localeCompare(b.id))[0]!;
   state.units = state.units.filter(unit => unit.ownerId !== p2 || unit.hexId !== start.id);
   state.units.push({ id: 'raider', ownerId: p1, kind: 'INFANTRY', hexId: start.id, recruitedRound: 1, carrierId: null });
   const p1Progress = state.players[0]!;
   p1Progress.knownHexIds = [...new Set([...p1Progress.knownHexIds, ...ring, capital.hexId, start.id])].sort() as never;
   state.wars.push(['p1', 'p2'] as never);
+  // The approach is on the open table: the Regions around the capital have been explored.
+  for (const region of state.regions) if (!region.revealedBy.includes(p1)) region.revealedBy.push(p1);
+  refreshKnowledge(state);
   return { state, ring, target: capital.hexId, start: start.id };
 }
 

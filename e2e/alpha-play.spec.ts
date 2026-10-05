@@ -4,7 +4,7 @@ import { AlphaHttp } from '../apps/server/src/alpha-http.js';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
-import { hexDistance, visibleHexIds } from '@aoh/game-engine';
+import { hexDistance } from '@aoh/game-engine';
 import { connectAlphaContext, openArea, toMap, muteTour } from './alpha-fixture.js';
 
 // Browser integration uses the real HTTP/service/engine code with the explicit test repository.
@@ -157,7 +157,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
       expect(after.players[1]!.research).toContain('web-agriculture');
     }
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
-    // Round 3 - research survives reconnect; Ana's move is visible only to Ana because Beto cannot see its destination.
+    // Round 3 - research survives reconnect; Ana's resolved move is public: Beto sees it too (the table is shared; only the Order was private).
     await openArea(pa,'Teia Civilizacional');
     const node=pa.locator('.alpha-research-grid article').filter({hasText:'Sem pré-requisitos de pesquisa.'}).first();
     await expect(node).toContainText('Custo:');
@@ -166,8 +166,8 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     {
       const beforeMove=await game(),ana=beforeMove.players[0]!.playerId,beto=beforeMove.players[1]!.playerId;
       const explorer=beforeMove.units.find(unit=>unit.ownerId===ana&&unit.kind==='PIONEER')!,from=beforeMove.core.map.find(tile=>tile.id===explorer.hexId)!;
-      const betoVision=visibleHexIds(beforeMove,beto);
-      const target=beforeMove.core.map.find(tile=>beforeMove.players[0]!.knownHexIds.includes(tile.id)&&!['SEA','UNKNOWN'].includes(tile.terrain)&&!beforeMove.units.some(unit=>unit.hexId===tile.id)&&hexDistance(from,tile)===1&&!betoVision.has(tile.id))!;
+      void beto;
+      const target=beforeMove.core.map.find(tile=>beforeMove.players[0]!.knownHexIds.includes(tile.id)&&!['SEA','UNKNOWN'].includes(tile.terrain)&&!beforeMove.units.some(unit=>unit.hexId===tile.id)&&hexDistance(from,tile)===1)!;
       expect(target).toBeDefined();
       const queued=await service.command({guestId:raw.seats[0]!.guestId},gameId,{type:'QUEUE_ORDER',expectedVersion:beforeMove.version,order:{id:'e2e-hidden-move',type:'MOVE',unitIds:[explorer.id],path:[target.id]}},Date.now());
       expect(queued.ok).toBe(true);
@@ -184,7 +184,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     expect((await game()).players[0]!.research).toHaveLength(1);
     const replayA=pa.locator('.alpha-resolution-phase'),replayB=pb.locator('.alpha-resolution-phase');
     await expect(replayA).toContainText('Mobilidade');await expect(replayA).toContainText(/Ana: Pioneiro.* moveu-se para \d+,\d+\./);
-    await expect(replayB).not.toContainText('moveu-se');
+    await expect(replayB).toContainText('moveu-se');
     await pa.screenshot({path:`${actionEvidence}/1440x900-resolution-ana.png`});await pb.screenshot({path:`${actionEvidence}/1440x900-resolution-beto.png`});
     await replayA.getByRole('button',{name:'Continuar'}).click();await replayB.getByRole('button',{name:'Continuar'}).click();
     for(const [tab,file] of [['Teia Civilizacional','research'],['Diplomacia','diplomacy'],['Eras & Hegemonia','hegemony'],['Crônicas','round-report']] as const){await openArea(pa,tab);await pa.screenshot({path:`${evidence}/1440-${file}.png`});}

@@ -39,6 +39,7 @@ export default function AlphaShell(){
           again=false;
           const reply=(await(await fetch(`/api/alpha?gameId=${encodeURIComponent(id)}`,{cache:'no-store'})).json()) as Reply;
           if(active&&reply.ok){setRoom(old=>!old||old.id!==id||reply.value.version>=old.version?reply.value:old);log('applied',{cause,version:reply.value.version,serverAt});}
+          await new Promise(resolve=>setTimeout(resolve,200)); // a burst of pushes from a busy table collapses into one read per 200 ms
         }while(again&&active);
       }catch{if(active)setError('Conexão interrompida. Tentando reconectar…');}
       finally{inflight=false;}

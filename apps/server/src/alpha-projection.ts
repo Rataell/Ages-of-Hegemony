@@ -8,7 +8,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
   if(!progress)return null;
   const visible=visibleHexIds(state,actor);
   const growth=growthForecast(state,actor);
-  const economic=playerView(state.core,actor,{visibleHexIds:state.core.map.filter(t=>visible.has(t.id)).map(t=>t.id),visibleCityIds:state.core.players.flatMap(p=>p.civilization.cities.filter(c=>visible.has(c.hexId)).map(c=>c.id)),knownGovernmentPlayerIds:[]});
+  const economic=playerView(state.core,actor,{visibleHexIds:state.core.map.filter(t=>visible.has(t.id)).map(t=>t.id),visibleCityIds:state.core.players.flatMap(p=>p.civilization.cities.filter(c=>visible.has(c.hexId)).map(c=>c.id)),knownGovernmentPlayerIds:[],hidePopulation:true});
   if(!economic)return null;
   // Playtest "Mapa revelado": the whole map is cartographed (known terrain and every city) but only the own surroundings are visible.
   const knownIds=state.rules.revealMap?new Set(state.core.map.map(t=>t.id)):new Set(progress.knownHexIds);

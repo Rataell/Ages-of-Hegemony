@@ -1,0 +1,102 @@
+{
+ "players": 2,
+ "viewport": "1366x768",
+ "startedAfterMs": 619,
+ "events": [
+  {
+   "change": "2 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "A",
+   "validBaseline": true,
+   "sentToSeenMs": 159,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 119,
+   "seen": "2/2"
+  },
+  {
+   "change": "2 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 139,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 99,
+   "seen": "2/2"
+  },
+  {
+   "change": "1 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "A",
+   "sentToSeenMs": 102,
+   "serverSavedToPushMs": 13,
+   "pushToAppliedMs": 33,
+   "receivedPushToSeenMs": 48,
+   "serverSavedToSeenMs": 61
+  },
+  {
+   "change": "1 Região(ões) virada(s) na resolução da rodada 2",
+   "observer": "B",
+   "sentToSeenMs": 231,
+   "serverSavedToPushMs": 13,
+   "pushToAppliedMs": 100,
+   "receivedPushToSeenMs": 177,
+   "serverSavedToSeenMs": 190
+  },
+  {
+   "change": "2 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "A",
+   "validBaseline": true,
+   "sentToSeenMs": 294,
+   "serverSavedToPushMs": 7,
+   "serverSavedToSeenMs": 207,
+   "seen": "2/2"
+  },
+  {
+   "change": "2 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 264,
+   "serverSavedToPushMs": 7,
+   "serverSavedToSeenMs": 177,
+   "seen": "2/2"
+  },
+  {
+   "change": "A fundou um Posto",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 158,
+   "serverSavedToPushMs": 16,
+   "serverSavedToSeenMs": 123
+  }
+ ],
+ "notes": [],
+ "atStart": [
+  {
+   "openRegions": 2,
+   "closedRegions": 28,
+   "capitalsVisible": 2,
+   "contacts": 0
+  },
+  {
+   "openRegions": 2,
+   "closedRegions": 28,
+   "capitalsVisible": 2,
+   "contacts": 0
+  }
+ ],
+ "inspectorShift": 0,
+ "regionBacksBefore": [
+  28,
+  28
+ ],
+ "regionBacksAfter": [
+  27,
+  27
+ ],
+ "alertsOnScreen": [
+  0,
+  0
+ ],
+ "summary": {
+  "samples": 7,
+  "meanServerSavedToSeenMs": 139,
+  "maxServerSavedToSeenMs": 207
+ }
+}

@@ -25,7 +25,7 @@ const centerOf = (i: number, j: number): AxialCoordinates => ({ q: 2 * i - j, r:
 const pixel = ({ q, r }: AxialCoordinates) => ({ x: Math.sqrt(3) * (q + r / 2), y: 1.5 * r });
 const cellKey = (i: number, j: number) => `${i}_${j}`;
 /** Which of the six angular home positions (0°, 60° … 300°) the active seats occupy, per table size. */
-const ACTIVE_ANGLES: Record<number, readonly number[]> = { 2: [0, 3], 3: [0, 2, 4], 4: [1, 2, 4, 5], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 5] };
+const ACTIVE_ANGLES: Record<number, readonly number[]> = { 2: [0, 1], 3: [0, 2, 4], 4: [1, 2, 4, 5], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 5] };
 
 export function layoutBoard(playerCount: number): BoardLayout {
   const candidates: { i: number; j: number; d: number }[] = [];

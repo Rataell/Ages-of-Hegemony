@@ -52,10 +52,14 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
     }
     for(let at:string|undefined=target;at&&at!==start;at=from.get(at)){const tile=tiles.get(at)!;if(tile.terrain==='SEA')tile.terrain='COAST';}
   }
-  // The capital stands on one of the six outer hexes of its Pátria (never the geometric centre), so the Region alone does not reveal it.
+  // The capital is a real hex of its Pátria. The Pátria is public, so nothing about its position is hidden or bent for privacy: the centre when its terrain
+  // can hold a city (it always does in the authored homelands), otherwise a seeded pick among the outer hexes that can, plains first.
   const capitalHex=(slot:number):string=>{
     const cell=board.cells.find(c=>c.id===board.homeSlots[slot])!;
-    const options=cell.hexes.slice(1).map(p=>tiles.get(hexId(p) as string)!).filter(t=>['PLAINS','FOREST','HILLS','COAST'].includes(t.terrain));
+    const eligible=(t:{terrain:TerrainType})=>['PLAINS','FOREST','HILLS','COAST'].includes(t.terrain);
+    const centre=tiles.get(hexId(cell.hexes[0]!) as string)!;
+    if(eligible(centre))return centre.id;
+    const options=cell.hexes.slice(1).map(p=>tiles.get(hexId(p) as string)!).filter(eligible);
     const plains=options.filter(t=>t.terrain==='PLAINS'),pool=plains.length?plains:options;
     return pool[alphaRandomInteger(random,pool.length)]!.id;
   };
@@ -85,9 +89,9 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
 /**
  * SHARED TABLE (canon 2026-10-05): the board is public, planning is private. A Region is "open" once anyone other than its own seat has
  * revealed it (or, for a frontier Region, once anyone has): its terrain, cities, roads, walls and pieces then belong to the whole table.
- * A Pátria stays face down for the others until somebody else explores it (flip HOMELANDS_PUBLIC to open every homeland from the start).
+ * Every Pátria is open and public from the first snapshot; only the frontier Regions start face down.
  */
-export const HOMELANDS_PUBLIC=false;
+export const HOMELANDS_PUBLIC=true;
 export function regionIsPublic(state:AlphaState,region:AlphaState['regions'][number]):boolean {
   const home=homeOfRegion(state,region);
   return region.revealedBy.some(id=>id!==home)||(HOMELANDS_PUBLIC&&region.revealedBy.length>0);
@@ -102,12 +106,21 @@ export function visibleHexIds(state:AlphaState,actor:PlayerId):Set<string> {
   for(const owner of state.core.players)if(owner.id===actor)for(const city of owner.civilization.cities)out.add(city.hexId);
   return out;
 }
+/**
+ * Table visibility is NOT civilization contact. Seeing a Pátria, a capital or a piece creates no diplomatic Contato: contact needs proximity (a city or piece
+ * of one civilization within one hex of a city, piece or owned hex of the other) or an influence mission (alpha-diplomacy). Terrain knowledge is the open Regions.
+ */
 export function refreshKnowledge(state:AlphaState):void {
+  const tiles=new Map(state.core.map.map(t=>[t.id as string,t]));
+  const piecesOf=(id:PlayerId)=>[...state.core.players.find(p=>p.id===id)!.civilization.cities.map(c=>c.hexId as string),...state.units.filter(u=>u.ownerId===id&&!u.carrierId).map(u=>u.hexId as string)];
   for(const player of state.players){
-    const visible=visibleHexIds(state,player.playerId);
-    // The table's terrain is the open Regions: what a player knows is exactly what the table shows (no private memory of closed Regions).
-    player.knownHexIds=[...visible].map(id=>HexIdSchema.parse(id)).sort();
-    for(const other of state.core.players)if(other.id!==player.playerId&&(other.civilization.cities.some(c=>visible.has(c.hexId))||state.units.some(u=>u.ownerId===other.id&&visible.has(u.hexId)))) {
+    player.knownHexIds=[...visibleHexIds(state,player.playerId)].map(id=>HexIdSchema.parse(id)).sort();
+    const mine=piecesOf(player.playerId).map(id=>tiles.get(id)!).filter(Boolean);
+    for(const other of state.core.players){
+      if(other.id===player.playerId)continue;
+      const theirs=piecesOf(other.id).map(id=>tiles.get(id)!).filter(Boolean);
+      const close=theirs.some(t=>t.ownerId===player.playerId||mine.some(m=>hexDistance(m,t)<=1))||mine.some(m=>m.ownerId===other.id);
+      if(!close)continue;
       if(!player.contacts.includes(other.id))player.contacts.push(other.id);
       const opposite=state.players.find(p=>p.playerId===other.id)!;if(!opposite.contacts.includes(player.playerId))opposite.contacts.push(player.playerId);
     }

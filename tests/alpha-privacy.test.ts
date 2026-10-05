@@ -123,7 +123,8 @@ describe('V5.1b privacy walk (4 players: planning, conflicts, Era turn)', () => 
       const visible = visibleHexIds(state, viewer);
       for (const threat of view.threats as { hexId: string }[]) expect(visible.has(threat.hexId), `${label}: threat ${threat.hexId} beyond the fog`).toBe(true);
       for (const alert of view.threatAlerts as unknown as Record<string, unknown>[]) expect(Object.keys(alert).some(key => ['hexId', 'hex', 'id', 'composition'].includes(key)), `${label}: threat alert leaks a position`).toBe(false);
-      for (const region of view.regions) expect(state.regions.find(item => item.id === region.id)!.revealedBy).toContain(viewer);
+      // Open Regions belong to the table; what a discovery held belongs to the discoverer.
+      for (const region of view.regions) expect(view.board.find(item => item.id === region.id)!.closed).toBe(false);
       // Rival cargo and the other players' summaries.
       expect(view.units.filter(unit => unit.ownerId !== viewer).every(unit => !unit.carrierId)).toBe(true);
       for (const summary of view.players) expect(Object.keys(summary).sort()).toEqual(['civilization', 'era', 'id', 'name', 'prestige', 'ready', 'resonanceCycles', 'resonanceFilled']);
@@ -177,13 +178,40 @@ describe('V5.1b privacy walk (4 players: planning, conflicts, Era turn)', () => 
     expect(alphaPlayerView(state, p1)!.regions.find(item => item.id === region.id)!.discovery).toMatchObject({ kind: 'RUIN' });
   });
 
-  it('keeps a Pátria face down for the others until somebody else explores it, then opens it for the whole table', () => {
+  it('opens every Pátria in the first snapshot (terrain, capital, Pioneiros, owner) and keeps the frontier face down until someone explores it', () => {
     const state = walkStart();
-    const home = state.regions.find(item => item.templateId === 'homeland-1')!;
-    for (const viewer of [p2, p3, p4]) expect(alphaPlayerView(state, viewer)!.board.find(item => item.id === home.id)).toMatchObject({ closed: true, homeOf: p1 });
-    expect(alphaPlayerView(state, p1)!.board.find(item => item.id === home.id)!.closed).toBe(false);
-    home.revealedBy.push(p3);
-    for (const viewer of [p1, p2, p3, p4]) expect(alphaPlayerView(state, viewer)!.board.find(item => item.id === home.id)!.closed).toBe(false);
+    for (const viewer of [p1, p2, p3, p4]) {
+      const view = alphaPlayerView(state, viewer)!;
+      const homes = view.board.filter(entry => entry.homeOf !== null);
+      expect(homes.map(entry => entry.homeOf).sort()).toEqual([p1, p2, p3, p4]);
+      for (const home of homes) {
+        expect(home.closed, `${viewer} sees ${home.homeOf}`).toBe(false);
+        const seat = state.core.players.find(player => player.id === home.homeOf)!, capital = seat.civilization.cities[0]!;
+        expect(home.hexIds).toContain(capital.hexId); // the capital is a real hex of its own Pátria
+        expect(view.view.visibleTerritory.some(tile => tile.id === capital.hexId && tile.terrain !== 'UNKNOWN')).toBe(true);
+        expect(view.cityMarks.some(mark => mark.hexId === capital.hexId && mark.ownerId === home.homeOf)).toBe(true);
+        expect(view.units.filter(unit => unit.ownerId === home.homeOf && unit.kind === 'PIONEER').length).toBeGreaterThan(0);
+      }
+      const frontier = view.board.filter(entry => entry.homeOf === null);
+      expect(frontier.length).toBeGreaterThan(0);
+      for (const region of frontier) expect(region.closed).toBe(true);
+    }
+    const target = alphaPlayerView(state, p1)!.board.find(entry => entry.homeOf === null)!;
+    state.regions.find(item => item.id === target.id)!.revealedBy.push(p3);
+    for (const viewer of [p1, p2, p3, p4]) expect(alphaPlayerView(state, viewer)!.board.find(entry => entry.id === target.id)!.closed).toBe(false);
+  });
+
+  it('shares a Pátria\'s public state but never its inside: no population, Cofre, allocation, Orders or hand', () => {
+    const state = walkStart();
+    const view = alphaPlayerView(state, p1)!;
+    const rival = view.view.visibleCities.find(city => city.ownerId === p2)!;
+    expect(rival).toBeDefined();
+    expect(rival.population).toBeNull();
+    expect(rival).not.toHaveProperty('workers');
+    const json = JSON.stringify(view);
+    for (const secret of ['workedHexIds', 'resources', 'plannedActions']) expect(JSON.stringify(view.view.visibleCities), secret).not.toContain(secret);
+    expect(view.players.find(player => player.id === p2)).not.toHaveProperty('resources');
+    expect(json).not.toContain(state.privateRng.seed);
   });
 
   it('makes every resolved change of the table public: pieces, cities, roads and wars are in everybody\'s projection; planning, hands and RNG are not', () => {

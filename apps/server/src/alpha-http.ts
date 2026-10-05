@@ -67,7 +67,9 @@ export class AlphaHttp {
     if(fetchSite==='cross-site'||request.method==='POST'&&request.headers.get('origin')!==this.origin)return error('FORBIDDEN','A solicitação precisa partir do endereço oficial desta partida.',403);
     const cookie=request.headers.get('cookie')?.split(';').map(v=>v.trim()).find(v=>v.startsWith(`${this.cookieName}=`))?.slice(this.cookieName.length+1);
     let principal=this.sessions.resolve(cookie,now);
-    if(!this.rate.allow(principal?`guest:${principal.guestId}`:'anonymous',principal?120:30,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
+    // Reads (the push-driven refreshes of a busy table) have their own, larger allowance; writes keep the tight one.
+    const reads=request.method==='GET';
+    if(!this.rate.allow(principal?`guest:${principal.guestId}${reads?':read':''}`:'anonymous',principal?(reads?600:120):30,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
     try{
       if(request.method==='GET'){
         if(!principal)return error('UNAUTHENTICATED','Entre com seu convite ou crie uma partida.',401);

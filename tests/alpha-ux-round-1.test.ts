@@ -100,15 +100,17 @@ describe('the atlas shows the whole public board but only content of open Region
     for (const id of content) expect(open.has(id), id).toBe(true);
     const text = JSON.stringify([view.view.visibleTerritory, view.knownTerritory]);
     for (const region of view.board.filter(entry => entry.closed)) for (const id of region.hexIds) expect(text.includes(`"id":"${id}"`), id).toBe(false);
-    expect(view.board.filter(region => !region.closed).length).toBeLessThan(10);
+    expect(view.board.filter(region => !region.closed).length).toBe(2); // the two Pátrias; the frontier starts closed
   });
 
-  it('the other player\'s homeland is a face-down Region with its owner on it, and the whole board fits one frame', () => {
+  it('the other player\'s Pátria is open on the table with its owner, the frontier is face down, and the whole board fits one frame', () => {
     const game = state(), view = alphaPlayerView(game, PlayerIdSchema.parse('p1'))!;
     const other = view.board.find(region => region.homeOf === PlayerIdSchema.parse('p2'))!;
-    expect(other.closed).toBe(true);
+    expect(other.closed).toBe(false);
     const content = new Set([...view.view.visibleTerritory, ...view.knownTerritory].map(tile => tile.id));
-    expect(other.hexIds.some(id => content.has(id))).toBe(false);
+    expect(other.hexIds.every(id => content.has(id))).toBe(true);
+    const frontier = view.board.filter(region => region.homeOf === null);
+    expect(frontier.every(region => region.closed)).toBe(true);
     const all = view.board.flatMap(region => region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return { q: q!, r: r! }; }));
     expect(mapFrame(all).width).toBeGreaterThan(mapFrame(game.core.map).width * 0.95);
   });
