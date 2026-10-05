@@ -7,182 +7,175 @@
     "scholar",
     "trader"
   ],
-  "startedAt": "2026-10-05T05:20:38.064Z",
-  "wallSeconds": 112,
-  "reachedRound": 2,
-  "winner": null,
+  "startedAt": "2026-10-05T06:29:04.758Z",
+  "wallSeconds": 625,
+  "reachedRound": 21,
+  "winner": {
+    "playerId": "player-3",
+    "reason": "ROUND_LIMIT",
+    "round": 21
+  },
   "contact": {
-    "firstContactRound": null,
-    "firstTreatyRound": null,
-    "firstWarRound": null,
-    "firstPlayerCombatRound": null
+    "firstContactRound": 9,
+    "firstSharedBorderRound": null,
+    "firstTreatyRound": 12,
+    "firstWarRound": 11,
+    "firstPlayerCombatRound": 12
   },
   "perSeat": [
     {
       "label": "Jogador A",
       "persona": "expansionist",
-      "uiActions": 32,
-      "frictionCount": 0,
-      "friction": [],
-      "planningMsAvg": 23124,
-      "rounds": [
-        {
-          "round": 1,
-          "era": "FOUNDATION",
-          "resources": {
-            "food": 16,
-            "materials": 12,
-            "wealth": 12,
-            "knowledge": 8,
-            "influence": 8
-          },
-          "cities": [
-            {
-              "n": 1,
-              "pop": 2
-            }
-          ],
-          "research": 0,
-          "contacts": 0,
-          "wars": 0,
-          "battles": 0,
-          "worldBattles": 0,
-          "prestige": 0,
-          "resonanceSlots": 0,
-          "threatsVisible": 0,
-          "orders": {
-            "CITY": 1,
-            "EXPEDITION": 2,
-            "ADVANCE": 1,
-            "INFLUENCE": 0,
-            "LEGACY": 0
-          },
-          "treaties": 0,
-          "planningMs": 23124,
-          "ordersUsed": 4,
-          "confirmed": true
-        }
-      ]
-    },
-    {
-      "label": "Jogador B",
-      "persona": "warrior",
-      "uiActions": 27,
-      "frictionCount": 15,
+      "uiActions": 580,
+      "frictionCount": 22,
       "friction": [
         {
           "round": 1,
           "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "open Livro: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-B-1.png"
+          "kind": "version-conflict",
+          "text": "banner \"Estado atualizado por outra ação\" after an action; retrying like a person would",
+          "shot": "friction-A-1.png"
         },
         {
-          "round": 1,
+          "round": 6,
           "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "cards tab: locator.waitFor: Timeout 4000ms exceeded.",
-          "shot": "friction-B-2.png"
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
+          "shot": "friction-A-2.png"
         },
         {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "world choice: locator.waitFor: Timeout 4000ms exceeded.",
-          "shot": "friction-B-3.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-B-4.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-B-5.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-B-6.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-B-7.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-B-8.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-B-9.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "hex-covered",
-          "text": "select city Passo de Valgard: hex 12,3 is covered by an overlay; folding the inspector like a person would",
-          "shot": "friction-B-10.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "hex-click-failed",
-          "text": "select city Passo de Valgard: 12,3: locator.click: Timeout 2500ms exceeded.",
-          "shot": "friction-B-11.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "open group 0: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-B-12.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "pick build: locator.waitFor: Timeout 4000ms exceeded.",
-          "shot": "friction-B-13.png"
-        },
-        {
-          "round": 1,
+          "round": 6,
           "phase": "PLANNING",
           "kind": "ready-check",
-          "text": "2 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1."
+          "text": "Um bando a 3 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | 1 peça(s) sem ordem: Explorador ×1."
         },
         {
-          "round": 2,
+          "round": 7,
           "phase": "PLANNING",
-          "kind": "stuck",
-          "text": "no state change for 90s at 1:PLANNING:false:0",
-          "shot": "friction-B-14.png"
+          "kind": "ready-check",
+          "text": "Um bando a 2 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 8,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 3 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 9,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
+          "shot": "friction-A-3.png"
+        },
+        {
+          "round": 9,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 3 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 10,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 3 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 11,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 3 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 12,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
+          "shot": "friction-A-4.png"
+        },
+        {
+          "round": 12,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 3 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 13,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 2 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o. | 1 peça(s) sem ordem: Pioneiro ×1."
+        },
+        {
+          "round": 14,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 2 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 15,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
+          "shot": "friction-A-5.png"
+        },
+        {
+          "round": 15,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 2 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 16,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 2 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 17,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 2 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 18,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
+          "shot": "friction-A-6.png"
+        },
+        {
+          "round": 18,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 2 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 19,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 2 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 20,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 1 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 21,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Celeiro Áureo: reforce a defesa ou ataque-o. | Um bando a 1 hex(es) de Novo Horizonte: reforce a defesa ou ataque-o."
         }
       ],
-      "planningMsAvg": 104278,
+      "planningMsAvg": 13516,
       "rounds": [
         {
           "round": 1,
           "era": "FOUNDATION",
           "resources": {
-            "food": 16,
-            "materials": 12,
+            "food": 17,
+            "materials": 14,
             "wealth": 10,
             "knowledge": 8,
             "influence": 8
@@ -193,6 +186,7 @@
               "pop": 2
             }
           ],
+          "sharedBorder": false,
           "research": 0,
           "contacts": 0,
           "wars": 0,
@@ -209,131 +203,1842 @@
             "LEGACY": 0
           },
           "treaties": 0,
-          "planningMs": 104278,
-          "ordersUsed": 3,
+          "planningMs": 26479,
+          "ordersUsed": 4,
           "confirmed": false
+        },
+        {
+          "round": 2,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 16,
+            "materials": 15,
+            "wealth": 10,
+            "knowledge": 8,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 1,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 0,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 20998,
+          "ordersUsed": 4,
+          "confirmed": false
+        },
+        {
+          "round": 3,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 11,
+            "materials": 17,
+            "wealth": 10,
+            "knowledge": 8,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            }
+          ],
+          "sharedBorder": false,
+          "research": 3,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 1,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 2,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 22149,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 4,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 11,
+            "materials": 17,
+            "wealth": 10,
+            "knowledge": 8,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            }
+          ],
+          "sharedBorder": false,
+          "research": 3,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 1,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 21181,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 5,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 9,
+            "materials": 21,
+            "wealth": 10,
+            "knowledge": 5,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 6
+            }
+          ],
+          "sharedBorder": false,
+          "research": 4,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 2,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 22119,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 6,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 2,
+            "materials": 14,
+            "wealth": 10,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 7
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 6,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 2,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 32595,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 7,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 2,
+            "materials": 14,
+            "wealth": 10,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 7
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 6,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 2,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 3,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 9277,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 8,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 2,
+            "materials": 16,
+            "wealth": 11,
+            "knowledge": 2,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 8
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 6,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 3,
+          "resonanceSlots": 1,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 18972,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 9,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 0,
+            "materials": 17,
+            "wealth": 11,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 7
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 1,
+          "prestige": 4,
+          "resonanceSlots": 2,
+          "threatsVisible": 2,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 9706,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 10,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 0,
+            "materials": 17,
+            "wealth": 13,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 7
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 1,
+          "prestige": 4,
+          "resonanceSlots": 2,
+          "threatsVisible": 2,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 4224,
+          "ordersUsed": 2,
+          "confirmed": true
+        },
+        {
+          "round": 11,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 1,
+            "materials": 19,
+            "wealth": 14,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 8
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 1,
+          "prestige": 4,
+          "resonanceSlots": 2,
+          "threatsVisible": 2,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 4249,
+          "ordersUsed": 2,
+          "confirmed": true
+        },
+        {
+          "round": 12,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 0,
+            "materials": 22,
+            "wealth": 15,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 7
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 5,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 3,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 16462,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 13,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 0,
+            "materials": 22,
+            "wealth": 15,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 7
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 5,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 3,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 11638,
+          "ordersUsed": 2,
+          "confirmed": true
+        },
+        {
+          "round": 14,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 2,
+            "materials": 23,
+            "wealth": 15,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 6
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 8,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 3,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 8179,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 15,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 1,
+            "materials": 26,
+            "wealth": 15,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 6
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 11,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 3,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 6882,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 16,
+          "era": "POWERS",
+          "resources": {
+            "food": 1,
+            "materials": 28,
+            "wealth": 15,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 6
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 11,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 3,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 8512,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 17,
+          "era": "POWERS",
+          "resources": {
+            "food": 1,
+            "materials": 29,
+            "wealth": 15,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 6
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 11,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 3,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 7106,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 18,
+          "era": "POWERS",
+          "resources": {
+            "food": 0,
+            "materials": 30,
+            "wealth": 13,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 7
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 17,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 3,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 10352,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 19,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 30,
+            "wealth": 13,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 7
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 17,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 3,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 7099,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 20,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 31,
+            "wealth": 13,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 6
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 21,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 4,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 8339,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 21,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 31,
+            "wealth": 13,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 3,
+              "pop": 5
+            },
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 8,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 21,
+          "prestige": 4,
+          "resonanceSlots": 3,
+          "threatsVisible": 4,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 7313,
+          "ordersUsed": 3,
+          "confirmed": true
+        }
+      ]
+    },
+    {
+      "label": "Jogador B",
+      "persona": "warrior",
+      "uiActions": 587,
+      "frictionCount": 28,
+      "friction": [
+        {
+          "round": 1,
+          "phase": "PLANNING",
+          "kind": "version-conflict",
+          "text": "banner \"Estado atualizado por outra ação\" after an action; retrying like a person would",
+          "shot": "friction-B-1.png"
+        },
+        {
+          "round": 1,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "2 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1."
+        },
+        {
+          "round": 2,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "2 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1."
+        },
+        {
+          "round": 3,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "1 peça(s) sem ordem: Pioneiro ×1."
+        },
+        {
+          "round": 4,
+          "phase": "PLANNING",
+          "kind": "version-conflict",
+          "text": "banner \"Estado atualizado por outra ação\" after an action; retrying like a person would",
+          "shot": "friction-B-2.png"
+        },
+        {
+          "round": 4,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "4 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1 · Infantaria ×2."
+        },
+        {
+          "round": 5,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "4 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1 · Infantaria ×2."
+        },
+        {
+          "round": 6,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 3 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 1 peça(s) sem ordem: Pioneiro ×1."
+        },
+        {
+          "round": 7,
+          "phase": "PLANNING",
+          "kind": "click-failed",
+          "text": "open Tabuleiro: locator.click: Timeout 4000ms exceeded.",
+          "shot": "friction-B-3.png"
+        },
+        {
+          "round": 7,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 2 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 6 peça(s) sem ordem: Pioneiro ×1 · Explorador ×1 · Guarda ×1 · Infantaria ×3."
+        },
+        {
+          "round": 8,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 5 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1 · Infantaria ×3."
+        },
+        {
+          "round": 9,
+          "phase": "PLANNING",
+          "kind": "click-failed",
+          "text": "open Tabuleiro: locator.click: Timeout 4000ms exceeded.",
+          "shot": "friction-B-4.png"
+        },
+        {
+          "round": 9,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
+          "shot": "friction-B-5.png"
+        },
+        {
+          "round": 9,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 5 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1 · Infantaria ×3."
+        },
+        {
+          "round": 10,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 4 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1 · Infantaria ×2."
+        },
+        {
+          "round": 11,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 3 peça(s) sem ordem: Pioneiro ×1 · Guarda ×1 · Infantaria ×1."
+        },
+        {
+          "round": 12,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 13,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 1 peça(s) sem ordem: Infantaria ×1."
+        },
+        {
+          "round": 14,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 3 peça(s) sem ordem: Guarda ×1 · Infantaria ×2."
+        },
+        {
+          "round": 15,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
+          "shot": "friction-B-6.png"
+        },
+        {
+          "round": 15,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 16,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 3 peça(s) sem ordem: Guarda ×1 · Infantaria ×2."
+        },
+        {
+          "round": 17,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 3 peça(s) sem ordem: Guarda ×1 · Infantaria ×2."
+        },
+        {
+          "round": 18,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
+          "shot": "friction-B-7.png"
+        },
+        {
+          "round": 18,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o."
+        },
+        {
+          "round": 19,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 3 peça(s) sem ordem: Guarda ×1 · Infantaria ×2."
+        },
+        {
+          "round": 20,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o. | 3 peça(s) sem ordem: Guarda ×1 · Infantaria ×2."
+        },
+        {
+          "round": 21,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Um bando a 1 hex(es) de Passo de Valgard: reforce a defesa ou ataque-o."
+        }
+      ],
+      "planningMsAvg": 13329,
+      "rounds": [
+        {
+          "round": 1,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 15,
+            "materials": 14,
+            "wealth": 10,
+            "knowledge": 10,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 0,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 0,
+          "resonanceSlots": 0,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 24580,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 2,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 11,
+            "materials": 13,
+            "wealth": 10,
+            "knowledge": 10,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 1,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 0,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19153,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 3,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 0,
+            "materials": 11,
+            "wealth": 12,
+            "knowledge": 10,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 2,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 1,
+          "resonanceSlots": 2,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 3,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 14985,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 4,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 0,
+            "materials": 11,
+            "wealth": 12,
+            "knowledge": 10,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 2,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 1,
+          "resonanceSlots": 2,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 27586,
+          "ordersUsed": 4,
+          "confirmed": false
+        },
+        {
+          "round": 5,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 0,
+            "materials": 8,
+            "wealth": 12,
+            "knowledge": 7,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 3,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 2,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 1,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 15687,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 6,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 0,
+            "materials": 8,
+            "wealth": 13,
+            "knowledge": 4,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 4,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 3,
+          "resonanceSlots": 4,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 4,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 16590,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 7,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 0,
+            "materials": 8,
+            "wealth": 13,
+            "knowledge": 4,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 4,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 3,
+          "resonanceSlots": 4,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 14839,
+          "ordersUsed": 1,
+          "confirmed": true
+        },
+        {
+          "round": 8,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 0,
+            "materials": 9,
+            "wealth": 13,
+            "knowledge": 6,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 1
+            }
+          ],
+          "sharedBorder": false,
+          "research": 4,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 3,
+          "resonanceSlots": 4,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 0,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 13542,
+          "ordersUsed": 2,
+          "confirmed": true
+        },
+        {
+          "round": 9,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 0,
+            "materials": 13,
+            "wealth": 12,
+            "knowledge": 2,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 5,
+          "contacts": 1,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 1,
+          "prestige": 3,
+          "resonanceSlots": 0,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 16066,
+          "ordersUsed": 1,
+          "confirmed": true
+        },
+        {
+          "round": 10,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 0,
+            "materials": 13,
+            "wealth": 14,
+            "knowledge": 2,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 5,
+          "contacts": 1,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 1,
+          "prestige": 3,
+          "resonanceSlots": 0,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 0,
+            "ADVANCE": 1,
+            "INFLUENCE": 1,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 15040,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 11,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 0,
+            "materials": 14,
+            "wealth": 14,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 6,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 0,
+          "worldBattles": 1,
+          "prestige": 3,
+          "resonanceSlots": 1,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 7103,
+          "ordersUsed": 2,
+          "confirmed": true
+        },
+        {
+          "round": 12,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 0,
+            "materials": 18,
+            "wealth": 14,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 2,
+          "worldBattles": 3,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 3,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 1,
+          "planningMs": 24856,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 13,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 0,
+            "materials": 18,
+            "wealth": 14,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 2,
+          "worldBattles": 3,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 2,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 1,
+          "planningMs": 10123,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 14,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 2,
+            "materials": 19,
+            "wealth": 14,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 4,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 1,
+          "planningMs": 4051,
+          "ordersUsed": 1,
+          "confirmed": true
+        },
+        {
+          "round": 15,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 0,
+            "materials": 21,
+            "wealth": 14,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 5,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 3,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 13671,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 16,
+          "era": "POWERS",
+          "resources": {
+            "food": 0,
+            "materials": 23,
+            "wealth": 14,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 5,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 4133,
+          "ordersUsed": 1,
+          "confirmed": true
+        },
+        {
+          "round": 17,
+          "era": "POWERS",
+          "resources": {
+            "food": 0,
+            "materials": 24,
+            "wealth": 14,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 5,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 2935,
+          "ordersUsed": 1,
+          "confirmed": true
+        },
+        {
+          "round": 18,
+          "era": "POWERS",
+          "resources": {
+            "food": 0,
+            "materials": 25,
+            "wealth": 12,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 7,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 3,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 14375,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 19,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 25,
+            "wealth": 12,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 7,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 3248,
+          "ordersUsed": 1,
+          "confirmed": true
+        },
+        {
+          "round": 20,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 26,
+            "wealth": 12,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 8,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 3821,
+          "ordersUsed": 1,
+          "confirmed": true
+        },
+        {
+          "round": 21,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 26,
+            "wealth": 12,
+            "knowledge": 0,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 8,
+          "prestige": 3,
+          "resonanceSlots": 2,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 3,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 13534,
+          "ordersUsed": 4,
+          "confirmed": true
         }
       ]
     },
     {
       "label": "Jogador C",
       "persona": "scholar",
-      "uiActions": 34,
-      "frictionCount": 15,
+      "uiActions": 642,
+      "frictionCount": 7,
       "friction": [
         {
-          "round": 1,
+          "round": 3,
           "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "open Livro: locator.click: Timeout 4000ms exceeded.",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
           "shot": "friction-C-1.png"
         },
         {
-          "round": 1,
+          "round": 6,
           "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "cards tab: locator.waitFor: Timeout 4000ms exceeded.",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (0 unlocked)",
           "shot": "friction-C-2.png"
         },
         {
-          "round": 1,
+          "round": 11,
           "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "world choice: locator.waitFor: Timeout 4000ms exceeded.",
+          "kind": "ready-check",
+          "text": "1 peça(s) sem ordem: Explorador ×1."
+        },
+        {
+          "round": 12,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (2 unlocked)",
           "shot": "friction-C-3.png"
         },
         {
-          "round": 1,
+          "round": 15,
           "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (2 unlocked)",
           "shot": "friction-C-4.png"
         },
         {
-          "round": 1,
+          "round": 18,
           "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (2 unlocked)",
           "shot": "friction-C-5.png"
         },
         {
-          "round": 1,
+          "round": 19,
           "phase": "PLANNING",
           "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
+          "text": "select node Feira das Margens: locator.waitFor: Timeout 4000ms exceeded.",
           "shot": "friction-C-6.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-C-7.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-C-8.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "resolve choice: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-C-9.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "hex-covered",
-          "text": "select city Porto das Margens: hex 3,9 is covered by an overlay; folding the inspector like a person would",
-          "shot": "friction-C-10.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "hex-click-failed",
-          "text": "select city Porto das Margens: 3,9: locator.click: Timeout 2500ms exceeded.",
-          "shot": "friction-C-11.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "open Tabuleiro: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-C-12.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "click-failed",
-          "text": "reserve move: locator.click: Timeout 4000ms exceeded.",
-          "shot": "friction-C-13.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "piece-order-failed",
-          "text": "move with PIONEER@3,9 -> 2,10 | after-select: Cidade Território Militar · 2 × PIONEIRO Limpar seleção Pioneiro ×1 Esta seleção já tem ordem nesta rodada. Cada peça re | now: Cidade Território Militar · 2 × PIONEIRO Limpar seleção Pioneiro ×1 Esta seleção já tem ordem nesta rodada. Cada peça recebe uma ordem por rodada; cancele a reservada para trocar. Alvo: Floresta · 2,10 MOVER PARA CÁ 1 passo pelo caminho mais curto conhecido. L",
-          "shot": "friction-C-14.png"
-        },
-        {
-          "round": 1,
-          "phase": "PLANNING",
-          "kind": "stuck",
-          "text": "no state change for 90s at 1:PLANNING:false:0"
         }
       ],
-      "planningMsAvg": 99066,
+      "planningMsAvg": 19306,
       "rounds": [
         {
           "round": 1,
           "era": "FOUNDATION",
           "resources": {
-            "food": 16,
-            "materials": 12,
+            "food": 15,
+            "materials": 14,
             "wealth": 13,
             "knowledge": 8,
             "influence": 8
@@ -344,12 +2049,387 @@
               "pop": 2
             }
           ],
+          "sharedBorder": false,
           "research": 0,
           "contacts": 0,
           "wars": 0,
           "battles": 0,
           "worldBattles": 0,
-          "prestige": 0,
+          "prestige": 2,
+          "resonanceSlots": 0,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 21080,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 2,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 11,
+            "materials": 14,
+            "wealth": 14,
+            "knowledge": 7,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 1,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 3,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 21051,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 3,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 4,
+            "materials": 9,
+            "wealth": 14,
+            "knowledge": 8,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 3,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 7,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 2,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 20230,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 4,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 4,
+            "materials": 9,
+            "wealth": 14,
+            "knowledge": 8,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 3,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 9,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 20203,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 5,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 5,
+            "materials": 9,
+            "wealth": 15,
+            "knowledge": 7,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 4,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 10,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19222,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 6,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 7,
+            "materials": 9,
+            "wealth": 17,
+            "knowledge": 9,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 6,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 11,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 2,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 20327,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 7,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 7,
+            "materials": 9,
+            "wealth": 17,
+            "knowledge": 9,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 6,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 12,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19320,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 8,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 8,
+            "materials": 9,
+            "wealth": 18,
+            "knowledge": 7,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 13,
+          "resonanceSlots": 2,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19907,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 9,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 10,
+            "materials": 9,
+            "wealth": 19,
+            "knowledge": 4,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 9,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 13,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 2,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 20264,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 10,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 10,
+            "materials": 9,
+            "wealth": 19,
+            "knowledge": 4,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 9,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 14,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 21226,
+          "ordersUsed": 4,
+          "confirmed": false
+        },
+        {
+          "round": 11,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 2,
+            "materials": 3,
+            "wealth": 17,
+            "knowledge": 3,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 10,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 15,
           "resonanceSlots": 0,
           "threatsVisible": 0,
           "orders": {
@@ -360,8 +2440,418 @@
             "LEGACY": 0
           },
           "treaties": 0,
-          "planningMs": 99066,
+          "planningMs": 24801,
+          "ordersUsed": 4,
+          "confirmed": false
+        },
+        {
+          "round": 12,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 1,
+            "materials": 2,
+            "wealth": 18,
+            "knowledge": 4,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 12,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 16,
+          "resonanceSlots": 2,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19143,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 13,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 7,
+            "materials": 0,
+            "wealth": 16,
+            "knowledge": 2,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 13,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 17,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19423,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 14,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 0,
+            "materials": 0,
+            "wealth": 17,
+            "knowledge": 3,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 5
+            }
+          ],
+          "sharedBorder": false,
+          "research": 13,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 18,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 18820,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 15,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 1,
+            "materials": 5,
+            "wealth": 19,
+            "knowledge": 3,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 5
+            }
+          ],
+          "sharedBorder": false,
+          "research": 15,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 18,
+          "resonanceSlots": 0,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 17129,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 16,
+          "era": "POWERS",
+          "resources": {
+            "food": 1,
+            "materials": 5,
+            "wealth": 19,
+            "knowledge": 3,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 5
+            }
+          ],
+          "sharedBorder": false,
+          "research": 15,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 20,
+          "resonanceSlots": 0,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 18516,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 17,
+          "era": "POWERS",
+          "resources": {
+            "food": 2,
+            "materials": 5,
+            "wealth": 20,
+            "knowledge": 4,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 5
+            }
+          ],
+          "sharedBorder": false,
+          "research": 16,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 20,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 16934,
+          "ordersUsed": 4,
+          "confirmed": false
+        },
+        {
+          "round": 18,
+          "era": "POWERS",
+          "resources": {
+            "food": 1,
+            "materials": 5,
+            "wealth": 19,
+            "knowledge": 3,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 6
+            }
+          ],
+          "sharedBorder": false,
+          "research": 18,
+          "contacts": 1,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 22,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19090,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 19,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 1,
+            "materials": 5,
+            "wealth": 19,
+            "knowledge": 3,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 6
+            }
+          ],
+          "sharedBorder": false,
+          "research": 18,
+          "contacts": 1,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 22,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 12826,
           "ordersUsed": 3,
+          "confirmed": false
+        },
+        {
+          "round": 20,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 2,
+            "materials": 5,
+            "wealth": 20,
+            "knowledge": 6,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 6
+            }
+          ],
+          "sharedBorder": false,
+          "research": 18,
+          "contacts": 1,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 22,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 18689,
+          "ordersUsed": 4,
+          "confirmed": false
+        },
+        {
+          "round": 21,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 3,
+            "materials": 5,
+            "wealth": 21,
+            "knowledge": 4,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 2,
+              "pop": 6
+            }
+          ],
+          "sharedBorder": false,
+          "research": 19,
+          "contacts": 1,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 23,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 17218,
+          "ordersUsed": 4,
           "confirmed": true
         }
       ]
@@ -369,19 +2859,97 @@
     {
       "label": "Jogador D",
       "persona": "trader",
-      "uiActions": 40,
-      "frictionCount": 0,
-      "friction": [],
-      "planningMsAvg": 26378,
+      "uiActions": 789,
+      "frictionCount": 12,
+      "friction": [
+        {
+          "round": 2,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "1 peça(s) sem ordem: Pioneiro ×1."
+        },
+        {
+          "round": 3,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "1 peça(s) sem ordem: Pioneiro ×1."
+        },
+        {
+          "round": 7,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "Novo Horizonte não tem ação planejada: não produz nesta rodada."
+        },
+        {
+          "round": 8,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "2 peça(s) sem ordem: Explorador ×2."
+        },
+        {
+          "round": 9,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "1 peça(s) sem ordem: Explorador ×1."
+        },
+        {
+          "round": 13,
+          "phase": "PLANNING",
+          "kind": "click-failed",
+          "text": "open Livro: locator.click: Timeout 4000ms exceeded.",
+          "shot": "friction-D-1.png"
+        },
+        {
+          "round": 13,
+          "phase": "PLANNING",
+          "kind": "click-failed",
+          "text": "Diplomacia tab: locator.waitFor: Timeout 4000ms exceeded.",
+          "shot": "friction-D-2.png"
+        },
+        {
+          "round": 13,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "1 peça(s) sem ordem: Explorador ×1."
+        },
+        {
+          "round": 14,
+          "phase": "PLANNING",
+          "kind": "click-failed",
+          "text": "open Livro: locator.click: Timeout 4000ms exceeded.",
+          "shot": "friction-D-3.png"
+        },
+        {
+          "round": 14,
+          "phase": "PLANNING",
+          "kind": "click-failed",
+          "text": "Diplomacia tab: locator.waitFor: Timeout 4000ms exceeded.",
+          "shot": "friction-D-4.png"
+        },
+        {
+          "round": 14,
+          "phase": "PLANNING",
+          "kind": "ready-check",
+          "text": "1 peça(s) sem ordem: Explorador ×1."
+        },
+        {
+          "round": 18,
+          "phase": "PLANNING",
+          "kind": "reform-unavailable",
+          "text": "last round of the Era: no government open for me (1 unlocked)",
+          "shot": "friction-D-5.png"
+        }
+      ],
+      "planningMsAvg": 21207,
       "rounds": [
         {
           "round": 1,
           "era": "FOUNDATION",
           "resources": {
             "food": 15,
-            "materials": 12,
-            "wealth": 12,
-            "knowledge": 8,
+            "materials": 14,
+            "wealth": 10,
+            "knowledge": 10,
             "influence": 8
           },
           "cities": [
@@ -390,6 +2958,7 @@
               "pop": 2
             }
           ],
+          "sharedBorder": false,
           "research": 0,
           "contacts": 0,
           "wars": 0,
@@ -406,8 +2975,804 @@
             "LEGACY": 0
           },
           "treaties": 0,
-          "planningMs": 26378,
+          "planningMs": 24960,
           "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 2,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 11,
+            "materials": 17,
+            "wealth": 11,
+            "knowledge": 10,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 1,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 1,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 22959,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 3,
+          "era": "FOUNDATION",
+          "resources": {
+            "food": 4,
+            "materials": 13,
+            "wealth": 11,
+            "knowledge": 10,
+            "influence": 8
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 3,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 3,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 2,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 22111,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 4,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 4,
+            "materials": 13,
+            "wealth": 11,
+            "knowledge": 10,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 3,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 3,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 1,
+            "EXPEDITION": 3,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 23616,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 5,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 5,
+            "materials": 13,
+            "wealth": 13,
+            "knowledge": 8,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 4,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 4,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 23040,
+          "ordersUsed": 5,
+          "confirmed": false
+        },
+        {
+          "round": 6,
+          "era": "EXPANSION",
+          "resources": {
+            "food": 9,
+            "materials": 13,
+            "wealth": 15,
+            "knowledge": 5,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 6,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 5,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 3,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 24376,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 7,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 9,
+            "materials": 13,
+            "wealth": 15,
+            "knowledge": 5,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 6,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 5,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 22471,
+          "ordersUsed": 4,
+          "confirmed": false
+        },
+        {
+          "round": 8,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 1,
+            "materials": 10,
+            "wealth": 15,
+            "knowledge": 3,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 7,
+          "contacts": 0,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 7,
+          "resonanceSlots": 2,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 26233,
+          "ordersUsed": 4,
+          "confirmed": false
+        },
+        {
+          "round": 9,
+          "era": "CONSOLIDATION",
+          "resources": {
+            "food": 1,
+            "materials": 6,
+            "wealth": 14,
+            "knowledge": 1,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 9,
+          "contacts": 1,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 9,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19456,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 10,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 1,
+            "materials": 6,
+            "wealth": 15,
+            "knowledge": 1,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 9,
+          "contacts": 1,
+          "wars": 0,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 9,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 2,
+            "ADVANCE": 0,
+            "INFLUENCE": 1,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 12922,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 11,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 2,
+            "materials": 7,
+            "wealth": 15,
+            "knowledge": 2,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 2
+            }
+          ],
+          "sharedBorder": false,
+          "research": 9,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 0,
+          "worldBattles": 0,
+          "prestige": 10,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 2,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 22313,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 12,
+          "era": "CIVILIZATION",
+          "resources": {
+            "food": 1,
+            "materials": 12,
+            "wealth": 15,
+            "knowledge": 1,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 11,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 2,
+          "worldBattles": 0,
+          "prestige": 12,
+          "resonanceSlots": 1,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 2,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 1,
+          "planningMs": 24306,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 13,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 6,
+            "materials": 13,
+            "wealth": 15,
+            "knowledge": 2,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 11,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 2,
+          "worldBattles": 0,
+          "prestige": 13,
+          "resonanceSlots": 1,
+          "threatsVisible": 1,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 1,
+          "planningMs": 48011,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 14,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 2,
+            "materials": 13,
+            "wealth": 15,
+            "knowledge": 3,
+            "influence": 10
+          },
+          "cities": [
+            {
+              "n": 1,
+              "pop": 4
+            },
+            {
+              "n": 1,
+              "pop": 3
+            }
+          ],
+          "sharedBorder": false,
+          "research": 11,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 0,
+          "prestige": 13,
+          "resonanceSlots": 1,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 1,
+          "planningMs": 31554,
+          "ordersUsed": 3,
+          "confirmed": false
+        },
+        {
+          "round": 15,
+          "era": "EMPIRES",
+          "resources": {
+            "food": 0,
+            "materials": 12,
+            "wealth": 15,
+            "knowledge": 2,
+            "influence": 4
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            },
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 12,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 0,
+          "prestige": 13,
+          "resonanceSlots": 2,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 12548,
+          "ordersUsed": 5,
+          "confirmed": true
+        },
+        {
+          "round": 16,
+          "era": "POWERS",
+          "resources": {
+            "food": 0,
+            "materials": 12,
+            "wealth": 15,
+            "knowledge": 2,
+            "influence": 4
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            },
+            {
+              "n": 1,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 12,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 0,
+          "prestige": 13,
+          "resonanceSlots": 2,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 0,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 22995,
+          "ordersUsed": 5,
+          "confirmed": false
+        },
+        {
+          "round": 17,
+          "era": "POWERS",
+          "resources": {
+            "food": 0,
+            "materials": 12,
+            "wealth": 15,
+            "knowledge": 2,
+            "influence": 4
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            },
+            {
+              "n": 2,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 13,
+          "contacts": 1,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 0,
+          "prestige": 14,
+          "resonanceSlots": 3,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 8411,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 18,
+          "era": "POWERS",
+          "resources": {
+            "food": 0,
+            "materials": 14,
+            "wealth": 13,
+            "knowledge": 1,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            },
+            {
+              "n": 2,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 14,
+          "contacts": 2,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 0,
+          "prestige": 15,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 0,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 19704,
+          "ordersUsed": 4,
+          "confirmed": true
+        },
+        {
+          "round": 19,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 14,
+            "wealth": 13,
+            "knowledge": 1,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            },
+            {
+              "n": 2,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 14,
+          "contacts": 2,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 0,
+          "prestige": 15,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 8208,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 20,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 17,
+            "wealth": 14,
+            "knowledge": 2,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            },
+            {
+              "n": 2,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 14,
+          "contacts": 2,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 0,
+          "prestige": 15,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 1,
+            "ADVANCE": 0,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 9302,
+          "ordersUsed": 3,
+          "confirmed": true
+        },
+        {
+          "round": 21,
+          "era": "ASCENSION",
+          "resources": {
+            "food": 0,
+            "materials": 18,
+            "wealth": 15,
+            "knowledge": 3,
+            "influence": 6
+          },
+          "cities": [
+            {
+              "n": 2,
+              "pop": 5
+            },
+            {
+              "n": 2,
+              "pop": 4
+            }
+          ],
+          "sharedBorder": false,
+          "research": 14,
+          "contacts": 2,
+          "wars": 1,
+          "battles": 3,
+          "worldBattles": 0,
+          "prestige": 16,
+          "resonanceSlots": 4,
+          "threatsVisible": 0,
+          "orders": {
+            "CITY": 2,
+            "EXPEDITION": 0,
+            "ADVANCE": 1,
+            "INFLUENCE": 0,
+            "LEGACY": 0
+          },
+          "treaties": 0,
+          "planningMs": 15848,
+          "ordersUsed": 3,
           "confirmed": true
         }
       ]

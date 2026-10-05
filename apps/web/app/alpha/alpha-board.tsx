@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ALPHA_CARDS, ALPHA_ERA_NUMERALS, AlphaEraSchema, CIVILIZATIONS, ORDER_NAMES, AlphaOrderTypeSchema, WORLD_PULSE_CARDS, civilizationKit, stackCategory, stackViewVerdict } from '@aoh/game-domain';
 import { emblemArt, sealArt, seatColor } from './table-art';
 import type { AlphaRoomView } from '@aoh/server/alpha';
@@ -52,6 +52,9 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const tile=game.view.visibleTerritory.find(t=>t.id===selected);
   const ownUnits=game.units.filter(u=>u.ownerId===room.selfPlayerId);
   const chosen=ownUnits.filter(u=>units.includes(u.id));
+  // A piece that no longer exists (Pioneiro that founded a city, a casualty) must not stay in the selection: its id would be sent with the next order and the server would refuse the whole order.
+  const liveKey=ownUnits.map(u=>u.id).join();
+  useEffect(()=>{setUnits(current=>{const live=current.filter(id=>ownUnits.some(u=>u.id===id));return live.length===current.length?current:live;});},[liveKey]);
   /** Same arithmetic as the server, computed from the projected stack view before any command is sent. */
   const moveEnd=path.at(-1)??null,moveBlock=moveEnd?stackViewVerdict(game.stacks,chosen.map(u=>stackCategory(game.rules.units[u.kind]!)),moveEnd):null;
   /** Order targets come from the server's per-piece options, so every highlighted hex is one the validators accept. */

@@ -42,6 +42,10 @@ const RESEARCH_PREF = {
   builder: ['web-masonry', 'web-agriculture', 'web-engineering', 'web-codes', 'web-urbanism'],
 };
 
+const closeLivro = async seat => {
+  // 'Voltar ao mapa' is inside the Livro; the strip's Livro toggle can sit under an error banner
+  if (await seat.page.getByRole('dialog', { name: 'Livro' }).isVisible().catch(() => false)) await seat.click(seat.page.getByRole('dialog', { name: 'Livro' }).getByRole('button', { name: 'Voltar ao mapa' }), 'close Livro', { optional: true, timeout: 1500 });
+};
 class Seat {
   constructor(index, browser) { this.index = index; this.label = `Jogador ${LETTERS[index]}`; this.persona = PERSONAS[index % PERSONAS.length]; this.browser = browser; this.room = null; this.friction = []; this.actions = 0; this.rounds = new Map(); this.shots = new Set(); }
   get game() { return this.room?.game ?? null; }
@@ -95,7 +99,7 @@ class Seat {
     if (!await banner.isVisible().catch(() => false)) return false;
     this.conflicts = (this.conflicts ?? 0) + 1;
     this.note('version-conflict', 'banner "Estado atualizado por outra ação" after an action; retrying like a person would');
-    await this.page.locator('[role=alert] button, .alpha-error button, .alpha-banner button').first().click({ timeout: 800 }).catch(() => {});
+    await this.page.getByRole('button', { name: 'Fechar mensagem' }).click({ timeout: 800 }).catch(() => {});
     await nap(400);
     return true;
   }
@@ -136,7 +140,7 @@ async function dismissOverlays(seat) {
     await seat.click(seat.page.locator('.alpha-livro-tabs').getByRole('button', { name: 'Cartas & Projetos' }), 'cards tab');
     await seat.click(seat.page.getByRole('button', { name: seat.persona === 'scholar' || seat.persona === 'builder' ? 'Receber 1 Prestígio' : 'Receber recurso' }), 'world choice');
     await seat.waitState(x => !x.worldDecisionPending, 3000);
-    await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'close Livro', { optional: true });
+    await closeLivro(seat);
   }
   // Pending parchments (Pulso response, Repercussão, Encontro)
   for (let guard = 0; guard < 6; guard++) {
@@ -345,7 +349,7 @@ async function diplomacyTurn(seat) {
       await seat.click(relation.getByRole('button', { name: /Enviar proposta/ }), 'send treaty proposal');
     }
   }
-  await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'close Livro', { optional: true });
+  await closeLivro(seat);
   await seat.click(seat.page.keyboard ? seat.page.locator('body') : seat.page.locator('body'), 'noop', { optional: true });
 }
 
@@ -355,15 +359,14 @@ async function reformTurn(seat) {
   if (!info?.window || info.planned || ordersLeft(seat) < 1) return;
   const option = info.options.find(o => o.government !== info.current.government && o.unlocked && o.block === null);
   if (!option) { seat.note('reform-unavailable', `last round of the Era: no government open for me (${info.options.filter(o => o.unlocked).length} unlocked)`); return; }
-  await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'open Livro');
-  await seat.click(seat.page.locator('.alpha-livro-tabs').getByRole('button', { name: 'Conselho' }), 'Conselho tab', { optional: true });
-  await seat.click(seat.page.locator('.alpha-government summary'), 'open reform list');
+  // the picker lives in the city card of the inspector (Cidade tab), not in the Livro: a person has to know to look there
+  await selectCity(seat, mine(seat)[0]);
+  await seat.click(seat.page.locator('.alpha-inspector .alpha-government summary'), 'open reform list');
   await seat.shot('government-reform-list');
   const before = seat.game.government.planned;
-  await seat.click(seat.page.locator('.alpha-government li').filter({ hasText: option.name }).getByRole('button'), `reserve reform ${option.name}`);
+  await seat.click(seat.page.locator('.alpha-inspector .alpha-government li').filter({ hasText: option.name }).getByRole('button'), `reserve reform ${option.name}`);
   await seat.waitState(x => x.government.planned !== before, 3000);
   await seat.shot('government-reform-reserved');
-  await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'close Livro', { optional: true });
 }
 
 async function confirmPlanning(seat) {
@@ -474,13 +477,32 @@ async function planRound(seat) {
 function observe(seat) {
   const g = seat.game; if (!g) return;
   const round = g.view.round, cities = mine(seat);
+  // shared border: two adjacent claimed hexes with different owners, as far as this seat can see
+  const owned = new Map(g.view.visibleTerritory.filter(t => t.ownerId).map(t => [t.id, t.ownerId]));
+  let sharedBorder = false;
+  for (const [id, owner] of owned) { const [q, r] = id.split(',').map(Number); for (const [dq, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]]) { const other = owned.get(`${q + dq},${r + dr}`); if (other && other !== owner) sharedBorder = true; } }
   const rec = seat.rounds.get(round) ?? {};
   Object.assign(rec, {
     round, era: g.self.era, resources: g.view.player.resources ?? g.self.resources, cities: cities.map(c => ({ n: levelNo(g.cityStates?.find(s => s.cityId === c.id)?.level ?? 'OUTPOST'), pop: c.population })),
-    research: g.self.research.length, contacts: g.self.contacts.length, wars: g.wars.length, battles: g.battles.filter(b => b.attackerId !== 'world' && b.defenderId !== 'world').length, worldBattles: g.battles.filter(b => b.attackerId === 'world' || b.defenderId === 'world').length, prestige: g.self.prestige,
+    sharedBorder, research: g.self.research.length, contacts: g.self.contacts.length, wars: g.wars.length, battles: g.battles.filter(b => b.attackerId !== 'world' && b.defenderId !== 'world').length, worldBattles: g.battles.filter(b => b.attackerId === 'world' || b.defenderId === 'world').length, prestige: g.self.prestige,
     resonanceSlots: g.self.resonance?.slots?.length ?? 0, threatsVisible: (g.threats ?? []).length, orders: g.actions.byOrder, treaties: g.treaties.filter(t => t.status === 'ACTIVE').length,
   });
   seat.rounds.set(round, rec);
+}
+
+/** Result card of the first player-vs-player battle: Livro > Crônicas, as a person reads it after the round. */
+async function battleReportShot(seat) {
+  const g = seat.game;
+  if (!g || g.phase !== 'PLANNING' || seat.shots.has('combat-report-pvp')) return;
+  const pvp = g.battles.filter(b => b.attackerId !== 'world' && b.defenderId !== 'world' && (b.attackerId === seat.room.selfPlayerId || b.defenderId === seat.room.selfPlayerId));
+  if (!pvp.length) return;
+  await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'open Livro');
+  await seat.click(seat.page.locator('.alpha-livro-tabs').getByRole('button', { name: 'Crônicas' }), 'Crônicas tab');
+  const battle = seat.page.locator('.alpha-battle').first();
+  await battle.evaluate(el => { el.closest('details')?.setAttribute('open', ''); el.scrollIntoView({ block: 'start' }); }).catch(() => {});
+  await nap(400);
+  await seat.shot('combat-report-pvp');
+  await closeLivro(seat);
 }
 
 async function milestoneShots(seat) {
@@ -501,15 +523,17 @@ async function seatLoop(seat, state) {
   let lastKey = '';
   const idle = { since: Date.now() };
   while (!state.stop) {
+    if (seat.page.isClosed()) { seat.note('browser-closed', 'the page was closed under the driver; stopping the session'); state.stop = true; return; }
     const g = seat.game;
     if (!g) { await nap(300); continue; }
     if (g.winner) { await milestoneShots(seat); await nap(500); state.finished.add(seat.index); return; }
     observe(seat); await milestoneShots(seat);
+    await seat.conflictBanner();
     if (g.view.round > MAX_ROUNDS) { state.finished.add(seat.index); return; }
     const key = `${g.view.round}:${g.phase}:${g.self.ready}:${g.version}`;
     if (key !== lastKey) { lastKey = key; idle.since = Date.now(); }
     if (MAP_DIR && g.phase === 'PLANNING' && g.view.round >= 5 && !seat.mapShotsDone && !g.self.ready) { seat.mapShotsDone = true; await dismissOverlays(seat); await mapShots(seat, MAP_DIR); }
-    if (g.phase === 'PLANNING' && !g.self.ready) { await planRound(seat); }
+    if (g.phase === 'PLANNING' && !g.self.ready) { await battleReportShot(seat); await planRound(seat); }
     else if (g.phase === 'CONFLICTS' && !g.self.ready) {
       await seat.shot('conflict-call');
       await seat.click(seat.page.getByRole('button', { name: /Seguir para os dados/ }), 'conflict ready', { optional: true });
@@ -556,7 +580,7 @@ const g0 = seats[0].game;
 const firstRound = pred => { for (let r = 1; r <= (g0?.view.round ?? 0); r++) if (seats.some(s => pred(s.rounds.get(r)))) return r; return null; };
 const session = {
   players: N, preset: PRESET, personas: seats.map(s => s.persona), startedAt: new Date(t0).toISOString(), wallSeconds: Math.round((Date.now() - t0) / 1000), reachedRound: g0?.view.round ?? 0, winner: g0?.winner ?? null,
-  contact: { firstContactRound: firstRound(r => r && r.contacts > 0), firstTreatyRound: firstRound(r => r && r.treaties > 0), firstWarRound: firstRound(r => r && r.wars > 0), firstPlayerCombatRound: firstRound(r => r && r.battles > 0) },
+  contact: { firstContactRound: firstRound(r => r && r.contacts > 0), firstSharedBorderRound: firstRound(r => r && r.sharedBorder), firstTreatyRound: firstRound(r => r && r.treaties > 0), firstWarRound: firstRound(r => r && r.wars > 0), firstPlayerCombatRound: firstRound(r => r && r.battles > 0) },
   perSeat: seats.map(s => ({ label: s.label, persona: s.persona, uiActions: s.actions, frictionCount: s.friction.length, friction: s.friction, planningMsAvg: Math.round([...s.rounds.values()].map(r => r.planningMs ?? 0).filter(Boolean).reduce((a, b, _, l) => a + b / l.length, 0)), rounds: [...s.rounds.values()].sort((a, b) => (a.round ?? 0) - (b.round ?? 0)) })),
 };
 writeFileSync(`${OUT}/session.json`, JSON.stringify(session, null, 2));

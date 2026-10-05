@@ -14,9 +14,9 @@
     "territoryHeightShare": 0.828,
     "stage": [
       0,
-      68,
-      968,
-      610
+      0,
+      1366,
+      768
     ],
     "scrollsGlobally": false
   },
@@ -35,9 +35,9 @@
     "territoryHeightShare": 0.828,
     "stage": [
       0,
-      68,
+      0,
       1366,
-      610
+      768
     ],
     "scrollsGlobally": false
   },
@@ -56,9 +56,9 @@
     "territoryHeightShare": 0.859,
     "stage": [
       0,
-      68,
-      1042,
-      742
+      0,
+      1440,
+      900
     ],
     "scrollsGlobally": false
   },
@@ -77,9 +77,9 @@
     "territoryHeightShare": 0.859,
     "stage": [
       0,
-      68,
+      0,
       1440,
-      742
+      900
     ],
     "scrollsGlobally": false
   },
@@ -98,9 +98,9 @@
     "territoryHeightShare": 0.813,
     "stage": [
       0,
-      68,
-      882,
-      562
+      0,
+      1280,
+      720
     ],
     "scrollsGlobally": false
   },
@@ -119,9 +119,9 @@
     "territoryHeightShare": 0.813,
     "stage": [
       0,
-      68,
+      0,
       1280,
-      562
+      720
     ],
     "scrollsGlobally": false
   }

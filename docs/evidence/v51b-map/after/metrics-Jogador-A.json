@@ -5,18 +5,18 @@
       768
     ],
     "inspector": "open",
-    "hexes": 34,
+    "hexes": 39,
     "offscreen": 0,
     "covered": 0,
-    "hexWidthPx": 83,
-    "territoryBBoxShare": 0.428,
-    "territoryWidthShare": 0.517,
-    "territoryHeightShare": 0.828,
+    "hexWidthPx": 73,
+    "territoryBBoxShare": 0.378,
+    "territoryWidthShare": 0.459,
+    "territoryHeightShare": 0.824,
     "stage": [
       0,
-      68,
-      968,
-      610
+      0,
+      1366,
+      768
     ],
     "scrollsGlobally": false
   },
@@ -26,18 +26,18 @@
       768
     ],
     "inspector": "folded",
-    "hexes": 34,
+    "hexes": 39,
     "offscreen": 0,
     "covered": 0,
-    "hexWidthPx": 83,
-    "territoryBBoxShare": 0.428,
-    "territoryWidthShare": 0.517,
-    "territoryHeightShare": 0.828,
+    "hexWidthPx": 73,
+    "territoryBBoxShare": 0.378,
+    "territoryWidthShare": 0.459,
+    "territoryHeightShare": 0.824,
     "stage": [
       0,
-      68,
+      0,
       1366,
-      610
+      768
     ],
     "scrollsGlobally": false
   },
@@ -47,18 +47,18 @@
       900
     ],
     "inspector": "open",
-    "hexes": 34,
+    "hexes": 39,
     "offscreen": 0,
     "covered": 0,
-    "hexWidthPx": 101,
-    "territoryBBoxShare": 0.513,
-    "territoryWidthShare": 0.597,
-    "territoryHeightShare": 0.859,
+    "hexWidthPx": 89,
+    "territoryBBoxShare": 0.453,
+    "territoryWidthShare": 0.53,
+    "territoryHeightShare": 0.855,
     "stage": [
       0,
-      68,
-      1042,
-      742
+      0,
+      1440,
+      900
     ],
     "scrollsGlobally": false
   },
@@ -68,18 +68,18 @@
       900
     ],
     "inspector": "folded",
-    "hexes": 34,
+    "hexes": 39,
     "offscreen": 0,
     "covered": 0,
-    "hexWidthPx": 101,
-    "territoryBBoxShare": 0.513,
-    "territoryWidthShare": 0.597,
-    "territoryHeightShare": 0.859,
+    "hexWidthPx": 89,
+    "territoryBBoxShare": 0.453,
+    "territoryWidthShare": 0.53,
+    "territoryHeightShare": 0.855,
     "stage": [
       0,
-      68,
+      0,
       1440,
-      742
+      900
     ],
     "scrollsGlobally": false
   },
@@ -89,18 +89,18 @@
       720
     ],
     "inspector": "open",
-    "hexes": 34,
+    "hexes": 39,
     "offscreen": 0,
     "covered": 0,
-    "hexWidthPx": 76,
-    "territoryBBoxShare": 0.414,
-    "territoryWidthShare": 0.508,
-    "territoryHeightShare": 0.813,
+    "hexWidthPx": 68,
+    "territoryBBoxShare": 0.366,
+    "territoryWidthShare": 0.451,
+    "territoryHeightShare": 0.81,
     "stage": [
       0,
-      68,
-      882,
-      562
+      0,
+      1280,
+      720
     ],
     "scrollsGlobally": false
   },
@@ -110,18 +110,18 @@
       720
     ],
     "inspector": "folded",
-    "hexes": 34,
+    "hexes": 39,
     "offscreen": 0,
     "covered": 0,
-    "hexWidthPx": 76,
-    "territoryBBoxShare": 0.414,
-    "territoryWidthShare": 0.508,
-    "territoryHeightShare": 0.813,
+    "hexWidthPx": 68,
+    "territoryBBoxShare": 0.366,
+    "territoryWidthShare": 0.451,
+    "territoryHeightShare": 0.81,
     "stage": [
       0,
-      68,
+      0,
       1280,
-      562
+      720
     ],
     "scrollsGlobally": false
   }

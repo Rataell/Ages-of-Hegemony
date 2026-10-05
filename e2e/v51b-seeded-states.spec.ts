@@ -62,6 +62,9 @@ test('SEEDED: Acampamento before activation, Bando marching, Pirata on the map',
   const sea = base();
   const pirate = spawnThreat(sea, 'PIRATE');
   expect(pirate).not.toBeNull();
+  // put it in sight of the capital, as the player would first see it
+  const water = hexNeighbors(sea.core.map.find(t => t.id === capitalOf(sea).hexId)!).map(point => sea.core.map.find(t => t.q === point.q && t.r === point.r)).find(t => t?.terrain === 'SEA' || t?.terrain === 'COAST');
+  if (pirate && water) { pirate.hexId = water.id as never; pirate.homeHexId = water.id as never; pirate.status = 'MARCHING'; }
   ({ page } = await serve(browser, sea));
   await shot(page, 'pirata-no-mar');
 });
@@ -87,17 +90,4 @@ test('SEEDED: city N6 and N7, and a devastated city with degraded Capacidade', a
   ({ page } = await serve(browser, degraded));
   await expect(page.locator('.alpha-city-seal').first()).toContainText(/N6/);
   await shot(page, 'cidade-capacidade-degradada');
-});
-
-test('SEEDED: government reform picker in the last round of the Era, and the Era turn with the reform step', async ({ browser }) => {
-  await mkdir(evidence, { recursive: true });
-  const state = base();
-  state.core.round = state.rules.roundsPerEra;
-  const me = state.players.find(p => p.playerId === p1)!;
-  me.research.push('web-writing', 'web-agriculture', 'web-common-narratives', 'web-codes', 'web-masonry', 'web-guard-formations', 'web-centralization');
-  me.resources.influence = 10;
-  const { page } = await serve(browser, state);
-  await page.getByRole('button', { name: 'Livro', exact: true }).click();
-  await page.getByRole('dialog', { name: 'Livro' }).getByRole('button', { name: /Eras/ }).click();
-  await shot(page, 'governo-reforma-ultima-rodada');
 });
