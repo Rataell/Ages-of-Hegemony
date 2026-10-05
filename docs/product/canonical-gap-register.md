@@ -119,3 +119,25 @@ Ver `docs/evidence/v51b-playtest/REPORT.md`. Relacionadas a §26: item 2 (N7 rar
 ### Verificação final (2026-10-05)
 
 lint, typecheck, 914 testes (79 arquivos), build web e 10 e2e: verdes.
+
+### Classificação para playtest humano (2026-10-05)
+
+Classes: **A** bug/correção obrigatória antes do playtest · **B** divergência aceitável temporariamente · **C** decisão de design que exige validação humana · **D** conteúdo ausente que impede testar parte importante.
+
+| ID | Classe | Impacto | Risco | Recomendação | Bloqueia playtest? |
+|---|---|---|---|---|---|
+| V51B-01 | B | o jogador não escolhe quais peças morrem; perde agência tática, não quebra a partida | baixo a médio (reclamação em combates com Cerco misturado) | manter; observar na sessão; depois um comando de preferência de baixas | não |
+| V51B-02 | B | só afeta Frota Grau III (captura de Mercante inexistente) | baixo | manter; Mercante entra com o conteúdo naval | não |
+| V51B-03 | C | a reforma de governo precisa ser reservada uma rodada antes da Virada | médio (UX: jogador pode não entender a reserva) | validar com humanos se a reserva é clara; não mexer antes | não |
+| V51B-04 | C | níveis de Pirata e Ancoradouro não autorados no cânone; pirata aparece pouco | baixo a médio | validar se Piratas importam em mapas com mar; autorar depois | não |
+| V51B-05 | B | linha de alvo do Bando é estimativa do cliente e pode enganar a defesa | médio (decisão de defesa com informação imprecisa) | expor o alvo real de Bandos visíveis na projeção (público pela regra) antes de medir defesa; marcado "rumo provável" até lá | não |
+| V51B-06 | B | 6 das 18 civilizações não são jogáveis (em autoria) | baixo | manter | não |
+| V51B-07 | B | erratum já aplicado (teto de população); documento canônico registra | baixo | manter | não |
+| V51B-08 | B | capturas reais de combate e cidade degradada ausentes | baixo | resolvido na rodada de UI desta fase (natural × semeado) | não |
+| V51B-09 | C | tempo humano por fase só estimado | médio | instrumentação dev-only desta fase mede; confirmar duração de 35 rodadas | não |
+| V51B-10 (novo) | C/D | Legado usa o Grande Projeto antigo (1 passo, ~11 recursos, efeito +2/rodada), não as Obras de Legado do §11; Legado é situacional por Era IV + distrito | médio (efeito mais forte que o cânone; jogador não consegue Legado antes da Era IV) | decisão D-3: manter como Obra do Alpha ou implementar Obras canônicas antes de avaliar Legado | não, mas Legado não é avaliável |
+| V51B-11 (novo) | C | I-5/I-20 fazem o Acampamento virar Bando no próximo Virada de Era; a recompensa canônica por destruir o Acampamento fica praticamente inalcançável (0 de 27 partidas) | alto para a leitura de Bandos | decisão D-1: manter, Acampamento persistente que envia Bandos, ou Acampamento novo não ativa no mesmo turno | não |
+| V51B-12 (novo) | C | combate jogador × jogador nunca ocorreu naturalmente nas 45 partidas de bots (bots sem exército); a fronteira compartilhada só aparece em 6 jogadores | alto para o critério central de contato | a primeira sessão humana deve forçar contato, diplomacia e guerra pela UI; ver investigação | não |
+| V51B-13 (novo) | C | I-2 (Guarda do atacante só em Manter/Linha III) desloca 3v3 Infantaria de 14/57/29 para 8/53/39 | médio | decisão D-2 | não |
+
+Evidência e causas: `docs/evidence/v51b-investigation/` (tabelas, variantes e Graus por situação).

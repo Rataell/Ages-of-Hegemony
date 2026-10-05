@@ -1,0 +1,236 @@
+[
+ {
+  "name": "Guarda · Muro: 3 Guarda defendem a cidade (Muralha) contra 4 Infantaria I (Assalto × Manter)",
+  "row": [
+   {
+    "A": 1,
+    "tie": 18,
+    "D": 81,
+    "decisive": 29,
+    "meanDelta": -3.24
+   },
+   {
+    "A": 1,
+    "tie": 17,
+    "D": 82,
+    "decisive": 27,
+    "meanDelta": -3.2
+   },
+   {
+    "A": 0,
+    "tie": 2,
+    "D": 99,
+    "decisive": 80,
+    "meanDelta": -6.17
+   }
+  ]
+ },
+ {
+  "name": "Guarda · Muro II: 3 Guarda defendem em Colina (campo aberto) contra 3 Infantaria I",
+  "row": [
+   {
+    "A": 9,
+    "tie": 53,
+    "D": 38,
+    "decisive": 0,
+    "meanDelta": -0.84
+   },
+   {
+    "A": 0,
+    "tie": 9,
+    "D": 91,
+    "decisive": 37,
+    "meanDelta": -3.81
+   },
+   {
+    "A": 0,
+    "tie": 9,
+    "D": 90,
+    "decisive": 36,
+    "meanDelta": -3.8
+   }
+  ]
+ },
+ {
+  "name": "Cavalaria · Flanco: 3 Cavalaria atacam 3 Infantaria I na Planície",
+  "row": [
+   {
+    "A": 75,
+    "tie": 25,
+    "D": 0,
+    "decisive": 13,
+    "meanDelta": 2.7
+   },
+   {
+    "A": 76,
+    "tie": 24,
+    "D": 0,
+    "decisive": 13,
+    "meanDelta": 2.66
+   },
+   {
+    "A": 82,
+    "tie": 18,
+    "D": 0,
+    "decisive": 24,
+    "meanDelta": 3.17
+   }
+  ]
+ },
+ {
+  "name": "Cavalaria · Flanco III: 3 Cavalaria atacam 3 Infantaria I na Colina",
+  "row": [
+   {
+    "A": 63,
+    "tie": 37,
+    "D": 0,
+    "decisive": 8,
+    "meanDelta": 2.16
+   },
+   {
+    "A": 62,
+    "tie": 38,
+    "D": 0,
+    "decisive": 9,
+    "meanDelta": 2.18
+   },
+   {
+    "A": 82,
+    "tie": 18,
+    "D": 0,
+    "decisive": 25,
+    "meanDelta": 3.24
+   }
+  ]
+ },
+ {
+  "name": "Cerco · Brecha: 3 Infantaria + 2 Cerco atacam 2 Guarda I na Fortaleza",
+  "row": [
+   {
+    "A": 96,
+    "tie": 4,
+    "D": 0,
+    "decisive": 53,
+    "meanDelta": 4.89
+   },
+   {
+    "A": 96,
+    "tie": 4,
+    "D": 0,
+    "decisive": 59,
+    "meanDelta": 5.15
+   },
+   {
+    "A": 97,
+    "tie": 3,
+    "D": 0,
+    "decisive": 62,
+    "meanDelta": 5.24
+   }
+  ]
+ },
+ {
+  "name": "Cerco · Brecha III: 3 Infantaria + 2 Cerco atacam 2 Guarda I na Muralha de Pedra",
+  "row": [
+   {
+    "A": 100,
+    "tie": 0,
+    "D": 0,
+    "decisive": 65,
+    "meanDelta": 5.58
+   },
+   {
+    "A": 99,
+    "tie": 1,
+    "D": 0,
+    "decisive": 71,
+    "meanDelta": 5.87
+   },
+   {
+    "A": 100,
+    "tie": 0,
+    "D": 0,
+    "decisive": 93,
+    "meanDelta": 7.26
+   }
+  ]
+ },
+ {
+  "name": "Arqueiros · Salva: 3 Infantaria + 2 Arqueiros atacam 3 Guarda I na Muralha",
+  "row": [
+   {
+    "A": 21,
+    "tie": 48,
+    "D": 31,
+    "decisive": 3,
+    "meanDelta": -0.19
+   },
+   {
+    "A": 27,
+    "tie": 48,
+    "D": 25,
+    "decisive": 4,
+    "meanDelta": 0.16
+   },
+   {
+    "A": 32,
+    "tie": 44,
+    "D": 24,
+    "decisive": 5,
+    "meanDelta": 0.4
+   }
+  ]
+ },
+ {
+  "name": "Infantaria · Linha: 3 Infantaria atacam 3 Infantaria I (Manter)",
+  "row": [
+   {
+    "A": 8,
+    "tie": 54,
+    "D": 37,
+    "decisive": 0,
+    "meanDelta": -0.83
+   },
+   {
+    "A": 9,
+    "tie": 53,
+    "D": 38,
+    "decisive": 0,
+    "meanDelta": -0.83
+   },
+   {
+    "A": 12,
+    "tie": 63,
+    "D": 25,
+    "decisive": 0,
+    "meanDelta": -0.46
+   }
+  ]
+ },
+ {
+  "name": "Infantaria · Linha: 3 Infantaria defendem contra 3 Infantaria I (Assalto)",
+  "row": [
+   {
+    "A": 9,
+    "tie": 52,
+    "D": 38,
+    "decisive": 0,
+    "meanDelta": -0.83
+   },
+   {
+    "A": 10,
+    "tie": 52,
+    "D": 38,
+    "decisive": 0,
+    "meanDelta": -0.81
+   },
+   {
+    "A": 9,
+    "tie": 53,
+    "D": 37,
+    "decisive": 0,
+    "meanDelta": -0.82
+   }
+  ]
+ }
+]
