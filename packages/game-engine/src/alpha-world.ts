@@ -75,7 +75,7 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   const peoples=pick([...land].sort((a,b)=>reach(a).contest-reach(b).contest||reach(a).near-reach(b).near||a.id.localeCompare(b.id)),3,[]);
   state.independents=peoples.map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));
   // The two opening Acampamentos obey the same site rule as every later one (canon §21b: unclaimed, 3–5 hexes from a city, out of sight), not "as far as possible" (E-2).
-  state.threats=[];for(let index=0;index<2;index++)spawnThreat(state,'CAMP');state.telemetry.threatsSpawned=0;
+  state.threats=[];for(let index=0;index<2;index++)spawnThreat(state,'CAMP');state.threats.forEach(threat=>{threat.fresh=false;});state.telemetry.threatsSpawned=0;
   applyCivilizationHeritage(state);initializeAlphaCards(state);generateDiscoveries(state);return AlphaStateSchema.parse(state);
 }
 export function visibleHexIds(state:AlphaState,actor:PlayerId):Set<string> {

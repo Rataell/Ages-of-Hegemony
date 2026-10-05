@@ -18,6 +18,8 @@ export const ThreatSchema = z.strictObject({
   status: ThreatStatusSchema, composition: ThreatCompositionSchema, createdRound: N, lastActedRound: N,
   /** The reward of destroying a camp is paid once. */
   rewardPaid: z.boolean().default(false),
+  /** RECÉM-SURGIDO (D-1): a camp stays vulnerable until one full Planning round has passed; it cannot launch a Bando while fresh. */
+  fresh: z.boolean().default(false),
 });
 export type Threat = z.infer<typeof ThreatSchema>;
 

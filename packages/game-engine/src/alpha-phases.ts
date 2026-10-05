@@ -12,7 +12,7 @@ import { maintainCards, scoreAmbitions } from './alpha-cards.js';
 import { settleCargo, suspendBlockadedRoutes } from './alpha-naval.js';
 import { establishRoute, maintainTrade, manageDiplomacy, resolveInfluence, settleTreaties } from './alpha-diplomacy.js';
 import { exploreRegion, refreshKnowledge, visibleHexIds } from './alpha-world.js';
-import { activateThreats, applyThreatCommand, suspendThreatenedRoutes } from './alpha-threats.js';
+import { activateThreats, applyThreatCommand, matureThreats, suspendThreatenedRoutes } from './alpha-threats.js';
 import { addPendingChoice } from './alpha-resonance.js';
 import { validateMilitaryOrder } from './alpha-military.js';
 import { resolveBattle } from './alpha-combat.js';
@@ -357,6 +357,7 @@ export function advanceAfterReady(state: AlphaState): void {
   for (let guard = 0; guard < 16; guard++) {
     switch (state.phase) {
       case 'PLANNING': {
+        matureThreats(state);
         snapshotOrders(state);
         state.players.forEach(player => { player.ready = false; });
         state.cities.forEach(city => { city.urbanActionsUsed = 0; });

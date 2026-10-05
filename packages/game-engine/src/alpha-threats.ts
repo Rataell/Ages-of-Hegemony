@@ -68,7 +68,7 @@ function sitesFor(state: AlphaState, kind: ThreatKind, within?: readonly string[
 function newThreat(state: AlphaState, kind: ThreatKind, tile: HexTile): Threat {
   const threat: Threat = {
     id: `${kind === 'CAMP' ? 'camp' : 'pirate'}-r${state.core.round}-e${state.events.length}-n${state.threats.length + 1}`, kind, hexId: tile.id, homeHexId: tile.id, level: 1, status: 'CAMPED',
-    composition: threatComposition(kind, 1, eraIndexOf(state)), createdRound: state.core.round, lastActedRound: state.core.round, rewardPaid: false,
+    composition: threatComposition(kind, 1, eraIndexOf(state)), createdRound: state.core.round, lastActedRound: state.core.round, rewardPaid: false, fresh: true,
   };
   state.threats.push(threat); state.telemetry.threatsSpawned++;
   return threat;
@@ -121,6 +121,11 @@ export function growThreats(state: AlphaState): number {
   }
   if (grown) alphaEvent(state, 'THREATS_GREW', `${grown === 1 ? 'Uma ameaça cresceu' : `${grown} ameaças cresceram`} nas fronteiras do mundo.`, null);
   return grown;
+}
+
+/** D-1: a fresh camp becomes ACTIVE once a Planning round that began after its creation has completed. */
+export function matureThreats(state: AlphaState): void {
+  for (const threat of state.threats) if (threat.fresh && threat.createdRound < state.core.round) threat.fresh = false;
 }
 
 // ---- targeting and movement -------------------------------------------------
@@ -191,7 +196,7 @@ export function activateThreats(state: AlphaState, options: { launch: boolean })
   for (const id of state.threats.map(threat => threat.id).sort()) {
     const threat = state.threats.find(candidate => candidate.id === id);
     if (!threat) continue;
-    if (threat.status === 'CAMPED') { if (!options.launch) continue; } else if (threat.lastActedRound >= state.core.round) continue;
+    if (threat.status === 'CAMPED') { if (!options.launch || threat.fresh) continue; } else if (threat.lastActedRound >= state.core.round) continue;
     actThreat(state, threat);
   }
 }

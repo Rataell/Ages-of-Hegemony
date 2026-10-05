@@ -319,7 +319,7 @@ function migrateRaidBands(input: Record<string, unknown>): Record<string, unknow
   const existing = Array.isArray(rest.threats) ? rest.threats as unknown[] : [];
   const threats = bands.filter(band => typeof band.hexId === 'string').map((band, index) => {
     const level = (band.strength ?? 2) >= 3 ? 2 : 1;
-    return { id: `camp-${band.id ?? index + 1}`, kind: 'CAMP', hexId: band.hexId, homeHexId: band.hexId, level, status: 'CAMPED', composition: threatComposition('CAMP', level, 0), createdRound: 0, lastActedRound: round, rewardPaid: false };
+    return { id: `camp-${band.id ?? index + 1}`, kind: 'CAMP', hexId: band.hexId, homeHexId: band.hexId, level, status: 'CAMPED', composition: threatComposition('CAMP', level, 0), createdRound: 0, lastActedRound: round, rewardPaid: false, fresh: false };
   });
   const events = Array.isArray(rest.events) ? rest.events as unknown[] : [];
   return { ...rest, threats: [...existing, ...threats], events: threats.length ? [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Os bandos de fronteira agora são Acampamentos com Ameaça I–III (regras V5.1b).' }] : events };

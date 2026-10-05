@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, ENCOUNTER_CARDS, PlayerIdSchema, WORLD_ID, threatComposition, threatPieceIds, type AlphaState, type Threat } from '@aoh/game-domain';
 import {
   activateThreats, applyThreatCommand, beginAlphaPlanning, createAlphaGame, growThreats, hexBlockedByThreat, hexDistance, hexNeighbors, hexId,
-  landTarget, resolveBattleWithFaces, spawnThreat, suspendThreatenedRoutes, threatCap, threatView, visibleHexIds,
+  landTarget, matureThreats, resolveBattleWithFaces, spawnThreat, suspendThreatenedRoutes, threatCap, threatView, visibleHexIds,
 } from '@aoh/game-engine';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
@@ -17,7 +17,7 @@ const capitalTile = (state: AlphaState, index = 0) => tile(state, state.core.pla
 const nbrs = (state: AlphaState, from: { q: number; r: number }) => hexNeighbors(from).map(hexId).map(id => state.core.map.find(t => t.id === id)).filter((t): t is NonNullable<typeof t> => t !== undefined);
 const land = (state: AlphaState) => state.core.map.filter(candidate => !['SEA', 'UNKNOWN', 'MOUNTAINS'].includes(candidate.terrain));
 function camp(state: AlphaState, hex: string, over: Partial<Threat> = {}): Threat {
-  const threat: Threat = { id: over.id ?? `camp-t${state.threats.length + 1}`, kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, ...over };
+  const threat: Threat = { id: over.id ?? `camp-t${state.threats.length + 1}`, kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false, ...over };
   state.threats.push(threat);
   return threat;
 }
@@ -297,5 +297,41 @@ describe('projection of threats', () => {
     expect(threatView(state, p1)).toEqual([]);
     const scout = state.units.find(unit => unit.ownerId === p1)!; scout.hexId = t.hexId as never;
     expect(threatView(state, p1).map(item => item.id)).toEqual([t.id]);
+  });
+});
+
+describe('D-1 · Acampamento RECÉM-SURGIDO', () => {
+  it('a spawned camp is fresh and cannot launch a Bando in the chain that created it', () => {
+    const state = setup();
+    const created = spawnThreat(state, 'CAMP')!;
+    expect(created.fresh).toBe(true);
+    activateThreats(state, { launch: true });
+    expect(created.status).toBe('CAMPED'); expect(created.hexId).toBe(created.homeHexId);
+    // ATIVAR AMEAÇAS right after SURGIR AMEAÇA in the same effect chain also leaves it alone.
+    applyThreatCommand(state, null, { op: 'THREAT', command: 'ACTIVATE', kind: 'LAND' });
+    expect(created.status).toBe('CAMPED');
+  });
+
+  it('stays fresh through the rest of its round and becomes ACTIVE only after one full Planning round', () => {
+    const state = setup();
+    const created = spawnThreat(state, 'CAMP')!;
+    matureThreats(state); // a Planning that was already complete when it appeared does not count
+    expect(created.fresh).toBe(true);
+    state.core.round += 1; matureThreats(state); // the next round's Planning completed
+    expect(created.fresh).toBe(false);
+    activateThreats(state, { launch: true });
+    expect(created.status).toBe('MARCHING');
+  });
+
+  it('a fresh camp keeps its place at the Era turn when a seasoned one launches', () => {
+    const state = setup(), seasoned = camp(state, origin(state, 5), { id: 'camp-old' });
+    const fresh = spawnThreat(state, 'CAMP')!;
+    activateThreats(state, { launch: true });
+    expect(seasoned.status).toBe('MARCHING'); expect(fresh.status).toBe('CAMPED');
+  });
+
+  it('opening camps are not fresh', () => {
+    const game = createAlphaGame({ gameId: 'open-camps', seed: 5, preset: 'STANDARD', players: [{ id: 'p1', name: 'A' }, { id: 'p2', name: 'B' }] });
+    expect(game.threats.every(threat => threat.fresh === false)).toBe(true);
   });
 });
