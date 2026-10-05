@@ -7,6 +7,7 @@
 //   node scripts/alpha-ui-playtest.mjs --players=2 --preset=QUICK --rounds=12 --out=docs/evidence/v51b-ui-playtest/run-2p
 //   options: --players=2|4|6  --preset=QUICK|STANDARD  --rounds=N (stop after N rounds)  --out=DIR  --headed  --reveal
 //            --personas=scholar,diplomat,...  (strategy per seat; default cycles expansionist,warrior,scholar,trader,diplomat,builder)
+//            --contact=forced  (V51B-12: every seat walks its Explorador toward the far side of the map and the warrior marches on the nearest foreign city, still through clicks only)
 //            --viewport=1366x768  --shots=natural (screenshot the first time each milestone appears)
 // Output (in --out): session.json (per-round client-observed telemetry, contact metrics, friction log), shots/*.png.
 import { chromium } from '@playwright/test';
@@ -21,6 +22,7 @@ const OUT = String(arg.get('out') ?? `docs/evidence/v51b-ui-playtest/run-${N}p`)
 const MAP_DIR = arg.get('map-shots') ? String(arg.get('map-shots')) : null;
 const [VW, VH] = String(arg.get('viewport') ?? '1366x768').split('x').map(Number);
 mkdirSync(SHOTS, { recursive: true });
+const CONTACT = arg.get('contact') === 'forced';
 const nap = ms => new Promise(r => setTimeout(r, ms));
 const LETTERS = 'ABCDEF';
 const PERSONAS = arg.get('personas') ? String(arg.get('personas')).split(',') : ['expansionist', 'warrior', 'scholar', 'trader', 'diplomat', 'builder'];
@@ -286,7 +288,13 @@ function nextIntent(seat, tried) {
   const myUnits = (g.units ?? []).filter(u => u.ownerId === me);
   const hasOrder = u => g.self.orders.some(o => ('unitId' in o && o.unitId === u.id) || ('unitIds' in o && o.unitIds.includes(u.id)));
   const wars = new Set((g.wars ?? []).flatMap(w => w).filter(id => id !== me));
-  for (const intent of PRIORITY[seat.persona]) {
+  const priority = CONTACT ? ['attack', 'march-foe', 'seek-contact', ...PRIORITY[seat.persona]] : PRIORITY[seat.persona];
+  const foreign = (g.view.visibleCities ?? []).filter(c => (c.ownerId ?? c.currentOwnerId) !== me);
+  // a person who wants to meet the other side walks across the map: the point opposite their own capital, or a foreign city once seen
+  const own = cities[0]?.hexId, [oq, or] = (own ?? '0,0').split(',').map(Number), across = `${Math.max(0, Math.min(17, 17 - oq))},${Math.max(0, Math.min(14, 14 - or))}`;
+  const goal = from => (foreign.length ? foreign.map(c => c.hexId).sort((a, b) => hexDist(a, from) - hexDist(b, from))[0] : across);
+  const closest = (u, to) => Object.keys(g.unitOptions[u.id]?.moves ?? {}).sort((a, b) => hexDist(a, to) - hexDist(b, to) || a.localeCompare(b))[0];
+  for (const intent of priority) {
     const key = intent; if (tried.has(key)) continue;
     switch (intent) {
       case 'settle': { const p = myUnits.find(u => u.kind === 'PIONEER' && !hasOrder(u) && g.unitOptions[u.id]?.settleBlock === null); if (p) return { intent, unit: p, pieceKind: 'settle' }; break; }
@@ -307,10 +315,12 @@ function nextIntent(seat, tried) {
         const want = intent === 'recruit-pioneer' ? list.find(x => x.unit === 'PIONEER') : list.find(x => x.unit === 'INFANTRY' || x.unit === 'GUARD');
         if (want && usedCity(c.id) < cap && (intent === 'recruit-pioneer' ? myUnits.filter(u => u.kind === 'PIONEER').length < 1 : myUnits.filter(u => !['EXPLORER', 'PIONEER', 'ENVOY'].includes(u.kind)).length < 4)) return { intent, city: c, kind: 'recruit', option: want };
       } break;
+      case 'seek-contact': { const u = myUnits.find(x => x.kind === 'EXPLORER' && !hasOrder(x)); const dest = u && closest(u, goal(u.hexId)); if (u && dest && dest !== u.hexId) return { intent, unit: { ...u, dest }, pieceKind: 'move' }; break; }
+      case 'march-foe': { if (seat.persona !== 'warrior' && !wars.size) break; const a = myUnits.find(x => !['EXPLORER', 'PIONEER', 'ENVOY'].includes(x.kind) && !hasOrder(x)); const dest = a && closest(a, goal(a.hexId)); if (a && dest && dest !== a.hexId && hexDist(dest, goal(a.hexId)) < hexDist(a.hexId, goal(a.hexId))) return { intent, unit: { ...a, dest }, pieceKind: 'move' }; break; }
       case 'attack': { // war first: only at war and with an enemy piece next to my army
         if (!wars.size) break;
         const army = myUnits.filter(u => !['EXPLORER', 'PIONEER', 'ENVOY'].includes(u.kind) && !hasOrder(u));
-        const foes = (g.units ?? []).filter(u => wars.has(u.ownerId));
+        const foes = [...(g.units ?? []).filter(u => wars.has(u.ownerId)), ...foreign.filter(c => wars.has(c.ownerId ?? c.currentOwnerId))];
         for (const a of army) { const f = foes.find(x => hexDist(x.hexId, a.hexId) === 1); if (f) return { intent, unit: { ...a, target: f.hexId }, pieceKind: 'attack' }; }
         break; }
       case 'move-army': { const a = myUnits.find(u => !['EXPLORER', 'PIONEER', 'ENVOY'].includes(u.kind) && !hasOrder(u)); const dest = a && Object.keys(g.unitOptions[a.id]?.moves ?? {}).sort((x, y) => hexDist(y, cities[0]?.hexId ?? a.hexId) - hexDist(x, cities[0]?.hexId ?? a.hexId))[0]; if (a && dest && g.view.round % 3 === 0) return { intent, unit: { ...a, dest }, pieceKind: 'move' }; break; }
@@ -327,7 +337,7 @@ async function diplomacyTurn(seat) {
   if (!others.length) return;
   // answer what is on the table first (incoming proposals)
   const incoming = g.treaties.filter(t => t.status === 'PROPOSED' && t.recipientId === me);
-  if (!incoming.length && !(['diplomat', 'trader', 'expansionist'].includes(seat.persona) || seat.persona === 'warrior' && g.view.round > 6)) return;
+  if (!incoming.length && !(['diplomat', 'trader', 'expansionist'].includes(seat.persona) || seat.persona === 'warrior' && g.view.round > (CONTACT ? 3 : 6))) return;
   await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'open Livro');
   await seat.click(seat.page.locator('.alpha-livro-tabs').getByRole('button', { name: 'Diplomacia' }), 'Diplomacia tab');
   for (let i = 0; i < incoming.length; i++) {
@@ -341,7 +351,7 @@ async function diplomacyTurn(seat) {
   const active = g.treaties.some(t => ['PROPOSED', 'ACTIVE', 'ACCEPTED'].includes(t.status) && [t.proposerId, t.recipientId].includes(target.id) && [t.proposerId, t.recipientId].includes(me));
   const canPlanMain = ordersLeft(seat) > 0;
   if (!war && !active && canPlanMain && await relation.count()) {
-    if (seat.persona === 'warrior' && g.view.round >= 6) {
+    if (seat.persona === 'warrior' && g.view.round >= (CONTACT ? 4 : 6)) {
       if (await seat.click(relation.getByRole('button', { name: /Declarar guerra/ }), 'declare war')) await seat.click(seat.page.locator('.alpha-war-confirm button').filter({ hasText: /Confirmar|Declarar|Sim/ }), 'confirm war');
     } else {
       const select = relation.locator('select').first();

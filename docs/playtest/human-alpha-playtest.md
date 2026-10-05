@@ -28,6 +28,16 @@ Sem `--start` você cria a mesa e escolhe as civilizações à mão. Com amigos:
 Na criação, **Duração** define o tamanho: `QUICK` = 21 rodadas (7 Eras × 3, ~45–60 min), `STANDARD` = 35 rodadas (7 × 5, o jogo de verdade).
 Primeira vez: use `QUICK` com 2 lugares.
 
+### Forçar o contato entre jogadores (V51B-12)
+
+Nas partidas naturais os bots e o driver quase nunca se encontram (capitais a 6–8 hexes). Para sessões que precisam de diplomacia, guerra e combate entre jogadores, o driver de UI (só cliques) tem um modo de contato forçado: todos os lugares mandam o Explorador para o outro lado do mapa e o guerreiro marcha sobre a cidade estrangeira mais próxima.
+
+```sh
+node scripts/alpha-ui-playtest.mjs --players=2 --preset=QUICK --contact=forced --personas=warrior,builder --out=docs/evidence/v51b-d1-d3/ui-contact-2p
+```
+
+À mão, faça o mesmo: Expedição → mover o Explorador rumo ao lado oposto até ver a cidade rival, proponha um tratado, depois declare guerra e ataque.
+
 ## 3. Objetivo da sessão
 
 Jogar até a Era IV ou até alguém declarar Hegemonia, e responder: **o jogo cria decisões ou preenche tempo?**
@@ -39,7 +49,7 @@ Tente de propósito: fundar uma segunda cidade, pesquisar, **encontrar o outro j
 - Quantas Ordens você realmente quis usar? Alguma rodada foi "confirmar sem pensar"?
 - O mapa: você enxerga seu território e o que é clicável? Algum hex ficou escondido atrás de um painel?
 - Fome: sua população cresce? Você entendeu por que não?
-- Bandos/Piratas: você viu o aviso antes do ataque? Teve tempo de reagir?
+- Bandos/Piratas: você viu o aviso antes do ataque? Teve tempo de reagir? O alvo do Bando (linha e painel) estava claro? Um Acampamento "recém-surgido" deu tempo para atacá-lo antes de partir?
 - Contato: em que rodada encontrou o outro jogador? Teve motivo para conversar ou lutar?
 - Ressonância e Tabuleiro: você entendeu o que os 5 encaixes e a Repercussão fazem?
 - Quanto tempo uma rodada levou (planejar → resolver)? Quando ficou longa demais?
