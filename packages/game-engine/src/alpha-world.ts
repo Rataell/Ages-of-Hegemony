@@ -1,5 +1,5 @@
 import { liftLegacyCityCaps } from './alpha-turn.js';
-import { featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
+import { layoutBoard, featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
@@ -15,50 +15,53 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   const random:Pick<AlphaState,'privateRng'>={privateRng:{algorithm:'hmac-sha256-counter-v1',seed:input.privateSeed?combineAlphaSeed(input.seed,input.privateSeed):deterministicAlphaSeed(input.seed,input.gameId),counter:0}};
   const frontier=REGION_TEMPLATES.filter(r=>r.kind==='FRONTIER');
   for(let i=frontier.length-1;i>0;i--){const j=alphaRandomInteger(random,i+1);[frontier[i],frontier[j]]=[frontier[j]!,frontier[i]!];}
-  // Six authored homeland regions always remain on the board. Active seats take the compact positions first so
-  // diplomacy and conflict become reachable during QUICK games; unused homelands stay dormant map variety.
-  const homeLayouts={
-    2:[[1,2],[4,2],[0,0],[5,0],[0,4],[5,4]],
-    3:[[1,1],[4,1],[2,3],[0,0],[5,4],[0,4]],
-    4:[[1,1],[4,1],[1,3],[4,3],[0,0],[5,4]],
-    5:[[1,1],[3,1],[5,1],[1,3],[4,3],[0,0]],
-    6:[[1,1],[3,1],[5,1],[1,3],[3,3],[5,3]],
-  } as const;
-  const homes=homeLayouts[input.players.length as keyof typeof homeLayouts];
+  // The footprint is generated first as a contiguous lattice of seven-hex Regions (domain alpha-topology): every hex of the board belongs
+  // to exactly one Region and nothing inside the outer edge is empty. Six homeland Regions always exist; active seats take their slots first.
+  const board=layoutBoard(input.players.length);
+  const slotOf=new Map(board.homeSlots.map((id,slot)=>[id,slot]));
   const regions:AlphaState['regions']=[];const map:{id:string;q:number;r:number;terrain:TerrainType;features:string[]}[]=[];let index=0;
-  for(let r=0;r<5;r++)for(let q=0;q<6;q++) {
-    const home=homes.findIndex(([hq,hr])=>hq===q&&hr===r);
-    const template=home>=0?REGION_TEMPLATES[home]!:frontier[index++]!;
-    const activeHome=home>=0&&home<input.players.length;
-    const center={q:q*3,r:r*3};const points=[center,...hexNeighbors(center)];
-    regions.push({id:`region-${q}-${r}`,templateId:template.id,hexIds:points.map(hexId),rotation:0,revealedBy:home>=0&&home<input.players.length?[PlayerIdSchema.parse(input.players[home]!.id)]:[]});
+  for(const cell of board.cells){
+    const slot=slotOf.get(cell.id);
+    const template=slot!==undefined?REGION_TEMPLATES[slot]!:frontier[index++]!;
+    const activeHome=slot!==undefined&&slot<input.players.length;
+    regions.push({id:cell.id,templateId:template.id,hexIds:cell.hexes.map(hexId),rotation:0,revealedBy:activeHome?[PlayerIdSchema.parse(input.players[slot!]!.id)]:[]});
     const content=rotatedRegionContent(template,0);
-    points.forEach((p,i)=>{
+    cell.hexes.forEach((p,i)=>{
       let terrain=content[i]!.terrain;const preset=input.worldPreset??'MIXED';
       if(preset==='CONTINENTAL'&&terrain==='SEA')terrain=(p.q+p.r+input.seed)%2===0?'PLAINS':'COAST';
       if(preset==='ARCHIPELAGO'&&!activeHome&&terrain!=='MOUNTAINS'&&(Math.abs(p.q*17+p.r*31+input.seed)%5)<2)terrain='SEA';
-      if(preset==='INLAND_SEA'&&!activeHome&&q>=2&&q<=3&&r>=1&&r<=3)terrain=i===0?'SEA':'COAST';
+      if(preset==='INLAND_SEA'&&!activeHome&&cell.neighbors.length===6)terrain=i===0?'SEA':'COAST';
       const feature=content[i]!.feature;
       map.push({...p,id:hexId(p),terrain,features:[...(content[i]!.deposit&&holdsMetal(terrain)?['METAL']:[]),...(feature&&featureFits(feature,terrain)?[feature]:[])]});
     });
   }
-  // Region centres are three hexes apart and touch through a two-hex neck. One SEA neck can otherwise split the
-  // whole land graph. Open only the shortest tree that joins active homelands; the rest of the authored seas remain.
-  const activeHomes:{q:number;r:number}[]=homes.slice(0,input.players.length).map(([q,r])=>({q,r}));
-  for(let i=1;i<activeHomes.length;i++){
-    let current=activeHomes[i]!;
-    const target=activeHomes.slice(0,i).sort((a,b)=>hexDistance(current,a)-hexDistance(current,b)||a.q-b.q||a.r-b.r)[0]!;
-    while(current.q!==target.q||current.r!==target.r){
-      const next=hexNeighbors(current).filter(point=>point.q>=0&&point.q<6&&point.r>=0&&point.r<5&&hexDistance(point,target)<hexDistance(current,target)).sort((a,b)=>a.q-b.q||a.r-b.r)[0]!;
-      const dq=next.q-current.q,dr=next.r-current.r;
-      const bridge=[hexId({q:current.q*3,r:current.r*3}),hexId({q:current.q*3+dq,r:current.r*3+dr}),hexId({q:next.q*3-dq,r:next.r*3-dr}),hexId({q:next.q*3,r:next.r*3})];
-      for(const id of bridge){const tile=map.find(candidate=>candidate.id===id);if(tile?.terrain==='SEA')tile.terrain='COAST';}
-      current=next;
+  // Active homelands must be joined by land: open the cheapest chain of SEA hexes (0-1 search over the whole board) into COAST.
+  const tiles=new Map(map.map(t=>[t.id as string,t]));
+  const homeCentres=board.homeSlots.slice(0,input.players.length).map(id=>board.cells.find(cell=>cell.id===id)!.center);
+  for(let k=1;k<homeCentres.length;k++){
+    const goal=homeCentres[k]!, start=hexId(homeCentres[0]!) as string, target=hexId(goal) as string;
+    const cost=new Map<string,number>([[start,0]]), from=new Map<string,string>(), deque=[start];
+    while(deque.length){
+      const at=deque.shift()!, here=tiles.get(at)!;
+      for(const next of hexNeighbors(here).map(hexId)){
+        const tile=tiles.get(next);if(!tile)continue;
+        const step=tile.terrain==='SEA'?1:0,total=(cost.get(at)??0)+step;
+        if(total<(cost.get(next)??Infinity)){cost.set(next,total);from.set(next,at);if(step===0)deque.unshift(next);else deque.push(next);}
+      }
     }
+    for(let at:string|undefined=target;at&&at!==start;at=from.get(at)){const tile=tiles.get(at)!;if(tile.terrain==='SEA')tile.terrain='COAST';}
   }
+  // The capital stands on one of the six outer hexes of its Pátria (never the geometric centre), so the Region alone does not reveal it.
+  const capitalHex=(slot:number):string=>{
+    const cell=board.cells.find(c=>c.id===board.homeSlots[slot])!;
+    const options=cell.hexes.slice(1).map(p=>tiles.get(hexId(p) as string)!).filter(t=>['PLAINS','FOREST','HILLS','COAST'].includes(t.terrain));
+    const plains=options.filter(t=>t.terrain==='PLAINS'),pool=plains.length?plains:options;
+    return pool[alphaRandomInteger(random,pool.length)]!.id;
+  };
+  const capitalSites=input.players.map((_,i)=>capitalHex(i));
   const created=createGame({gameId:input.gameId,seed:input.seed,map,
     players:input.players.map(p=>({id:p.id,name:p.name,resources:{food:16,materials:14,wealth:10,knowledge:8,influence:8}})),
-    initialCities:input.players.map((p,i)=>({id:`capital-${i+1}`,ownerId:p.id,name:(CIVILIZATIONS.find(civ=>civ.id===p.civilization)??CIVILIZATIONS[i]!).capital,hexId:`${homes[i]![0]*3},${homes[i]![1]*3}`,workers:{producers:1,artisans:0,merchants:0,scholars:1,soldiers:0,unassigned:0}}))});
+    initialCities:input.players.map((p,i)=>({id:`capital-${i+1}`,ownerId:p.id,name:(CIVILIZATIONS.find(civ=>civ.id===p.civilization)??CIVILIZATIONS[i]!).capital,hexId:capitalSites[i]!,workers:{producers:1,artisans:0,merchants:0,scholars:1,soldiers:0,unassigned:0}}))});
   if(!created.ok)throw new Error(created.error.message);
   const migrated=migrateSnapshotV3ToV4(created.value);if(!migrated.ok)throw new Error(migrated.error.message);
   const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED',input.actionsPerRound??5);state.rules.revealMap=input.revealMap??false;state.rulesVersion='v5.1b';liftLegacyCityCaps(state);state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
@@ -154,5 +157,24 @@ export function threatView(state:AlphaState,actor:PlayerId){
     const intent=threatIntent(state,threat),known=intent.targetHexId!==null&&(all||visible.has(intent.targetHexId));
     return {id:threat.id,kind:threat.kind,hexId:threat.hexId,level:threat.level,status:threat.status,composition:threat.composition,fresh:threat.fresh,
       intent:{state:intent.state,targetKind:intent.targetKind,targetKnown:known,targetId:known?intent.targetId:null,targetHexId:known?intent.targetHexId:null,distance:known?intent.distance:null,nextHexId:intent.nextHexId!==null&&(all||visible.has(intent.nextHexId))?intent.nextHexId:null}};
+  });
+}
+
+/** The seat whose homeland (Pátria) a Region is, from its template: seat k always holds `homeland-(k+1)`. Public: it only says who sits where. */
+export function homeOfRegion(state:AlphaState,region:AlphaState['regions'][number]):PlayerId|null {
+  const match=/^homeland-(\d+)$/.exec(region.templateId);
+  return match?state.players[Number(match[1])-1]?.playerId??null:null;
+}
+/**
+ * Layer A of the fog (public board topology): the whole footprint, its Regions and their adjacency, which Regions are still face down FOR THIS
+ * VIEWER, and whose Pátria each one is. It never carries terrain, features, deposits, discoveries, units or the capital's hex: those are
+ * layers B (memory: knownTerritory) and C (current vision), both decided by `visibleHexIds` and what the viewer explored.
+ */
+export function boardView(state:AlphaState,actor:PlayerId){
+  const owner=new Map<string,string>();for(const region of state.regions)for(const id of region.hexIds)owner.set(id,region.id);
+  return state.regions.map(region=>{
+    const next=new Set<string>();
+    for(const id of region.hexIds){const [q,r]=id.split(',').map(Number) as [number,number];for(const point of hexNeighbors({q,r})){const other=owner.get(hexId(point));if(other&&other!==region.id)next.add(other);}}
+    return {id:region.id,hexIds:region.hexIds,neighbors:[...next].sort(),closed:!region.revealedBy.includes(actor),homeOf:homeOfRegion(state,region)};
   });
 }

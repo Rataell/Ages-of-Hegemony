@@ -22,12 +22,18 @@ function camp(state: AlphaState, hex: string, over: Partial<Threat> = {}): Threa
   state.threats.push(threat);
   return threat;
 }
+/** The land hex farthest from every capital (ties by id): the quietest corner of the board. */
+function farthest(state: AlphaState): string {
+  const capitals = state.core.players.map(player => tile(state, player.civilization.cities[0]!.hexId));
+  return land(state).map(t => ({ t, d: Math.min(...capitals.map(c => hexDistance(c, t))) })).sort((a, b) => b.d - a.d || (a.t.id < b.t.id ? -1 : 1))[0]!.t.id;
+}
 /** A land hex `distance` away from the first capital from which the camp has a land route to a city. */
 function origin(state: AlphaState, distance: number): string {
   const centre = capitalTile(state);
   for (const candidate of land(state).filter(t => hexDistance(centre, t) === distance).sort((a, b) => (a.id < b.id ? -1 : 1))) {
-    const probe = camp(state, candidate.id, { id: 'probe' }); const ok = landTarget(state, probe) !== null; state.threats = state.threats.filter(t => t.id !== 'probe');
-    if (ok && !state.units.some(u => u.hexId === candidate.id)) return candidate.id;
+    const probe = camp(state, candidate.id, { id: 'probe' }); const ok = landTarget(state, probe)?.id === state.core.players[0]!.civilization.cities[0]!.id; state.threats = state.threats.filter(t => t.id !== 'probe');
+    const others = state.core.players.slice(1).map(player => tile(state, player.civilization.cities[0]!.hexId));
+    if (ok && others.every(other => hexDistance(other, candidate) >= distance + 2) && !state.units.some(u => u.hexId === candidate.id)) return candidate.id;
   }
   throw new Error('no origin');
 }
@@ -65,7 +71,7 @@ describe('caps and event commands (canon §21b)', () => {
   it('REINFORCE picks the camp farthest from player pieces and stops at Ameaça III', () => {
     const state = setup(), centre = capitalTile(state);
     const near = camp(state, origin(state, 4), { id: 'camp-near' });
-    const far = camp(state, land(state).filter(t => hexDistance(centre, t) >= 9).sort((a, b) => (a.id < b.id ? -1 : 1))[0]!.id, { id: 'camp-far' });
+    const far = camp(state, farthest(state), { id: 'camp-far' });
     applyThreatCommand(state, null, { op: 'THREAT', command: 'REINFORCE', kind: 'LAND' });
     expect(far.level).toBe(2); expect(near.level).toBe(1);
     far.level = 3; near.level = 3;
@@ -97,7 +103,7 @@ describe('composition and growth', () => {
 
   it('grows at the Era turn only when no player piece is within 2 hexes, and never past III', () => {
     const state = setup(), centre = capitalTile(state);
-    const lonely = camp(state, land(state).filter(t => hexDistance(centre, t) >= 9).sort((a, b) => (a.id < b.id ? -1 : 1))[0]!.id, { id: 'camp-lonely' });
+    const lonely = camp(state, farthest(state), { id: 'camp-lonely' });
     const watched = camp(state, origin(state, 4), { id: 'camp-watched' });
     const scout = state.units.find(unit => unit.ownerId === p1)!;
     scout.hexId = hexNeighbors(tile(state, watched.hexId)).map(hexId).map(id => tile(state, id)).find(t => !['SEA', 'UNKNOWN'].includes(t.terrain))!.id as never;
@@ -353,8 +359,7 @@ describe('V51B-05 · the Bando target is authoritative public information, filte
   /** A marching camp whose engine target is p1's own capital, watched by a p2 scout that sees the Bando but not the city. */
   function marching(): { state: AlphaState; band: Threat } {
     const state = setup(), start = origin(state, 5), band = camp(state, start, { status: 'MARCHING' });
-    state.units = state.units.filter(unit => unit.ownerId !== p2 || unit.kind !== 'PIONEER');
-    const scout = state.units.find(unit => unit.ownerId === p2)!; scout.hexId = band.hexId as never;
+    const scout = state.units.find(unit => unit.ownerId === p2 && unit.kind === 'PIONEER')!; scout.hexId = band.hexId as never;
     return { state, band };
   }
 

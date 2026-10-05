@@ -3,7 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LocalView } from '@aoh/server/local-play';
 import type { AlphaUnit, HexTile } from '@aoh/game-domain';
 import { label, roman } from './presentation';
-import { clampCentre, clampZoom, mapFrame, position, tileSummary, viewBoxOf } from './map-frame';
+import { DEFAULT_SAFE, cameraBox, clampCentre, clampZoom, fitScale, mapFrame, position, regionOutline, tileSummary, viewBoxOf, type SafeInsets } from './map-frame';
 import { type CivilizationMark } from '@aoh/game-domain';
 import { CIVIL_PIECES, bannerArt, borderStrokes, cityArt, fortificationArt, pieceArt, seedOf } from '../alpha/table-art';
 
@@ -34,6 +34,11 @@ type Props = {
   /** Threats with the intention the engine decided (V51B-05): the map only draws what it receives. */
   threats?: readonly { id: string; hexId: string; kind: 'CAMP' | 'PIRATE'; level: 1 | 2 | 3; status: 'CAMPED' | 'MARCHING'; fresh?: boolean; intent?: { state: string; targetKind: string | null; targetKnown: boolean; targetId: string | null; targetHexId: string | null; distance: number | null; nextHexId: string | null } }[];
   art?: MapArt;
+  /** Public board topology (Mesa): every Region of the footprint, face down or open for this viewer, and whose Pátria it is. Enables the table camera. */
+  board?: readonly { id: string; hexIds: readonly string[]; closed: boolean; homeOf: string | null }[];
+  /** Status line per seat shown on the table edge ("Planejando…", "✓ Pronto"). */
+  seatStatus?: Readonly<Record<string, string>>;
+  safe?: SafeInsets;
   selected: string | null;
   focus: string | null;
   working: boolean;
@@ -89,6 +94,9 @@ export const HexMap = memo(function HexMap({
   peoples = [],
   threats = [],
   art,
+  board,
+  seatStatus = {},
+  safe = DEFAULT_SAFE,
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   // null = fitted to the projected tiles; otherwise an explicit centre and zoom (1 shows the whole fitted frame).
@@ -97,20 +105,44 @@ export const HexMap = memo(function HexMap({
   const [moved, setMoved] = useState(false);
 
   const tiles = data.view.visibleTerritory;
-  // Fit what the player knows, not the fog around it: unexplored frontier hexes would otherwise shrink the whole atlas into a small island.
-  // They stay inside the frame by half a hex (padding), still visible and clickable as explore targets; zooming out shows them whole.
+  const mesa = board !== undefined;
+  const [size, setSize] = useState({ w: 1280, h: 720 });
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || typeof ResizeObserver === 'undefined') return;
+    const read = () => { const box = svg.getBoundingClientRect(); if (box.width > 0 && box.height > 0) setSize({ w: box.width, h: box.height }); };
+    read();
+    const observer = new ResizeObserver(read); observer.observe(svg);
+    return () => observer.disconnect();
+  }, []);
+  // MESA: the frame is the WHOLE board (public topology), never just what the player has explored. Without a board (old atlas) it fits the known tiles.
+  const boardHexes = useMemo(() => (board ?? []).flatMap(region => region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return { id, q: q ?? 0, r: r ?? 0, regionId: region.id }; })), [board]);
   const frame = useMemo(() => {
+    if (mesa) return mapFrame(boardHexes, { padding: 24 });
     const known = tiles.filter(tile => tile.terrain !== 'UNKNOWN');
     return known.length >= 3 ? mapFrame(known, { padding: 70 }) : mapFrame(tiles);
-  }, [tiles]);
+  }, [tiles, mesa, boardHexes]);
+  // null = MESA (fit); otherwise an explicit centre and a zoom relative to the fit. Nothing re-centres the camera by itself: only MESA and FOCAR do.
   const current = view ?? { cx: frame.cx, cy: frame.cy, zoom: 1 };
+  const camera = mesa ? cameraBox(frame, size, safe, view) : { viewBox: viewBoxOf(frame, view), scale: 1 };
   const focusTile = tiles.find(t => t.id === focus);
-  // Once the player has zoomed in, selecting a piece or city brings it to the centre; a fitted atlas already shows everything.
+  const zoomed = mesa && camera.scale / fitScale(frame, size, safe) > 1.8;
+  const focusHere = () => {
+    const target = tiles.find(t => t.id === selected) ?? focusTile ?? tiles.find(t => t.id === data.view.player.civilization.cities[0]?.hexId);
+    if (!target) return;
+    const at = position(target.q, target.r);
+    setView({ ...clampCentre(frame, at.x, at.y), zoom: 2.4 });
+  };
+  // A Region that just turned face up flips for a moment.
+  const closedBefore = useRef<Set<string>>(new Set());
+  const [flipping, setFlipping] = useState<Set<string>>(new Set());
   useEffect(() => {
-    if (!focusTile) return;
-    const at = position(focusTile.q, focusTile.r);
-    setView(old => (old ? { ...old, ...clampCentre(frame, at.x, at.y) } : old));
-  }, [focus]);
+    if (!board) return;
+    const nowClosed = new Set(board.filter(region => region.closed).map(region => region.id));
+    const opened = board.filter(region => !region.closed && closedBefore.current.has(region.id)).flatMap(region => region.hexIds as string[]);
+    closedBefore.current = nowClosed;
+    if (opened.length) { setFlipping(new Set(opened)); const timer = setTimeout(() => setFlipping(new Set()), 900); return () => clearTimeout(timer); }
+  }, [board]);
 
   const cities = [...data.view.player.civilization.cities, ...data.view.visibleCities];
   /** Roads and own routes, per tile, as half-segments toward each linked neighbour: drawn inside the tile, under its pieces. */
@@ -149,7 +181,7 @@ export const HexMap = memo(function HexMap({
       const clientW = svg?.clientWidth || svg?.getBoundingClientRect().width || 800;
       const clientH = svg?.clientHeight || svg?.getBoundingClientRect().height || 600;
       const w = clientW > 0 ? clientW : 800, h = clientH > 0 ? clientH : 600;
-      const unitsPerPixel = 1 / Math.min(w / (frame.width / current.zoom), h / (frame.height / current.zoom));
+      const unitsPerPixel = mesa ? 1 / camera.scale : 1 / Math.min(w / (frame.width / current.zoom), h / (frame.height / current.zoom));
       setView({ ...current, ...clampCentre(frame, current.cx - dx * unitsPerPixel, current.cy - dy * unitsPerPixel) });
       setDrag({ x: e.clientX, y: e.clientY });
     }
@@ -168,8 +200,8 @@ export const HexMap = memo(function HexMap({
 
       <svg
         ref={svgRef}
-        className={`world-map${art ? ' art-mode' : ''}`}
-        viewBox={viewBoxOf(frame, view)}
+        className={`world-map${art ? ' art-mode' : ''}${mesa ? ' has-board' : ''}${zoomed ? ' zoom-near' : ''}`}
+        viewBox={camera.viewBox}
         aria-label="Mapa hexagonal interativo"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -194,6 +226,14 @@ export const HexMap = memo(function HexMap({
           </filter>
         </defs>
 
+        {/* Face-down Regions: ONE board piece each (dark back, light edge, no terrain, no icons). Their hexes only show faint seams when zoomed in. */}
+        {mesa && <g className="region-backs" aria-hidden="true">{board!.filter(region => region.closed).map(region => {
+          const centres = region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return position(q ?? 0, r ?? 0); });
+          return <g key={region.id} className={`region-back${region.homeOf ? ' is-homeland' : ''}`} style={region.homeOf && art?.seats[region.homeOf] ? { ['--seat' as string]: art.seats[region.homeOf]!.color } : undefined}>
+            {centres.map((c, k) => <polygon key={k} className="region-back-hex" points={points} transform={`translate(${c.x} ${c.y}) scale(1.08)`} />)}
+            <path className="region-back-edge" d={regionOutline(centres, 56)} />
+          </g>;
+        })}</g>}
         {tiles.map(tile => {
           const p = position(tile.q, tile.r);
           const city = cities.find(c => c.hexId === tile.id);
@@ -215,6 +255,7 @@ export const HexMap = memo(function HexMap({
             working && !eligible ? 'unavailable' : '',
             isForeign ? 'foreign' : '',
             isWorked ? 'is-worked' : '',
+            flipping.has(tile.id) ? 'flip-in' : '',
           ].filter(Boolean).join(' ');
 
           const cityOwner = city && city.ownerId !== data.view.player.id ? data.players.find(player => player.id === city.ownerId)?.name : undefined;
@@ -311,9 +352,9 @@ export const HexMap = memo(function HexMap({
                 </g>
               ) : (
                 <g className="rural-tile">
-                  <text className="terrain-glyph" y="4">
+                  {!(mesa && tile.terrain === 'UNKNOWN') && <text className="terrain-glyph" y="4">
                     {terrainGlyphs[tile.terrain]}
-                  </text>
+                  </text>}
                   {tile.features.length > 0 && (
                     <text className="features" y="22">
                       {tile.features.map(f => featureGlyphs[f] ?? '').join(' ')}
@@ -432,6 +473,17 @@ export const HexMap = memo(function HexMap({
             <text className="city-name art-city-name" y="3" {...(natural > fitted ? { textLength: fitted, lengthAdjust: 'spacingAndGlyphs' } : {})}>{name}</text>
           </g>];
         })}</g>}
+        {/* Pátrias: a banner on each face-down homeland says who sits where, nothing about what is inside. */}
+        {mesa && <g className="home-banners">{board!.filter(region => region.closed && region.homeOf && region.homeOf !== data.view.player.id).map(region => {
+          const seat = art?.seats[region.homeOf!], who = data.players.find(player => player.id === region.homeOf);
+          const spots = region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return position(q ?? 0, r ?? 0); });
+          const cx = spots.reduce((n, c) => n + c.x, 0) / spots.length, cy = spots.reduce((n, c) => n + c.y, 0) / spots.length;
+          return <g key={region.id} className="home-banner" transform={`translate(${cx} ${cy})`}>
+            <g dangerouslySetInnerHTML={svgFragment(seat?.mark ? `<g transform="translate(0 -26)">${bannerArt(seat.mark, seat.color, 76)}</g>` : `<rect x="-14" y="-52" width="28" height="44" fill="${seat?.color ?? '#9aa4a2'}"/>`)} />
+            <text className="home-banner-name" y="34" textAnchor="middle">{who?.name ?? 'Pátria'}</text>
+            <text className="home-banner-sub" y="52" textAnchor="middle">Região Pátria · conteúdo oculto</text>
+          </g>;
+        })}</g>}
         {threats.some(t => t.intent?.nextHexId || t.intent?.targetHexId) && <g className="threat-heading" aria-hidden="true">{threats.flatMap(threat => {
           // Authoritative intention from the engine: a line to the target when it is inside the player's vision, else only the next step. Nothing is estimated here.
           const aim = threat.intent?.targetKnown && threat.intent.targetHexId ? threat.intent.targetHexId : threat.intent?.nextHexId;
@@ -442,9 +494,33 @@ export const HexMap = memo(function HexMap({
         })}</g>}
       </svg>
 
+      {/* Seat plates on the table edge, on the side of the board where each Pátria sits. */}
+      {mesa && <ul className="seat-plates" aria-label="Quem está na mesa">{(() => {
+        const homes = board!.filter(region => region.homeOf);
+        const centre = { x: frame.cx, y: frame.cy };
+        return homes.map(region => {
+          const spots = region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return position(q ?? 0, r ?? 0); });
+          const at = { x: spots.reduce((n, c) => n + c.x, 0) / spots.length, y: spots.reduce((n, c) => n + c.y, 0) / spots.length };
+          const dx = at.x - centre.x, dy = at.y - centre.y;
+          // Project the direction onto the safe rectangle: the plate sits where that ray leaves it.
+          const halfW = (size.w - safe.left - safe.right) / 2, halfH = (size.h - safe.top - safe.bottom) / 2, k = Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH) || 1;
+          const left = safe.left + halfW + (dx / k) * 1.0, top = safe.top + halfH + (dy / k) * 1.0;
+          const who = data.players.find(player => player.id === region.homeOf), seat = art?.seats[region.homeOf!];
+          const mine = region.homeOf === data.view.player.id;
+          return <li key={region.id} className={`seat-plate${mine ? ' is-mine' : ''}`} style={{ left, top, ['--seat' as string]: seat?.color ?? '#9aa4a2' }}>
+            <i aria-hidden="true" /><b>{who?.name ?? 'Pátria'}</b><small>{seatStatus[region.homeOf!] ?? ''}</small>
+          </li>;
+        });
+      })()}</ul>}
+
       <div className="map-tools">
         <button aria-label="Diminuir zoom" onClick={() => setView({ ...current, zoom: clampZoom(current.zoom / 1.25) })}>−</button>
-        <button title="Enquadrar todo o território conhecido" onClick={() => setView(null)}>Centralizar</button>
+        {mesa
+          ? <>
+            <button title="Ver a mesa inteira" aria-pressed={view === null} onClick={() => setView(null)}>Mesa</button>
+            <button title="Voltar para a minha área ou seleção" onClick={focusHere}>Focar</button>
+          </>
+          : <button title="Enquadrar todo o território conhecido" onClick={() => setView(null)}>Centralizar</button>}
         <button aria-label="Aumentar zoom" onClick={() => setView({ ...current, zoom: clampZoom(current.zoom * 1.25) })}>+</button>
       </div>
 

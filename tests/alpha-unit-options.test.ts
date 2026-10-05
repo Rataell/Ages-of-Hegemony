@@ -37,7 +37,8 @@ describe('per-piece order options', () => {
     const state = setup();
     const actor = state.players[0]!.playerId, unit = state.units.find(candidate => candidate.ownerId === actor)!;
     // Step the pioneer to the edge of its homeland so a neighbouring region is in reach.
-    const edge = Object.keys(alphaUnitOptions(state, actor)[unit.id]!.moves)[0]!;
+    const closed = new Set(state.regions.filter(region => !region.revealedBy.includes(actor)).flatMap(region => region.hexIds as string[]));
+    const edge = Object.keys(alphaUnitOptions(state, actor)[unit.id]!.moves).find(id => hexNeighbors(state.core.map.find(tile => tile.id === id)!).some(point => closed.has(`${point.q},${point.r}`)))!;
     unit.hexId = edge as never;
     const offers = alphaUnitOptions(state, actor)[unit.id]!.explore;
     expect(offers.length).toBeGreaterThan(0);

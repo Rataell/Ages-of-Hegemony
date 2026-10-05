@@ -32,9 +32,10 @@ describe('metal access on generated maps', () => {
 
   it('reports the sixth homeland as the only start without a deposit in its own region', () => {
     const state = createAlphaGame({ gameId: 'metal-home', seed: 5, preset: 'STANDARD', players: Array.from({ length: 6 }, (_, i) => ({ id: `p${i + 1}`, name: `P${i + 1}` })) });
+    // The capital stands on an outer hex of its Pátria, so the deposit is looked up in the whole homeland Region.
     const own = state.core.players.map(owner => {
-      const capital = state.core.map.find(tile => tile.id === owner.civilization.cities[0]!.hexId)!;
-      return state.core.map.some(tile => tile.features.includes('METAL') && hexDistance(capital, tile) <= 1);
+      const region = state.regions.find(candidate => candidate.hexIds.includes(owner.civilization.cities[0]!.hexId))!;
+      return region.hexIds.some(id => state.core.map.find(tile => tile.id === id)!.features.includes('METAL'));
     });
     expect(own.filter(has => !has)).toHaveLength(1);
     expect(own[5]).toBe(false);

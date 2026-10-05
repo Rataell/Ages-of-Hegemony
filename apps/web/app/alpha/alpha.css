@@ -617,3 +617,31 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 /* Playtest: the error banner used to sit over the strip and hide Livro, Cofre and the civilization seal until dismissed (a lost version race
    in a 4–6 seat table shows it often). In the Mesa it floats under the strip, over the map, and never blocks the top controls. */
 .alpha-mesa > .alpha-error { position: absolute; z-index: 45; top: calc(10px + var(--strip-height) + 8px); left: 50%; transform: translateX(-50%); width: min(560px, calc(100vw - 24px)); border-radius: var(--radius-panel, 10px); padding: 10px 14px; box-shadow: 0 6px 24px rgb(0 0 0 / 0.35); }
+
+/* ===== Mesa: public board, face-down Regions, seat plates, camera (map/fog brief 2026-10-05) ===== */
+.world-map.has-board .region-back-hex { fill: #0f171b; stroke: #0f171b; stroke-width: 1; }
+.world-map.has-board .region-back-edge { fill: none; stroke: color-mix(in srgb, var(--text-secondary) 38%, transparent); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.world-map.has-board .region-back.is-homeland .region-back-edge { stroke: color-mix(in srgb, var(--seat, var(--text-secondary)) 70%, transparent); stroke-width: 4; }
+.world-map.has-board .region-back.is-homeland .region-back-hex { fill: color-mix(in srgb, var(--seat, #0f171b) 10%, #0f171b); }
+/* The hexes of a face-down Region are only hit areas at overview; faint seams appear when zoomed in, a clear outline when targeted. */
+.world-map.has-board .hex.terrain-UNKNOWN .hex-base, .world-map.has-board .hex.terrain-UNKNOWN .hex-texture { fill: transparent; stroke: none; }
+.world-map.has-board .hex.terrain-UNKNOWN .hex-border { fill: none; stroke: transparent; }
+.world-map.has-board.zoom-near .hex.terrain-UNKNOWN .hex-border { stroke: color-mix(in srgb, var(--text-secondary) 22%, transparent); stroke-width: 1; }
+.world-map.has-board .hex.terrain-UNKNOWN.selected .hex-border, .world-map.has-board .hex.terrain-UNKNOWN.eligible .hex-border { stroke: var(--text-secondary); stroke-width: 2; stroke-dasharray: 5 4; }
+.world-map.has-board .hex.terrain-UNKNOWN:hover .hex-border { stroke: color-mix(in srgb, var(--text-secondary) 55%, transparent); stroke-width: 1.5; }
+.home-banner { pointer-events: none; }
+.home-banner-name { fill: var(--text-primary); font: 600 17px var(--font-display); letter-spacing: .06em; paint-order: stroke; stroke: #0b1114; stroke-width: 4px; }
+.home-banner-sub { fill: var(--text-muted); font: 11px var(--font-body); paint-order: stroke; stroke: #0b1114; stroke-width: 3px; }
+.world-map.has-board:not(.zoom-near) .home-banner-sub { display: none; }
+.hex.flip-in { transform-box: fill-box; transform-origin: center; animation: region-flip 600ms ease-out; }
+@keyframes region-flip { 0% { opacity: 0; transform: scaleX(.2); } 60% { opacity: 1; } 100% { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .hex.flip-in { animation: none; } }
+.seat-plates { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; z-index: 6; }
+.seat-plate { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid color-mix(in srgb, var(--seat) 65%, var(--border)); backdrop-filter: blur(4px); white-space: nowrap; }
+.seat-plate i { width: 10px; height: 10px; border-radius: 50%; background: var(--seat); flex: none; }
+.seat-plate b { font: 600 13px var(--font-display); letter-spacing: .05em; color: var(--text-primary); }
+.seat-plate small { font-size: 12px; color: var(--text-secondary); }
+.seat-plate.is-mine { box-shadow: 0 0 0 1px var(--seat); }
+.alpha-mesa .map-tools { gap: 6px; }
+.alpha-mesa .map-tools button { min-width: 44px; height: 40px; padding: 0 12px; font-size: 14px; color: var(--text-primary); background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--border-accent, var(--border)); }
+.alpha-mesa .map-tools button[aria-pressed='true'] { border-color: var(--mark); background: var(--surface-highest); }

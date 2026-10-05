@@ -47,3 +47,29 @@ export function tileSummary(tile: { terrain: string; id: string; ownerName: stri
   if (tile.terrain === 'UNKNOWN') return `${terrainLabel} · ${tile.id}`;
   return `${terrainLabel} · ${tile.id} · ${tile.ownerName ?? 'Livre'} · Controle: ${tile.controllerCityId ?? 'nenhum'}`;
 }
+
+/** Table camera (Mesa): the whole board always fits inside the safe rectangle, i.e. clear of the top strip, the bottom tray and the hand. */
+export interface SafeInsets { top: number; bottom: number; left: number; right: number }
+export interface ViewportSize { w: number; h: number }
+export const DEFAULT_SAFE: SafeInsets = { top: 76, bottom: 132, left: 16, right: 16 };
+/** Pixels per map unit that make `frame` just fit the safe rectangle. */
+export const fitScale = (frame: MapFrame, size: ViewportSize, safe: SafeInsets) =>
+  Math.max(0.05, Math.min((size.w - safe.left - safe.right) / frame.width, (size.h - safe.top - safe.bottom) / frame.height));
+/** viewBox for a camera: `view === null` is MESA (whole board fitted); otherwise zoom is relative to that fit and (cx, cy) lands on the centre of the safe rectangle. */
+export function cameraBox(frame: MapFrame, size: ViewportSize, safe: SafeInsets, view: { cx: number; cy: number; zoom: number } | null): { viewBox: string; scale: number } {
+  const scale = fitScale(frame, size, safe) * (view?.zoom ?? 1), cx = view?.cx ?? frame.cx, cy = view?.cy ?? frame.cy;
+  const sx = (safe.left + (size.w - safe.right)) / 2, sy = (safe.top + (size.h - safe.bottom)) / 2;
+  return { viewBox: `${cx - sx / scale} ${cy - sy / scale} ${size.w / scale} ${size.h / scale}`, scale };
+}
+/** The outline of a group of equal hexes (radius r, centres given): the edges that belong to exactly one hex, as an SVG path. */
+export function regionOutline(centres: readonly { x: number; y: number }[], r: number): string {
+  const key = (x: number, y: number) => `${x.toFixed(1)},${y.toFixed(1)}`, edges = new Map<string, [number, number, number, number]>(), count = new Map<string, number>();
+  for (const c of centres) {
+    const corners = Array.from({ length: 6 }, (_, i) => { const a = ((60 * i - 30) * Math.PI) / 180; return [c.x + r * Math.cos(a), c.y + r * Math.sin(a)] as const; });
+    for (let i = 0; i < 6; i++) {
+      const a = corners[i]!, b = corners[(i + 1) % 6]!, id = [key(a[0], a[1]), key(b[0], b[1])].sort().join('|');
+      edges.set(id, [a[0], a[1], b[0], b[1]]); count.set(id, (count.get(id) ?? 0) + 1);
+    }
+  }
+  return [...edges].filter(([id]) => count.get(id) === 1).map(([, e]) => `M${e[0].toFixed(1)},${e[1].toFixed(1)}L${e[2].toFixed(1)},${e[3].toFixed(1)}`).join('');
+}

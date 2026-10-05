@@ -331,6 +331,7 @@ describe('urban actions: SUPPORT_TRADE and CIVIC_ACTION', () => {
 
   it('gives an owned city influence and cohesion', () => {
     const state = urban();
+    state.players[0]!.resources.influence = 3; // below the storage cap, whatever the Pulse drew
     const influence = pool(state).influence, cohesion = meta(state).localCohesion;
     const after = must(state, p1, { type: 'URBAN_ACTION', cityId: c1, action: 'CIVIC_ACTION' });
     expect(pool(after).influence).toBe(influence + state.rules.balance.civicInfluence);
