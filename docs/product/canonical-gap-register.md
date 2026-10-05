@@ -79,3 +79,39 @@ A coluna **Ação** termina com o estado: FEITO (commit) · PRÓXIMO · ABERTO �
 7. **Balanceamento e polimento.**
 
 O progresso é registrado aqui, linha a linha, com o commit que fecha cada item.
+
+## V5.1b — migração (2026-10-05)
+
+Baseline: `docs/product/rules-v5-proposal.md` (V5.1b FINAL). Interpretações I-1…I-n em `openspec/changes/rules-v51b-engine/design.md`. Commits: 6efad49 (S0/S1), 73c5efc (S2), 073835d (S3/S4), 13d754f (S5), 5917e9d (S5b), 4310ac7 (S6), a7ac1f3 e b5e8113 (UI), fef3d9c e a71b204 (playtest).
+
+### Fechado
+
+| Sistema | Estado |
+|---|---|
+| Ressonância 5 encaixes, composição, Repercussão (27 cartas), Reserva de Marcos, remoção da Pressão | FEITO, motor + projeção + Tabuleiro |
+| Combate: um choque, Δ (empate/vitória/decisiva), Poder por família, assinaturas, Graus I–III, captura, 1 Reação por lado | FEITO |
+| Acampamentos, Bandos, Piratas, limites, crescimento, alvo, recompensa, comandos SURGIR/REFORÇAR/ATIVAR | FEITO |
+| Descobertas ocultas e Encontros | FEITO |
+| Virada de Era em 9 passos, Pulso só na Virada | FEITO |
+| 7 governos com 2 vantagens e 1 limitação, reforma 1/Era | FEITO |
+| Versionamento de saves (`rulesVersion`, `SAVE_UPGRADED`) | FEITO |
+| Privacidade dos novos campos, CAS, replay | FEITO (`alpha-privacy`, `alpha-cas-replay`) |
+| Telemetria por rodada e playtest headless 2/4/6 | FEITO (`docs/evidence/v51b-playtest/`) |
+
+### Divergências restantes
+
+| ID | Divergência | Severidade |
+|---|---|---|
+| V51B-01 | Baixas escolhidas pelo dono: motor aplica "mais fraco primeiro, Cerco por último" (I-4/I-17) | P2 |
+| V51B-02 | Abordagem Grau III captura Mercante: Mercante não existe no motor | P3 |
+| V51B-03 | Reforma de governo reservada no planejamento da última rodada; passos 1–6 rodam juntos na abertura da Virada (I-28/I-31) | P2 |
+| V51B-04 | Ancoradouro pirata simplificado; níveis de Pirata e composição não autorados no cânone (I-6, I-24) | P3 |
+| V51B-05 | Linha de alvo do Bando é estimada no cliente; projeção não expõe o alvo | P3 |
+| V51B-06 | Heranças catalogadas para 18 civilizações; Alpha joga 12 | P2 |
+| V51B-07 | Teto de população do cânone (§4) impedia Elevar; corrigido (I-37) — erratum no canon | registrado |
+| V51B-08 | Capturas reais de combate e de cidade degradada ausentes na pilha real (existem em e2e semeado) | P3 |
+| V51B-09 | Tempo humano por fase não medido (só tempo de motor) | P2 |
+
+### Suspeitas de balanço (playtest, sem retuning)
+
+Ver `docs/evidence/v51b-playtest/REPORT.md`. Relacionadas a §26: item 2 (N7 raro; nenhum bot passou de N4–N5), 3 (Cofres), 4 (sustento), 5 (ritmo de Repercussão: 1,1–1,8 por civ nos bots, canon prevê 3–4), 10 (Governar × Ânimo). Pressão dos Bandos sobre a mesa e peso dos Graus: ver relatório S8b.
