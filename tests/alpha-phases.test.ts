@@ -30,7 +30,7 @@ const movementFixture = (state: AlphaState) => {
 
 describe('the eight-phase round', () => {
   it('declares the eight phases in order and mirrors each onto the legacy core phase', () => {
-    expect(AlphaRoundPhaseSchema.options).toEqual(['WORLD_PULSE', 'PLANNING', 'URBAN_ACTIONS', 'ORDERS_MOVEMENT', 'DIPLOMACY_TRADE', 'CONFLICTS', 'INTEGRATION_MAINTENANCE', 'END_ROUND']);
+    expect(AlphaRoundPhaseSchema.options).toEqual(['WORLD_PULSE', 'PLANNING', 'URBAN_ACTIONS', 'ORDERS_MOVEMENT', 'DIPLOMACY_TRADE', 'CONFLICTS', 'INTEGRATION_MAINTENANCE', 'END_ROUND', 'ERA_TURN']);
     expect(Object.keys(CORE_PHASE_MIRROR)).toEqual([...AlphaRoundPhaseSchema.options]);
   });
 
@@ -58,8 +58,8 @@ describe('the eight-phase round', () => {
     expect(trail).toEqual(['RESOLUTION', 'RESOLUTION', 'MAINTENANCE', 'ROUND_STARTED']);
   });
 
-  it('rests only in planning or conflicts while internal phases resolve automatically', () => {
-    expect(INTERACTIVE_PHASES).toEqual(['PLANNING', 'CONFLICTS']);
+  it('rests only in planning, conflicts or the Era turn while internal phases resolve automatically', () => {
+    expect(INTERACTIVE_PHASES).toEqual(['PLANNING', 'CONFLICTS', 'ERA_TURN']);
     let state = started();
     for (let i = 0; i < 6; i++) {
       state = readyAll(state);
@@ -89,6 +89,7 @@ describe('phase legality', () => {
     expect(LEGAL_COMMANDS.CONFLICTS).toEqual(new Set(['PLAY_CARD', 'READY', 'UNREADY']));
     for (const phase of ['ORDERS_MOVEMENT', 'INTEGRATION_MAINTENANCE', 'END_ROUND'] as const)
       expect(LEGAL_COMMANDS[phase].size).toBe(0);
+    expect(LEGAL_COMMANDS.ERA_TURN).toEqual(new Set(['RESOLVE_CHOICE', 'SWAP_AMBITION', 'SET_DEFENSE_POSTURE', 'READY', 'UNREADY']));
   });
 
   it('has exactly one path for each urban action: the legacy commands no longer exist', () => {
@@ -186,7 +187,7 @@ describe('what each phase does', () => {
     expect(state.players.every(p => !p.ready && p.orders.length === 0 && p.spentCommands === 0)).toBe(true);
   });
 
-  it('draws one distinct pulse at the start of each Era from the private deck (canon §17), none in between', () => {
+  it('draws one distinct pulse at the start of the match and one at each Era turn from the private deck (canon §18), none in between', () => {
     let state = started(73);
     state.rules.roundsPerEra = 2;
     const seen = new Set([state.worldPulse.current!.id]);
@@ -195,7 +196,8 @@ describe('what each phase does', () => {
     state = completeRound(state);
     expect(state.worldPulse.resolvedRound).toBe(1);
     state = completeRound(state);
-    expect(state.worldPulse.resolvedRound).toBe(3);
+    // The second Pulse is drawn at step 3 of the Era turn that closes round 2 (canon §22).
+    expect(state.worldPulse.resolvedRound).toBe(2);
     expect(seen.has(state.worldPulse.current!.id)).toBe(false);
     expect(state.worldPulse.deck.length).toBe(deck - 1);
     expect(state.telemetry.worldPulseEvents).toBe(2);

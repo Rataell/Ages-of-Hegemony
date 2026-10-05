@@ -21,8 +21,16 @@ export const AlphaRoundPhaseSchema = z.enum([
   'CONFLICTS',
   'INTEGRATION_MAINTENANCE',
   'END_ROUND',
+  /** The Era turn (canon §22): nine steps between the last round of an Era and the first of the next. */
+  'ERA_TURN',
 ]);
 export type AlphaRoundPhase = z.infer<typeof AlphaRoundPhaseSchema>;
+/** The nine steps of the Era turn (canon §22), in order. */
+export const ERA_TURN_STEPS = [
+  'Sustento e efeitos de fim de Era', 'Pontuar Ambição', 'Pulso do Mundo', 'Ameaças do Mundo', 'Reforma de Governo',
+  'Poder do Líder', 'Manobras e Ambições', 'Próximo patamar da Teia', 'Nova Era',
+] as const;
+
 
 /** The eight resources of V5.1a (canon §3): four materials limited at 15 and four civilizational ones limited at 10. */
 export const ALPHA_RESOURCE_KEYS = ['food', 'wood', 'stone', 'metal', 'wealth', 'knowledge', 'influence', 'culture'] as const;

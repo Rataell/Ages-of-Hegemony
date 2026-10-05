@@ -12,7 +12,7 @@ import { maintainCards, scoreAmbitions } from './alpha-cards.js';
 import { settleCargo, suspendBlockadedRoutes } from './alpha-naval.js';
 import { establishRoute, maintainTrade, manageDiplomacy, resolveInfluence, settleTreaties } from './alpha-diplomacy.js';
 import { exploreRegion, refreshKnowledge, visibleHexIds } from './alpha-world.js';
-import { activateThreats, applyThreatCommand, growThreats, suspendThreatenedRoutes } from './alpha-threats.js';
+import { activateThreats, applyThreatCommand, suspendThreatenedRoutes } from './alpha-threats.js';
 import { addPendingChoice } from './alpha-resonance.js';
 import { validateMilitaryOrder } from './alpha-military.js';
 import { resolveBattle } from './alpha-combat.js';
@@ -20,6 +20,7 @@ import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
 import { applyRecurringEffects, passEraByCalendar } from './alpha-institutions.js';
 import { performUrbanAction } from './alpha-urban.js';
 import { kitFoodUpkeep } from './alpha-kits.js';
+import { enterEraTurn, finishEraTurn, isEraTurnDue } from './alpha-era-turn.js';
 
 /**
  * The alpha round is driven only by `state.phase`. The legacy core phase is mirrored (never advanced through the core
@@ -27,7 +28,7 @@ import { kitFoodUpkeep } from './alpha-kits.js';
  */
 export const CORE_PHASE_MIRROR: Readonly<Record<AlphaRoundPhase, RoundPhase>> = {
   WORLD_PULSE: 'MAINTENANCE', PLANNING: 'PLANNING', URBAN_ACTIONS: 'PLANNING', ORDERS_MOVEMENT: 'RESOLUTION',
-  DIPLOMACY_TRADE: 'RESOLUTION', CONFLICTS: 'REACTION', INTEGRATION_MAINTENANCE: 'MAINTENANCE', END_ROUND: 'END_ROUND',
+  DIPLOMACY_TRADE: 'RESOLUTION', CONFLICTS: 'REACTION', INTEGRATION_MAINTENANCE: 'MAINTENANCE', END_ROUND: 'END_ROUND', ERA_TURN: 'END_ROUND',
 };
 export function setAlphaPhase(state: AlphaState, phase: AlphaRoundPhase): void {
   state.phase = phase;
@@ -35,7 +36,7 @@ export function setAlphaPhase(state: AlphaState, phase: AlphaRoundPhase): void {
 }
 
 /** Phases that wait for players. The others run automatically as soon as the previous phase closes. */
-export const INTERACTIVE_PHASES: readonly AlphaRoundPhase[] = ['PLANNING', 'CONFLICTS'];
+export const INTERACTIVE_PHASES: readonly AlphaRoundPhase[] = ['PLANNING', 'CONFLICTS', 'ERA_TURN'];
 
 type CommandType = AlphaCommand['type'];
 const planning: CommandType[] = [
@@ -56,6 +57,8 @@ export const LEGAL_COMMANDS: Readonly<Record<AlphaRoundPhase, ReadonlySet<Comman
   CONFLICTS: new Set<CommandType>(['PLAY_CARD', 'READY', 'UNREADY']),
   INTEGRATION_MAINTENANCE: new Set(),
   END_ROUND: new Set(),
+  /** Step 7 of the Era turn: choices, one Ambição swap, the defensive posture, and READY. Reforms were reserved in the last round. */
+  ERA_TURN: new Set<CommandType>(['RESOLVE_CHOICE', 'SWAP_AMBITION', 'SET_DEFENSE_POSTURE', 'READY', 'UNREADY']),
 };
 
 const PULSE_RESOURCE_NAMES = { FOOD: 'Alimento', WOOD: 'Madeira', STONE: 'Pedra', METAL: 'Metal', WEALTH: 'Riqueza', KNOWLEDGE: 'Conhecimento', INFLUENCE: 'Influência', CULTURE: 'Cultura' } as const;
@@ -105,8 +108,8 @@ export function openRound(state: AlphaState): void {
   for (const player of state.players) { player.ready = false; player.spentCommands = 0; player.ordersSpent = emptyOrderCount(); player.orders = []; player.plannedActions=[]; ledgerOf(state, player.playerId); }
   passEraByCalendar(state);
   maintainCards(state);
-  // A Pulse opens every Era (canon §18). S5 moves it to the Era turn; there is no other source of Pulses.
-  if ((state.core.round - 1) % state.rules.roundsPerEra === 0) { drawWorldPulse(state); if (state.core.round > 1) { growThreats(state); activateThreats(state, { launch: true }); } }
+  // The first Pulse opens the match (Era I); every later Pulse is drawn at step 3 of the Era turn (canon §18, §22).
+  if (state.core.round === 1) drawWorldPulse(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'ROUND_START');
   setAlphaPhase(state, 'PLANNING');
   alphaEvent(state, 'ROUND_STARTED', `Rodada ${state.core.round}: Planejamento.`);
@@ -149,8 +152,9 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
   }
 }
 
-function plannedOf(state:AlphaState,actor:PlayerId,types:readonly PlannedAction['type'][]):PlannedAction[]{
-  return state.players.find(player=>player.playerId===actor)!.plannedActions.filter(action=>types.includes(action.type));
+type RoundPlanned=Exclude<PlannedAction,{type:'GOVERNMENT_REFORM'}>;
+function plannedOf(state:AlphaState,actor:PlayerId,types:readonly PlannedAction['type'][]):RoundPlanned[]{
+  return state.players.find(player=>player.playerId===actor)!.plannedActions.filter((action):action is RoundPlanned=>action.type!=='GOVERNMENT_REFORM'&&types.includes(action.type));
 }
 
 /** Resolves private urban/diplomatic reservations by slot, then initiative. Failed actions are atomic and become visible events. */
@@ -276,7 +280,8 @@ function runMaintenance(state: AlphaState): void {
 
 function buildRoundReports(state: AlphaState): void {
   for (const owner of state.core.players) {
-    const ledger = ledgerOf(state, owner.id);
+    // A copy: the Era turn that follows the last round of an Era still moves resources (Pulso, rewards, reforms) after the report closes.
+    const ledger = structuredClone(ledgerOf(state, owner.id));
     const closing = alphaToLegacyResources(state.players.find(player => player.playerId === owner.id)!.resources);
     state.roundReports.push({
       playerId: owner.id, round: state.core.round, opening: ledger.opening, institutions: ledger.institutions, trade: ledger.trade, mining: ledger.mining,
@@ -305,7 +310,6 @@ export function prestigeRanking(state: AlphaState): PlayerId[] {
 
 /** END_ROUND: score, close reports, check victory, rotate initiative, increment the round and open the next WORLD_PULSE. */
 function endRound(state: AlphaState): void {
-  scoreAmbitions(state);
   buildRoundReports(state);
   refreshHegemony(state);
   const hegemon = hegemonyWinner(state);
@@ -315,11 +319,13 @@ function endRound(state: AlphaState): void {
     alphaEvent(state, 'GAME_FINISHED', 'Uma civilização consolidou sua Hegemonia.'); return;
   }
   if (state.core.round >= state.rules.roundLimit) {
+    scoreAmbitions(state);
     const playerId = prestigeRanking(state)[0]!;
     state.winner = { playerId, reason: 'ROUND_LIMIT', round: state.core.round }; state.core.status = 'FINISHED';
     state.telemetry.winner = playerId; state.telemetry.victoryReason = 'ROUND_LIMIT';
     alphaEvent(state, 'GAME_FINISHED', 'Partida encerrada pelo limite de rodadas.'); return;
   }
+  if (isEraTurnDue(state)) { enterEraTurn(state); return; }
   const first = state.initiative.shift(); if (first) state.initiative.push(first);
   state.core.round += 1;
   state.core.pendingOrders = Object.fromEntries(state.core.players.map(player => [player.id, []]));
@@ -365,6 +371,9 @@ export function advanceAfterReady(state: AlphaState): void {
         if (state.players.some(player => !player.ready)) return;
         break;
       }
+      case 'ERA_TURN':
+        finishEraTurn(state);
+        return;
       case 'URBAN_ACTIONS':
       case 'DIPLOMACY_TRADE':
         throw new Error(`A fase interna ${state.phase} não aguarda jogadores.`);

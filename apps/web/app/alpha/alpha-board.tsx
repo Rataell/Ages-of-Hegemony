@@ -12,6 +12,7 @@ import { AlphaGuide } from './alpha-guide';
 import { AttackPreview, POSTURES, postureText } from './alpha-combat';
 import { AlphaHand } from './alpha-hand';
 import { AlphaTour } from './alpha-tour';
+import { AlphaEraTurn } from './alpha-era-turn';
 import { AmbitionChooser, AlphaCards, AlphaCity, AlphaDiplomacy, AlphaInstitutions, AlphaReports, AlphaUrban } from './alpha-panels';
 
 export type AlphaSend=(command:Record<string,unknown>)=>Promise<boolean>;
@@ -165,6 +166,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       {game.self.orders.filter(o=>o.type==='ATTACK').map(o=><p key={o.id}>Seu ataque em <b>{o.type==='ATTACK'?o.target:''}</b> é resolvido depois das reações.</p>)}
       {reactions.length>0?<><p>Uma carta de reação soma Força aos seus conflitos desta rodada, antes dos dados. Restam {Math.max(0,game.rules.cardsPerRound-game.self.cardsPlayed)} carta(s) nesta rodada.</p><div className="alpha-card-row">{reactions.map(card=><article className="alpha-card" key={card.id}><h4>{card.name}</h4><p>+{card.effect?.amount??0} Força nesta rodada</p><button disabled={busy} onClick={()=>void send({type:'PLAY_CARD',cardId:card.id})}>Jogar reação</button></article>)}</div></>:<p>Você não tem cartas de reação.</p>}
       <button className="primary" disabled={busy} onClick={()=>void send({type:'READY'})}>Seguir para os dados</button></section>}
+    {game.phase==='ERA_TURN'&&!game.winner&&<AlphaEraTurn game={game} locked={locked} busy={busy} send={send}/>}
     {game.winner&&!finaleClosed&&<div className="alpha-modal-backdrop"><section className="alpha-modal alpha-finale-panel" role="dialog" aria-modal="true" aria-labelledby="alpha-finale-title"><p className="eyebrow">FIM DA PARTIDA · RODADA {game.winner.round}</p>
       <h2 id="alpha-finale-title">{game.winner.playerId===room.selfPlayerId?'Sua civilização venceu':`${game.players.find(p=>p.id===game.winner!.playerId)?.name} venceu`}</h2>
       <p>{game.winner.reason==='HEGEMONY'?`Hegemonia ${text(game.finalStandings.find(s=>s.playerId===game.winner!.playerId)?.hegemony??'')} consolidada.`:`Maior Prestígio ao fim das ${game.rules.roundLimit} rodadas.`}</p>
@@ -257,7 +259,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       <span className="alpha-tray-ready" role="status">{game.players.filter(p=>p.ready).length} / {game.players.length} prontos</span>
       <details className="alpha-action-queue"><summary>Ordens planejadas {game.actions.reserved} / {game.actions.limit}</summary><div>{planned.map(action=><p key={action.id}><span>{action.label}</span><button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:action.id})}>Cancelar</button></p>)}{planned.length===0&&<small>Nenhuma ação reservada.</small>}</div></details>
       {resolution.length>0&&<details className="alpha-resolution-log"><summary>Última resolução</summary><ol>{resolution.map(event=><li key={event.id}>{event.message}</li>)}</ol></details>}
-      {ambitionsPending?<button className="primary advance-phase-btn" disabled={locked} onClick={()=>setAmbitionsLater(false)}>Escolher ambições</button>:<>{game.self.ready&&!game.winner&&<button className="alpha-unready" disabled={busy} title="Retira sua confirmação enquanto outras pessoas decidem" onClick={()=>void send({type:'UNREADY'})}>Voltar a planejar</button>}<button className={`${cardFocus||replay||tab!=='world'||conflictCall||game.winner||(ambitionsPending&&!ambitionsLater)?"":"primary "}advance-phase-btn`} disabled={locked} onClick={()=>{if(game.phase==='PLANNING'&&planningWarnings.length&&!checkOpen){setCheckOpen(true);return;}setCheckOpen(false);void send({type:'READY'});}}>{game.self.ready?'Aguardando outras pessoas':game.phase==='CONFLICTS'?'Passar / pronto':game.phase==='PLANNING'?'Confirmar planejamento':'Concluir fase'}</button></>}
+      {ambitionsPending?<button className="primary advance-phase-btn" disabled={locked} onClick={()=>setAmbitionsLater(false)}>Escolher ambições</button>:<>{game.self.ready&&!game.winner&&<button className="alpha-unready" disabled={busy} title="Retira sua confirmação enquanto outras pessoas decidem" onClick={()=>void send({type:'UNREADY'})}>Voltar a planejar</button>}<button className={`${cardFocus||replay||tab!=='world'||conflictCall||game.phase==='ERA_TURN'||game.winner||(ambitionsPending&&!ambitionsLater)?"":"primary "}advance-phase-btn`} disabled={locked} onClick={()=>{if(game.phase==='PLANNING'&&planningWarnings.length&&!checkOpen){setCheckOpen(true);return;}setCheckOpen(false);void send({type:'READY'});}}>{game.self.ready?'Aguardando outras pessoas':game.phase==='CONFLICTS'?'Passar / pronto':game.phase==='PLANNING'?'Confirmar planejamento':game.phase==='ERA_TURN'?'Confirmar Virada':'Concluir fase'}</button></>}
     </footer>
   </>;
 }

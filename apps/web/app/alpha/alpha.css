@@ -505,3 +505,13 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-grau{margin-left:.35em;font-style:normal;font-size:.7em;letter-spacing:-.1em;color:#8a8070}
 .alpha-battle-delta{font-weight:600}
 .alpha-preview-grades{font-size:.78rem;color:#8a8070}
+
+/* Era turn (canon §22): nine steps over the Mesa, one CTA. */
+.alpha-era-turn { position: fixed; z-index: 40; inset: 92px 50% auto auto; transform: translateX(50%); width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 150px); overflow: auto; padding: 20px; border: 1px solid #8884; background: var(--surface-elevated); box-shadow: 0 18px 60px #000a; }
+.alpha-era-turn h2 { margin: 4px 0 10px; }
+.alpha-era-steps { margin: 0 0 12px; padding: 0; list-style: none; display: grid; gap: 4px; }
+.alpha-era-steps li { display: grid; gap: 2px; padding: 4px 8px; border-left: 3px solid transparent; opacity: .72; }
+.alpha-era-steps li[data-state='current'] { opacity: 1; border-left-color: currentColor; }
+.alpha-era-steps li[data-state='done'] small { opacity: .85; }
+.alpha-government ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.alpha-government li { display: flex; justify-content: space-between; gap: 8px; align-items: center; }

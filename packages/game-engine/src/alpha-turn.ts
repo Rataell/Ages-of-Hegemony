@@ -1,15 +1,15 @@
 import { proposeTrade, respondTrade } from './alpha-trade.js';
-import { AlphaCommandSchema, AlphaStateSchema, emptyAlphaResourcePool, actionClassForCommand, orderTypeForCommand, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { AlphaCommandSchema, AlphaStateSchema, actionClassForCommand, orderTypeForCommand, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { err, ok, type Result } from '@aoh/shared';
 import { applyCommand } from './engine.js';
 import { validateMilitaryOrder } from './alpha-military.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { demobilize, mirrorDevelopment, refreshAlphaAdministration } from './alpha-city.js';
-import { hasUnlock } from './alpha-institutions.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
-import { manageCard, playCivilizationCard } from './alpha-cards.js';
+import { manageCard, playCivilizationCard, swapAmbition } from './alpha-cards.js';
+import { governmentReformBlock, isReformRound } from './alpha-era-turn.js';
 import { disembark, embark } from './alpha-naval.js';
 import { declareHegemony, refreshHegemony } from './alpha-hegemony.js';
 import { settleWithPioneer } from './alpha-cities.js';
@@ -44,7 +44,7 @@ export const ALPHA_UNSUPPORTED_COMMANDS = [] as const;
 const UNSUPPORTED = new Set<string>(ALPHA_UNSUPPORTED_COMMANDS as readonly string[]);
 const PHASE_LABEL: Record<AlphaState['phase'], string> = {
   WORLD_PULSE: 'Pulso do mundo', PLANNING: 'Planejamento', URBAN_ACTIONS: 'Ações urbanas', ORDERS_MOVEMENT: 'Ordens e movimento',
-  DIPLOMACY_TRADE: 'Diplomacia e comércio', CONFLICTS: 'Conflitos', INTEGRATION_MAINTENANCE: 'Integração e manutenção', END_ROUND: 'Fim da rodada',
+  DIPLOMACY_TRADE: 'Diplomacia e comércio', CONFLICTS: 'Conflitos', INTEGRATION_MAINTENANCE: 'Integração e manutenção', END_ROUND: 'Fim da rodada', ERA_TURN: 'Virada de Era',
 };
 
 /** Authenticated actor is separate from command JSON. No repository or network in this reducer. */
@@ -78,18 +78,16 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if (command.command.type === 'BUILD_DISTRICT' || command.command.type === 'BUILD_BUILDING') return err({ code:'USE_URBAN_ACTION', message:'Construa pela ação urbana Construir.' });
       if (command.command.type === 'DEVELOP_CITY' || command.command.type === 'SPECIALIZE_CITY') return err({ code:'RULE_REMOVED', message:'Desenvolvimento e especialização saíram das regras: a cidade sobe de nível por Elevar e se especializa pelos distritos.' });
       if (command.command.type === 'ADOPT_GOVERNMENT') {
-        const government=command.command.government;const owner=state.core.players.find(p=>p.id===actor)!;
-        if(owner.civilization.government===government)throw new Error('Sua civilização já vive sob este governo.');
-        if(!hasUnlock(state,actor,`government:${government}`))throw new Error('Este governo exige o avanço da Teia que o abre.');
-        const influence=['FOUNDATION','EXPANSION','CONSOLIDATION'].includes(player.era)?4:6;
-        alphaPay(state,actor,{...emptyAlphaResourcePool(),influence});
-        owner.civilization={...owner.civilization,government};
-        const capital=state.cities.find(c=>c.cityId===owner.civilization.capitalCityId);if(capital)capital.mood=Math.min(capital.mood,3);
-        refreshAlphaAdministration(state);
-        alphaEvent(state,'GOVERNMENT',`Governo adotado: ${government}. A capital fica Abalada por uma rodada.`,[actor]);
-        if(actionClass==='MAIN')chargeMainAction(state,actor,'COMMIT','INFLUENCE');
-        refreshHegemony(state);state.version++;
-        const adopted=AlphaStateSchema.safeParse(state);if(adopted.success)return ok(adopted.data);
+        // Canon §16, I-7: a government changes only at the Era turn. Here the Influência Order is reserved in the last round of the Era.
+        const government=command.command.government;
+        if(!isReformRound(state))throw new Error('O governo só muda na Virada de Era: reserve a Ordem Influência na última rodada da Era.');
+        if(player.plannedActions.some(action=>action.type==='GOVERNMENT_REFORM'))throw new Error('Já existe uma reforma de governo reservada.');
+        const blocked=governmentReformBlock(state,actor,government);if(blocked)throw new Error(blocked);
+        player.plannedActions.push({id:`reform-${state.version}`,type:'GOVERNMENT_REFORM',government});
+        alphaEvent(state,'GOVERNMENT_PLANNED','Reforma de governo reservada para a Virada de Era.',[actor]);
+        if(actionClass==='MAIN')chargeMainAction(state,actor,'RESERVE','INFLUENCE');
+        state.version++;
+        const planned=AlphaStateSchema.safeParse(state);if(planned.success)return ok(planned.data);
         return err({ code:'INVALID_STATE', message:'A decisão violaria uma regra de integridade.' });
       }
       const management=command.command;
@@ -104,6 +102,9 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     } else if (command.type === 'SET_DEFENSE_POSTURE') {
       player.defensePosture = command.posture;
       alphaEvent(state, 'DEFENSE_POSTURE', 'Postura defensiva definida.', [actor]);
+    } else if (command.type === 'SWAP_AMBITION') {
+      swapAmbition(state, actor, command.cardId);
+      alphaEvent(state, 'CARD_ACTION', 'Ambição trocada.', [actor]);
     } else if (command.type === 'RESOLVE_CHOICE') {
       resolveChoice(state, actor, command.choiceId, command.optionId);
     } else if (command.type === 'LEADER_ABILITY') {

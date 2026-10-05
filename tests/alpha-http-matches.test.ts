@@ -54,6 +54,13 @@ async function completeHttpMatch(playerCount: 2 | 4 | 6) {
       const view = await read(current.id, cookies[index]!);
       current = (await call({ operation: 'command', gameId: current.id, payload: { type: 'READY', expectedVersion: view.game!.version } }, cookies[index])).view;
     }
+    // The last round of an Era rests in the Era turn (canon §22): everyone confirms it too.
+    if ((await repository.find(current.id))!.game!.phase === 'ERA_TURN') {
+      for (let index = 0; index < playerCount; index++) {
+        const view = await read(current.id, cookies[index]!);
+        current = (await call({ operation: 'command', gameId: current.id, payload: { type: 'READY', expectedVersion: view.game!.version } }, cookies[index])).view;
+      }
+    }
     const aggregate = (await repository.find(current.id))!.game!;
     expect(aggregate.players.every(player => player.plannedActions.length === 0)).toBe(true);
     expect(aggregate.core.round).toBe(Math.min(round + 1, 21));

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CityIdSchema, GameIdSchema, HexIdSchema, IdentifierSchema, NonNegativeIntegerSchema as N, PlayerIdSchema, PositiveIntegerSchema as P, ResourcePoolSchema, emptyResourcePool } from './core.js';
+import { CityIdSchema, GameIdSchema, HexIdSchema, IdentifierSchema, NonNegativeIntegerSchema as N, PlayerIdSchema, PositiveIntegerSchema as P, GovernmentTypeSchema, ResourcePoolSchema, emptyResourcePool } from './core.js';
 import { GameCommandSchema, GameStateSchema } from './model.js';
 import { AlphaUnitClassSchema, UnitCatalogEntrySchema, alphaUnitCatalog } from './alpha-catalog.js';
 import { ADVANCEMENTS, CIVILIZATIONS, AlphaEffectSchema } from './alpha-institutions.js';
@@ -100,6 +100,8 @@ export const PlannedActionSchema = z.discriminatedUnion('type',[
   z.strictObject({id:IdentifierSchema,type:z.literal('URBAN_ACTION'),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),advancementId:IdentifierSchema.optional()}),
   z.strictObject({id:IdentifierSchema,type:z.literal('PROPOSE_TREATY'),recipientId:PlayerIdSchema,treaty:TreatyTypeSchema,deal:ResourceDealSchema}),
   z.strictObject({id:IdentifierSchema,type:z.literal('DECLARE_WAR'),targetId:PlayerIdSchema}),
+  /** An Influência Order reserved in the last round of an Era; it executes at step 5 of the Era turn (canon §16, I-7). */
+  z.strictObject({id:IdentifierSchema,type:z.literal('GOVERNMENT_REFORM'),government:GovernmentTypeSchema}),
 ]);
 export type PlannedAction=z.infer<typeof PlannedActionSchema>;
 const StrategicPlayerSchema = z.strictObject({
@@ -109,6 +111,8 @@ const StrategicPlayerSchema = z.strictObject({
   /** Orders already committed this round, by type (canon §2). Reserved orders are typed from the queue itself. */
   ordersSpent: z.record(z.enum(['CITY', 'EXPEDITION', 'ADVANCE', 'INFLUENCE', 'LEGACY']), N).default({ CITY: 0, EXPEDITION: 0, ADVANCE: 0, INFLUENCE: 0, LEGACY: 0 }),
   ready: z.boolean(), prestige: N,
+  /** Era of the last government reform (at most one per Era, canon §16) and of the last Ambição swap (one per Era turn). */
+  governmentReformEra: AlphaEraSchema.nullable().default(null), ambitionSwapEra: AlphaEraSchema.nullable().default(null),
   /** Researched Web and Heritage ids. Pre-V5.1a `adv-*` ids are read as their closest Web node. */
   research: z.preprocess(value => Array.isArray(value) && value.some(id => typeof id === 'string' && id.startsWith('adv-')) ? migrateResearch(value as string[]) : value, z.array(IdentifierSchema)),
   hand: z.array(IdentifierSchema), ambitions: z.array(IdentifierSchema), completedAmbitions: z.array(IdentifierSchema), advisors: z.array(IdentifierSchema),
@@ -170,7 +174,8 @@ const AlphaStateBase = z.strictObject({
   /** World threats (V5.1b §21b): Acampamentos, Bandos and pirate Ancoradouros. */
   threats:z.array(ThreatSchema).default([]),
   /** Placeholder filled by the Era turn slice; read-only data until then. */
-  eraTurn:z.record(z.string(),z.json()).nullable().default(null),
+  /** The Era turn in progress (canon §22): which Era is closing, the step it waits at (7) and the public log of steps 1–6. */
+  eraTurn:z.strictObject({era:AlphaEraSchema,step:z.number().int().min(1).max(9),log:z.array(z.strictObject({step:z.number().int().min(1).max(9),summary:z.string().max(400)}))}).nullable().default(null),
   roundLedgers:z.array(RoundLedgerSchema).default([]),
   resolutionEvents:z.array(ResolutionEventSchema).default([]),
   telemetry:AlphaTelemetrySchema,
@@ -352,6 +357,8 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('QUEUE_ORDER'), expectedVersion: N, order: StrategicOrderSchema }),
   z.strictObject({ type: z.literal('CANCEL_ORDER'), expectedVersion: N, orderId: IdentifierSchema }),
   z.strictObject({type:z.literal('RESOLVE_CHOICE'),expectedVersion:N,choiceId:IdentifierSchema,optionId:IdentifierSchema}),
+  /** Era turn step 7: replaces one unfinished Ambição with the next from the deck. */
+  z.strictObject({type:z.literal('SWAP_AMBITION'),expectedVersion:N,cardId:IdentifierSchema}),
   z.strictObject({ type: z.literal('READY'), expectedVersion: N }),
   /** Withdraws a READY while others are still deciding, so a misclick does not forfeit the phase. */
   z.strictObject({ type: z.literal('UNREADY'), expectedVersion: N }),
@@ -374,7 +381,7 @@ export const ACTION_CLASS = {
   SETTLE:'MAIN', DECLARE_HEGEMONY:'MAIN', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
   LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', DEMOBILIZE:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
-  CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE', RESOLVE_CHOICE:'FREE',
+  CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE', RESOLVE_CHOICE:'FREE', SWAP_AMBITION:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
 
 /** The Order a MAIN command consumes, or null for free actions. Government adoption travels through MANAGE and is an Influência Order (canon §16). */

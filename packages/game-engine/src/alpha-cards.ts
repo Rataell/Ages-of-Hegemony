@@ -26,7 +26,7 @@ function reshuffleStrategy(state:AlphaState):void {
   state.cards.strategyDeck=shuffled(state,returning);
 }
 export function maintainCards(state:AlphaState):void {
-  for(const player of state.players){player.cardsPlayed=0;player.temporaryEffects=player.temporaryEffects.filter(e=>e.round>=state.core.round);if(player.hand.length<state.rules.handLimit){if(!state.cards.strategyDeck.length)reshuffleStrategy(state);const next=state.cards.strategyDeck.shift();if(next)player.hand.push(next);}}
+  for(const player of state.players){player.cardsPlayed=0;player.temporaryEffects=player.temporaryEffects.filter(e=>e.round>=state.core.round);}
   if(state.cards.worldDeck.length&&(state.cards.worldEvent===null||state.core.round%state.rules.eventEvery===0&&state.cards.worldEventRound!==state.core.round)) {
     if(state.cards.worldEvent)state.cards.discarded.push(state.cards.worldEvent);
     state.cards.worldEvent=state.cards.worldDeck.shift()!;state.cards.worldResponded=[];state.cards.worldEventRound=state.core.round;
@@ -86,10 +86,45 @@ export function playCivilizationCard(state:AlphaState,actor:PlayerId,cardId:stri
   if(card.effect.kind==='PRODUCTION')alphaGainLegacy(state,actor,{[card.effect.resource]:card.effect.amount});
   else player.temporaryEffects.push({source:card.id,effect:card.effect,round:state.core.round});
 }
-export function scoreAmbitions(state:AlphaState):void {
+/**
+ * Era turn step 7 (canon §17, §22): Manobras +1 per Era up to the hand limit, and the Reactions played so far return to the deck.
+ * Hands no longer refill every round: they start at 3 and grow by one at each Era turn.
+ */
+export function renewManeuvers(state:AlphaState):void {
+  const reactions=new Set(ALPHA_CARDS.filter(c=>c.family==='STRATEGY'&&c.timing==='REACTION').map(c=>c.id));
+  const back=state.cards.discarded.filter(id=>reactions.has(id));
+  if(back.length){state.cards.discarded=state.cards.discarded.filter(id=>!reactions.has(id));state.cards.strategyDeck=shuffled(state,[...state.cards.strategyDeck,...back]);}
+  for(const player of state.players){
+    if(player.hand.length>=state.rules.handLimit)continue;
+    if(!state.cards.strategyDeck.length)reshuffleStrategy(state);
+    const next=state.cards.strategyDeck.shift();if(next)player.hand.push(next);
+  }
+}
+/** Era turn step 7: one unfinished Ambição may be swapped for the next one in the deck, once per Era turn. */
+export function swapAmbition(state:AlphaState,actor:PlayerId,cardId:string):void {
+  const player=state.players.find(p=>p.playerId===actor)!;
+  if(!state.eraTurn)throw new Error('A troca de Ambição só acontece na Virada de Era.');
+  if(player.ambitionSwapEra===state.eraTurn.era)throw new Error('Você já trocou uma Ambição nesta Virada de Era.');
+  if(!player.ambitions.includes(cardId)||player.completedAmbitions.includes(cardId))throw new Error('Escolha uma das suas Ambições ainda não concluídas.');
+  const next=state.cards.ambitionDeck.shift();
+  if(!next)throw new Error('Não há outra Ambição no baralho.');
+  state.cards.discarded.push(cardId);
+  player.ambitions=player.ambitions.map(id=>id===cardId?next:id);
+  player.ambitionSwapEra=state.eraTurn.era;
+}
+/**
+ * Scores completed Ambições (canon §17): at most 1 per civilization per Era (2 under a República), taken best Prestígio first.
+ * Called at Era turn step 2 and once more when the match ends. Returns how many were scored.
+ */
+export function scoreAmbitions(state:AlphaState):number {
+  let scored=0;
   for(const player of state.players) {
     if(!player.ambitionsChosen)continue;const core=state.core.players.find(p=>p.id===player.playerId)!;
     const metrics={cities:core.civilization.cities.length,territory:state.core.map.filter(t=>t.ownerId===player.playerId).length,research:player.research.length,districts:core.civilization.cities.reduce((n,c)=>n+c.districts.length,0),routes:state.routes.filter(r=>r.ownerId===player.playerId&&!r.suspended).length,treaties:state.treaties.filter(t=>t.status==='ACTIVE'&&[t.proposerId,t.recipientId].includes(player.playerId)).length,victories:player.victories,culture:core.civilization.cities.filter(c=>c.districts.some(d=>d.type==='CULTURAL')).length};
-    for(const id of player.ambitions){const objective=ALPHA_CARDS.find(c=>c.id===id)!.objective!;if(!player.completedAmbitions.includes(id)&&metrics[objective.metric]>=objective.threshold){player.completedAmbitions.push(id);player.prestige+=objective.prestige;}}
+    const limit=core.civilization.government==='REPUBLIC'?2:1;
+    const met=player.ambitions.filter(id=>{const objective=ALPHA_CARDS.find(c=>c.id===id)!.objective!;return !player.completedAmbitions.includes(id)&&metrics[objective.metric]>=objective.threshold;})
+      .sort((a,b)=>ALPHA_CARDS.find(c=>c.id===b)!.objective!.prestige-ALPHA_CARDS.find(c=>c.id===a)!.objective!.prestige||a.localeCompare(b));
+    for(const id of met.slice(0,limit)){player.completedAmbitions.push(id);player.prestige+=ALPHA_CARDS.find(c=>c.id===id)!.objective!.prestige;scored++;}
   }
+  return scored;
 }

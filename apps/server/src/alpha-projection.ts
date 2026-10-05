@@ -1,5 +1,5 @@
 import { ACTION_CLASS, ADVANCEMENTS, CityLevelSchema, GREAT_PROJECTS, elevateRequirement, ladderStep, nextLevel, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { governmentOptions, GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -32,6 +32,9 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     independents:independentPeopleView(state,actor),
     threats:threatView(state,actor),threatAlerts:threatAlerts(state,actor),explorationHints:explorationHints(state,actor),
     leaderBlock:leaderAbilityBlock(state,actor),
+    /** The Era turn is public: the step it waits at, the log of steps already run and who has not confirmed. Reform options are the viewer's own. */
+    eraTurn:state.eraTurn?{era:state.eraTurn.era,step:state.eraTurn.step,log:state.eraTurn.log,awaiting:state.players.filter(p=>!p.ready).map(p=>p.playerId)}:null,
+    government:governmentOptions(state,actor),
     stacks:stackView(state,actor),unitOptions:alphaUnitOptions(state,actor),claimOptions:alphaClaimOptions(state,actor),
     /** While reactions are open, the defender learns who attacks which of its hexes (never the force or posture). */
     incomingAttacks:state.phase==='CONFLICTS'?pendingAttacks(state).filter(attack=>attack.defenderId===actor).map(({attackerId,target})=>({attackerId,target})):[],

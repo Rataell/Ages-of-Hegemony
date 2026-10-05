@@ -7,6 +7,7 @@ import { EconomyTable, PopulationManager } from '../play/inspectors';
 import { alphaLabel as text } from './alpha-copy';
 import { BattleReport } from './alpha-combat';
 import type { AlphaSend } from './alpha-board';
+import { GovernmentReform } from './alpha-era-turn';
 type Panel={game:AlphaPlayerView;locked:boolean;send:AlphaSend};
 /** A production effect is shown as what it credits in the seven resources (legacy "materials" become Madeira and Pedra). */
 function Effect({effect}:{effect:AlphaEffect|null}){if(!effect)return null;const gains=effect.kind==='PRODUCTION'?Object.entries(alphaGainOf(effect.resource,effect.amount)).filter(([,n])=>n>0).map(([key,n])=>`+${n} ${text(key)}`).join(', '):`+${effect.amount} ${text(effect.kind)}`;return <p className="alpha-effect">{gains}</p>;}
@@ -17,7 +18,6 @@ const MOOD_BAND:Record<string,string>={REVOLT:'Revolta',SHAKEN:'Abalada',STABLE:
 const FORTIFICATION:Record<string,string>={NONE:'nenhuma',PALISADE:'paliçada',STONE_WALL:'muralha de pedra',FORTRESS:'fortaleza',BASTION:'bastião',CITADEL:'cidadela'};
 export function AlphaCity({game,city,locked,send,manage}:Panel&{city:CityState;manage:AlphaSend}){
   const details=game.cityDetails.find(c=>c.id===city.id)!,meta=game.cityStates.find(c=>c.cityId===city.id),occupation=game.occupations.find(o=>o.cityId===city.id);
-  const [government,setGovernment]=useState('MONARCHY');
   const admin=game.administration;
   const elevatePlanned=game.self.plannedActions.some(a=>a.type==='URBAN_ACTION'&&a.cityId===city.id&&a.action==='ELEVATE');
   return <section className="alpha-city"><Piece/><h2>{city.name}</h2>
@@ -30,7 +30,7 @@ export function AlphaCity({game,city,locked,send,manage}:Panel&{city:CityState;m
     <details><summary>Distritos · {city.districts.length} / {meta?.slots??'?'} vagas</summary><p>{city.districts.length?city.districts.map(d=>text(d.type)).join(' · '):'Nenhum distrito construído.'} Novos distritos são construídos pela ação Construir; cada um ocupa uma vaga e exige o avanço da Teia que o abre.</p></details>
     <details><summary>Edifícios</summary><p>{city.buildings.length?city.buildings.map(b=>text(b.type)).join(' · '):'Nenhum edifício construído.'} Novos edifícios são construídos pela ação Construir.</p></details>
     <details><summary>Economia da cidade</summary><EconomyTable production={details.production} labels={{materials:'Madeira/Pedra'}} help="Madeira/Pedra: a produção de construção é somada e dividida ao Produzir, metade em Madeira (arredondada para cima) e metade em Pedra."/></details>
-    {game.view.player.civilization.government==='PROTO_GOVERNANCE'&&<details><summary>Adotar governo (Ordem Influência)</summary><select aria-label="Forma de governo" value={government} onChange={e=>setGovernment(e.target.value)}>{['MONARCHY','REPUBLIC','OLIGARCHY','THEOCRACY','CONFEDERATION'].map(g=><option key={g} value={g}>{text(g)}</option>)}</select><button disabled={locked} onClick={()=>void manage({type:'ADOPT_GOVERNMENT',government})}>Adotar governo</button></details>}
+    <GovernmentReform game={game} locked={locked} manage={manage}/>
   </section>;
 }
 
