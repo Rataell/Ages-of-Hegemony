@@ -1,6 +1,5 @@
 import { CityIdSchema, cityLevelForPopulation, connectedTo, type AlphaState, type CityId, type PlayerId } from '@aoh/game-domain';
 import { refreshAdministration } from './civilization.js';
-import { addPressure } from './alpha-phases.js';
 import { alphaResourcePayment } from './alpha-resources.js';
 import { foundCityAt } from './founding.js';
 import { culturalIdentityOf, refreshCulturalMetrics } from './alpha-culture.js';
@@ -33,7 +32,6 @@ export function occupyCity(state:AlphaState,actor:PlayerId,cityId:CityId):void {
   const previous=state.core.players.find(p=>p.civilization.cities.some(c=>c.id===cityId))!;
   const recipient=state.core.players.find(p=>p.id===actor)!;
   if(previous.id===actor)throw new Error('A cidade já pertence à sua civilização.');
-  addPressure(state,2,'captura de cidade');
   const city=previous.civilization.cities.find(c=>c.id===cityId)!;
   const liberated=state.occupations.some(o=>o.cityId===cityId&&o.previousOwnerId===actor);
   previous.civilization.cities=previous.civilization.cities.filter(c=>c.id!==cityId);

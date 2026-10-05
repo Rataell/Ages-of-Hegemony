@@ -75,3 +75,11 @@ Each item is an **Interpretation (I-n)**: written here before the code uses it.
 ## Privacy (S6)
 
 Never projected: unresolved orders of others, secret Ambições, others' hands, RNG, a defender's posture before resolution, naval cargo of rivals, anything beyond the fog, unresolved pending choices of others, hidden `regions[].discovery` and threats outside vision. Threats move every round: only those inside current vision are shown.
+
+## Interpretations added during S0/S1
+
+- **I-8 (placeholders).** `threats` and `eraTurn` exist in the state as JSON-record placeholders (`[]` / `null`) so S3/S5 tighten the schema without another upgrade; `regions[].discovery` is optional JSON until S4.
+- **I-9 (upgrade marks).** Upgrading a V5.1a save builds `resonance.marks` from `research` with `round: 0` (the true round is unknown); sockets start empty.
+- **I-10 (POPULATION op).** `POPULATION{n}` adds a Disponível to the capital; when the capital is at its level ceiling the op pays 2 Alimento instead, so a reward is never void.
+- **I-11 (visibility).** Repercussão events and pending choices are visible to the owner only. Rivals see `resonanceFilled` and `resonanceCycles` per civilization, nothing else.
+- **I-12 (pending choices before S5).** Until the Era turn exists, unresolved choices simply stay pending; `autoResolveChoices` is exported for S5. The UI shows a card with the options in the Conselho panel (full Tabuleiro comes in S7).

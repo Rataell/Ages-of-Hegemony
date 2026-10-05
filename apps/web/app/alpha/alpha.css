@@ -494,3 +494,11 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-elevate-reqs{list-style:none;padding:0;margin:6px 0;display:grid;gap:2px;font-size:13px}
 .alpha-elevate-reqs li[data-ok="true"]{color:var(--success)}
 .alpha-elevate-reqs li[data-ok="false"]{color:var(--warning)}
+
+/* Ressonância: five sockets in the Faixa, colour = domain; a Convergence socket is split in two. */
+.alpha-resonance{display:inline-flex;align-items:center;gap:3px;margin-left:4px;vertical-align:middle}
+.alpha-socket{display:inline-block;width:10px;height:10px;transform:rotate(45deg);border:1px solid #8a7f6a;background:transparent;border-radius:1px}
+.alpha-socket.is-full{--c1:#9a8f7a;--c2:var(--c1);background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%);border-color:var(--c1)}
+.alpha-socket.d-KNOWLEDGE{--c1:#4a6fa5}.alpha-socket.d-LAND_AND_SEA{--c1:#4f8a5b}.alpha-socket.d-STONE_AND_METAL{--c1:#7d6e63}.alpha-socket.d-GOVERNMENT{--c1:#8e4f6b}.alpha-socket.d-TRADE{--c1:#b07f2f}
+.alpha-socket.d2-KNOWLEDGE{--c2:#4a6fa5}.alpha-socket.d2-LAND_AND_SEA{--c2:#4f8a5b}.alpha-socket.d2-STONE_AND_METAL{--c2:#7d6e63}.alpha-socket.d2-GOVERNMENT{--c2:#8e4f6b}.alpha-socket.d2-TRADE{--c2:#b07f2f}
+.alpha-socket-pending{margin-left:4px;font-size:11px}

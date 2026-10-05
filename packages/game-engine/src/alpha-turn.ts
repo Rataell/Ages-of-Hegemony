@@ -7,13 +7,13 @@ import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { demobilize, mirrorDevelopment, refreshAlphaAdministration } from './alpha-city.js';
 import { hasUnlock } from './alpha-institutions.js';
-import { addPressure } from './alpha-phases.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
 import { manageCard, playCivilizationCard } from './alpha-cards.js';
 import { disembark, embark } from './alpha-naval.js';
 import { declareHegemony, refreshHegemony } from './alpha-hegemony.js';
 import { settleWithPioneer } from './alpha-cities.js';
+import { resolveChoice } from './alpha-resonance.js';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
 import { LEGAL_COMMANDS, advanceAfterReady, openRound } from './alpha-phases.js';
 import { performUrbanAction, syncCityMetadata, urbanBlock } from './alpha-urban.js';
@@ -104,6 +104,8 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     } else if (command.type === 'SET_DEFENSE_POSTURE') {
       player.defensePosture = command.posture;
       alphaEvent(state, 'DEFENSE_POSTURE', 'Postura defensiva definida.', [actor]);
+    } else if (command.type === 'RESOLVE_CHOICE') {
+      resolveChoice(state, actor, command.choiceId, command.optionId);
     } else if (command.type === 'LEADER_ABILITY') {
       useLeaderAbility(state, actor);
     } else if (command.type === 'CONTEST_PRESENCE') {
@@ -145,7 +147,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       }
     } else if(command.type==='SETTLE') {
       const hexId=state.units.find(unit=>unit.id===command.unitId&&unit.ownerId===actor)?.hexId;
-      settleWithPioneer(state,actor,command.unitId,command.name);refreshKnowledge(state);addPressure(state,1,'fundação de cidade');
+      settleWithPioneer(state,actor,command.unitId,command.name);refreshKnowledge(state);
       alphaEvent(state,'CITY_FOUNDED','Pioneiro estabeleceu uma nova cidade.',[actor]);
       if(hexId){const city=state.core.players.find(owner=>owner.id===actor)!.civilization.cities.find(item=>item.hexId===hexId)!;const visibleTo=state.players.map(owner=>owner.playerId).filter(playerId=>playerId===actor||visibleHexIds(state,playerId).has(hexId));resolutionEvent(state,{type:'FOUNDATION',actorId:actor,visibleTo,message:`${city.name} foi fundada.`,hexId,cityId:city.id,unitIds:[command.unitId]});}
     } else if(command.type==='DECLARE_HEGEMONY') {

@@ -7,6 +7,7 @@ import { HERITAGE_ADVANCES, migrateResearch } from './alpha-web.js';
 import { ALPHA_CARDS, GREAT_PROJECTS } from './alpha-cards.js';
 import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
 import { civilizationKit } from './alpha-civilization-kits.js';
+import { PendingChoiceSchema, ResonanceStateSchema, advancementDomains, advancementSource, emptyResonance } from './alpha-resonance.js';
 import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
   ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, LegacyAlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
@@ -116,6 +117,10 @@ const StrategicPlayerSchema = z.strictObject({
   /** The civilization's permanent leader (assigned automatically) and whether this Era's ability was used. */
   leader:LeaderStateSchema.nullable().default(null),
   influencedCities:z.array(CityIdSchema),
+  /** Ressonância: 5 sockets, permanent marks and the last cycles (canon §18). */
+  resonance:ResonanceStateSchema.default(emptyResonance),
+  /** Repercussão / Encontro / Pulso choices waiting for this player. Only the owner ever sees them. */
+  pendingChoices:z.array(PendingChoiceSchema).default([]),
   hegemony:HegemonyDeclarationSchema.nullable(),
   ambitionsChosen:z.boolean(),cardsPlayed:N,
   /** Own civilization cards played, one entry per card and Era (each unlocked card is playable once per Era). */
@@ -132,8 +137,10 @@ export const ResolutionEventSchema = z.strictObject({
   hexId: HexIdSchema.optional(), cityId: CityIdSchema.optional(), unitIds: z.array(IdentifierSchema).default([]),
 });
 export type ResolutionEvent = z.infer<typeof ResolutionEventSchema>;
-export const AlphaStateSchema = z.strictObject({
+const AlphaStateBase = z.strictObject({
   schemaVersion: z.literal(5), gameId: GameIdSchema, version: N,
+  /** Rules generation the match runs on. Saves without it are V5.1a and are upgraded on read (`upgradeToV51b`). */
+  rulesVersion: z.enum(['v5.1a', 'v5.1b']).default('v5.1b'),
   alphaVersion:z.literal('0.1.0-alpha.1').default('0.1.0-alpha.1'),
   phase:AlphaRoundPhaseSchema.default('WORLD_PULSE'),
   privateRng:z.strictObject({algorithm:z.literal('hmac-sha256-counter-v1'),seed:z.string().regex(/^[a-f0-9]{64}$/),counter:N}),
@@ -141,7 +148,7 @@ export const AlphaStateSchema = z.strictObject({
   players: z.array(StrategicPlayerSchema).min(2).max(6),
   initiative: z.array(PlayerIdSchema).min(2).max(6), units: z.array(UnitSchema),
   roads:z.array(HexIdSchema),
-  regions:z.array(z.strictObject({id:IdentifierSchema,templateId:IdentifierSchema,hexIds:z.array(HexIdSchema).length(7),rotation:z.number().int().min(0).max(5),revealedBy:z.array(PlayerIdSchema)})),
+  regions:z.array(z.strictObject({id:IdentifierSchema,templateId:IdentifierSchema,hexIds:z.array(HexIdSchema).length(7),rotation:z.number().int().min(0).max(5),revealedBy:z.array(PlayerIdSchema),discovery:z.record(z.string(),z.json()).optional()})),
   occupations:z.array(z.strictObject({cityId:CityIdSchema,occupierId:PlayerIdSchema,previousOwnerId:PlayerIdSchema,sinceRound:P})),
   treaties:z.array(z.strictObject({id:IdentifierSchema,proposerId:PlayerIdSchema,recipientId:PlayerIdSchema,type:TreatyTypeSchema,status:z.enum(['PROPOSED','ACCEPTED','ACTIVE','DECLINED','ENDED']),deal:ResourceDealSchema,createdRound:P,expiresRound:P})),
   wars:z.array(z.tuple([PlayerIdSchema,PlayerIdSchema])),
@@ -158,8 +165,9 @@ export const AlphaStateSchema = z.strictObject({
   independents:z.array(IndependentPeopleSchema).default([]),
   raidBands:z.array(RaidBandSchema).default([]),
   worldPulse:z.strictObject({deck:z.array(IdentifierSchema),discard:z.array(IdentifierSchema),current:WorldPulseCardSchema.nullable(),resolvedRound:N}).default({deck:[],discard:[],current:null,resolvedRound:0}),
-  /** World Pressure (canon §18): grows with great deeds, fires an extra Pulse at 4 + 2 × players and only then resets; it survives the Era turn. */
-  pressure:N.default(0),
+  /** Placeholders filled by later V5.1b slices (world threats, Era turn); read-only data until then. */
+  threats:z.array(z.record(z.string(),z.json())).default([]),
+  eraTurn:z.record(z.string(),z.json()).nullable().default(null),
   roundLedgers:z.array(RoundLedgerSchema).default([]),
   resolutionEvents:z.array(ResolutionEventSchema).default([]),
   telemetry:AlphaTelemetrySchema,
@@ -263,7 +271,25 @@ export const AlphaStateSchema = z.strictObject({
     if(battle.winnerId!==(battle.attackTotal>battle.defenseTotal?battle.attackerId:battle.defenderId))fail('Battle winner mismatch');
   }
 });
-export type AlphaState = z.infer<typeof AlphaStateSchema>;
+/** V5.1a → V5.1b upgrade (never silent: a public SAVE_UPGRADED event is appended). Catalog refresh for combat arrives with the combat slice. */
+export function upgradeToV51b(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
+  const input = raw as Record<string, unknown>;
+  if (input.rulesVersion === 'v5.1b' || input.schemaVersion !== 5) return raw;
+  const { pressure: _dropped, ...rest } = input;
+  void _dropped;
+  const players = Array.isArray(rest.players) ? (rest.players as Record<string, unknown>[]).map(player => {
+    if (!player || typeof player !== 'object' || player.resonance !== undefined) return player;
+    const research = Array.isArray(player.research) ? (player.research as string[]) : [];
+    const marks = research.flatMap(id => { const domains = advancementDomains(id); return domains && advancementSource(id) ? [{ advancementId: id, domains, round: 0 }] : []; });
+    return { ...player, resonance: { ...emptyResonance(), marks } };
+  }) : rest.players;
+  const events = Array.isArray(rest.events) ? rest.events as unknown[] : [];
+  const round = typeof (rest.core as { round?: unknown } | undefined)?.round === 'number' ? (rest.core as { round: number }).round : 1;
+  return { ...rest, rulesVersion: 'v5.1b', players, events: [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Partida atualizada para as regras V5.1b: a Pressão do Mundo foi substituída pela Ressonância.' }] };
+}
+export const AlphaStateSchema = z.preprocess(upgradeToV51b, AlphaStateBase);
+export type AlphaState = z.infer<typeof AlphaStateBase>;
 export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,planId:IdentifierSchema.optional(),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),advancementId:IdentifierSchema.optional()}),
   z.strictObject({type:z.literal('PROPOSE_TRADE'),expectedVersion:N,recipientId:PlayerIdSchema,offerType:z.enum(['TRADE_INSTANT','GIFT','FUTURE_PROMISE','LOAN']),offer:AlphaResourcePoolSchema,request:AlphaResourcePoolSchema,treatyTerms:z.array(IdentifierSchema).max(4),dueRound:P.nullable()}),
@@ -294,6 +320,7 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('MANAGE'), expectedVersion: N, command: GameCommandSchema }),
   z.strictObject({ type: z.literal('QUEUE_ORDER'), expectedVersion: N, order: StrategicOrderSchema }),
   z.strictObject({ type: z.literal('CANCEL_ORDER'), expectedVersion: N, orderId: IdentifierSchema }),
+  z.strictObject({type:z.literal('RESOLVE_CHOICE'),expectedVersion:N,choiceId:IdentifierSchema,optionId:IdentifierSchema}),
   z.strictObject({ type: z.literal('READY'), expectedVersion: N }),
   /** Withdraws a READY while others are still deciding, so a misclick does not forfeit the phase. */
   z.strictObject({ type: z.literal('UNREADY'), expectedVersion: N }),
@@ -316,7 +343,7 @@ export const ACTION_CLASS = {
   SETTLE:'MAIN', DECLARE_HEGEMONY:'MAIN', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
   LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', DEMOBILIZE:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
-  CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE',
+  CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE', RESOLVE_CHOICE:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
 
 /** The Order a MAIN command consumes, or null for free actions. Government adoption travels through MANAGE and is an Influência Order (canon §16). */

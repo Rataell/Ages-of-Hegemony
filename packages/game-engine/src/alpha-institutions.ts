@@ -4,6 +4,7 @@ import { sum } from './arithmetic.js';
 import { alphaEvent } from './alpha-events.js';
 import { cardEffects } from './alpha-cards.js';
 import { kitAdvancementCost } from './alpha-kits.js';
+import { registerAdvance } from './alpha-resonance.js';
 export function institutionEffects(state:AlphaState,actor:PlayerId):AlphaEffect[] {
   const player=state.players.find(p=>p.playerId===actor)!;
   return [...(CIVILIZATIONS.find(c=>c.id===player.civilization)?.passives??[]),...researchedEffects(player.research),...cardEffects(state,actor)];
@@ -85,7 +86,7 @@ export function researchBlock(state:AlphaState,actor:PlayerId,id:string):string|
 export function researchAdvancement(state:AlphaState,actor:PlayerId,id:string):void {
   const blocked=researchBlock(state,actor,id);if(blocked)throw new Error(blocked);
   const player=state.players.find(p=>p.playerId===actor)!;const node=ADVANCEMENTS.find(a=>a.id===id);
-  alphaPay(state,actor,advanceCost(state,actor,id));player.research.push(id);if(node?.milestone)player.prestige+=3;
+  alphaPay(state,actor,advanceCost(state,actor,id));player.research.push(id);if(node?.milestone)player.prestige+=3;registerAdvance(state,actor,id);
 }
 /** Whether the player has researched any node that unlocks `tag` (e.g. `district:AGRARIAN`, `elevate:HAMLET`). */
 export function hasUnlock(state:AlphaState,actor:PlayerId,tag:string):boolean {

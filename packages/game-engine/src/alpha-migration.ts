@@ -36,7 +36,7 @@ function initialTelemetry(core: GameState, preset: AlphaState['rules']['worldPre
     unitRecruitment: {}, battles: 0, battleResults: {}, casualties: 0, citiesFounded: 0, citiesCaptured: 0,
     cityIntegration: 0, moodSamples: [], researchByDomain: {}, worldPulseEvents: 0, eventMitigations: 0,
     culturalContests: 0, culturalContestResults: {}, prestigeBySource: {}, hegemonyDeclarations: 0,
-    hegemonyInterruptions: 0, winner: null, victoryReason: null,
+    hegemonyInterruptions: 0, winner: null, victoryReason: null, resonanceCycles: 0, resonanceByKind: {},
   };
 }
 
@@ -61,7 +61,7 @@ export function migrateSnapshotV3ToV5(input: unknown): Result<AlphaState, AlphaE
   }));
   const civilizationByPlayer = new Map(players.map(player => [player.playerId, player.civilization]));
   const candidate = {
-    schemaVersion: 5, alphaVersion: '0.1.0-alpha.1', gameId: core.gameId, version: 0, phase: 'WORLD_PULSE', core, rules,
+    schemaVersion: 5, rulesVersion: 'v5.1b', alphaVersion: '0.1.0-alpha.1', gameId: core.gameId, version: 0, phase: 'WORLD_PULSE', core, rules,
     privateRng: { algorithm: 'hmac-sha256-counter-v1', seed: deterministicAlphaSeed(core.seed, core.gameId), counter: 0 },
     players, initiative: core.players.map(player => player.id), units: [], roads: [], regions: [], occupations: [], treaties: [], wars: [], routes: [], battles: [], winner: null,
     cards: { worldDeck: [], strategyDeck: [], ambitionDeck: [], advisorDeck: [], discarded: [], advisorMarket: [], worldEvent: null, worldEventRound: 0, worldResponded: [] },
@@ -98,7 +98,7 @@ export function migrateSnapshotV4ToV5(input: unknown): Result<AlphaState, AlphaE
   }
   const phase = ({ MAINTENANCE: 'WORLD_PULSE', PLANNING: 'PLANNING', RESOLUTION: 'ORDERS_MOVEMENT', REACTION: 'CONFLICTS', END_ROUND: 'END_ROUND' } as const)[raw.core.phase];
   const candidate = {
-    ...raw, schemaVersion: 5, alphaVersion: '0.1.0-alpha.1', phase, rules, players,
+    ...raw, schemaVersion: 5, rulesVersion: 'v5.1b', alphaVersion: '0.1.0-alpha.1', phase, rules, players,
     units: (raw.units ?? []).map(unit => ({ ...unit, kind: unit.kind === 'SETTLER' ? 'PIONEER' : unit.kind })),
     cities, tradeOffers: [], independents: [], raidBands: [],
     worldPulse: { deck: WORLD_PULSE_CARDS.map(card => card.id), discard: [], current: null, resolvedRound: 0 },

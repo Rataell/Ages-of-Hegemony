@@ -347,6 +347,8 @@ export const AlphaTelemetrySchema = z.strictObject({
   worldPulseEvents: N, eventMitigations: N, culturalContests: N, culturalContestResults: z.record(z.string(), N),
   prestigeBySource: z.record(z.string(), N), hegemonyDeclarations: N, hegemonyInterruptions: N,
   winner: PlayerIdSchema.nullable(), victoryReason: z.enum(['HEGEMONY', 'ROUND_LIMIT']).nullable(),
+  /** Ressonância (V5.1b): completed cycles and how many of each composition kind. */
+  resonanceCycles: N.default(0), resonanceByKind: z.record(z.string(), N).default({}),
 });
 export type AlphaTelemetry = z.infer<typeof AlphaTelemetrySchema>;
 
