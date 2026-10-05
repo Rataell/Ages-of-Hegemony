@@ -1,6 +1,7 @@
 import { liftLegacyCityCaps } from './alpha-turn.js';
 import { layoutBoard, featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
+import { alphaEvent } from './alpha-events.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { initializeAlphaCards } from './alpha-cards.js';
@@ -79,18 +80,33 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   state.independents=peoples.map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));
   // The two opening Acampamentos obey the same site rule as every later one (canon §21b: unclaimed, 3–5 hexes from a city, out of sight), not "as far as possible" (E-2).
   state.threats=[];for(let index=0;index<2;index++)spawnThreat(state,'CAMP');state.threats.forEach(threat=>{threat.fresh=false;});state.telemetry.threatsSpawned=0;
-  applyCivilizationHeritage(state);initializeAlphaCards(state);generateDiscoveries(state);return AlphaStateSchema.parse(state);
+  applyCivilizationHeritage(state);initializeAlphaCards(state);generateDiscoveries(state);refreshKnowledge(state);return AlphaStateSchema.parse(state);
 }
+/**
+ * SHARED TABLE (canon 2026-10-05): the board is public, planning is private. A Region is "open" once anyone other than its own seat has
+ * revealed it (or, for a frontier Region, once anyone has): its terrain, cities, roads, walls and pieces then belong to the whole table.
+ * A Pátria stays face down for the others until somebody else explores it (flip HOMELANDS_PUBLIC to open every homeland from the start).
+ */
+export const HOMELANDS_PUBLIC=false;
+export function regionIsPublic(state:AlphaState,region:AlphaState['regions'][number]):boolean {
+  const home=homeOfRegion(state,region);
+  return region.revealedBy.some(id=>id!==home)||(HOMELANDS_PUBLIC&&region.revealedBy.length>0);
+}
+export const regionOpenFor=(state:AlphaState,region:AlphaState['regions'][number],actor:PlayerId):boolean=>regionIsPublic(state,region)||homeOfRegion(state,region)===actor||region.revealedBy.includes(actor);
+/** Every hex the actor sees: the whole open Regions (shared with the table), hexes outside any Region (old saves), and the actor's own territory and pieces. No radius of vision. */
 export function visibleHexIds(state:AlphaState,actor:PlayerId):Set<string> {
-  const player=state.core.players.find(p=>p.id===actor)!;
-  const sources=[...player.civilization.cities.map(c=>c.hexId),...state.units.filter(u=>u.ownerId===actor).map(u=>u.hexId)];
-  const byId=new Map(state.core.map.map(t=>[t.id,t]));
-  return new Set(state.core.map.filter(t=>t.ownerId===actor||sources.some(id=>{const source=byId.get(id);return source&&hexDistance(source,t)<=1;})).map(t=>t.id));
+  const out=new Set<string>(),inRegion=new Set<string>();
+  for(const region of state.regions){for(const id of region.hexIds)inRegion.add(id);if(regionOpenFor(state,region,actor))for(const id of region.hexIds)out.add(id);}
+  for(const tile of state.core.map)if(!inRegion.has(tile.id)||tile.ownerId===actor)out.add(tile.id);
+  for(const unit of state.units)if(unit.ownerId===actor)out.add(unit.hexId);
+  for(const owner of state.core.players)if(owner.id===actor)for(const city of owner.civilization.cities)out.add(city.hexId);
+  return out;
 }
 export function refreshKnowledge(state:AlphaState):void {
   for(const player of state.players){
     const visible=visibleHexIds(state,player.playerId);
-    player.knownHexIds=[...new Set([...player.knownHexIds,...visible])].map(id=>HexIdSchema.parse(id)).sort();
+    // The table's terrain is the open Regions: what a player knows is exactly what the table shows (no private memory of closed Regions).
+    player.knownHexIds=[...visible].map(id=>HexIdSchema.parse(id)).sort();
     for(const other of state.core.players)if(other.id!==player.playerId&&(other.civilization.cities.some(c=>visible.has(c.hexId))||state.units.some(u=>u.ownerId===other.id&&visible.has(u.hexId)))) {
       if(!player.contacts.includes(other.id))player.contacts.push(other.id);
       const opposite=state.players.find(p=>p.playerId===other.id)!;if(!opposite.contacts.includes(player.playerId))opposite.contacts.push(player.playerId);
@@ -106,7 +122,7 @@ export function regionOrientationFixed(state:AlphaState,region:AlphaState['regio
 }
 export function validateExploration(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
   const unit=state.units.find(u=>u.id===order.unitId&&u.ownerId===actor);const region=state.regions.find(r=>r.hexIds.includes(order.target));
-  if(!unit||!region||region.revealedBy.includes(actor))throw new Error('Escolha uma peça própria junto a uma região ainda não explorada.');
+  if(!unit||!region||regionOpenFor(state,region,actor))throw new Error('Escolha uma peça própria junto a uma região ainda não explorada.');
   const origin=state.core.map.find(t=>t.id===unit.hexId)!;
   const reach=kitExplorationReach(state,unit);
   if(!region.hexIds.some(id=>{const tile=state.core.map.find(t=>t.id===id)!;return hexDistance(origin,tile)<=reach;}))throw new Error('A região não está na fronteira desta peça.');
@@ -134,15 +150,21 @@ export function rotatedRegionTiles(state:AlphaState,region:AlphaState['regions']
   });
 }
 export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
+  // Orders are planned in secret and resolved in turn: if an earlier order already flipped this Region, the table has it and this one only notes that.
+  const already=state.regions.find(r=>r.hexIds.includes(order.target));
+  if(already&&state.units.some(u=>u.id===order.unitId&&u.ownerId===actor)&&regionOpenFor(state,already,actor)){alphaEvent(state,'REGION_ALREADY_OPEN','A Região já tinha sido revelada por outra civilização.',[actor]);return;}
   validateExploration(state,actor,order);const region=state.regions.find(r=>r.hexIds.includes(order.target))!;
   const fixed=regionOrientationFixed(state,region),rotation=fixed?region.rotation:order.rotation;
   if(!fixed){
     const rotated=rotatedRegionTiles(state,region,rotation);
     region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;tile.terrain=rotated[i]!.terrain;tile.features=rotated[i]!.features;});
   }
-  region.rotation=rotation;region.revealedBy.push(actor);
+  region.rotation=rotation;if(!region.revealedBy.includes(actor))region.revealedBy.push(actor);
   const player=state.players.find(p=>p.playerId===actor)!;player.knownHexIds=[...new Set([...player.knownHexIds,...region.hexIds])].sort();player.exploredRegions++;player.prestige++;
   const knowledge=kitExplorationKnowledge(state,actor,region.hexIds);if(knowledge)alphaGainLegacy(state,actor,{knowledge});
+  refreshKnowledge(state);
+  const template=REGION_TEMPLATES.find(t=>t.id===region.templateId);
+  alphaEvent(state,'REGION_REVEALED',`${state.core.players.find(p=>p.id===actor)?.name??'Uma civilização'} revelou ${template?.name??'uma Região'}.`,null);
   applyDiscovery(state,actor,region,order.unitId);
 }
 
@@ -175,6 +197,6 @@ export function boardView(state:AlphaState,actor:PlayerId){
   return state.regions.map(region=>{
     const next=new Set<string>();
     for(const id of region.hexIds){const [q,r]=id.split(',').map(Number) as [number,number];for(const point of hexNeighbors({q,r})){const other=owner.get(hexId(point));if(other&&other!==region.id)next.add(other);}}
-    return {id:region.id,hexIds:region.hexIds,neighbors:[...next].sort(),closed:!region.revealedBy.includes(actor),homeOf:homeOfRegion(state,region)};
+    return {id:region.id,hexIds:region.hexIds,neighbors:[...next].sort(),closed:!regionOpenFor(state,region,actor),homeOf:homeOfRegion(state,region)};
   });
 }

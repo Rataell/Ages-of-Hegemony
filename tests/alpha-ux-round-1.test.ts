@@ -88,27 +88,28 @@ describe('atlas frame', () => {
   });
 });
 
-describe('the atlas never gets a tile the server did not project', () => {
+describe('the atlas shows the whole public board but only content of open Regions', () => {
   const state = () => beginAlphaPlanning(createAlphaGame({ gameId: 'ux-fog', seed: 23, preset: 'QUICK', players: [{ id: 'p1', name: 'Um' }, { id: 'p2', name: 'Dois' }] }));
 
-  it('the tiles handed to the map are exactly the visible, known and frontier ones', () => {
+  it('projects every Region of the footprint (layer A) but content tiles only for open ones', () => {
     const game = state(), view = alphaPlayerView(game, PlayerIdSchema.parse('p1'))!;
-    const projected = new Set([...view.view.visibleTerritory, ...view.knownTerritory, ...view.frontier].map(tile => tile.id));
-    const hidden = game.core.map.filter(tile => !projected.has(tile.id));
-    expect(projected.size).toBeLessThan(15);
-    expect(hidden.length).toBe(210 - projected.size);
-    const text = JSON.stringify([view.view.visibleTerritory, view.knownTerritory, view.frontier]);
-    for (const tile of hidden) expect(text.includes(`"id":"${tile.id}"`), tile.id).toBe(false);
+    expect(view.board).toHaveLength(30);
+    expect(view.board.flatMap(region => region.hexIds)).toHaveLength(210);
+    const content = new Set([...view.view.visibleTerritory, ...view.knownTerritory].map(tile => tile.id));
+    const open = new Set(view.board.filter(region => !region.closed).flatMap(region => region.hexIds as string[]));
+    for (const id of content) expect(open.has(id), id).toBe(true);
+    const text = JSON.stringify([view.view.visibleTerritory, view.knownTerritory]);
+    for (const region of view.board.filter(entry => entry.closed)) for (const id of region.hexIds) expect(text.includes(`"id":"${id}"`), id).toBe(false);
+    expect(view.board.filter(region => !region.closed).length).toBeLessThan(10);
   });
 
-  it('the other player\'s homeland stays out of the frame until it is known, and frontier tiles carry no terrain', () => {
+  it('the other player\'s homeland is a face-down Region with its owner on it, and the whole board fits one frame', () => {
     const game = state(), view = alphaPlayerView(game, PlayerIdSchema.parse('p1'))!;
-    const other = game.regions.find(region => region.revealedBy.includes(PlayerIdSchema.parse('p2')))!;
-    const ids = new Set([...view.view.visibleTerritory, ...view.knownTerritory, ...view.frontier].map(tile => tile.id));
-    expect(other.hexIds.some(id => ids.has(id))).toBe(false);
-    for (const tile of view.frontier) { expect(tile).not.toHaveProperty('terrain'); expect(tile).not.toHaveProperty('features'); expect(tile).not.toHaveProperty('ownerId'); }
-    const shown = [...view.view.visibleTerritory, ...view.knownTerritory, ...view.frontier], all = game.core.map;
-    expect(mapFrame(shown).width).toBeLessThan(mapFrame(all).width / 2);
-    expect(mapFrame(shown).height).toBeLessThan(mapFrame(all).height / 2);
+    const other = view.board.find(region => region.homeOf === PlayerIdSchema.parse('p2'))!;
+    expect(other.closed).toBe(true);
+    const content = new Set([...view.view.visibleTerritory, ...view.knownTerritory].map(tile => tile.id));
+    expect(other.hexIds.some(id => content.has(id))).toBe(false);
+    const all = view.board.flatMap(region => region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return { q: q!, r: r! }; }));
+    expect(mapFrame(all).width).toBeGreaterThan(mapFrame(game.core.map).width * 0.95);
   });
 });

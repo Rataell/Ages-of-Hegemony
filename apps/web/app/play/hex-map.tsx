@@ -145,6 +145,22 @@ export const HexMap = memo(function HexMap({
   }, [board]);
 
   const cities = [...data.view.player.civilization.cities, ...data.view.visibleCities];
+  // Shared table: a piece or city that appears (or lands) because of anyone's resolved action pops in for a moment, so every window reads the change.
+  const seenPieces = useRef<Set<string> | null>(null);
+  const [arriving, setArriving] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const now = new Map<string, string>();
+    for (const unit of units) now.set(`${unit.id}@${unit.hexId}`, unit.hexId);
+    for (const city of cities) now.set(`city:${city.id}`, city.hexId);
+    const before = seenPieces.current;
+    seenPieces.current = new Set(now.keys());
+    if (!before) return;
+    const added = [...now].filter(([key]) => !before.has(key)).map(([, hex]) => hex);
+    if (!added.length) return;
+    setArriving(new Set(added));
+    const timer = setTimeout(() => setArriving(new Set()), 800);
+    return () => clearTimeout(timer);
+  }, [units, cities.length]);
   /** Roads and own routes, per tile, as half-segments toward each linked neighbour: drawn inside the tile, under its pieces. */
   const ways = useMemo(() => {
     const out = new Map<string, { road: [number, number][]; route: { d: [number, number]; suspended: boolean }[] }>();
@@ -256,6 +272,7 @@ export const HexMap = memo(function HexMap({
             isForeign ? 'foreign' : '',
             isWorked ? 'is-worked' : '',
             flipping.has(tile.id) ? 'flip-in' : '',
+            arriving.has(tile.id) ? 'arrive' : '',
           ].filter(Boolean).join(' ');
 
           const cityOwner = city && city.ownerId !== data.view.player.id ? data.players.find(player => player.id === city.ownerId)?.name : undefined;

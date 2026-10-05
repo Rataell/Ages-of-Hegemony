@@ -27,7 +27,7 @@ describe('projection privacy', () => {
   it('ships only an explicit list of top-level fields', () => {
     const view = alphaPlayerView(midRound(), p2)!;
     // Adding a field to the projection must be a deliberate edit of this list.
-    expect(Object.keys(view).sort()).toEqual(["actionClasses", "actions", "administration", "advisorMarket", "battles", "cityDetails", "cityMarks", "cityStates", "claimOptions", "commandCapacity", "costs", "culture", "declarations", "economicEvents", "eraTurn", "events", "explorationHints", "finalStandings", "frontier", "gameId", "government", "grades", "hegemony", "incomingAttacks", "independents", "initiative", "knownTerritory", "leaderBlock", "legacyWorks", "milestones", "occupations", "operatingCapacity", "orderPreviews", "phase", "players", "recruitLimits", "regions", "roads", "roundReports", "routes", "rules", "schemaVersion", "self", "stacks", "storage", "threatAlerts", "threats", "tradeOffers", "treaties", "unitOptions", "units", "urban", "version", "view", "wars", "winner", "worldDecisionPending", "worldEvent", "worldPulse"]);
+    expect(Object.keys(view).sort()).toEqual(["actionClasses", "actions", "administration", "advisorMarket", "battles", "board", "cityDetails", "cityMarks", "cityStates", "claimOptions", "commandCapacity", "costs", "culture", "declarations", "economicEvents", "eraTurn", "events", "explorationHints", "finalStandings", "gameId", "government", "grades", "hegemony", "incomingAttacks", "independents", "initiative", "knownTerritory", "leaderBlock", "legacyWorks", "milestones", "occupations", "operatingCapacity", "orderPreviews", "phase", "players", "recruitLimits", "regions", "roads", "roundReports", "routes", "rules", "schemaVersion", "self", "stacks", "storage", "threatAlerts", "threats", "tradeOffers", "treaties", "unitOptions", "units", "urban", "version", "view", "wars", "winner", "worldDecisionPending", "worldEvent", "worldPulse"]);
     for (const forbidden of ['core', 'privateRng', 'seed', 'cards', 'tradeOffersAll', 'telemetry', 'roundLedgers', 'resolutionEvents']) expect(view).not.toHaveProperty(forbidden);
   });
 
@@ -44,7 +44,10 @@ describe('projection privacy', () => {
     expect(Object.keys(view.claimOptions).every(id => state.core.players.find(player => player.id === p2)!.civilization.cities.some(city => city.id === id))).toBe(true);
     const knows = new Set([...state.players.find(player => player.playerId === p2)!.knownHexIds, ...visibleHexIds(state, p2)]);
     for (const tile of [...view.view.visibleTerritory, ...view.knownTerritory]) expect(knows.has(tile.id), tile.id).toBe(true);
-    for (const tile of view.frontier) expect(tile).not.toHaveProperty('terrain');
+    // Layer A is only topology: no terrain, features or discoveries; closed Regions contribute no tile to the content layers.
+    for (const entry of view.board) expect(Object.keys(entry).sort()).toEqual(['closed', 'hexIds', 'homeOf', 'id', 'neighbors']);
+    const closedHexes = new Set(view.board.filter(entry => entry.closed).flatMap(entry => entry.hexIds as string[]));
+    for (const tile of [...view.view.visibleTerritory, ...view.knownTerritory]) if (state.regions.some(region => region.hexIds.includes(tile.id as never))) expect(closedHexes.has(tile.id), tile.id).toBe(false);
     // The trade offer is shared with its recipient only.
     expect(alphaPlayerView(state, p3)!.tradeOffers).toHaveLength(1);
   });
@@ -160,12 +163,45 @@ describe('V5.1b privacy walk (4 players: planning, conflicts, Era turn)', () => 
     for (const viewer of [p2, p3, p4]) { const view = alphaPlayerView(state, viewer)!; expect(view.self.defensePosture).toBe('HOLD'); expect(leakedKeys(view)).toEqual([]); }
   });
 
-  it('hides a region discovery from players who did not reveal it', () => {
+  it('shares the terrain of a revealed Region with the table but keeps what its discovery held for the discoverer', () => {
     const state = walkStart();
-    const region = state.regions[state.regions.length - 1]!;
+    const region = state.regions.find(item => item.templateId.startsWith('frontier-'))!;
     region.discovery = { kind: 'RUIN', resolved: false, resolvedBy: null };
     region.revealedBy = [p1];
-    for (const viewer of [p2, p3, p4]) expect(JSON.stringify(alphaPlayerView(state, viewer)!.regions)).not.toContain(region.id);
+    for (const viewer of [p2, p3, p4]) {
+      const view = alphaPlayerView(state, viewer)!;
+      expect(view.board.find(item => item.id === region.id)!.closed).toBe(false);
+      expect(view.regions.find(item => item.id === region.id)).toMatchObject({ discovery: null });
+      expect(JSON.stringify(view)).not.toContain('"RUIN"');
+    }
     expect(alphaPlayerView(state, p1)!.regions.find(item => item.id === region.id)!.discovery).toMatchObject({ kind: 'RUIN' });
+  });
+
+  it('keeps a Pátria face down for the others until somebody else explores it, then opens it for the whole table', () => {
+    const state = walkStart();
+    const home = state.regions.find(item => item.templateId === 'homeland-1')!;
+    for (const viewer of [p2, p3, p4]) expect(alphaPlayerView(state, viewer)!.board.find(item => item.id === home.id)).toMatchObject({ closed: true, homeOf: p1 });
+    expect(alphaPlayerView(state, p1)!.board.find(item => item.id === home.id)!.closed).toBe(false);
+    home.revealedBy.push(p3);
+    for (const viewer of [p1, p2, p3, p4]) expect(alphaPlayerView(state, viewer)!.board.find(item => item.id === home.id)!.closed).toBe(false);
+  });
+
+  it('makes every resolved change of the table public: pieces, cities, roads and wars are in everybody\'s projection; planning, hands and RNG are not', () => {
+    const state = walkStart();
+    const open = state.regions.find(item => item.templateId.startsWith('frontier-'))!;
+    open.revealedBy = [p1];
+    const hex = open.hexIds[1]!;
+    state.units.push({ id: 'public-piece', ownerId: p1, kind: 'INFANTRY', hexId: hex as never, recruitedRound: 1 });
+    state.roads.push(hex);
+    state.wars.push([p1, p2]);
+    for (const viewer of [p2, p3, p4]) {
+      const view = alphaPlayerView(state, viewer)!;
+      expect(view.units.some(unit => unit.id === 'public-piece')).toBe(true);
+      expect(view.roads).toContain(hex);
+      expect(view.wars).toContainEqual([p1, p2]);
+      expect(view.self.orders).toEqual([]);
+    }
+    const json = JSON.stringify(alphaPlayerView(state, p3)!);
+    expect(json).not.toContain(state.privateRng.seed);
   });
 });

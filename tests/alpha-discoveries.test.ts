@@ -44,11 +44,14 @@ describe('hidden region content (canon §21)', () => {
 
   it('never reaches the projection before the region is revealed', () => {
     const state = make(); const view = alphaPlayerView(state, p1)!;
-    expect(view.regions.every(region => state.regions.find(r => r.id === region.id)!.revealedBy.includes(p1))).toBe(true);
+    // Open Regions belong to the table; only the discoverer ever reads what a discovery held.
+    expect(view.regions.every(region => view.board.find(entry => entry.id === region.id)!.closed === false && (region.discovery === null || state.regions.find(r => r.id === region.id)!.revealedBy.includes(p1)))).toBe(true);
     expect(JSON.stringify(view)).not.toContain('"DANGER"');
     const { region } = reveal(state, 'RUIN');
     expect(alphaPlayerView(state, p1)!.regions.find(r => r.id === region.id)!.discovery).toEqual({ kind: 'RUIN', resolved: true });
-    expect(alphaPlayerView(state, PlayerIdSchema.parse('p2'))!.regions.find(r => r.id === region.id)).toBeUndefined();
+    const rival = alphaPlayerView(state, PlayerIdSchema.parse('p2'))!;
+    expect(rival.regions.find(r => r.id === region.id)).toMatchObject({ discovery: null });
+    expect(rival.board.find(entry => entry.id === region.id)!.closed).toBe(false);
   });
 });
 

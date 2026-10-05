@@ -1,5 +1,6 @@
 import { unitMovement } from './alpha-grades.js';
 import type { AlphaState, AlphaUnit, PlayerId } from '@aoh/game-domain';
+import { regionOpenFor } from './alpha-world.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { canEnter } from './alpha-military.js';
 import { enemyCityAt, movementOpen } from './alpha-diplomacy.js';
@@ -71,7 +72,7 @@ function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Ma
 
 function explorable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>): AlphaUnitOptions['explore'] {
   const origin = byId.get(unit.hexId)!;
-  return state.regions.filter(region => !region.revealedBy.includes(actor)).flatMap(region => {
+  return state.regions.filter(region => !regionOpenFor(state, region, actor)).flatMap(region => {
     const near = region.hexIds.map(id => byId.get(id)!).filter(tile => tile && hexDistance(origin, tile) <= kitExplorationReach(state, unit)).sort((a, b) => hexDistance(origin, a) - hexDistance(origin, b) || a.id.localeCompare(b.id));
     return near[0] ? [{ target: near[0].id, hexIds: [...region.hexIds] }] : [];
   }).sort((a, b) => a.target.localeCompare(b.target));

@@ -645,3 +645,11 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-mesa .map-tools { gap: 6px; }
 .alpha-mesa .map-tools button { min-width: 44px; height: 40px; padding: 0 12px; font-size: 14px; color: var(--text-primary); background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--border-accent, var(--border)); }
 .alpha-mesa .map-tools button[aria-pressed='true'] { border-color: var(--mark); background: var(--surface-highest); }
+/* Shared table: pieces and cities that appear because of anyone's resolved action pop in; short, for legibility rather than spectacle. */
+.hex.arrive .art-stack, .hex.arrive .art-city, .hex.arrive .city-anchor { transform-box: fill-box; transform-origin: center; animation: piece-arrive 520ms ease-out; }
+@keyframes piece-arrive { 0% { opacity: 0; transform: scale(.55); } 60% { opacity: 1; transform: scale(1.12); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .hex.arrive .art-stack, .hex.arrive .art-city, .hex.arrive .city-anchor { animation: none; } }
+/* Crônica curta da mesa: the last public events, the same for every seat. */
+.alpha-table-log { position: absolute; left: 16px; top: calc(10px + var(--strip-height) + 52px); z-index: 5; margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; max-width: min(420px, 38vw); pointer-events: none; }
+.alpha-table-log li { padding: 4px 10px; border-radius: 10px; font-size: 12.5px; color: var(--text-secondary); background: color-mix(in srgb, var(--surface) 82%, transparent); border: 1px solid color-mix(in srgb, var(--border) 70%, transparent); }
+.alpha-table-log small { color: var(--text-muted); margin-right: 6px; }

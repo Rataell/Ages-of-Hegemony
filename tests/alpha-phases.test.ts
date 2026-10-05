@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AlphaRoundPhaseSchema, AlphaStateSchema, PlayerIdSchema, ResolutionEventTypeSchema, WORLD_PULSE_CARDS, type AlphaState } from '@aoh/game-domain';
-import { CORE_PHASE_MIRROR, INTERACTIVE_PHASES, LEGAL_COMMANDS, alphaPay, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, hexDistance, serializeAlphaState, visibleHexIds } from '@aoh/game-engine';
+import { CORE_PHASE_MIRROR, INTERACTIVE_PHASES, LEGAL_COMMANDS, alphaPay, applyAlphaCommand, beginAlphaPlanning, createAlphaGame, serializeAlphaState, visibleHexIds } from '@aoh/game-engine';
 import { completeRound, must, produceAll, readyAll } from './alpha-rounds.js';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
@@ -265,9 +265,8 @@ describe('structured resolution visibility', () => {
   it('shows Beto Ana\'s move when Beto can see its resolved destination', () => {
     let state = started(90);
     const target = movementFixture(state);
-    const targetTile = state.core.map.find(tile => tile.id === target)!;
-    const observerHex = state.core.map.find(tile => tile.id !== target && tile.id !== state.units[0]!.hexId && !['SEA', 'UNKNOWN'].includes(tile.terrain) && hexDistance(tile, targetTile) === 1)!.id;
-    state.units.push({ id: 'beto-observer', ownerId: p2, kind: 'PIONEER', hexId: observerHex, recruitedRound: 1 });
+    // The table shares open Regions: once Beto has explored the Region of the destination, Ana's move there is public.
+    state.regions.find(region => region.hexIds.includes(target as never))!.revealedBy.push(p2);
     expect(visibleHexIds(state, p2).has(target)).toBe(true);
     state = must(state, p1, { type: 'QUEUE_ORDER', order: { id: 'visible-move', type: 'MOVE', unitIds: ['u1'], path: [target] } });
     state = readyAll(state);

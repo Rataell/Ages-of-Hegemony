@@ -86,7 +86,7 @@ describe('region orientation', () => {
     // Same round, different requested orientation: previously refused, now resolved with the fixed orientation.
     expect(() => exploreRegion(state, b as never, { id: 'e2', type: 'EXPLORE', unitId: unitB.id, target: region.hexIds[0]!, rotation: 5 })).not.toThrow();
     expect(state.regions.find(candidate => candidate.id === region.id)!.rotation).toBe(0);
-    expect(state.regions.find(candidate => candidate.id === region.id)!.revealedBy).toEqual([a, b]);
+    expect(state.regions.find(candidate => candidate.id === region.id)!.revealedBy).toEqual([a]); // the table already had it when B's order resolved
     expect(region.hexIds.map(id => state.core.map.find(tile => tile.id === id)!.terrain)).toEqual(terrain);
     expect(REGION_TEMPLATES.some(template => template.id === region.templateId)).toBe(true);
   });

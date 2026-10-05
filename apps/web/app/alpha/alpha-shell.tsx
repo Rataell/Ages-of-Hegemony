@@ -27,11 +27,29 @@ export default function AlphaShell(){
     apply();media.addEventListener('change',apply);return()=>media.removeEventListener('change',apply);
   },[theme]);
   useEffect(()=>{
-    if(!room)return;const id=room.id;let active=true;
-    const interval=setInterval(()=>{if(document.visibilityState==='hidden')return;void fetch(`/api/alpha?gameId=${encodeURIComponent(id)}`,{cache:'no-store'}).then(r=>r.json()).then((reply:Reply)=>{
-      if(active&&reply.ok)setRoom(old=>!old||old.id!==id||reply.value.version>=old.version?reply.value:old);
-    }).catch(()=>{if(active)setError('Conexão interrompida. Tentando reconectar…');});},2500);
-    return()=>{active=false;clearInterval(interval);};
+    if(!room)return;const id=room.id;let active=true,inflight=false,again=false;
+    // Shared table: the server pushes "version N is saved" over SSE; the client then reads ITS authoritative projection at once. Nothing is applied locally
+    // before the server confirms. The slow poll is only a safety net (a lost push, a proxy that buffers, several server instances).
+    const log=(kind:string,extra:Record<string,unknown>={})=>{try{const sink=window as unknown as {__aohSync?:Record<string,unknown>[]};(sink.__aohSync??=[]).push({kind,t:Date.now(),...extra});}catch{/* instrumentation only */}};
+    const pull=async(cause:string,serverAt?:number)=>{
+      if(inflight){again=true;return;}
+      inflight=true;
+      try{
+        do{
+          again=false;
+          const reply=(await(await fetch(`/api/alpha?gameId=${encodeURIComponent(id)}`,{cache:'no-store'})).json()) as Reply;
+          if(active&&reply.ok){setRoom(old=>!old||old.id!==id||reply.value.version>=old.version?reply.value:old);log('applied',{cause,version:reply.value.version,serverAt});}
+        }while(again&&active);
+      }catch{if(active)setError('Conexão interrompida. Tentando reconectar…');}
+      finally{inflight=false;}
+    };
+    let source:EventSource|null=null;
+    if(typeof EventSource!=='undefined'){
+      source=new EventSource(`/api/alpha?gameId=${encodeURIComponent(id)}&stream=1`);
+      source.onmessage=event=>{try{const push=JSON.parse(event.data) as {version:number;at:number};log('push',{version:push.version,serverAt:push.at});void pull('push',push.at);}catch{/* ignore a malformed frame */}};
+    }
+    const interval=setInterval(()=>{if(document.visibilityState==='hidden')return;void pull('poll');},source?10000:2500);
+    return()=>{active=false;source?.close();clearInterval(interval);};
   },[room?.id]);
   async function request(payload:Record<string,unknown>){
     if(busy)return false;setBusy(true);setError('');

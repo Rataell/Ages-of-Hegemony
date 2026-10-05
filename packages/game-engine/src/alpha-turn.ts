@@ -150,8 +150,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     } else if(command.type==='SETTLE') {
       const hexId=state.units.find(unit=>unit.id===command.unitId&&unit.ownerId===actor)?.hexId;
       settleWithPioneer(state,actor,command.unitId,command.name);refreshKnowledge(state);
-      alphaEvent(state,'CITY_FOUNDED','Um Pioneiro fundou uma nova cidade.',[actor]);
-      if(hexId){const city=state.core.players.find(owner=>owner.id===actor)!.civilization.cities.find(item=>item.hexId===hexId)!;const visibleTo=state.players.map(owner=>owner.playerId).filter(playerId=>playerId===actor||visibleHexIds(state,playerId).has(hexId));resolutionEvent(state,{type:'FOUNDATION',actorId:actor,visibleTo,message:`${city.name} foi fundada.`,hexId,cityId:city.id,unitIds:[command.unitId]});}
+      if(hexId){const city=state.core.players.find(owner=>owner.id===actor)!.civilization.cities.find(item=>item.hexId===hexId)!;const visibleTo=state.players.map(owner=>owner.playerId).filter(playerId=>playerId===actor||visibleHexIds(state,playerId).has(hexId));alphaEvent(state,'CITY_FOUNDED',`${state.core.players.find(owner=>owner.id===actor)?.name??'Uma civilização'} fundou ${city.name}.`,null);resolutionEvent(state,{type:'FOUNDATION',actorId:actor,visibleTo,message:`${city.name} foi fundada.`,hexId,cityId:city.id,unitIds:[command.unitId]});}
     } else if(command.type==='DECLARE_HEGEMONY') {
       declareHegemony(state,actor,command.path);
       alphaEvent(state,'HEGEMONY_DECLARED','Uma civilização declarou seu caminho hegemônico.');
@@ -182,7 +181,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       const tile=state.core.map.find(t=>t.id===command.hexId&&t.ownerId===actor);
       if(!tile||state.roads.includes(tile.id))throw new Error('Construa estrada em território próprio sem estrada.');
       alphaPay(state,actor,kitWorksCost(state,actor,state.rules.roadCost));state.roads.push(tile.id);
-      alphaEvent(state,'ACTION_COMPLETED','Estrada construída.',[actor]);
+      alphaEvent(state,'ROAD_BUILT',`${state.core.players.find(p=>p.id===actor)?.name??'Uma civilização'} construiu uma estrada.`,null);
     }
     if(actionClass==='MAIN')chargeMainAction(state,actor,reservedMainAction?'RESERVE':'COMMIT',orderTypeForCommand(command,state.phase));
     refreshAlphaAdministration(state);

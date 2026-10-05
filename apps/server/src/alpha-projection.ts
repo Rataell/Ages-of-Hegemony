@@ -1,5 +1,5 @@
 import { ACTION_CLASS, ADVANCEMENTS, CityLevelSchema, elevateRequirement, ladderStep, nextLevel, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { governmentOptions, operatingCapacity, recruitLimit, GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,legacyWorkView,boardView,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { governmentOptions, operatingCapacity, recruitLimit, GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,legacyWorkView,boardView,regionOpenFor,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -12,7 +12,8 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
   if(!economic)return null;
   // Playtest "Mapa revelado": the whole map is cartographed (known terrain and every city) but only the own surroundings are visible.
   const knownIds=state.rules.revealMap?new Set(state.core.map.map(t=>t.id)):new Set(progress.knownHexIds);
-  const known=state.core.map.filter(t=>knownIds.has(t.id)&&!visible.has(t.id));
+  /* Memory of closed Regions no longer exists: the open Regions are the shared table (visible). Only the playtest reveal-map adds cartographed hexes. */
+  const known=state.rules.revealMap?state.core.map.filter(t=>knownIds.has(t.id)&&!visible.has(t.id)):[];
   const territory=state.core.config.territory;
   const displayCost=(cost:Parameters<typeof alphaCost>[0])=>alphaCost(cost,progress.resources);
   return structuredClone({
@@ -63,11 +64,12 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     board:boardView(state,actor),
     /** Rivals see a fleet, never its cargo. */
     units:state.units.filter(u=>u.ownerId===actor||(visible.has(u.hexId)&&!u.carrierId)).map(u=>({...u,supply:u.ownerId===actor?unitSupply(state,u):null})),
-    regions:state.regions.filter(r=>r.revealedBy.includes(actor)).map(r=>({id:r.id,templateId:r.templateId,hexIds:r.hexIds,rotation:r.rotation,discovery:r.discovery?{kind:r.discovery.kind,resolved:r.discovery.resolved}:null})),
+    /** Open Regions are shared by the whole table (terrain is public); what a discovery held was resolved by its discoverer, so only the discoverer reads it. */
+    regions:state.regions.filter(r=>regionOpenFor(state,r,actor)).map(r=>({id:r.id,templateId:r.templateId,hexIds:r.hexIds,rotation:r.rotation,discovery:r.discovery&&r.revealedBy.includes(actor)?{kind:r.discovery.kind,resolved:r.discovery.resolved}:null})),
     roads:state.roads.filter(id=>visible.has(id)),occupations:state.occupations.filter(o=>o.occupierId===actor||o.previousOwnerId===actor),
-    treaties:state.treaties.filter(t=>t.proposerId===actor||t.recipientId===actor),tradeOffers:tradeOfferView(state,actor),wars:state.wars.filter(pair=>pair.includes(actor)),
+    treaties:state.treaties.filter(t=>t.proposerId===actor||t.recipientId===actor),tradeOffers:tradeOfferView(state,actor),wars:state.wars,
     routes:state.routes.filter(r=>r.ownerId===actor||economic.player.civilization.cities.some(c=>c.id===r.toCityId)),
-    battles:state.battles.filter(b=>b.attackerId===actor||b.defenderId===actor),
+    battles:state.battles.filter(b=>b.attackerId===actor||b.defenderId===actor||visible.has(b.hexId)),
     events:state.events.filter(e=>e.audience===null||e.audience.includes(actor)),
     economicEvents:state.core.eventLog.filter(e=>'playerId' in e&&e.playerId===actor).slice(-60),
   });

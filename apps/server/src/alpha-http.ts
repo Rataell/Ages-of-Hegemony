@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { AlphaGameService } from './alpha-service.js';
 import { GuestSessions } from './guest-session.js';
+import { subscribeAlpha, type AlphaPush } from './alpha-bus.js';
 
 const envelope=z.discriminatedUnion('operation',[
   z.strictObject({operation:z.literal('create'),payload:z.unknown()}),
@@ -36,6 +37,23 @@ export class AlphaHttp {
     this.origin=url.origin;
     this.cookieName=production||url.protocol==='https:'?'__Host-aoh_alpha_session':'aoh_alpha_session';
   }
+  private stream(request:Request,gameId:string):Response{
+    const encoder=new TextEncoder();let cleanup=()=>{};
+    const body=new ReadableStream<Uint8Array>({
+      start:controller=>{
+        const send=(text:string)=>{try{controller.enqueue(encoder.encode(text));}catch{cleanup();}};
+        const push=(message:AlphaPush)=>send(`data: ${JSON.stringify(message)}\n\n`);
+        send('retry: 1000\n\n');
+        const unsubscribe=subscribeAlpha(gameId,push);
+        const keepalive=setInterval(()=>send(': ping\n\n'),15000);
+        cleanup=()=>{clearInterval(keepalive);unsubscribe();try{controller.close();}catch{/* already closed */}};
+        request.signal.addEventListener('abort',cleanup,{once:true});
+        push({gameId,version:-1,at:Date.now()});
+      },
+      cancel:()=>cleanup(),
+    });
+    return new Response(body,{headers:{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-store, no-transform','Connection':'keep-alive','X-Accel-Buffering':'no','X-Content-Type-Options':'nosniff'}});
+  }
   async handle(request:Request,now=Date.now()):Promise<Response>{
     const respond=(body:unknown,status=200,cookie?:string)=>{
       const headers=new Headers({'Cache-Control':'no-store','Vary':'Cookie','X-Content-Type-Options':'nosniff'});
@@ -55,6 +73,12 @@ export class AlphaHttp {
         if(!principal)return error('UNAUTHENTICATED','Entre com seu convite ou crie uma partida.',401);
         const gameId=new URL(request.url).searchParams.get('gameId');
         if(!gameId||!z.string().uuid().safeParse(gameId).success)return error('INVALID_INPUT','Identificador de partida inválido.',400);
+        if(new URL(request.url).searchParams.get('stream')==='1'){
+          // Shared-table push (SSE): membership is checked like a read; the stream carries only room versions, never state.
+          const allowed=await this.service.read(principal,gameId,now);
+          if(!allowed.ok)return respond(allowed,allowed.error.code==='FORBIDDEN'?403:404);
+          return this.stream(request,gameId);
+        }
         const result=await this.service.read(principal,gameId,now);return respond(result,result.ok?200:result.error.code==='FORBIDDEN'?403:result.error.code==='VERSION_CONFLICT'?409:404);
       }
       let raw:unknown;try{raw=await readBody(request);}catch{return error('INVALID_INPUT','Envie JSON válido com até 16 KiB.',400);}

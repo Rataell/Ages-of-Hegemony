@@ -75,7 +75,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     const projected = await new AlphaGameService(repository).read({ guestId: seated.seats[0]!.guestId }, roomId, Date.now());
     if (!projected.ok) throw new Error(projected.error.message);
     const game = projected.value.game!;
-    const expected = game.view.visibleTerritory.length + game.knownTerritory.length + game.frontier.length;
+    const expected = game.view.visibleTerritory.length + game.knownTerritory.length + game.board.filter(region => region.closed).flatMap(region => region.hexIds).filter(id => !game.view.visibleTerritory.some(tile => tile.id === id)).length;
     await expect(pa.locator('svg.world-map g.hex')).toHaveCount(expected);
     // The first-round ambitions dialog may be postponed to look at the atlas first.
     await pa.getByRole('dialog', { name: 'Escolha duas ambições secretas' }).getByRole('button', { name: 'Ver o mapa primeiro', exact: true }).click();

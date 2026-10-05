@@ -69,7 +69,7 @@ describe('caps and event commands (canon §21b)', () => {
   });
 
   it('REINFORCE picks the camp farthest from player pieces and stops at Ameaça III', () => {
-    const state = setup(), centre = capitalTile(state);
+    const state = setup();
     const near = camp(state, origin(state, 4), { id: 'camp-near' });
     const far = camp(state, farthest(state), { id: 'camp-far' });
     applyThreatCommand(state, null, { op: 'THREAT', command: 'REINFORCE', kind: 'LAND' });
@@ -102,7 +102,7 @@ describe('composition and growth', () => {
   });
 
   it('grows at the Era turn only when no player piece is within 2 hexes, and never past III', () => {
-    const state = setup(), centre = capitalTile(state);
+    const state = setup();
     const lonely = camp(state, farthest(state), { id: 'camp-lonely' });
     const watched = camp(state, origin(state, 4), { id: 'camp-watched' });
     const scout = state.units.find(unit => unit.ownerId === p1)!;

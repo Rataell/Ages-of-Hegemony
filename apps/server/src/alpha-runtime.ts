@@ -5,6 +5,7 @@ import { PrismaAlphaRepository } from './alpha-prisma-repository.js';
 import { AlphaGameService } from './alpha-service.js';
 import { GuestSessions } from './guest-session.js';
 import { AlphaHttp } from './alpha-http.js';
+import { PublishingAlphaRepository } from './alpha-bus.js';
 import { InMemoryAlphaRepository, type AlphaRoom } from './alpha-room.js';
 import { alphaStorageMode, type AlphaStorageMode } from './alpha-storage.js';
 export type { AlphaRoomView } from './alpha-service.js';
@@ -25,13 +26,13 @@ function runtime():Runtime {
   if(storage==='memory'){
     // Zero-config development: real guest sessions (signed cookies, one per browser) over an in-process repository. Never reachable in production.
     const local=memory(),secret=(process.env.ALPHA_SESSION_SECRET??'').length>=32?process.env.ALPHA_SESSION_SECRET!:local.secret;
-    const http=new AlphaHttp(new AlphaGameService(new InMemoryAlphaRepository(local.rooms)),new GuestSessions(secret),process.env.ALPHA_PUBLIC_ORIGIN||'http://127.0.0.1:3001',false);
+    const http=new AlphaHttp(new AlphaGameService(new PublishingAlphaRepository(new InMemoryAlphaRepository(local.rooms))),new GuestSessions(secret),process.env.ALPHA_PUBLIC_ORIGIN||'http://127.0.0.1:3001',false);
     return processState.aohAlphaRuntime={client:null,http,storage,module:moduleToken};
   }
   const connectionString=process.env.DATABASE_URL,secret=process.env.ALPHA_SESSION_SECRET,origin=process.env.ALPHA_PUBLIC_ORIGIN;
   if(!connectionString||!secret||!origin)throw new Error('Alpha environment is not configured');
   const sessions=new GuestSessions(secret),client=cached?.client??new PrismaClient({adapter:new PrismaPg({connectionString})});
-  const http=new AlphaHttp(new AlphaGameService(new PrismaAlphaRepository(client)),sessions,origin,process.env.NODE_ENV==='production');
+  const http=new AlphaHttp(new AlphaGameService(new PublishingAlphaRepository(new PrismaAlphaRepository(client))),sessions,origin,process.env.NODE_ENV==='production');
   return processState.aohAlphaRuntime={client,http,storage,module:moduleToken};
 }
 export async function handleAlphaRequest(request:Request):Promise<Response>{

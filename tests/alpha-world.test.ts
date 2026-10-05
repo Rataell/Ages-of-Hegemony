@@ -29,37 +29,45 @@ describe('modular regions and fog of war',()=>{
       const state=beginAlphaPlanning(createAlphaGame({gameId:`corridor-${count}-${worldPreset}-${seed}`,seed,preset:'QUICK',worldPreset,players:Array.from({length:count},(_,i)=>({id:`p${i+1}`,name:`Pessoa ${i+1}`}))}));
       const actor=state.players[0]!.playerId,unit=state.units.find(candidate=>candidate.ownerId===actor)!;
       state.regions.forEach(region=>{region.discovery={kind:'NONE',resolved:true,resolvedBy:null};});
-      for(const region of state.regions.filter(candidate=>!candidate.revealedBy.includes(actor))){const edge=state.core.map.find(tile=>!region.hexIds.includes(tile.id)&&region.hexIds.some(id=>hexDistance(tile,state.core.map.find(candidate=>candidate.id===id)!)===1));expect(edge).toBeDefined();unit.hexId=edge!.id;exploreRegion(state,actor,{type:'EXPLORE',id:`reveal-${region.id}`,unitId:unit.id,target:region.hexIds[0]!,rotation:0});}
+      for(const region of state.regions.filter(candidate=>!candidate.revealedBy.includes(actor))){const edge=state.core.map.find(tile=>!region.hexIds.includes(tile.id)&&region.hexIds.some(id=>hexDistance(tile,state.core.map.find(candidate=>candidate.id===id)!)===1));expect(edge).toBeDefined();unit.hexId=edge!.id;exploreRegion(state,actor,{type:'EXPLORE',id:`reveal-${region.id}`,unitId:unit.id,target:region.hexIds[1]!,rotation:0});}
       const capitals=state.core.players.map(player=>player.civilization.cities[0]!.hexId),byId=new Map(state.core.map.map(tile=>[tile.id,tile]));
       const seen=new Set<string>(),queue=[capitals[0]!];
       for(let i=0;i<queue.length;i++){const id=queue[i]!;if(seen.has(id))continue;seen.add(id);const tile=byId.get(id)!;for(const point of hexNeighbors(tile)){const next=byId.get(hexId(point));if(next&&!seen.has(next.id)&&!['SEA','UNKNOWN'].includes(next.terrain))queue.push(next.id);}}
       expect(capitals.every(id=>seen.has(id)),`${worldPreset} seed ${seed}`).toBe(true);
     }
   });
-  it('reveals a frontier region to the explorer only and preserves unknown terrain secrecy',()=>{
-    const state=setup();const actor=state.players[0]!.playerId;
-    const before=alphaPlayerView(state,actor)!,target=before.frontier[0]!.id;
-    expect(before.frontier.find(t=>t.id===target)).not.toHaveProperty('terrain');
-    const region=state.regions.find(candidate=>candidate.hexIds.includes(target))!,targetTile=state.core.map.find(tile=>tile.id===target)!;
+  it('a Region revealed by anyone is revealed for the whole table, immediately, and never hides again',()=>{
+    const state=setup();const actor=state.players[0]!.playerId,other=state.players[1]!.playerId;
+    const before=alphaPlayerView(state,actor)!,closed=before.board.find(region=>region.closed&&region.homeOf===null)!,target=closed.hexIds[1]!;
+    const peek=alphaPlayerView(state,other)!;
+    expect(peek.board.find(region=>region.id===closed.id)!.closed).toBe(true);
+    expect(peek.view.visibleTerritory.some(tile=>tile.id===target)).toBe(false);
+    const region=state.regions.find(candidate=>candidate.id===closed.id)!,targetTile=state.core.map.find(tile=>tile.id===target)!;
     state.units[0]!.hexId=state.core.map.find(tile=>!region.hexIds.includes(tile.id)&&hexDistance(tile,targetTile)<=1)!.id;
     exploreRegion(state,actor,{type:'EXPLORE',id:'explore1',unitId:state.units[0]!.id,target,rotation:0});
     expect(state.players[0]!.exploredRegions).toBe(1);expect(state.players[0]!.prestige).toBe(1);
-    expect(state.players[1]!.knownHexIds).not.toContain(target);
-    const after=alphaPlayerView(state,actor)!;expect(after.knownTerritory.length).toBeGreaterThan(0);
-    expect(after.knownTerritory[0]).not.toHaveProperty('ownerId');
+    for(const viewer of [actor,other]){
+      const view=alphaPlayerView(state,viewer)!;
+      expect(view.board.find(candidate=>candidate.id===closed.id)!.closed,String(viewer)).toBe(false);
+      for(const id of region.hexIds){const tile=view.view.visibleTerritory.find(candidate=>candidate.id===id);expect(tile,id).toBeDefined();expect(tile!.terrain).not.toBe('UNKNOWN');}
+      expect(view.regions.some(candidate=>candidate.id===closed.id)).toBe(true);
+    }
+    // The table knows the terrain; only the discoverer reads what the discovery held.
+    expect(state.players[1]!.knownHexIds).toContain(target);
+    expect(alphaPlayerView(state,other)!.regions.find(candidate=>candidate.id===closed.id)!.discovery).toBeNull();
   });
-  it('never rotates previously observed terrain, even before the full region is explored',()=>{
-    const state=setup(),actor=state.players[0]!.playerId;
-    const region=state.regions.find(r=>r.id==='region-1-0')!;
-    const template=REGION_TEMPLATES.find(t=>t.id===region.templateId)!;
-    const rotation=[1,2,3,4,5].find(rotation=>template.terrain[1]!==template.terrain[1+rotation])!;
-    expect(rotation).toBeDefined();
-    const observed=region.hexIds[1]!;
-    state.players[1]!.knownHexIds.push(observed);
-    state.units[0]!.hexId=state.core.map.find(t=>t.id==='1,0')!.id;
-    const before=serializeAlphaState(state);
-    expect(()=>exploreRegion(state,actor,{type:'EXPLORE',id:'rotate-known',unitId:state.units[0]!.id,target:region.hexIds[0]!,rotation})).toThrow('terrenos já conhecidos');
-    expect(serializeAlphaState(state)).toBe(before);
+  it('an already open Region is not revealed twice: a later order only notes it',()=>{
+    const state=setup(),actor=state.players[0]!.playerId,other=state.players[1]!.playerId;
+    const closed=alphaPlayerView(state,actor)!.board.find(region=>region.closed&&region.homeOf===null)!,region=state.regions.find(candidate=>candidate.id===closed.id)!;
+    const targetTile=state.core.map.find(tile=>tile.id===region.hexIds[1])!;
+    const near=state.core.map.filter(tile=>!region.hexIds.includes(tile.id)&&!['SEA','MOUNTAINS'].includes(tile.terrain)&&!state.units.some(u=>u.hexId===tile.id)&&hexDistance(tile,targetTile)<=1);const unit=state.units.find(candidate=>candidate.ownerId===actor)!;unit.hexId=near[0]!.id;
+    exploreRegion(state,actor,{type:'EXPLORE',id:'first',unitId:unit.id,target:region.hexIds[1]!,rotation:0});
+    const rival=state.units.find(candidate=>candidate.ownerId===other)!;rival.hexId=near[1]!.id;
+    const prestige=state.players[1]!.prestige,rotation=region.rotation;
+    // Planned in secret and resolved in turn: the second order finds the Region already on the table and only says so.
+    expect(()=>exploreRegion(state,other,{type:'EXPLORE',id:'second',unitId:rival.id,target:region.hexIds[1]!,rotation:3})).not.toThrow();
+    expect(region.revealedBy).toEqual([actor]);expect(region.rotation).toBe(rotation);expect(state.players[1]!.prestige).toBe(prestige);
+    expect(state.events.some(event=>event.type==='REGION_ALREADY_OPEN'&&event.audience?.includes(other))).toBe(true);
   });
   it.each([0,1,2,3,4,5])('turns terrain and the metal deposit together under rotation %i, deterministically',rotation=>{
     const state=setup();
@@ -94,7 +102,7 @@ describe('modular regions and fog of war',()=>{
           const state=structuredClone(base);
           state.units[0]!.hexId=edge.id;
           for(const player of state.players)player.knownHexIds=player.knownHexIds.filter(id=>!region.hexIds.includes(id));
-          try{exploreRegion(state,actor,{type:'EXPLORE',id:'turn',unitId:state.units[0]!.id,target:region.hexIds[0]!,rotation});}catch{continue;}
+          try{exploreRegion(state,actor,{type:'EXPLORE',id:'turn',unitId:state.units[0]!.id,target:region.hexIds[1]!,rotation});}catch{continue;}
           expect(state.regions.find(r=>r.id===region.id)!.rotation).toBe(rotation);
           region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;expect(tile.terrain).toBe(tiles[i]!.terrain);expect(tile.features).toEqual(tiles[i]!.features);});
           expect(state.core.map.find(t=>t.id===region.hexIds[moved])!.features).toContain('METAL');

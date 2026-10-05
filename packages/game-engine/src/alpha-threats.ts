@@ -52,7 +52,7 @@ function sitesFor(state: AlphaState, kind: ThreatKind, within?: readonly string[
   const cityTiles = cities.map(city => map.get(city.hexId)).filter((tile): tile is HexTile => tile !== undefined);
   const scope = within ? within.map(id => map.get(id)).filter((tile): tile is HexTile => tile !== undefined) : state.core.map;
   if (kind === 'CAMP') {
-    const land = scope.filter(tile => !IMPASSABLE_LAND.has(tile.terrain) && tile.terrain !== 'MOUNTAINS' && tile.ownerId === null && !occupied.has(tile.id) && !seen.has(tile.id) && !cities.some(city => city.hexId === tile.id));
+    const land = scope.filter(tile => !IMPASSABLE_LAND.has(tile.terrain) && tile.terrain !== 'MOUNTAINS' && tile.ownerId === null && !occupied.has(tile.id) && (within !== undefined || !seen.has(tile.id)) && !cities.some(city => city.hexId === tile.id));
     const dist = (tile: HexTile) => cityTiles.reduce((best, city) => Math.min(best, hexDistance(city, tile)), 99);
     for (const [low, high] of [[3, 5], [3, 8], [3, 99]] as const) { const found = land.filter(tile => dist(tile) >= low && dist(tile) <= high); if (found.length) return found; }
     return [];

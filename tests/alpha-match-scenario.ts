@@ -20,8 +20,8 @@ export function scriptedMatchSetup():AlphaState {
   // The script never Produces: sustenance and Crescer (canon §7) would starve eleven cities over 30 rounds without a granary of their own.
   for(const player of state.players){player.resources.food=1000;const owner=state.core.players.find(p=>p.id===player.playerId)!;owner.resources={...owner.resources,food:1000};}
   state.players.forEach(p=>p.knownHexIds=state.core.map.map(t=>t.id));
-  state.regions=[{id:'demonstration-region',templateId:'homeland-1',hexIds:['0,0','1,0','1,-1','0,-1','-1,0','-1,1','0,1'].map(id=>HexIdSchema.parse(id)),rotation:0,revealedBy:[]}];
-  state.units=[{id:'pioneer',ownerId:p1,kind:'PIONEER',hexId:HexIdSchema.parse('2,0'),recruitedRound:1},
+  state.regions=[{id:'demonstration-region',templateId:'frontier-1',hexIds:['2,3','3,3','3,2','2,2','1,3','1,4','2,4'].map(id=>HexIdSchema.parse(id)),rotation:0,revealedBy:[]}];
+  state.units=[{id:'pioneer',ownerId:p1,kind:'PIONEER',hexId:HexIdSchema.parse('2,1'),recruitedRound:1},
     ...Array.from({length:10},(_,i)=>({id:`army-${i}`,ownerId:p1,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('8,0'),recruitedRound:1})),
     ...Array.from({length:4},(_,i)=>({id:`defender-${i}`,ownerId:p2,kind:'INFANTRY' as const,hexId:HexIdSchema.parse('9,0'),recruitedRound:1}))];
   // The script builds two districts per city and recruits once: give the built levels room (canon §5) and a Soldado (canon §6).
@@ -75,7 +75,7 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   round();
   for(const treaty of [...state.treaties])submit(p2,{type:'RESPOND_TREATY',treatyId:treaty.id,accept:true});
   round();
-  perform({type:'QUEUE_ORDER',order:{id:'explore',type:'EXPLORE',unitId:'pioneer',target:'1,0',rotation:0}});
+  perform({type:'QUEUE_ORDER',order:{id:'explore',type:'EXPLORE',unitId:'pioneer',target:'2,2',rotation:0}});
   perform({type:'QUEUE_ORDER',order:{id:'route',type:'TRADE',fromCityId:'c1-0',toCityId:'c2-0'}});
   urbanAct('RESEARCH',{advancementId:'web-writing'});round();
   perform({type:'QUEUE_ORDER',order:{id:'settler-move',type:'MOVE',unitIds:['pioneer'],path:['3,0']}});

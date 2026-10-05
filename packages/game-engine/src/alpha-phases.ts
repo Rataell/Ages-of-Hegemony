@@ -137,7 +137,9 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         const before = { units: new Map(state.units.map(unit => [unit.id, unit])), rules: state.rules, names: new Map([...state.core.players.map(player => [player.id as string, player.name] as const), ['world', 'As Ameaças do Mundo'] as const]) };
         const message = order.type === 'ATTACK' ? battleMessage(before.names, candidate.battles.at(-1)!) : orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined);
         Object.assign(state, AlphaStateSchema.parse(candidate));
-        alphaEvent(state, type, message, [id]);
+        const target0=order.type==='MOVE'?order.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:undefined;
+        // Moves, exploration and attacks change the shared table: everyone who can see that hex (the whole table in an open Region) reads them. Trade and influence stay with their owner.
+        alphaEvent(state, type, message, target0&&(order.type==='MOVE'||order.type==='EXPLORE'||order.type==='ATTACK')?viewersAt(state,target0,[id]):[id]);
         const target=order.type==='MOVE'?order.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:state.core.players.flatMap(player=>player.civilization.cities).find(city=>city.id===order.toCityId)?.hexId;
         const unitIds='unitIds' in order?order.unitIds:'unitId' in order?[order.unitId]:[];
         const eventType=({EXPLORE:'EXPLORATION',MOVE:'MOVEMENT',TRADE:'TRADE',ATTACK:'COMBAT',INFLUENCE:'INFLUENCE'} as const)[order.type];
@@ -181,6 +183,7 @@ function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['ty
         const {id,...payload}=action;
         manageDiplomacy(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'PROPOSE_TREATY'|'DECLARE_WAR'}>);
         alphaEvent(candidate,action.type,`Ação diplomática planejada executada: ${action.type}.`,[actor]);
+        if(action.type==='DECLARE_WAR')alphaEvent(candidate,'WAR_DECLARED',`${candidate.core.players.find(player=>player.id===actor)?.name??'Uma civilização'} declarou guerra a ${candidate.core.players.find(player=>player.id===action.targetId)?.name??'outra civilização'}.`,null);
         resolutionEvent(candidate,{type:'ROUND_EVENT',actorId:actor,visibleTo:action.type==='DECLARE_WAR'?null:[actor,action.recipientId],message:action.type==='DECLARE_WAR'?`${candidate.core.players.find(player=>player.id===actor)?.name??'Uma civilização'} declarou guerra a ${candidate.core.players.find(player=>player.id===action.targetId)?.name??'outra civilização'}.`:`${candidate.core.players.find(player=>player.id===actor)?.name??'Uma civilização'} propôs ${TREATY_NAMES[action.treaty]??'um acordo'} a ${candidate.core.players.find(player=>player.id===action.recipientId)?.name??'outra civilização'}.`,unitIds:[]});
       }
       Object.assign(state,AlphaStateSchema.parse(candidate));

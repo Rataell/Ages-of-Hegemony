@@ -1,5 +1,6 @@
 import { DISCOVERY_NAMES, DISCOVERY_WEIGHTS, ENCOUNTER_CARDS, REGION_TEMPLATES, type AlphaState, type DiscoveryKind, type PlayerId } from '@aoh/game-domain';
 import { alphaEvent } from './alpha-events.js';
+import { regionOpenFor } from './alpha-world.js';
 import { alphaRandomInteger } from './alpha-random.js';
 import { alphaGain } from './alpha-resources.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
@@ -86,7 +87,7 @@ export function explorationHints(state: AlphaState, actor: PlayerId): Exploratio
   const math = player.research.includes('web-mathematics'), method = player.research.includes('web-experimental-method'), cartography = player.research.includes('web-cartography');
   if (!math && !method && !cartography) return [];
   const mine = state.units.filter(unit => unit.ownerId === actor).map(unit => tileOf(state, unit.hexId)!).filter(Boolean);
-  return state.regions.filter(region => !region.revealedBy.includes(actor) && region.hexIds.some(id => mine.some(tile => hexDistance(tile, tileOf(state, id)!) <= 4))).map(region => {
+  return state.regions.filter(region => !regionOpenFor(state, region, actor) && region.hexIds.some(id => mine.some(tile => hexDistance(tile, tileOf(state, id)!) <= 4))).map(region => {
     const counts = new Map<string, number>();
     for (const id of region.hexIds) { const terrain = tileOf(state, id)?.terrain ?? 'UNKNOWN'; counts.set(terrain, (counts.get(terrain) ?? 0) + 1); }
     const dominant = [...counts].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0]?.[0] ?? 'UNKNOWN';
