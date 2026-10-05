@@ -8,6 +8,7 @@ import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { blockadedBy, isCarried, isPort, launchHex } from './alpha-naval.js';
 import { kitMovement, kitSupplyBonus, kitUnitCost } from './alpha-kits.js';
 import { mobilizationBlock } from './alpha-city.js';
+import { unitMovement } from './alpha-grades.js';
 
 /** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
 export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):string|null {
@@ -73,7 +74,7 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
       if(order.type==='MOVE'&&(!movementOpen(state,actor,target.ownerId)||enemyCityAt(state,actor,id)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)))throw new Error('Fronteira fechada, cidade inimiga ou presença de outra civilização: use uma ordem de conflito.');
       cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];current=target;
     }
-    if(cost>state.rules.units[unit.kind].movement+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind))throw new Error('Caminho excede a mobilidade da peça.');
+    if(cost>unitMovement(state,unit)+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind))throw new Error('Caminho excede a mobilidade da peça.');
     if(order.type==='ATTACK'&&state.rules.units[unit.kind].strength===0)throw new Error('Esta peça não participa de ataques.');
   }
   if(order.type==='MOVE'&&order.path.length){const crowded=stackBlock(state,actor,units as AlphaUnit[],order.path.at(-1)!);if(crowded)throw new Error(crowded);}

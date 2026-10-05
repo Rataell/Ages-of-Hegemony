@@ -78,7 +78,9 @@ export const RoundLedgerSchema = z.strictObject({
   cities: z.array(z.strictObject({ cityId: CityIdSchema, population: N, stability: N })),
 });
 export type RoundLedger = z.infer<typeof RoundLedgerSchema>;
-export const TacticalRollSchema = z.strictObject({ unitId: IdentifierSchema, face: TacticalFaceSchema, effect: z.string().max(160).default('') });
+export const TacticalRollSchema = z.strictObject({ unitId: IdentifierSchema, face: TacticalFaceSchema, effect: z.string().max(160).default(''), grade: z.number().int().min(1).max(3).default(1) });
+export const ShockOutcomeSchema = z.enum(['TIE', 'VICTORY', 'DECISIVE']);
+export type ShockOutcome = z.infer<typeof ShockOutcomeSchema>;
 export const FortificationSnapshotSchema = z.strictObject({ level: FortificationLevelSchema, state: FortificationStateSchema });
 export const UnitClassSchema = AlphaUnitClassSchema;
 export const UnitSchema = z.strictObject({ id: IdentifierSchema, ownerId: PlayerIdSchema, kind: UnitClassSchema, hexId: HexIdSchema, recruitedRound: P,
@@ -183,6 +185,8 @@ const AlphaStateBase = z.strictObject({
     fortification:z.strictObject({cityId:CityIdSchema,before:FortificationSnapshotSchema,after:FortificationSnapshotSchema}).nullable().default(null),
     attackStrength:N,defenseStrength:N,attackModifiers:z.number().int(),defenseModifiers:z.number().int(),
     /** Legacy two-dice rolls of matches resolved before tactical combat; absent on tactical battles. */
+    /** V5.1b: Δ = attack − defense and its reading; absent on battles resolved before the single shock. */
+    delta:z.number().int().optional(),outcome:ShockOutcomeSchema.optional(),
     attackDice:z.tuple([P.max(6),P.max(6)]).optional(),defenseDice:z.tuple([P.max(6),P.max(6)]).optional(),
     attackTotal:z.number().int(),defenseTotal:z.number().int(),winnerId:PlayerIdSchema,losses:z.array(IdentifierSchema),retreat:HexIdSchema.nullable()})),
   winner: z.strictObject({ playerId: PlayerIdSchema, reason: z.enum(['HEGEMONY', 'ROUND_LIMIT']), round: P }).nullable(),
@@ -244,7 +248,7 @@ const AlphaStateBase = z.strictObject({
   }
   for (const fleet of state.units.filter(unit => state.rules.units[unit.kind].domain === 'SEA')) {
     const load = state.units.filter(unit => unit.carrierId === fleet.id).reduce((total, unit) => total + (state.rules.units[unit.kind].cargo ?? 1), 0);
-    if (load > (state.rules.units[fleet.kind].transport ?? 0)) fail('Fleet over its transport capacity');
+    if (load > (state.rules.units[fleet.kind].transport ?? 0) + (fleet.kind === 'FLEET' ? 1 : 0)) fail('Fleet over its transport capacity');
   }
   for (const player of state.players) {
     if(new Set(player.influencedCities).size!==player.influencedCities.length||player.influencedCities.some(id=>!cities.some(c=>c.id===id))||player.foreignInfluence!==player.influencedCities.length)fail('Invalid foreign influence');
@@ -268,14 +272,16 @@ const AlphaStateBase = z.strictObject({
     const legacyAttack=battle.attackDice?battle.attackDice[0]+battle.attackDice[1]:0,legacyDefense=battle.defenseDice?battle.defenseDice[0]+battle.defenseDice[1]:0;
     if(battle.attackTotal!==battle.attackStrength+battle.attackModifiers+legacyAttack||battle.defenseTotal!==battle.defenseStrength+battle.defenseModifiers+legacyDefense)fail('Battle arithmetic mismatch');
     if(!battle.attackDice&&(battle.attackBreakdown.reduce((n,m)=>n+m.amount,0)!==battle.attackModifiers||battle.defenseBreakdown.reduce((n,m)=>n+m.amount,0)!==battle.defenseModifiers))fail('Battle breakdown mismatch');
-    if(battle.winnerId!==(battle.attackTotal>battle.defenseTotal?battle.attackerId:battle.defenderId))fail('Battle winner mismatch');
+    if(battle.outcome!==undefined&&(battle.delta!==battle.attackTotal-battle.defenseTotal||battle.outcome!==(Math.abs(battle.delta)<state.rules.combat.mediumMargin?'TIE':Math.abs(battle.delta)>=state.rules.combat.largeMargin?'DECISIVE':'VICTORY')))fail('Battle delta mismatch');
+    if(battle.winnerId!==(battle.outcome==='TIE'?battle.defenderId:battle.attackTotal>battle.defenseTotal?battle.attackerId:battle.defenderId))fail('Battle winner mismatch');
   }
 });
 /** V5.1a → V5.1b upgrade (never silent: a public SAVE_UPGRADED event is appended). Catalog refresh for combat arrives with the combat slice. */
 export function upgradeToV51b(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
   const input = raw as Record<string, unknown>;
-  if (input.rulesVersion === 'v5.1b' || input.schemaVersion !== 5) return raw;
+  if (input.schemaVersion !== 5) return raw;
+  if (input.rulesVersion === 'v5.1b') return refreshCombatCatalog(input);
   const { pressure: _dropped, ...rest } = input;
   void _dropped;
   const players = Array.isArray(rest.players) ? (rest.players as Record<string, unknown>[]).map(player => {
@@ -286,7 +292,16 @@ export function upgradeToV51b(raw: unknown): unknown {
   }) : rest.players;
   const events = Array.isArray(rest.events) ? rest.events as unknown[] : [];
   const round = typeof (rest.core as { round?: unknown } | undefined)?.round === 'number' ? (rest.core as { round: number }).round : 1;
-  return { ...rest, rulesVersion: 'v5.1b', players, events: [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Partida atualizada para as regras V5.1b: a Pressão do Mundo foi substituída pela Ressonância.' }] };
+  return refreshCombatCatalog({ ...rest, rulesVersion: 'v5.1b', players, events: [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Partida atualizada para as regras V5.1b: a Pressão do Mundo foi substituída pela Ressonância.' }] });
+}
+/** I-13: saves whose combat config lacks the V5.1b `shock` marker get the V5.1b unit and combat catalogs, with a public event. */
+function refreshCombatCatalog(input: Record<string, unknown>): Record<string, unknown> {
+  const rules = input.rules as Record<string, unknown> | undefined;
+  const combat = rules?.combat as Record<string, unknown> | undefined;
+  if (!rules || !combat || combat.shock === true) return input;
+  const events = Array.isArray(input.events) ? input.events as unknown[] : [];
+  const round = typeof (input.core as { round?: unknown } | undefined)?.round === 'number' ? (input.core as { round: number }).round : 1;
+  return { ...input, rules: { ...rules, units: alphaUnitCatalog(), combat: alphaCombatConfig() }, events: [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Combate atualizado para as regras V5.1b: um choque tático, Δ, Graus I–III e assinaturas por família.' }] };
 }
 export const AlphaStateSchema = z.preprocess(upgradeToV51b, AlphaStateBase);
 export type AlphaState = z.infer<typeof AlphaStateBase>;

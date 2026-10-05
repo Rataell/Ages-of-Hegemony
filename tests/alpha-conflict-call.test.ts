@@ -50,6 +50,6 @@ describe('declaring war and attacking in the same round', () => {
     expect(state.battles).toHaveLength(1);
     const messages = state.roundReports.find(report => report.round === 1 && report.playerId === 'p2')!.resolution.map(event => event.message);
     expect(messages).toContain('Pessoa 1 declarou guerra a Pessoa 2.');
-    expect(messages.some(message => /^Pessoa 1 atacou Pessoa 2 em .+ \(Ataque -?\d+ × Defesa -?\d+\)\.$/.test(message))).toBe(true);
+    expect(messages.some(message => /^Pessoa 1 atacou Pessoa 2 em .+ \(Ataque -?\d+ × Defesa -?\d+, Δ [+-]?\d+\)\.$/.test(message))).toBe(true);
   });
 });

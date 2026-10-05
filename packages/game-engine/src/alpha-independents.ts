@@ -55,7 +55,7 @@ function createIndependentCity(state: AlphaState, actor: PlayerId, people: Peopl
     cityId, originalOwnerId: actor, currentOwnerId: actor, nativeIdentity: people.id, status: 'OWNED', integration: 100,
     mood: peaceful ? 3 : 1, level: cityLevelForPopulation(population), capital: owner.civilization.capitalCityId === cityId,
     districts: [], buildings: [], fortification: { level: 'NONE', state: 'INTACT' }, foreignPresence: [],
-    localCohesion: peaceful ? 60 : 30, culturalAnchor: identity, urbanActionsUsed: 0, allocationRound: 0,
+    localCohesion: peaceful ? 60 : 30, culturalAnchor: identity, urbanActionsUsed: 0, allocationRound: 0, portBlockedUntil: 0, portBlockedBy: null,
   });
   // The owner's identity is not foreign presence; no cultural anchor exists without predominant presence.
   state.cities.at(-1)!.culturalAnchor = null;

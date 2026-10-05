@@ -90,6 +90,8 @@ export const FortificationLevelSchema = z.enum(['NONE', 'PALISADE', 'STONE_WALL'
 export const FORTIFICATION_UPGRADES = ['PALISADE', 'STONE_WALL', 'FORTRESS', 'BASTION', 'CITADEL'] as const;
 export const FortificationUpgradeSchema = z.enum(FORTIFICATION_UPGRADES);
 export const FortificationStateSchema = z.enum(['INTACT', 'DAMAGED', 'BREACHED']);
+export type FortificationLevel = z.infer<typeof FortificationLevelSchema>;
+export type FortificationState = z.infer<typeof FortificationStateSchema>;
 export const CulturalPresenceLevelSchema = z.enum(['CONTACT', 'ROOTED', 'PREDOMINANT']);
 export const CulturalPresenceSchema = z.strictObject({ civilizationId: IdentifierSchema, level: CulturalPresenceLevelSchema });
 
@@ -112,6 +114,9 @@ export const AlphaCitySchema = z.strictObject({
   urbanActionsUsed: N,
   /** Round in which the population was last redistributed: once per city per round, during Planning (canon §6). */
   allocationRound: N.default(0),
+  /** Frota Abordagem (V5.1b): the port stays blockaded through this round. */
+  portBlockedUntil: N.default(0),
+  portBlockedBy: PlayerIdSchema.nullable().default(null),
 });
 export type AlphaCity = z.infer<typeof AlphaCitySchema>;
 
@@ -144,6 +149,8 @@ export const BattleModifierSchema = z.strictObject({ source: z.string().min(1).m
  */
 const PostureRuleSchema = z.strictObject({ beats: BattlePostureSchema, empowers: TacticalFaceSchema });
 export const CombatConfigSchema = z.strictObject({
+  /** V5.1b marker: one tactical shock. |Δ| < mediumMargin is a tactical tie, |Δ| >= largeMargin is decisive. */
+  shock: z.literal(true).default(true),
   mediumMargin: P, largeMargin: P, unsuppliedPenalty: N, hillDefense: N, mountainDefense: N, postureAdvantage: N,
   dieFaces: z.array(TacticalFaceSchema).length(6),
   impactValue: P, empoweredBonus: N, maneuverValue: P,
@@ -154,6 +161,12 @@ export const CombatConfigSchema = z.strictObject({
     cityGuardProtection: N, navalTerrains: z.array(z.enum(['UNKNOWN', 'PLAINS', 'FOREST', 'HILLS', 'MOUNTAINS', 'COAST', 'SEA'])), navalBonus: N,
     siegeBreachSteps: P, rangedConversions: P,
   }),
+  /** Family signatures (V5.1b §11) by Grau; one entry per Grau I, II, III. */
+  signatures: z.strictObject({
+    muroCity: z.tuple([N, N, N]), muroRough: z.tuple([N, N, N]), salva: z.tuple([N, N, N]), flank: z.tuple([N, N, N]), flankHills: z.tuple([z.boolean(), z.boolean(), z.boolean()]),
+    breachSteps: z.tuple([P, P, P]), siegeVsFortified: N, linhaCancels: z.tuple([P, P, P]), linhaAttacks: z.tuple([z.boolean(), z.boolean(), z.boolean()]),
+  }).default({ muroCity: [1, 1, 2], muroRough: [0, 1, 1], salva: [1, 2, 2], flank: [1, 1, 2], flankHills: [false, false, true], breachSteps: [1, 2, 2], siegeVsFortified: 2, linhaCancels: [1, 2, 2], linhaAttacks: [false, false, true] }),
+  gradeNames: z.tuple([z.literal('I'), z.literal('II'), z.literal('III')]).default(['I', 'II', 'III']),
   fortification: z.strictObject({
     levelBonus: z.strictObject({ NONE: N, PALISADE: N, STONE_WALL: N, FORTRESS: N, BASTION: N, CITADEL: N }),
     damagedPercent: z.number().int().min(0).max(100), fortifiedDefenderBonus: N,
@@ -162,13 +175,13 @@ export const CombatConfigSchema = z.strictObject({
 export type CombatConfig = z.infer<typeof CombatConfigSchema>;
 export function alphaCombatConfig(): CombatConfig {
   return CombatConfigSchema.parse({
-    mediumMargin: 3, largeMargin: 6, unsuppliedPenalty: 2, hillDefense: 1, mountainDefense: 2, postureAdvantage: 1,
+    mediumMargin: 2, largeMargin: 5, unsuppliedPenalty: 2, hillDefense: 1, mountainDefense: 2, postureAdvantage: 1,
     dieFaces: ['EMPTY', 'IMPACT', 'IMPACT', 'GUARD', 'MANEUVER', 'COMMAND'],
     impactValue: 1, empoweredBonus: 1, maneuverValue: 1,
     posture: { ASSAULT: { beats: 'MANEUVER', empowers: 'IMPACT' }, HOLD: { beats: 'ASSAULT', empowers: 'GUARD' }, MANEUVER: { beats: 'HOLD', empowers: 'MANEUVER' } },
     guardCancels: 1, holdGuardCancels: 2,
-    command: { cavalryFlank: 1, cavalryFlankTerrains: ['PLAINS'], cityGuardProtection: 1, navalTerrains: ['COAST', 'SEA'], navalBonus: 1, siegeBreachSteps: 1, rangedConversions: 1 },
-    fortification: { levelBonus: { NONE: 0, PALISADE: 1, STONE_WALL: 2, FORTRESS: 3, BASTION: 4, CITADEL: 5 }, damagedPercent: 50, fortifiedDefenderBonus: 1 },
+    command: { cavalryFlank: 1, cavalryFlankTerrains: ['PLAINS'], cityGuardProtection: 0, navalTerrains: ['COAST', 'SEA'], navalBonus: 0, siegeBreachSteps: 1, rangedConversions: 1 },
+    fortification: { levelBonus: { NONE: 0, PALISADE: 1, STONE_WALL: 2, FORTRESS: 3, BASTION: 4, CITADEL: 5 }, damagedPercent: 50, fortifiedDefenderBonus: 0 },
   });
 }
 

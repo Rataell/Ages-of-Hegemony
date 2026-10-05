@@ -74,7 +74,7 @@ describe('naval vertical slice (DEC-014)', () => {
     const fleet = state.units.find(unit => unit.kind === 'FLEET')!;
     const ids = ['a', 'b', 'c', 'd'].map(suffix => { const id = `inf-${suffix}`; state.units.push({ id, ownerId: p1, kind: 'INFANTRY', hexId: capital.hexId, recruitedRound: 1, carrierId: null }); return id; });
     expect(applyAlphaCommand(state, p1, { type: 'EMBARK', expectedVersion: state.version, unitIds: ids, fleetId: fleet.id }).ok).toBe(false);
-    expect(applyAlphaCommand(state, p1, { type: 'EMBARK', expectedVersion: state.version, unitIds: ids.slice(0, 3), fleetId: fleet.id }).ok).toBe(true);
+    expect(applyAlphaCommand(state, p1, { type: 'EMBARK', expectedVersion: state.version, unitIds: ids.slice(0, 2), fleetId: fleet.id }).ok).toBe(true);
   });
 
   it('saves one piece on a free coast when its fleet sinks, and loses the rest', () => {

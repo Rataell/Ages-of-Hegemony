@@ -57,8 +57,10 @@ type Battle = AlphaState['battles'][number];
 /** "Beto atacou Ana em 7,6 e foi repelido (Ataque 3 × Defesa 5)." Totals are public once the dice are rolled. */
 export function battleMessage(names: Map<string, string>, battle: Battle): string {
   const attacker = names.get(battle.attackerId) ?? 'O atacante', defender = names.get(battle.defenderId) ?? 'o defensor';
-  const outcome = battle.winnerId === battle.attackerId ? 'e venceu' : 'e foi repelido';
-  return `${attacker} atacou ${defender} em ${battle.hexId} ${outcome} (Ataque ${battle.attackTotal} × Defesa ${battle.defenseTotal}).`;
+  const delta = battle.delta ?? battle.attackTotal - battle.defenseTotal;
+  const reading = battle.outcome === 'TIE' ? 'e a batalha terminou em empate tático'
+    : battle.winnerId === battle.attackerId ? (battle.outcome === 'DECISIVE' ? 'e venceu de forma decisiva' : 'e venceu') : (battle.outcome === 'DECISIVE' ? 'e foi repelido de forma decisiva' : 'e foi repelido');
+  return `${attacker} atacou ${defender} em ${battle.hexId} ${reading} (Ataque ${battle.attackTotal} × Defesa ${battle.defenseTotal}, Δ ${delta > 0 ? '+' : ''}${delta}).`;
 }
 
 /** "Beto perdeu Infantaria. Ana perdeu Pioneiro, Explorador." Uses the pieces as they were before the battle removed them. */

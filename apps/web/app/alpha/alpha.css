@@ -502,3 +502,6 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-socket.d-KNOWLEDGE{--c1:#4a6fa5}.alpha-socket.d-LAND_AND_SEA{--c1:#4f8a5b}.alpha-socket.d-STONE_AND_METAL{--c1:#7d6e63}.alpha-socket.d-GOVERNMENT{--c1:#8e4f6b}.alpha-socket.d-TRADE{--c1:#b07f2f}
 .alpha-socket.d2-KNOWLEDGE{--c2:#4a6fa5}.alpha-socket.d2-LAND_AND_SEA{--c2:#4f8a5b}.alpha-socket.d2-STONE_AND_METAL{--c2:#7d6e63}.alpha-socket.d2-GOVERNMENT{--c2:#8e4f6b}.alpha-socket.d2-TRADE{--c2:#b07f2f}
 .alpha-socket-pending{margin-left:4px;font-size:11px}
+.alpha-grau{margin-left:.35em;font-style:normal;font-size:.7em;letter-spacing:-.1em;color:#8a8070}
+.alpha-battle-delta{font-weight:600}
+.alpha-preview-grades{font-size:.78rem;color:#8a8070}

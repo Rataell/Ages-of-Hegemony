@@ -1,49 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, BattlePostureSchema, PlayerIdSchema, alphaCombatConfig, alphaRules, type AlphaUnit, type BattlePosture, type TacticalFace } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, BattlePostureSchema, alphaCombatConfig, alphaRules } from '@aoh/game-domain';
 import {
-  applyAlphaCommand, beginAlphaPlanning, combatPreview, createAlphaGame, createGame, hexDistance, institutionBonus, migrateSnapshotV3ToV4, resolveBattle, resolveBattleWithFaces, setAlphaPhase, strengthSources, unitSupply,
+  applyAlphaCommand, beginAlphaPlanning, combatPreview, createAlphaGame, hexDistance, institutionBonus, resolveBattle, resolveBattleWithFaces, setAlphaPhase, strengthSources, unitSupply,
 } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 import { completeRound, must } from './alpha-rounds.js';
 
-const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
-type Kind = AlphaUnit['kind'];
-interface Arena { attackers?: Kind[]; defenders?: Kind[]; city?: boolean; far?: boolean; terrain?: string; attackPosture?: BattlePosture; defensePosture?: BattlePosture; fort?: { level: string; state: string }; seed?: number }
-
-/** Ten plains in a row. p1's city at 0,0, p2's at 7,0. Field battles at 4,0 (supplied) or 6,0 (attackers unsupplied); city battles at 7,0. */
-function arena(options: Arena = {}) {
-  const core = createGame({ gameId: `combat-${options.seed ?? 5}`, seed: options.seed ?? 5, players: [{ id: p1, name: 'Um', resources: { food: 30, materials: 30, wealth: 30, knowledge: 0, influence: 10 } }, { id: p2, name: 'Dois' }],
-    map: Array.from({ length: 10 }, (_, q) => ({ id: `${q},0`, q, r: 0, terrain: 'PLAINS' })),
-    initialCities: [{ id: 'c1', ownerId: p1, hexId: '0,0', name: 'Aurora' }, { id: 'c2', ownerId: p2, hexId: '7,0', name: 'Fronteira' }] });
-  if (!core.ok) throw new Error(core.error.message);
-  const migrated = migrateSnapshotV3ToV4(core.value); if (!migrated.ok) throw new Error(migrated.error.message);
-  const state = beginAlphaPlanning(migrated.value);
-  state.players.forEach(p => { p.knownHexIds = state.core.map.map(t => t.id); });
-  state.wars = [[p1, p2]];
-  const attackers = options.attackers ?? ['INFANTRY'], defenders = options.defenders ?? ['INFANTRY'];
-  const target = options.city ? '7,0' : options.far ? '6,0' : '4,0';
-  const from = options.city ? '6,0' : options.far ? '5,0' : '3,0';
-  if (options.terrain) state.core.map.find(t => t.id === target)!.terrain = options.terrain as never;
-  state.units = [
-    ...attackers.map((kind, i) => ({ id: `a${i + 1}`, ownerId: p1, kind, hexId: from as never, recruitedRound: 1 })),
-    ...defenders.map((kind, i) => ({ id: `d${i + 1}`, ownerId: p2, kind, hexId: target as never, recruitedRound: 1 })),
-  ];
-  if (options.city) state.core.map.filter(t => ['1,0', '2,0', '3,0', '4,0', '5,0', '6,0'].includes(t.id)).forEach(t => { t.ownerId = p1; });
-  if (options.fort) state.cities.find(c => c.cityId === 'c2')!.fortification = options.fort as never;
-  state.players[0]!.temporaryEffects = [{ source: 'test-march', effect: { kind: 'MOVEMENT', amount: 5 }, round: state.core.round }];
-  state.players[1]!.defensePosture = options.defensePosture ?? 'HOLD';
-  const order = { id: 'atk', type: 'ATTACK' as const, unitIds: attackers.map((_, i) => `a${i + 1}`), target: target as never, posture: options.attackPosture ?? 'ASSAULT' };
-  return { state, order, target };
-}
-const faces = (face: TacticalFace, ...ids: string[]) => Object.fromEntries(ids.map(id => [id, face])) as Record<string, TacticalFace>;
-const entry = (list: { source: string; amount: number }[], source: string | RegExp) => list.find(item => typeof source === 'string' ? item.source === source : source.test(item.source));
-const amount = (list: { source: string; amount: number }[], source: string | RegExp) => entry(list, source)?.amount ?? 0;
-const fight = (options: Arena, forced?: Record<string, TacticalFace>) => {
-  const { state, order } = arena(options);
-  resolveBattleWithFaces(state, p1, order, forced);
-  return { state, battle: state.battles[0]! };
-};
-
+import { amount, arena, entry, faces, fight, p1, p2 } from './alpha-arena.js';
 describe('postures', () => {
   const postures = BattlePostureSchema.options;
   const every = (ids: string[]) => faces('EMPTY', ...ids);
@@ -69,15 +32,16 @@ describe('postures', () => {
     }
   });
 
-  it('never win automatically: every posture can win and lose a mirrored fight', () => {
-    const outcomes = new Map<string, Set<boolean>>();
+  it('shift Δ by exactly the posture advantage: +1 for the attacker, −1 for the defender, 0 otherwise', () => {
     for (const attack of postures) for (const defense of postures) {
-      const { battle } = fight({ attackPosture: attack, defensePosture: defense }, every(['a1', 'd1']));
-      // Equal strength (2 v 2), no dice points: the posture advantage alone decides, and ties go to the defender.
-      const attackerWon = battle.winnerId === p1;
-      outcomes.set(attack, (outcomes.get(attack) ?? new Set()).add(attackerWon));
+      const { battle, state } = fight({ attackPosture: attack, defensePosture: defense }, every(['a1', 'd1']));
+      const config = state.rules.combat;
+      const expected = config.posture[attack].beats === defense ? 1 : config.posture[defense].beats === attack ? -1 : 0;
+      expect(battle.delta, `${attack} vs ${defense}`).toBe(expected);
+      // A posture alone never wins: |Δ| ≤ 1 is a tactical tie.
+      expect(battle.outcome).toBe('TIE');
+      expect(battle.winnerId).toBe(p2);
     }
-    for (const posture of postures) expect([...outcomes.get(posture)!].sort()).toEqual([false, true]);
   });
 
   it('empower their own face: assault doubles impacts, defence doubles guard cancellation, manoeuvre doubles manoeuvre', () => {
@@ -96,7 +60,7 @@ describe('tactical faces', () => {
   it('EMPTY gives nothing', () => {
     const { battle } = fight({}, faces('EMPTY', 'a1', 'd1'));
     expect(entry(battle.attackBreakdown, /^Dados/)).toBeUndefined();
-    expect(battle.attackerTactical).toEqual([{ unitId: 'a1', face: 'EMPTY', effect: 'Sem efeito' }]);
+    expect(battle.attackerTactical).toEqual([{ unitId: 'a1', face: 'EMPTY', effect: 'Sem efeito', grade: 1 }]);
   });
 
   it('IMPACT scores and MANEUVER scores', () => {
@@ -125,92 +89,73 @@ describe('tactical faces', () => {
   });
 });
 
-describe('COMMAND by class', () => {
-  it('INFANTRY: impact when assaulting, guard when holding', () => {
-    const assault = fight({ attackPosture: 'ASSAULT', attackers: ['INFANTRY'] }, { a1: 'COMMAND', d1: 'EMPTY' });
-    expect(assault.battle.attackerTactical[0]!.effect).toBe('Comando: impacto');
-    expect(amount(assault.battle.attackBreakdown, 'Dados: impactos')).toBe(2);
-    const hold = fight({ defensePosture: 'HOLD', attackers: ['INFANTRY'] }, { a1: 'IMPACT', d1: 'COMMAND' });
-    expect(hold.battle.defenderTactical[0]!.effect).toBe('Comando: guarda (postura de defesa)');
-    expect(amount(hold.battle.attackBreakdown, /^Guardas inimigas anularam 1/)).toBeLessThan(0);
+describe('COMMAND by class (signatures)', () => {
+  it('INFANTRY and GUARD: Comando has no effect of its own', () => {
+    const inf = fight({ attackPosture: 'HOLD', attackers: ['INFANTRY'] }, { a1: 'COMMAND', d1: 'EMPTY' });
+    expect(inf.battle.attackerTactical[0]!.effect).toContain('sem assinatura');
+    expect(entry(inf.battle.attackBreakdown, /^Dados/)).toBeUndefined();
+    const guard = fight({ defenders: ['GUARD'] }, { a1: 'IMPACT', d1: 'COMMAND' });
+    expect(guard.battle.defenderTactical[0]!.effect).toContain('sem assinatura');
   });
 
-  it('GUARD: an extra guard, plus protection when defending a city', () => {
-    const field = fight({ defenders: ['GUARD'], defensePosture: 'ASSAULT' }, { a1: 'IMPACT', d1: 'COMMAND' });
-    expect(field.battle.defenderTactical[0]!.effect).toBe('Comando: guarda extra');
-    expect(amount(field.battle.defenseBreakdown, 'Proteção da cidade')).toBe(0);
-    const city = fight({ city: true, defenders: ['GUARD'], defensePosture: 'ASSAULT' }, { a1: 'IMPACT', d1: 'COMMAND' });
-    expect(city.battle.defenderTactical[0]!.effect).toContain('proteção da cidade');
-    expect(amount(city.battle.defenseBreakdown, 'Proteção da cidade')).toBe(1);
+  it('RANGED: Salva turns a Comando into Poder (more with Grau II)', () => {
+    const one = fight({ attackers: ['RANGED'] }, { a1: 'COMMAND', d1: 'EMPTY' });
+    expect(amount(one.battle.attackBreakdown, /^Salva/)).toBe(1);
+    const { state, order } = arena({ attackers: ['RANGED'] });
+    state.players[0]!.research = ['web-metallurgy'];
+    resolveBattleWithFaces(state, p1, order, { a1: 'COMMAND', d1: 'EMPTY' });
+    expect(amount(state.battles[0]!.attackBreakdown, /^Salva/)).toBe(2);
   });
 
-  it('GUARD: its city modifier serves the defenders of a city, never an attack on one (same value)', () => {
-    const guard = alphaRules().units.GUARD.cityModifier;
-    const defending = fight({ city: true, defenders: ['GUARD'] }, faces('EMPTY', 'a1', 'd1'));
-    expect(amount(defending.battle.defenseBreakdown, 'Guarda da cidade')).toBe(guard);
-    expect(entry(defending.battle.attackBreakdown, 'Equipamento contra cidade')).toBeUndefined();
-    const attacking = fight({ city: true, attackers: ['GUARD'] }, faces('EMPTY', 'a1', 'd1'));
-    expect(entry(attacking.battle.attackBreakdown, 'Equipamento contra cidade')).toBeUndefined();
-    expect(entry(fight({ defenders: ['GUARD'] }, faces('EMPTY', 'a1', 'd1')).battle.defenseBreakdown, 'Guarda da cidade')).toBeUndefined();
-    const siege = fight({ city: true, attackers: ['SIEGE'] }, faces('EMPTY', 'a1', 'd1'));
-    expect(amount(siege.battle.attackBreakdown, 'Equipamento contra cidade')).toBe(alphaRules().units.SIEGE.cityModifier);
-    // The preview shows the same static breakdown the battle will use.
-    const { state, order } = arena({ city: true, defenders: ['GUARD'] });
-    expect(amount(combatPreview(state, p1, order).defender!.breakdown, 'Guarda da cidade')).toBe(guard);
-    // Matches saved before the side was explicit keep the corrected rule.
-    const legacy = arena({ city: true, defenders: ['GUARD'] });
-    delete legacy.state.rules.units.GUARD.cityModifierSide;
-    resolveBattleWithFaces(legacy.state, p1, legacy.order, faces('EMPTY', 'a1', 'd1'));
-    expect(amount(legacy.state.battles[0]!.defenseBreakdown, 'Guarda da cidade')).toBe(guard);
-  });
-
-  it('RANGED: turns one empty ally die into an impact and does nothing when there is none', () => {
-    const support = fight({ attackers: ['INFANTRY', 'RANGED'], attackPosture: 'HOLD' }, { a1: 'EMPTY', a2: 'COMMAND', d1: 'EMPTY' });
-    expect(support.battle.attackerTactical.find(r => r.unitId === 'a1')).toMatchObject({ face: 'IMPACT', effect: expect.stringContaining('virou impacto') });
-    expect(amount(support.battle.attackBreakdown, 'Dados: impactos')).toBe(1);
-    const nothing = fight({ attackers: ['INFANTRY', 'RANGED'], attackPosture: 'HOLD' }, { a1: 'GUARD', a2: 'COMMAND', d1: 'EMPTY' });
-    expect(nothing.battle.attackerTactical.find(r => r.unitId === 'a2')!.effect).toContain('sem dado vazio');
-    expect(amount(nothing.battle.attackBreakdown, 'Dados: impactos')).toBe(0);
-  });
-
-  it('CAVALRY: flanks on plains, not in a forest', () => {
+  it('CAVALRY: Flanco on plains, nothing in a forest, Grau III also on hills', () => {
     const plains = fight({ attackers: ['CAVALRY'] }, { a1: 'COMMAND', d1: 'EMPTY' });
-    expect(amount(plains.battle.attackBreakdown, 'Flanco da cavalaria')).toBe(1);
+    expect(amount(plains.battle.attackBreakdown, /^Flanco/)).toBe(1);
     const forest = fight({ attackers: ['CAVALRY'], terrain: 'FOREST' }, { a1: 'COMMAND', d1: 'EMPTY' });
-    expect(entry(forest.battle.attackBreakdown, 'Flanco da cavalaria')).toBeUndefined();
-    expect(forest.battle.attackerTactical[0]!.effect).toBe('Comando: terreno não permite flanco');
+    expect(entry(forest.battle.attackBreakdown, /^Flanco/)).toBeUndefined();
+    expect(forest.battle.attackerTactical[0]!.effect).toBe('Comando: terreno não permite Flanco');
+    const hills = arena({ attackers: ['CAVALRY'], terrain: 'HILLS' });
+    hills.state.players[0]!.research = ['web-naval-doctrine', 'web-war-of-movement'];
+    resolveBattleWithFaces(hills.state, p1, hills.order, { a1: 'COMMAND', d1: 'EMPTY' });
+    expect(amount(hills.state.battles[0]!.attackBreakdown, /^Flanco/)).toBe(2);
   });
 
-  it('SIEGE: breaches a fortification one step per command, otherwise strikes', () => {
+  it('SIEGE: Brecha adds Poder against a fortified city and opens Integridade per Comando', () => {
     const one = fight({ city: true, attackers: ['SIEGE'], fort: { level: 'STONE_WALL', state: 'INTACT' } }, { a1: 'COMMAND', d1: 'EMPTY' });
+    expect(amount(one.battle.attackBreakdown, /^Brecha/)).toBe(2);
     expect(one.battle.fortification).toMatchObject({ before: { level: 'STONE_WALL', state: 'INTACT' }, after: { level: 'STONE_WALL', state: 'DAMAGED' } });
     expect(one.state.cities.find(c => c.cityId === 'c2')!.fortification.state).toBe('DAMAGED');
     expect(amount(one.battle.defenseBreakdown, 'Brecha aberta pelo cerco')).toBeLessThan(0);
     const two = fight({ city: true, attackers: ['SIEGE', 'SIEGE'], fort: { level: 'STONE_WALL', state: 'INTACT' } }, { a1: 'COMMAND', a2: 'COMMAND', d1: 'EMPTY' });
     expect(two.battle.fortification!.after.state).toBe('BREACHED');
     const open = fight({ attackers: ['SIEGE'], attackPosture: 'HOLD' }, { a1: 'COMMAND', d1: 'EMPTY' });
-    expect(open.battle.attackerTactical[0]!.effect).toBe('Comando: impacto (sem fortificação)');
+    expect(open.battle.attackerTactical[0]!.effect).toBe('Comando: sem fortificação para abrir');
     expect(open.battle.fortification).toBeNull();
+    expect(entry(open.battle.attackBreakdown, /^Brecha/)).toBeUndefined();
   });
 
-  it('FLEET: naval effect on coast and sea, none on land', () => {
-    const coast = fight({ attackers: ['FLEET'], terrain: 'COAST' }, { a1: 'COMMAND', d1: 'EMPTY' });
-    expect(amount(coast.battle.attackBreakdown, 'Superioridade naval')).toBe(1);
-    const land = arena({ attackers: ['FLEET'] });
-    land.state.units[0]!.hexId = '3,0' as never;
-    expect(() => resolveBattleWithFaces(land.state, p1, land.order, { a1: 'COMMAND', d1: 'EMPTY' })).toThrow();
+  it('FLEET: Abordagem blocks the defender port after a victory, and only when attacking', () => {
+    const { state, order } = arena({ attackers: ['FLEET', 'FLEET', 'FLEET', 'FLEET'], defenders: ['FLEET'], terrain: 'COAST', seed: 11 });
+    state.core.map.find(t => t.id === '4,0')!.terrain = 'COAST'; state.core.map.find(t => t.id === '3,0')!.terrain = 'COAST';
+    state.core.players[1]!.civilization.cities[0]!.hexId = '5,0' as never; state.core.map.find(t => t.id === '5,0')!.terrain = 'COAST';
+    state.core.map.find(t => t.id === '7,0')!.terrain = 'PLAINS';
+    resolveBattleWithFaces(state, p1, order, { ...faces('COMMAND', 'a1', 'a2', 'a3', 'a4'), d1: 'EMPTY' });
+    const battle = state.battles[0]!;
+    expect(battle.attackerTactical.every(r => r.effect === 'Comando: Abordagem')).toBe(true);
+    expect(battle.defenderTactical[0]!.face).toBe('EMPTY');
+    expect(battle.delta).toBeGreaterThan(1);
+    expect(state.cities.find(c => c.cityId === 'c2')!.portBlockedUntil).toBe(state.core.round + 1);
   });
 });
 
 describe('modifiers by origin', () => {
-  it('terrain: hills and mountains help the defender, cavalry likes plains', () => {
+  it('terrain: hills and mountains help the defender; cavalry has no passive terrain bonus any more', () => {
     const config = alphaCombatConfig();
     const hills = fight({ terrain: 'HILLS' }, faces('EMPTY', 'a1', 'd1'));
-    expect(amount(hills.battle.defenseBreakdown, 'Terreno')).toBe(config.hillDefense + hills.state.rules.units.INFANTRY.terrainModifiers.HILLS);
+    expect(amount(hills.battle.defenseBreakdown, 'Terreno')).toBe(config.hillDefense);
     const mountain = fight({ terrain: 'MOUNTAINS' }, faces('EMPTY', 'a1', 'd1'));
-    expect(amount(mountain.battle.defenseBreakdown, 'Terreno')).toBe(config.mountainDefense + mountain.state.rules.units.INFANTRY.terrainModifiers.MOUNTAINS);
+    expect(amount(mountain.battle.defenseBreakdown, 'Terreno')).toBe(config.mountainDefense);
     const cav = fight({ attackers: ['CAVALRY'] }, faces('EMPTY', 'a1', 'd1'));
-    expect(amount(cav.battle.attackBreakdown, 'Terreno')).toBe(cav.state.rules.units.CAVALRY.terrainModifiers.PLAINS);
+    expect(entry(cav.battle.attackBreakdown, 'Terreno')).toBeUndefined();
   });
 
   it('supply: unsupplied attackers pay the configured penalty, supplied ones do not', () => {
@@ -221,18 +166,22 @@ describe('modifiers by origin', () => {
     expect(unitSupply(far.state, { id: 'x', ownerId: p1, kind: 'INFANTRY', hexId: '5,0' as never, recruitedRound: 1 }).supplied).toBe(false);
   });
 
-  it('fortification: level bonus, halved when damaged, nothing when breached, sheltered guards and infantry', () => {
+  it('fortification: level bonus, halved when damaged, nothing when breached; no extra for sheltered defenders', () => {
     const config = alphaCombatConfig();
     for (const level of ['NONE', 'PALISADE', 'STONE_WALL', 'FORTRESS', 'BASTION', 'CITADEL'] as const) {
-      const intact = fight({ city: true, fort: { level, state: 'INTACT' }, defenders: ['GUARD'] }, faces('EMPTY', 'a1', 'd1'));
+      const intact = fight({ city: true, fort: { level, state: 'INTACT' }, defenders: ['INFANTRY'] }, faces('EMPTY', 'a1', 'd1'));
       expect(amount(intact.battle.defenseBreakdown, 'Fortificação'), level).toBe(config.fortification.levelBonus[level]);
-      expect(amount(intact.battle.defenseBreakdown, 'Defensores abrigados'), level).toBe(level === 'NONE' ? 0 : config.fortification.fortifiedDefenderBonus);
+      expect(entry(intact.battle.defenseBreakdown, 'Defensores abrigados'), level).toBeUndefined();
     }
     const damaged = fight({ city: true, fort: { level: 'FORTRESS', state: 'DAMAGED' } }, faces('EMPTY', 'a1', 'd1'));
     expect(amount(damaged.battle.defenseBreakdown, 'Fortificação')).toBe(Math.floor(config.fortification.levelBonus.FORTRESS * config.fortification.damagedPercent / 100));
     const breached = fight({ city: true, fort: { level: 'FORTRESS', state: 'BREACHED' } }, faces('EMPTY', 'a1', 'd1'));
     expect(entry(breached.battle.defenseBreakdown, 'Fortificação')).toBeUndefined();
-    expect(entry(breached.battle.defenseBreakdown, 'Defensores abrigados')).toBeUndefined();
+  });
+
+  it('a city defends with its pieces and walls only: no level or garrison strength', () => {
+    const { battle } = fight({ city: true, defenders: ['INFANTRY'] }, faces('EMPTY', 'a1', 'd1'));
+    expect(battle.defenseStrength).toBe(2);
   });
 
   it('technology, leader and cards appear as separate lines and add up to the institutional bonus', () => {
@@ -268,17 +217,24 @@ describe('modifiers by origin', () => {
       expect(battle.defenseModifiers).toBe(battle.defenseBreakdown.reduce((n, m) => n + m.amount, 0));
       expect(battle.attackTotal).toBe(battle.attackStrength + battle.attackModifiers);
       expect(battle.defenseTotal).toBe(battle.defenseStrength + battle.defenseModifiers);
-      expect(battle.winnerId).toBe(battle.attackTotal > battle.defenseTotal ? p1 : p2);
+      expect(battle.delta).toBe(battle.attackTotal - battle.defenseTotal);
+      expect(battle.winnerId).toBe(battle.outcome !== 'TIE' && battle.delta! > 0 ? p1 : p2);
     }
   });
 });
 
 describe('resolution', () => {
-  it('gives ties to the defender', () => {
-    const { battle } = fight({ attackPosture: 'HOLD', defensePosture: 'HOLD' }, faces('EMPTY', 'a1', 'd1'));
-    expect(battle.attackTotal).toBe(battle.defenseTotal);
-    expect(battle.winnerId).toBe(p2);
-    expect(battle.retreat).toBe('3,0');
+  it('a tie is a tactical tie: the attacker does not advance and each side with 2+ pieces loses 1', () => {
+    const solo = fight({ attackPosture: 'HOLD', defensePosture: 'HOLD' }, faces('EMPTY', 'a1', 'd1'));
+    expect(solo.battle).toMatchObject({ outcome: 'TIE', delta: 0, winnerId: p2, retreat: '3,0', losses: [] });
+    const pairs = fight({ attackPosture: 'HOLD', defensePosture: 'HOLD', attackers: ['INFANTRY', 'INFANTRY'], defenders: ['INFANTRY', 'INFANTRY'] }, faces('EMPTY', 'a1', 'a2', 'd1', 'd2'));
+    expect(pairs.battle.outcome).toBe('TIE');
+    expect(pairs.battle.losses).toHaveLength(2);
+    expect(pairs.battle.losses.filter(id => id.startsWith('a'))).toHaveLength(1);
+    expect(pairs.battle.losses.filter(id => id.startsWith('d'))).toHaveLength(1);
+    expect(pairs.state.units.filter(u => u.ownerId === p1).every(u => u.hexId === '3,0')).toBe(true);
+    expect(pairs.state.units.filter(u => u.ownerId === p2).every(u => u.hexId === '4,0')).toBe(true);
+    expect(pairs.state.players[0]!.victories).toBe(0);
   });
 
   it('retreats a losing defender to a free neighbouring hex and a losing attacker to where it came from', () => {
@@ -292,11 +248,26 @@ describe('resolution', () => {
     expect(lose.battle.retreat).toBe('3,0');
   });
 
-  it('scales losses with the margin and removes the weakest first', () => {
-    const { battle, state } = fight({ attackers: ['INFANTRY', 'INFANTRY', 'INFANTRY', 'INFANTRY'], defenders: ['EXPLORER', 'INFANTRY', 'GUARD'] }, { ...faces('IMPACT', 'a1', 'a2', 'a3', 'a4'), d2: 'EMPTY', d3: 'EMPTY' });
-    expect(battle.winnerId).toBe(p1);
-    expect(battle.losses[0]).toBe('d1');
-    expect(state.units.some(u => battle.losses.includes(u.id))).toBe(false);
+  it('reads Δ: 2–4 is a victory (loser loses 1, weakest first), 5+ is decisive (loses 2)', () => {
+    const win = fight({ attackers: ['INFANTRY', 'INFANTRY', 'INFANTRY', 'INFANTRY'], defenders: ['EXPLORER', 'INFANTRY', 'GUARD'] }, { ...faces('IMPACT', 'a1', 'a2', 'a3', 'a4'), d2: 'EMPTY', d3: 'EMPTY' });
+    expect(win.battle.outcome).toBe('DECISIVE');
+    expect(win.battle.losses).toHaveLength(2);
+    expect(win.battle.losses[0]).toBe('d2');
+    expect(win.state.units.some(u => win.battle.losses.includes(u.id))).toBe(false);
+    const normal = fight({ attackPosture: 'HOLD', attackers: ['INFANTRY', 'INFANTRY', 'INFANTRY'], defenders: ['INFANTRY', 'INFANTRY', 'INFANTRY'] }, { ...faces('IMPACT', 'a1', 'a2', 'a3'), ...faces('EMPTY', 'd1', 'd2', 'd3') });
+    expect(normal.battle.delta).toBeGreaterThanOrEqual(2);
+    expect(normal.battle.delta).toBeLessThan(5);
+    expect(normal.battle.outcome).toBe('VICTORY');
+    expect(normal.battle.losses).toHaveLength(1);
+    expect(normal.state.players[0]!.victories).toBe(1);
+  });
+
+  it('only the attacker may advance: a losing attacker stays, a winning defender never leaves its hex', () => {
+    const lose = fight({ defenders: ['INFANTRY', 'INFANTRY', 'INFANTRY'] }, { a1: 'EMPTY', ...faces('IMPACT', 'd1', 'd2', 'd3') });
+    expect(lose.battle.delta).toBeLessThanOrEqual(-2);
+    expect(lose.state.units.find(u => u.id === 'a1' || false)?.hexId ?? '3,0').toBe('3,0');
+    expect(lose.state.units.filter(u => u.ownerId === p2).every(u => u.hexId === '4,0')).toBe(true);
+    expect(lose.state.players[0]!.victories).toBe(0);
   });
 
   it('captures an undefended or beaten city through occupation', () => {

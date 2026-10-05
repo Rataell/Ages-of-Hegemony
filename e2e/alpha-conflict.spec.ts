@@ -106,7 +106,7 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
       await expect(displayed.getByLabel(`Faces do ataque ${battle.attackerTactical.map(r=>face[r.face]).join(' e ')}`,{exact:true})).toBeVisible();
       await expect(displayed.getByLabel(`Faces da defesa ${battle.defenderTactical.map(r=>face[r.face]).join(' e ')}`,{exact:true})).toBeVisible();
       expect(battle.attackerPosture).toBe('MANEUVER');expect(battle.defenderPosture).toBe('HOLD');
-      await expect(displayed).toContainText('Manobra');await expect(displayed).toContainText('Defesa');
+      await expect(displayed).toContainText('Manobra');await expect(displayed).toContainText('Manter');
       for(const item of [...battle.attackBreakdown,...battle.defenseBreakdown])await expect(displayed).toContainText(item.source);
       await expect(displayed).toContainText(`= ${battle.attackTotal}`);
       await expect(displayed).toContainText(`= ${battle.defenseTotal}`);

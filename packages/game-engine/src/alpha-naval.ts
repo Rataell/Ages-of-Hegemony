@@ -3,6 +3,7 @@ import { hexDistance, hexId, hexNeighbors } from './hex.js';
 import { atWar, enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { stackBlock } from './alpha-stack.js';
 import { resolutionEvent } from './alpha-events.js';
+import { unitTransport } from './alpha-grades.js';
 
 /**
  * Naval vertical slice (DEC-014: naval is core for the Alpha). One generic Fleet class carries the slice:
@@ -24,7 +25,7 @@ export const cargoOf = (state: AlphaState, fleetId: string) => state.units.filte
 export const cargoLoad = (state: AlphaState, fleetId: string) => cargoOf(state, fleetId).reduce((total, unit) => total + state.rules.units[unit.kind].cargo, 0);
 /** Any own ship that offers transport slots. */
 export const isCarrierKind = (state: AlphaState, kind: AlphaUnit['kind']) => state.rules.units[kind].domain === 'SEA' && state.rules.units[kind].transport > 0;
-export const cargoRoom = (state: AlphaState, fleetId: string) => { const ship = state.units.find(unit => unit.id === fleetId); return ship ? Math.max(0, state.rules.units[ship.kind].transport - cargoLoad(state, fleetId)) : 0; };
+export const cargoRoom = (state: AlphaState, fleetId: string) => { const ship = state.units.find(unit => unit.id === fleetId); return ship ? Math.max(0, unitTransport(state, ship) - cargoLoad(state, fleetId)) : 0; };
 
 /** A port: on Coast, or next to Coast or Sea. */
 export function isPort(state: AlphaState, cityHexId: string): boolean {
@@ -33,6 +34,10 @@ export function isPort(state: AlphaState, cityHexId: string): boolean {
 }
 /** An enemy (at war) fleet on the city's hex or on a water hex next to it. */
 export function blockadedBy(state: AlphaState, cityHexId: string, ownerId: PlayerId): PlayerId | null {
+  // Frota Abordagem (V5.1b): a won boarding keeps the port shut through the next round, even with no ship beside it.
+  const city = state.core.players.flatMap(player => player.civilization.cities).find(candidate => candidate.hexId === cityHexId);
+  const meta = city ? state.cities.find(candidate => candidate.cityId === city.id) : undefined;
+  if (meta && meta.portBlockedUntil >= state.core.round && meta.portBlockedBy && meta.portBlockedBy !== ownerId && atWar(state, meta.portBlockedBy, ownerId)) return meta.portBlockedBy;
   const near = new Set([cityHexId, ...neighbours(state, cityHexId).filter(n => WATER.has(n.terrain)).map(n => n.id)]);
   // Only warships blockade; a coastal vessel does not.
   return state.units.find(unit => state.rules.units[unit.kind].domain === 'SEA' && state.rules.units[unit.kind].strength > 0 && unit.ownerId !== ownerId && near.has(unit.hexId) && atWar(state, unit.ownerId, ownerId))?.ownerId ?? null;

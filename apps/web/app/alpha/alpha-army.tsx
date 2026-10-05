@@ -26,7 +26,7 @@ function StackTags({ hexId, members, stacks, rules }: { hexId: string; members: 
 }
 
 /** Own pieces grouped by hex and class: one card per stack instead of one row per piece. */
-export function ArmyList({ units, selected, onSelect, stacks, rules }: { units: Unit[]; selected: string[]; onSelect: (ids: string[], on: boolean, hexId: string) => void; stacks: StackView; rules: Rules }) {
+export function ArmyList({ units, selected, onSelect, stacks, rules, grades = {} }: { units: Unit[]; selected: string[]; onSelect: (ids: string[], on: boolean, hexId: string) => void; stacks: StackView; rules: Rules; grades?: Record<string, number> }) {
   const groups = new Map<string, Unit[]>();
   for (const unit of units) groups.set(unit.hexId, [...(groups.get(unit.hexId) ?? []), unit]);
   if (!groups.size) return <p className="muted">Nenhuma peça em campo.</p>;
@@ -47,7 +47,7 @@ export function ArmyList({ units, selected, onSelect, stacks, rules }: { units: 
       </div>
       <details><summary>ver composição</summary>{members.map(unit => <label className="alpha-piece-row" key={unit.id}>
         <input type="checkbox" checked={selected.includes(unit.id)} onChange={event => onSelect([unit.id], event.target.checked, hexId)} />
-        <span>{text(unit.kind)}<small>{unit.hexId} · {unit.supply?.supplied ? 'Abastecida' : 'Sem suprimento'}</small></span>
+        <span>{text(unit.kind)}{grades[unit.kind] ? <i className="alpha-grau" title={`Grau ${['I', 'II', 'III'][grades[unit.kind]! - 1]}`}>{'▮'.repeat(grades[unit.kind]!)}</i> : null}<small>{unit.hexId} · {unit.supply?.supplied ? 'Abastecida' : 'Sem suprimento'}</small></span>
       </label>)}</details>
     </article>;
   })}</div>;

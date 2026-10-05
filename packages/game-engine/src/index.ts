@@ -31,6 +31,8 @@ export * from './alpha-messages.js';
 export * from './alpha-trade.js';
 export * from './alpha-growth.js';
 export * from './alpha-naval.js';
+export * from './alpha-grades.js';
+export * from './alpha-shock.js';
 export * from './alpha-kits.js';
 export { applyOps, autoResolveChoices, addPendingChoice, pickRepercussion, registerAdvance, resolveChoice } from './alpha-resonance.js';
 export { applyThreatCommand } from './alpha-threats.js';

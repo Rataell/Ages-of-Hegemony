@@ -59,6 +59,8 @@ export function manageCard(state:AlphaState,actor:PlayerId,command:Extract<Alpha
     const next=state.cards.advisorDeck.shift();if(next)state.cards.advisorMarket.push(next);return;
   }
   if(!player.hand.includes(card.id)||card.timing!==state.core.phase||player.cardsPlayed>=state.rules.cardsPerRound)throw new Error('Carta fora da mão, do momento permitido ou do limite por rodada.');
+  // I-16: one Reaction per side; two Reactions in a round would stack on the same battle.
+  if(card.timing==='REACTION'&&player.temporaryEffects.some(e=>e.round===state.core.round&&ALPHA_CARDS.find(c=>c.id===e.source)?.timing==='REACTION'))throw new Error('Cada lado joga no máximo uma Reação por rodada.');
   player.hand=player.hand.filter(id=>id!==card.id);state.cards.discarded.push(card.id);player.cardsPlayed++;
   if(card.effect?.kind==='PRODUCTION')alphaGainLegacy(state,actor,{[card.effect.resource]:card.effect.amount});
   else if(card.effect)player.temporaryEffects.push({source:card.id,effect:card.effect,round:state.core.round});

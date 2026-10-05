@@ -83,3 +83,13 @@ Never projected: unresolved orders of others, secret Ambições, others' hands, 
 - **I-10 (POPULATION op).** `POPULATION{n}` adds a Disponível to the capital; when the capital is at its level ceiling the op pays 2 Alimento instead, so a reward is never void.
 - **I-11 (visibility).** Repercussão events and pending choices are visible to the owner only. Rivals see `resonanceFilled` and `resonanceCycles` per civilization, nothing else.
 - **I-12 (pending choices before S5).** Until the Era turn exists, unresolved choices simply stay pending; `autoResolveChoices` is exported for S5. The UI shows a card with the options in the Conselho panel (full Tabuleiro comes in S7).
+
+## Interpretations added during S2 (combat)
+
+- **I-13 (catalog refresh).** `rules.combat.shock === true` marks the V5.1b catalogs. `upgradeToV51b` replaces `rules.units` and `rules.combat` with the V5.1b ones for every save whose combat config lacks the marker (V5.1a saves and interim V5.1b saves), and appends a public `SAVE_UPGRADED` event saying so.
+- **I-14 (Comando by family).** Only the signature families act on a Comando face: Arqueiros (Salva +1 Poder; Grau II +2; Grau III also the side's fortification target loses 1 bonus, once), Cavalaria (Flanco +1 on Planície, Grau III +2 and also on Colina), Cerco (opens Integridade steps against a fortified target, 1 / 2 at Grau II+), Frota (Abordagem: after a victory the defender's nearest port within 1 hex is blockaded until the end of the next round). Infantaria, Guarda and Cerco without fortified target: Comando has no effect. The old "archers turn empty dice into impacts" and the naval/cityGuard flats are gone.
+- **I-15 (passives).** Cerco: +2 Poder against a fortified city (each piece). Guarda Muro: +1 Poder when defending a city (Grau III +2); Grau II adds +1 when the Guarda defends on Colina or Montanha. Cerco Grau III: Paliçada and Muralha de Pedra give the defender 0. The old terrain modifiers and `cityModifier` equipment of the catalog are zero in V5.1b (their jobs are the signatures above).
+- **I-16 (Reaction cap).** At most one Reaction card per player per round (PLAY_CARD in CONFLICTS), which bounds one Reaction per side per battle.
+- **I-17 (casualty pool).** Casualties come from fighting pieces first (weakest Power, Cerco last, then id); civilians on the hex only die when no fighter is left on that side.
+- **I-18 (tie winner).** A TIE records `winnerId` = defender and `outcome = 'TIE'`; `victories` counts only the attacker's non-tie wins.
+- **I-19 (Grau movement/transport).** Cavalaria moves 2 (Grau II+: 3). Frota carries 2 (Grau II+: 3). The domain integrity check allows `transport + 1` for FLEET.
