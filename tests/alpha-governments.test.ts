@@ -342,3 +342,28 @@ describe('the single source', () => {
     expect(governmentEffects(state, 'nobody' as never).government).toBe('PROTO_GOVERNANCE');
   });
 });
+
+describe('Web trade rules wired in S6', () => {
+  it('Moeda adds 1 Riqueza to each route income; Economia Comercial +2; Autossuficiência −1', async () => {
+    const { webRouteIncome } = await import('@aoh/game-engine');
+    const state = game();
+    expect(webRouteIncome(state, p1)).toBe(0);
+    state.players[0]!.research.push('web-exchange', 'web-currency');
+    expect(webRouteIncome(state, p1)).toBe(1);
+    state.players[0]!.research.push('web-regional-market', 'web-bank', 'web-commercial-economy');
+    expect(webRouteIncome(state, p1)).toBe(3);
+    state.players[0]!.research = state.players[0]!.research.filter(id => id !== 'web-commercial-economy').concat('web-self-sufficiency');
+    expect(webRouteIncome(state, p1)).toBe(0);
+  });
+  it('Mercado Regional lets Riqueza cover 60% of a Construir cost (50% otherwise)', () => {
+    const state = urban();
+    const cost = { food: 0, wood: 5, stone: 0, metal: 0, wealth: 0, knowledge: 0, influence: 0 };
+    Object.assign(pool(state), { wood: 2, wealth: 20 }); sync(state);
+    // 3 of 5 wood missing = 60%: refused at 50% and allowed with Mercado Regional, but only for Construir.
+    expect(alphaCanAfford(state, p1, cost)).toBe(false);
+    expect(alphaCanAfford(state, p1, cost, 'BUILD')).toBe(false);
+    state.players[0]!.research.push('web-exchange', 'web-currency', 'web-regional-market');
+    expect(alphaCanAfford(state, p1, cost)).toBe(false);
+    expect(alphaCanAfford(state, p1, cost, 'BUILD')).toBe(true);
+  });
+});

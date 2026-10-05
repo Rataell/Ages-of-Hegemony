@@ -1,5 +1,5 @@
 import {
-  ALPHA_RESOURCE_KEYS, RESOURCE_KEYS, alphaToLegacyResources, emptyAlphaResourcePool, legacyToAlphaResources,
+  ADVANCEMENTS, ALPHA_RESOURCE_KEYS, RESOURCE_KEYS, alphaToLegacyResources, emptyAlphaResourcePool, legacyToAlphaResources,
   type AlphaResourceKey, type AlphaResourcePool, type AlphaResourceType, type AlphaState, type PlayerId, type ResourcePool, type RoundLedger,
 } from '@aoh/game-domain';
 import { sum } from './arithmetic.js';
@@ -57,20 +57,23 @@ export function syncLegacyResources(state: AlphaState, actor: PlayerId): void {
   if (strategic && legacy) legacy.resources = alphaToLegacyResources(strategic.resources);
 }
 
-export function alphaCanAfford(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool): boolean {
+/** Where a cost is paid: 'BUILD' is Construir (Mercado Regional lets Riqueza cover 60% there, canon §12). */
+export type PaymentScope = 'BUILD';
+const buildCoverPercent = (state: AlphaState, actor: PlayerId): number => state.players.find(player => player.playerId === actor)?.research.some(id => ADVANCEMENTS.find(node => node.id === id)?.unlocks.includes('rule:wealth-covers-60-build')) ? 60 : 0;
+export function alphaCanAfford(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool, scope?: PaymentScope): boolean {
   const pool = state.players.find(player => player.playerId === actor)?.resources;
   if (!pool) return false;
   const cost = alphaCost(rawCost, pool);
   if (pool.food < cost.food || pool.knowledge < cost.knowledge || pool.influence < cost.influence) return false;
   const shortages = (['wood', 'stone', 'metal'] as const).reduce((total, key) => total + Math.max(0, cost[key] - pool[key]), 0);
   const materialCost = cost.wood + cost.stone + cost.metal;
-  if (shortages > Math.floor(materialCost * Math.max(state.rules.balance.wealthMaterialCostPercentMax, governmentEffects(state, actor).wealthCoverPercent) / 100)) return false;
+  if (shortages > Math.floor(materialCost * Math.max(state.rules.balance.wealthMaterialCostPercentMax, governmentEffects(state, actor).wealthCoverPercent, scope === 'BUILD' ? buildCoverPercent(state, actor) : 0) / 100)) return false;
   return pool.wealth >= cost.wealth + shortages * state.rules.balance.wealthConversionRate;
 }
 
-export function alphaPay(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool): void {
+export function alphaPay(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool, scope?: PaymentScope): void {
   const player = state.players.find(candidate => candidate.playerId === actor);
-  if (!player || !alphaCanAfford(state, actor, rawCost)) throw new Error('Recursos insuficientes para esta ação.');
+  if (!player || !alphaCanAfford(state, actor, rawCost, scope)) throw new Error('Recursos insuficientes para esta ação.');
   const ledger = ledgerOf(state, actor);
   const before = toLegacy(player.resources);
   const cost = alphaCost(rawCost, player.resources);
@@ -90,10 +93,10 @@ export function alphaPay(state: AlphaState, actor: PlayerId, rawCost: ResourcePo
 }
 
 /** Lets shared city/territory rules charge Alpha's authoritative seven-resource pool directly. */
-export function alphaResourcePayment(state: AlphaState): ResourcePayment {
+export function alphaResourcePayment(state: AlphaState, scope?: PaymentScope): ResourcePayment {
   return (corePlayer, cost) => {
-    if (!alphaCanAfford(state, corePlayer.id, cost)) return false;
-    alphaPay(state, corePlayer.id, cost);
+    if (!alphaCanAfford(state, corePlayer.id, cost, scope)) return false;
+    alphaPay(state, corePlayer.id, cost, scope);
     const strategic = state.players.find(player => player.playerId === corePlayer.id)!;
     corePlayer.resources = alphaToLegacyResources(strategic.resources);
     return true;

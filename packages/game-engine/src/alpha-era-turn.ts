@@ -94,8 +94,8 @@ export function enterEraTurn(state: AlphaState): void {
   state.eraTurn = { era, step: 1, log: [] };
   setAlphaPhase(state, 'ERA_TURN');
   state.players.forEach(player => { player.ready = false; });
-  const auto = autoResolveChoices(state);
-  if (auto) alphaEvent(state, 'CHOICE_AUTO_SUMMARY', `${auto} decisão(ões) pendente(s) foram resolvidas pela primeira opção.`);
+  // Each owner is told privately (CHOICE_AUTO); a public summary would reveal that someone completed a Ressonância cycle.
+  autoResolveChoices(state);
   log(state, 1, sustenance(state));
   state.eraTurn.step = 2; const scored = scoreAmbitions(state);
   log(state, 2, scored ? `${scored} Ambição(ões) pontuada(s).` : 'Nenhuma Ambição concluída.');

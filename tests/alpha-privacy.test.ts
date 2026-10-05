@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, visibleHexIds } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
+import { readyAll } from './alpha-rounds.js';
 
-const [p1, p2, p3] = ['p1', 'p2', 'p3'].map(id => PlayerIdSchema.parse(id)) as [ReturnType<typeof PlayerIdSchema.parse>, ReturnType<typeof PlayerIdSchema.parse>, ReturnType<typeof PlayerIdSchema.parse>];
+const [p1, p2, p3, p4] = ['p1', 'p2', 'p3', 'p4'].map(id => PlayerIdSchema.parse(id)) as [ReturnType<typeof PlayerIdSchema.parse>, ReturnType<typeof PlayerIdSchema.parse>, ReturnType<typeof PlayerIdSchema.parse>, ReturnType<typeof PlayerIdSchema.parse>];
 const must = (state: AlphaState, actor: string, command: Record<string, unknown>) => { const result = applyAlphaCommand(state, actor as never, { ...command, expectedVersion: state.version }); if (!result.ok) throw new Error(result.error.message); return result.value; };
 
 /** Three seats in contact; p1 has made every kind of private decision this round. */
@@ -75,5 +76,96 @@ describe('public city marks', () => {
     expect(seen.self.pendingChoices).toEqual([]);
     expect(alphaPlayerView(state, p1)!.self.pendingChoices).toHaveLength(1);
     expect(alphaPlayerView(state, p1)!.self.resonance.slots).toHaveLength(1);
+  });
+});
+
+/** Walks every key of a projected view and returns the paths of the forbidden private keys found outside `self`. */
+const PRIVATE_KEYS = new Set(['research', 'marks', 'slots', 'pendingChoices', 'hand', 'ambitions', 'completedAmbitions', 'defensePosture', 'orders', 'plannedActions', 'privateRng', 'seed', 'resources', 'knownHexIds', 'temporaryEffects', 'governmentReformEra']);
+function leakedKeys(value: unknown, path = '', found: string[] = []): string[] {
+  if (Array.isArray(value)) { value.forEach((item, index) => leakedKeys(item, `${path}[${index}]`, found)); return found; }
+  if (value && typeof value === 'object') {
+    for (const [key, child] of Object.entries(value)) {
+      const here = path ? `${path}.${key}` : key;
+      if (PRIVATE_KEYS.has(key) && !here.startsWith('self.') && !/^(rules|costs|view|actions|storage|urban|unitOptions|milestones|cityStates\[\d+\]\.slots)\b/.test(here)) found.push(here);
+      leakedKeys(child, here, found);
+    }
+  }
+  return found;
+}
+
+describe('V5.1b privacy walk (4 players: planning, conflicts, Era turn)', () => {
+  const seats = ['p1', 'p2', 'p3', 'p4'].map(id => PlayerIdSchema.parse(id));
+  function walkStart(): AlphaState {
+    let state = beginAlphaPlanning(createAlphaGame({ gameId: 'privacy-v51b', seed: 33, preset: 'QUICK', players: seats.map(id => ({ id, name: id.toUpperCase() })) }));
+    state.rules.roundsPerEra = 1; state.rules.roundLimit = 7;
+    for (const player of state.players) player.contacts = state.players.map(other => other.playerId).filter(id => id !== player.playerId);
+    const rival = state.players.find(player => player.playerId === p1)!;
+    rival.resonance.slots = [{ advancementId: 'web-writing', source: 'WEB', domains: ['KNOWLEDGE'] }];
+    rival.resonance.marks = [{ advancementId: 'web-writing', domains: ['KNOWLEDGE'], round: 1 }];
+    rival.pendingChoices = [{ id: 'choice-walk-secret', source: 'ENCOUNTER', cardId: 'enc-x', title: 'Segredo da caminhada', text: '', createdRound: 1, mitigated: false, options: [{ id: 'a', label: 'A', ops: [] }, { id: 'b', label: 'B', ops: [] }] }];
+    state = must(state, p1, { type: 'CHOOSE_AMBITIONS', cardIds: rival.ambitions.slice(0, 2) });
+    state = must(state, p1, { type: 'SET_DEFENSE_POSTURE', posture: 'MANEUVER' });
+    state = must(state, p1, { type: 'DECLARE_WAR', targetId: p2, planId: 'walk-secret-war' });
+    return state;
+  }
+  function assertNoLeaks(state: AlphaState, label: string) {
+    const rival = state.players.find(player => player.playerId === p1)!;
+    for (const viewer of seats.filter(id => id !== p1)) {
+      const view = alphaPlayerView(state, viewer)!, json = JSON.stringify(view);
+      expect(leakedKeys(view), `${label}: ${viewer}`).toEqual([]);
+      for (const secret of ['choice-walk-secret', 'Segredo da caminhada', 'walk-secret-war', state.privateRng.seed]) expect(json, `${label}: ${viewer} ${secret}`).not.toContain(secret);
+      const ownCards = new Set([...view.self.hand, ...view.self.ambitions, ...view.self.advisors, ...view.advisorMarket]);
+      for (const card of [...rival.hand, ...rival.ambitions].filter(id => !ownCards.has(id))) expect(json, `${label}: ${viewer} ${card}`).not.toContain(`"${card}"`);
+      // Fog: threats and regions only where the viewer may know them.
+      const visible = visibleHexIds(state, viewer);
+      for (const threat of view.threats as { hexId: string }[]) expect(visible.has(threat.hexId), `${label}: threat ${threat.hexId} beyond the fog`).toBe(true);
+      for (const alert of view.threatAlerts as unknown as Record<string, unknown>[]) expect(Object.keys(alert).some(key => ['hexId', 'hex', 'id', 'composition'].includes(key)), `${label}: threat alert leaks a position`).toBe(false);
+      for (const region of view.regions) expect(state.regions.find(item => item.id === region.id)!.revealedBy).toContain(viewer);
+      // Rival cargo and the other players' summaries.
+      expect(view.units.filter(unit => unit.ownerId !== viewer).every(unit => !unit.carrierId)).toBe(true);
+      for (const summary of view.players) expect(Object.keys(summary).sort()).toEqual(['civilization', 'era', 'id', 'name', 'prestige', 'ready', 'resonanceCycles', 'resonanceFilled']);
+      expect(view.self.playerId).toBe(viewer);
+      expect(view.government.current).toBeDefined();
+    }
+  }
+
+  it('never leaks private state to the three rivals during planning, conflicts and the Era turn', () => {
+    let state = walkStart();
+    assertNoLeaks(state, 'planning');
+    // Put p1 next to p2's capital with an attack reserved: the CONFLICTS phase opens for reactions.
+    const target = state.core.players.find(player => player.id === p2)!.civilization.cities[0]!.hexId;
+    const neighbor = state.core.map.find(tile => !['SEA', 'UNKNOWN'].includes(tile.terrain) && tile.id !== target && Math.max(Math.abs(tile.q - Number(target.split(',')[0])), Math.abs(tile.r - Number(target.split(',')[1]))) <= 1 && !state.core.players.some(player => player.civilization.cities.some(city => city.hexId === tile.id)));
+    if (neighbor) {
+      const soldier = { id: 'walk-inf', ownerId: p1, kind: 'INFANTRY' as const, hexId: neighbor.id, recruitedRound: 1 };
+      state.units.push(soldier);
+      state.wars.push([p1, p2]);
+      const queued = applyAlphaCommand(state, p1, { type: 'QUEUE_ORDER', expectedVersion: state.version, order: { id: 'walk-secret-attack', type: 'ATTACK', unitIds: ['walk-inf'], target, posture: 'ASSAULT' } });
+      if (queued.ok) { state = queued.value; expect(JSON.stringify(alphaPlayerView(state, p2)!)).not.toContain('walk-secret-attack'); assertNoLeaks(state, 'planning+attack'); }
+    }
+    let guard = 0;
+    while (state.phase !== 'ERA_TURN' && guard++ < 40) {
+      state = readyAll(state);
+      assertNoLeaks(state, `phase ${state.phase}`);
+      expect(JSON.stringify(alphaPlayerView(state, p3)!)).not.toContain('walk-secret-attack');
+    }
+    expect(state.phase).toBe('ERA_TURN');
+    assertNoLeaks(state, 'era-turn');
+    const eraView = alphaPlayerView(state, p2)!;
+    expect(Object.keys(eraView.eraTurn!).sort()).toEqual(['awaiting', 'era', 'log', 'step']);
+  });
+
+  it('never shows an unresolved defensive posture before the battle: the posture lives only in the owner self', () => {
+    const state = walkStart();
+    expect(alphaPlayerView(state, p1)!.self.defensePosture).toBe('MANEUVER');
+    for (const viewer of [p2, p3, p4]) { const view = alphaPlayerView(state, viewer)!; expect(view.self.defensePosture).toBe('HOLD'); expect(leakedKeys(view)).toEqual([]); }
+  });
+
+  it('hides a region discovery from players who did not reveal it', () => {
+    const state = walkStart();
+    const region = state.regions[state.regions.length - 1]!;
+    region.discovery = { kind: 'RUIN', resolved: false };
+    region.revealedBy = [p1];
+    for (const viewer of [p2, p3, p4]) expect(JSON.stringify(alphaPlayerView(state, viewer)!.regions)).not.toContain(region.id);
+    expect(alphaPlayerView(state, p1)!.regions.find(item => item.id === region.id)!.discovery).toMatchObject({ kind: 'RUIN' });
   });
 });

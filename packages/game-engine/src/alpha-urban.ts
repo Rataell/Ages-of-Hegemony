@@ -73,6 +73,8 @@ function recruitCountBlock(state: AlphaState, actor: PlayerId, cityId: string, u
   return null;
 }
 
+/** Route income from the Web: Moeda +1, Economia Comercial +2, Autossuficiência −1 (canon §12). */
+export const webRouteIncome = (state: AlphaState, actor: PlayerId): number => (hasUnlock(state, actor, 'rule:route-plus-1') ? 1 : 0) + (hasUnlock(state, actor, 'rule:route-plus-2') ? 2 : 0) - (hasUnlock(state, actor, 'rule:route-minus-1') ? 1 : 0);
 function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: BuildTarget): string | null {
   const owner = state.core.players.find(player => player.id === actor)!, progress = state.players.find(player => player.playerId === actor)!;
   const city = owner.civilization.cities.find(candidate => candidate.id === cityId)!, meta = state.cities.find(candidate => candidate.cityId === cityId)!;
@@ -82,13 +84,13 @@ function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: B
     if (city.districts.some(item => item.type === build.district)) return 'Um distrito de cada tipo por cidade.';
     if (city.districts.length >= districtSlots(state, cityId)) return 'Sem vagas de distrito: Eleve a cidade.';
     if (!hasUnlock(state, actor, `district:${build.district}`)) return 'Este distrito exige um avanço da Teia.';
-    return alphaCanAfford(state, actor, entry.cost) ? null : 'Recursos insuficientes para esta ação.';
+    return alphaCanAfford(state, actor, entry.cost, 'BUILD') ? null : 'Recursos insuficientes para esta ação.';
   }
   if (build.kind === 'BUILDING') {
     const entry = rules.buildings[build.building];
     if (!city.districts.some(item => item.type === entry.district)) return 'O edifício exige o distrito correspondente.';
     if (city.buildings.some(item => item.type === build.building)) return 'Este edifício já existe.';
-    return alphaCanAfford(state, actor, entry.cost) ? null : 'Recursos insuficientes para esta ação.';
+    return alphaCanAfford(state, actor, entry.cost, 'BUILD') ? null : 'Recursos insuficientes para esta ação.';
   }
   const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
   if (!next) return 'A cidade já possui a fortificação máxima.';
@@ -96,7 +98,7 @@ function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: B
   if (AlphaEraSchema.options.indexOf(progress.era) < AlphaEraSchema.options.indexOf(spec.era)) return 'Sua civilização ainda não alcançou a era exigida.';
   if (spec.militaryDistrict && !city.districts.some(item => item.type === 'MILITARY')) return 'Esta fortificação requer distrito Militar.';
   const capped = kitFortificationBlock(state, actor, next); if (capped) return capped;
-  return alphaCanAfford(state, actor, alphaCostWithMetal(state, actor, spec.cost, spec.metal)) ? null : 'Recursos insuficientes para esta ação.';
+  return alphaCanAfford(state, actor, alphaCostWithMetal(state, actor, spec.cost, spec.metal), 'BUILD') ? null : 'Recursos insuficientes para esta ação.';
 }
 
 /** Everything that can stop an urban action, in one pure function shared by the action and the client preview. */
@@ -188,7 +190,7 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     list.push(option(state, actor, id, 'BUILD', { build: { kind: 'FORTIFICATION' } }, next ? `Fortificação ${next}` : 'Fortificação máxima'));
     for (const unit of AlphaUnitClassSchema.options) list.push(option(state, actor, id, 'RECRUIT', { unit }, `Força ${state.rules.units[unit].strength} · Movimento ${state.rules.units[unit].movement} · até ${recruitLimit(state, actor, id)} peça(s) por ativação`));
     list.push(option(state, actor, id, 'PROMOTE_MOOD', {}, `Governar: +1 Ânimo por nível pago (1 Cultura ou 2 Riqueza), até ${produced.capacity} nível(is); repara 1 passo de fortificação por 1 Pedra`));
-    list.push(option(state, actor, id, 'SUPPORT_TRADE', {}, `Renda de rota: +${state.rules.routeIncome + governmentEffects(state, actor).routeWealth} Riqueza por rota originada`));
+    list.push(option(state, actor, id, 'SUPPORT_TRADE', {}, `Renda de rota: +${state.rules.routeIncome + governmentEffects(state, actor).routeWealth + webRouteIncome(state, actor)} Riqueza por rota originada`));
     list.push(option(state, actor, id, 'MOVE_CAPITAL', {}, `Mover a capital para cá (${governmentEffects(state, actor).moveCapitalOrders} Ordem(ns)); a Administração, a Capacidade da capital e a guarnição acompanham`));
     list.push(option(state, actor, id, 'CIVIC_ACTION', {}, occupied ? `Integração +${balance.integrationPerAction + leaderIntegrationBonus(state, actor)}%` : `+${balance.civicInfluence} Influência e coesão local`));
     cities[id] = list;
@@ -254,14 +256,14 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
         if (AlphaEraSchema.options.indexOf(progress.era) < AlphaEraSchema.options.indexOf(spec.era)) throw new Error('Sua civilização ainda não alcançou a era exigida.');
         if (spec.militaryDistrict && !city.districts.some(item => item.type === 'MILITARY')) throw new Error('Esta fortificação requer distrito Militar.');
         const capped = kitFortificationBlock(state, actor, next); if (capped) throw new Error(capped);
-        alphaPay(state, actor, alphaCostWithMetal(state, actor, spec.cost, spec.metal));
+        alphaPay(state, actor, alphaCostWithMetal(state, actor, spec.cost, spec.metal), 'BUILD');
         meta.fortification = { level: next, state: 'INTACT' };
         message = `${city.name} recebeu a fortificação ${next}.`;
       } else {
         const built = command.build.kind === 'DISTRICT'
           ? { type: 'BUILD_DISTRICT' as const, playerId: actor, cityId: city.id, district: command.build.district, expectedVersion: state.core.version }
           : { type: 'BUILD_BUILDING' as const, playerId: actor, cityId: city.id, building: command.build.building, expectedVersion: state.core.version };
-        const result = applyCommand(state.core, built, alphaResourcePayment(state));
+        const result = applyCommand(state.core, built, alphaResourcePayment(state, 'BUILD'));
         if (!result.ok) throw new Error(result.error.message);
         state.core = result.value;
         syncCityMetadata(state);
@@ -306,7 +308,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       const routes = state.routes.filter(route => route.ownerId === actor && route.fromCityId === city.id && !route.suspended);
       if (routes.length === 0) throw new Error('A cidade não origina nenhuma rota comercial ativa.');
       for (const route of routes) {
-        alphaGainLegacy(state, actor, { wealth: governmentEffects(state, actor).shakenCitiesProduceNoWealth && moodBand(meta.mood) === 'SHAKEN' ? 0 : Math.max(0, state.rules.routeIncome + kitRouteIncome(state, actor) + governmentEffects(state, actor).routeWealth) }, { category: 'trade' });
+        alphaGainLegacy(state, actor, { wealth: governmentEffects(state, actor).shakenCitiesProduceNoWealth && moodBand(meta.mood) === 'SHAKEN' ? 0 : Math.max(0, state.rules.routeIncome + kitRouteIncome(state, actor) + governmentEffects(state, actor).routeWealth + webRouteIncome(state, actor)) }, { category: 'trade' });
         const receiver = state.core.players.find(player => player.civilization.cities.some(candidate => candidate.id === route.toCityId));
         if (receiver && receiver.id !== actor) alphaGainLegacy(state, receiver.id, { wealth: state.rules.foreignRouteIncome }, { category: 'trade' });
       }
