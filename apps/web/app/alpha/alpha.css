@@ -47,8 +47,8 @@ button.alpha-card { text-align: left; }
 .alpha-era-track li { min-width: 130px; border-top: 2px solid var(--border); padding: 12px; }
 .alpha-era-track [aria-current] { border-color: var(--accent); color: var(--accent); }
 .alpha-era-track b { display: block; font-size: 28px; font-family: var(--serif); }
-.alpha-dice { display: flex; gap: 10px; }
-.alpha-dice span { display: grid; place-items: center; width: 44px; height: 44px; background: var(--text-primary); color: var(--background); border-radius: 8px; font: bold 24px var(--serif); box-shadow: var(--shadow-sm); }
+.alpha-dice { display: flex; flex-wrap: wrap; gap: 6px; }
+.alpha-dice span { display: inline-grid; place-items: center; min-width: 52px; height: 30px; padding: 0 8px; background: var(--text-primary); color: var(--background); border-radius: 6px; font: 600 12px/1 var(--font-body, system-ui); letter-spacing: .02em; box-shadow: var(--shadow-sm); }
 .alpha-panel table { width: 100%; text-align: left; border-collapse: collapse; }
 .alpha-panel th, .alpha-panel td { padding: 10px; border-bottom: 1px solid var(--border); }
 .alpha-feed { padding-left: 20px; }
@@ -109,7 +109,7 @@ button.alpha-card { text-align: left; }
 .alpha-resolution-log ol { padding-left: 28px; }
 .alpha-resolution-log li { margin: 5px 0; font-size: 12px; }
 /* Docked beside the atlas so the results stay visible on their hexes. */
-.alpha-resolution-phase { position: fixed; z-index: 40; inset: 104px 12px auto auto; width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 150px); overflow: auto; padding: 20px; border: 1px solid var(--accent); background: var(--surface-elevated); box-shadow: 0 18px 60px #000a; }
+.alpha-resolution-phase { position: fixed; z-index: 40; inset: 104px 12px auto auto; width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 92px - var(--tray-height, 80px) - 36px); overflow: auto; padding: 16px 20px; border: 1px solid var(--accent); background: var(--surface-elevated); box-shadow: 0 18px 60px #000a; }
 .alpha-resolution-phase h2 { margin: 4px 0 12px; }
 .alpha-resolution-phase ol { display: grid; gap: 8px; padding-left: 24px; }
 .alpha-resolution-phase li span { display: block; margin-top: 2px; color: var(--text-secondary); }
@@ -405,7 +405,7 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-mesa .alpha-pulse-chip { top: calc(10px + var(--strip-height) + 10px); left: 16px; }
 
 .alpha-mesa .alpha-strip { position: absolute; z-index: 20; top: 10px; left: 12px; right: 12px; min-width: 0; }
-.alpha-strip-civ { display: flex; gap: 8px; align-items: center; min-width: 0; flex: none; }
+.alpha-strip-civ { cursor: pointer; display: flex; gap: 8px; align-items: center; min-width: 0; flex: none; }
 .alpha-strip-civ svg { flex: none; }
 .alpha-mesa .alpha-strip-civ h1 { margin: 0; font: 600 16px/1.1 var(--font-display); letter-spacing: .04em; white-space: nowrap; }
 .alpha-strip-civ small { display: block; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
@@ -509,9 +509,86 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 /* Era turn (canon §22): nine steps over the Mesa, one CTA. */
 .alpha-era-turn { position: fixed; z-index: 40; inset: 92px 50% auto auto; transform: translateX(50%); width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 150px); overflow: auto; padding: 20px; border: 1px solid #8884; background: var(--surface-elevated); box-shadow: 0 18px 60px #000a; }
 .alpha-era-turn h2 { margin: 4px 0 10px; }
-.alpha-era-steps { margin: 0 0 12px; padding: 0; list-style: none; display: grid; gap: 4px; }
+.alpha-era-steps { margin: 0 0 12px; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-size: 13px; }
 .alpha-era-steps li { display: grid; gap: 2px; padding: 4px 8px; border-left: 3px solid transparent; opacity: .72; }
 .alpha-era-steps li[data-state='current'] { opacity: 1; border-left-color: currentColor; }
 .alpha-era-steps li[data-state='done'] small { opacity: .85; }
 .alpha-government ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
 .alpha-government li { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+
+/* ── Tabuleiro da Civilização (canon §18b): overlay on the Mesa; the map stays behind it ── */
+.alpha-mesa .alpha-civ { background: var(--surface); position: absolute; z-index: 26; left: 12px; right: 12px; top: calc(10px + var(--strip-height) + 10px); bottom: calc(12px + var(--tray-height) + 12px); display: flex; flex-direction: column; overflow: hidden; }
+.alpha-civ-head { display: flex; align-items: center; gap: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); flex: none; color: var(--mark); }
+.alpha-civ-head h2 { margin: 0; color: var(--text-primary); }
+.alpha-civ-facts { display: flex; gap: 22px; margin: 0 0 0 auto; }
+.alpha-civ-facts div { display: grid; }
+.alpha-civ-facts dt { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+.alpha-civ-facts dd { margin: 0; color: var(--text-primary); font-weight: 600; }
+.alpha-civ-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 2px 4px; display: grid; grid-template-columns: minmax(240px, 300px) 1fr; gap: 16px 22px; align-items: start; }
+.alpha-civ-body h3 { margin: 0 0 8px; font-size: 15px; }
+.alpha-civ-body h3 small { font-weight: 400; margin-left: 8px; }
+.alpha-civ-choices { grid-column: 1 / -1; display: flex; gap: 12px; flex-wrap: wrap; }
+.alpha-civ-resonance { grid-column: 1; }
+.alpha-civ-web { grid-column: 2; grid-row: span 3; min-width: 0; }
+.alpha-civ-heritage, .alpha-civ-identity { grid-column: 1; }
+.alpha-big-sockets { display: flex; gap: 18px; padding: 12px 8px 14px; }
+.alpha-socket.is-big { width: 30px; height: 30px; border-width: 2px; border-radius: 3px; }
+.alpha-socket.is-big:not(.is-full) { background: color-mix(in srgb, var(--surface-highest) 70%, transparent); }
+.alpha-socket.is-fifth { border-color: var(--mark); box-shadow: 0 0 0 3px color-mix(in srgb, var(--mark) 30%, transparent), 0 0 16px var(--mark); animation: alpha-glow 1.8s ease-in-out infinite; }
+@keyframes alpha-glow { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--mark) 18%, transparent), 0 0 24px var(--mark); } }
+.alpha-composition { margin: 0 0 8px; }
+.alpha-cube { display: inline-block; width: 11px; height: 11px; border-radius: 2px; background: var(--c1, #8a7f6a); border: 1px solid color-mix(in srgb, var(--c1, #8a7f6a) 55%, #000); box-shadow: inset 0 -3px 0 #0003; }
+.d-KNOWLEDGE { --c1: #4a6fa5 } .d-LAND_AND_SEA { --c1: #4f8a5b } .d-STONE_AND_METAL { --c1: #7d6e63 } .d-GOVERNMENT { --c1: #8e4f6b } .d-TRADE { --c1: #b07f2f }
+.d2-KNOWLEDGE { --c2: #4a6fa5 } .d2-LAND_AND_SEA { --c2: #4f8a5b } .d2-STONE_AND_METAL { --c2: #7d6e63 } .d2-GOVERNMENT { --c2: #8e4f6b } .d2-TRADE { --c2: #b07f2f }
+.alpha-reserve { margin-top: 10px; padding: 8px 10px; border: 1px dashed var(--border); border-radius: var(--radius); }
+.alpha-reserve > div { display: flex; gap: 14px; margin-top: 4px; }
+.alpha-reserve-stack { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+.alpha-web-grid { display: grid; grid-template-columns: 22px repeat(5, minmax(0, 1fr)); gap: 4px 6px; align-items: start; }
+.alpha-web-head { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding-bottom: 2px; border-bottom: 2px solid var(--c1); color: var(--text-primary); }
+.alpha-web-era { font-family: var(--serif); text-align: center; color: var(--text-muted); padding-top: 6px; }
+.alpha-web-era.is-now { color: var(--mark); }
+.alpha-web-cell { display: flex; flex-direction: column; gap: 3px; min-height: 36px; padding: 2px 0; }
+.alpha-web-cell.is-later, .alpha-web-convergences.is-later { opacity: .5; }
+.alpha-web-convergences { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 3px 8px; border-radius: var(--radius); background: color-mix(in srgb, var(--surface-highest) 55%, transparent); }
+.alpha-web-convergences > small { flex-basis: 100%; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.alpha-node, .alpha-diamond { display: flex; align-items: center; gap: 5px; text-align: left; padding: 3px 5px; font-size: 11px; line-height: 1.15; background: transparent; border: 1px solid var(--border-subtle); border-radius: 4px; color: var(--text-secondary); cursor: pointer; min-height: 24px; }
+.alpha-node .alpha-cube { background: transparent; border: 1px solid var(--border); box-shadow: none; flex: none; }
+.alpha-node.is-done { color: var(--text-primary); border-color: color-mix(in srgb, var(--c1) 60%, transparent); }
+.alpha-node.is-done .alpha-cube { background: var(--c1); border-color: color-mix(in srgb, var(--c1) 55%, #000); box-shadow: inset 0 -3px 0 #0003; }
+.alpha-node.is-reachable, .alpha-diamond.is-reachable { background: #e9dcc0; color: #2a2417; border-color: #b9a77c; }
+.alpha-node.is-or { border-style: dashed; }
+.alpha-node.is-selected, .alpha-diamond.is-selected { outline: 2px solid var(--text-primary); outline-offset: 1px; }
+.alpha-node-star { color: var(--mark); font-size: 10px; }
+.alpha-diamond { border-radius: 4px; padding-left: 4px; }
+.alpha-diamond i { flex: none; width: 10px; height: 10px; transform: rotate(45deg); border: 1px solid var(--c1, #8a7f6a); background: linear-gradient(135deg, transparent 50%, transparent 50%); }
+.alpha-diamond.is-done i { background: linear-gradient(135deg, var(--c1) 50%, var(--c2, var(--c1)) 50%); }
+.alpha-diamond.is-done { color: var(--text-primary); }
+.alpha-diamond.is-or { border-style: dashed; }
+.alpha-node.is-fresh .alpha-cube { animation: alpha-fly 1.6s cubic-bezier(.2,.8,.2,1) both; }
+.alpha-diamond.is-fresh i, .alpha-socket.is-fresh { animation: alpha-land 1.4s .9s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes alpha-fly { 0% { transform: translate(-120px, -140px) scale(2.2); opacity: 0 } 25% { opacity: 1 } 100% { transform: none; opacity: 1 } }
+@keyframes alpha-land { 0% { transform: rotate(45deg) scale(2.4); opacity: 0 } 100% { transform: rotate(45deg) scale(1); opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .alpha-node.is-fresh .alpha-cube, .alpha-diamond.is-fresh i, .alpha-socket.is-fresh, .alpha-socket.is-fifth { animation: none; } }
+.alpha-node-detail { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-elevated); }
+.alpha-node-detail h4 { margin: 2px 0 4px; } .alpha-node-detail p { margin: 2px 0; font-size: 13px; }
+.alpha-node-act { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+.alpha-heritage-row { display: grid; gap: 8px; }
+.alpha-heritage { padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius); }
+.alpha-heritage h4 { margin: 0 0 2px; } .alpha-heritage p { margin: 2px 0; font-size: 12px; }
+.alpha-heritage.is-locked { opacity: .55; filter: grayscale(1); }
+.alpha-heritage.is-available { background: #e9dcc0; color: #2a2417; } .alpha-heritage.is-available p, .alpha-heritage.is-available small { color: #4a3f28; }
+.alpha-heritage.is-acquired { border-color: var(--mark); box-shadow: inset 3px 0 0 var(--mark); }
+.alpha-link { background: none; border: 0; padding: 0; text-decoration: underline; color: inherit; cursor: pointer; font: inherit; }
+.alpha-civ-identity ul { margin: 0 0 8px; padding-left: 16px; font-size: 13px; }
+.alpha-civ-pair { display: grid; gap: 8px; } .alpha-civ-pair article { padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius); } .alpha-civ-pair h4 { margin: 0 0 2px; } .alpha-civ-pair p, .alpha-civ-pair li { font-size: 12px; margin: 2px 0; } .alpha-civ-pair ul { margin: 0; padding-left: 0; list-style: none; }
+.alpha-parchment { max-width: 420px; padding: 14px 16px; background: #eadfc2; color: #2a2417; border: 1px solid #b9a77c; border-radius: 6px; box-shadow: 0 8px 24px #0006; }
+.alpha-parchment h3 { margin: 2px 0 4px; color: #2a2417; } .alpha-parchment p, .alpha-parchment small { color: #4a3f28; }
+.alpha-parchment-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.alpha-parchment-options button:first-child { background: var(--mark); color: #1b1608; border-color: var(--mark); }
+.alpha-resonance { cursor: pointer; background: none; border: 0; padding: 2px 4px; border-radius: 4px; }
+.alpha-resonance:hover { background: var(--surface-highest); }
+.alpha-mesa .alpha-parchment-pop { position: absolute; z-index: 27; left: 14px; top: calc(10px + var(--strip-height) + 56px); max-width: min(420px, calc(100% - 28px)); }
+@media (max-width: 1100px) { .alpha-civ-body { grid-template-columns: 1fr; } .alpha-civ-resonance, .alpha-civ-web, .alpha-civ-heritage, .alpha-civ-identity { grid-column: 1; grid-row: auto; } .alpha-mesa .alpha-civ { left: 6px; right: 6px; } }
+
+.alpha-battle-delta { margin: 2px 0 10px; font-weight: 600; color: var(--text-primary); }
+.alpha-dice .alpha-grade { font-size: 9px; opacity: .7; }

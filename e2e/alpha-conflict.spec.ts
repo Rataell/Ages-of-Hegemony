@@ -85,7 +85,7 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
         const index=current.game!.players.findIndex(p=>!p.ready);
         expect(index).toBeGreaterThanOrEqual(0);
         const page=pages[index]!;await page.reload();
-        const ready=page.getByRole('button',{name:/^(Confirmar planejamento|Concluir fase|Passar \/ pronto)$/});
+        const ready=page.getByRole('button',{name:/^(Confirmar planejamento|Concluir fase|Confirmar Virada|Passar \/ pronto)$/});
         await expect(ready).toBeEnabled();await ready.click();
         const anyway=page.getByRole('button',{name:'Confirmar mesmo assim',exact:true});if(await anyway.isVisible().catch(()=>false))await anyway.click();
         await expect.poll(async()=>(await repository.find(room.id))!.version).toBeGreaterThan(current.version);

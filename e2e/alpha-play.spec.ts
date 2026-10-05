@@ -176,7 +176,11 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await confirm(pa,'Confirmar planejamento');await pa.reload();await expect(pa.getByRole('button',{name:'Aguardando outras pessoas',exact:true})).toBeVisible();
     await pb.getByRole('button',{name:/Escolher produzir/}).click();
     await pb.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
-    await confirm(pb,'Confirmar planejamento');await phase(pa,'4 / 21');await phase(pb,'4 / 21');
+    await confirm(pb,'Confirmar planejamento');
+    // Round 3 closes the first Era: the Era turn waits for both before round 4 opens.
+    await phase(pa,'Virada de Era');await phase(pb,'Virada de Era');
+    await pa.locator('.alpha-round-bar').getByRole('button',{name:'Confirmar Virada',exact:true}).click();await pb.locator('.alpha-round-bar').getByRole('button',{name:'Confirmar Virada',exact:true}).click();
+    await phase(pa,'4 / 21');await phase(pb,'4 / 21');
     expect((await game()).players[0]!.research).toHaveLength(1);
     const replayA=pa.locator('.alpha-resolution-phase'),replayB=pb.locator('.alpha-resolution-phase');
     await expect(replayA).toContainText('Mobilidade');await expect(replayA).toContainText(/Ana: Explorador moveu-se para \d+,\d+\./);

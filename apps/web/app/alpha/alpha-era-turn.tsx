@@ -23,7 +23,7 @@ export function AlphaEraTurn({ game, locked, busy, send }: { game: AlphaPlayerVi
       <div>{choice.options.map(option => <button key={option.id} disabled={locked} onClick={() => void send({type:'RESOLVE_CHOICE',choiceId:choice.id,optionId:option.id})}>{option.label}</button>)}</div></div>)}</article>}
     {unfinished.length > 0 && <details className="alpha-era-swap"><summary>Trocar uma Ambição não concluída{swapped ? ' (já trocada nesta Virada)' : ''}</summary>
       {unfinished.map(id => <p key={id}><span>{ALPHA_CARDS.find(card => card.id === id)?.name ?? id}</span><button disabled={locked || swapped} onClick={() => void send({type:'SWAP_AMBITION',cardId:id})}>Trocar</button></p>)}</details>}
-    <button className="primary" disabled={busy || game.self.ready} onClick={() => void send({type:'READY'})}>{game.self.ready ? 'Aguardando outras pessoas' : 'Confirmar Virada'}</button>
+    <button disabled={busy || game.self.ready} onClick={() => void send({type:'READY'})}>{game.self.ready ? 'Aguardando outras pessoas' : 'Seguir para a nova Era'}</button>
     <small role="status">{waiting ? `${waiting} civilização(ões) ainda não confirmaram.` : 'Todas confirmaram.'}</small>
   </section>;
 }

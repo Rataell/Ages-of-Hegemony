@@ -51,15 +51,15 @@ export function BattleReport({ battle, players }: { battle: Battle; players: Alp
   ];
   return <article className="alpha-battle alpha-card">
     <h3>Conflito em {battle.hexId} · Rodada {battle.round}</h3>
+    {battle.outcome && <p className="alpha-battle-delta" role="status">Δ {(battle.delta ?? 0) > 0 ? '+' : ''}{battle.delta} · {OUTCOME[battle.outcome]}</p>}
     <div className="alpha-form-row">{sides.map(side => <section key={side.key}>
       <h4>{side.title} · {name(side.id)} · {postureText(side.posture)}</h4>
-      <div className="alpha-dice" aria-label={`Faces ${side.key==='ataque'?'do ataque':'da defesa'} ${side.rolls.map(r => FACE[r.face]).join(' e ') || 'nenhuma'}`}>{side.rolls.map(roll => <span key={roll.unitId} title={`${roll.unitId} · Grau ${['I', 'II', 'III'][(roll.grade ?? 1) - 1]}: ${roll.effect}`}>{FACE[roll.face]}</span>)}</div>
+      <div className="alpha-dice" aria-label={`Faces ${side.key==='ataque'?'do ataque':'da defesa'} ${side.rolls.map(r => FACE[r.face]).join(' e ') || 'nenhuma'}`}>{side.rolls.map(roll => <span key={roll.unitId} title={`${roll.unitId} · Grau ${['I', 'II', 'III'][(roll.grade ?? 1) - 1]}: ${roll.effect}`}>{FACE[roll.face]}{(roll.grade ?? 1) > 1 && <sup className="alpha-grade"> {['I', 'II', 'III'][(roll.grade ?? 1) - 1]}</sup>}</span>)}</div>
       <ul className="alpha-roll-notes">{side.rolls.filter(r => r.effect).map(roll => <li key={roll.unitId}>{roll.unitId}: {roll.effect}</li>)}</ul>
       <Breakdown label="Modificadores por origem" strength={side.strength} items={side.items} total={side.total} />
       <p>Força {side.strength} + modificadores {side.items.reduce((n, m) => n + m.amount, 0)} = <b>{side.total}</b></p>
     </section>)}</div>
     {battle.fortification && battle.fortification.before.state !== battle.fortification.after.state && <p>Fortificação: {battle.fortification.before.state === 'INTACT' ? 'intacta' : 'danificada'} → {battle.fortification.after.state === 'BREACHED' ? 'rompida' : 'danificada'}.</p>}
-    {battle.outcome && <p className="alpha-battle-delta" role="status">Δ {(battle.delta ?? 0) > 0 ? '+' : ''}{battle.delta} · {OUTCOME[battle.outcome]}</p>}
     <p>{battle.outcome === 'TIE' ? 'Ninguém venceu' : `Vencedor: ${name(battle.winnerId)}`}. Peças perdidas: {battle.losses.length}. {battle.retreat ? `Retirada para ${battle.retreat}.` : 'Sem retirada.'}</p>
   </article>;
 }
