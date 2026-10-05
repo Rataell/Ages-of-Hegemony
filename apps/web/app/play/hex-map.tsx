@@ -118,7 +118,8 @@ export const HexMap = memo(function HexMap({
   // MESA: the frame is the WHOLE board (public topology), never just what the player has explored. Without a board (old atlas) it fits the known tiles.
   const boardHexes = useMemo(() => (board ?? []).flatMap(region => region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return { id, q: q ?? 0, r: r ?? 0, regionId: region.id }; })), [board]);
   const frame = useMemo(() => {
-    if (mesa) return mapFrame(boardHexes, { padding: 24 });
+    // The whole board; tiles outside any Region (old saves, test maps) are included so nothing is ever clipped out of the frame.
+    if (mesa) return mapFrame([...boardHexes, ...tiles], { padding: 24 });
     const known = tiles.filter(tile => tile.terrain !== 'UNKNOWN');
     return known.length >= 3 ? mapFrame(known, { padding: 70 }) : mapFrame(tiles);
   }, [tiles, mesa, boardHexes]);
@@ -495,7 +496,7 @@ export const HexMap = memo(function HexMap({
           const seat = art?.seats[region.homeOf!], who = data.players.find(player => player.id === region.homeOf);
           const spots = region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return position(q ?? 0, r ?? 0); });
           const cx = spots.reduce((n, c) => n + c.x, 0) / spots.length, cy = spots.reduce((n, c) => n + c.y, 0) / spots.length;
-          return <g key={region.id} className="home-banner" transform={`translate(${cx} ${cy})`}>
+          return <g key={region.id} className="home-banner" transform={`translate(${cx} ${cy}) scale(${Math.max(1, 0.5 / camera.scale).toFixed(2)})`}>
             <g dangerouslySetInnerHTML={svgFragment(seat?.mark ? `<g transform="translate(0 -26)">${bannerArt(seat.mark, seat.color, 76)}</g>` : `<rect x="-14" y="-52" width="28" height="44" fill="${seat?.color ?? '#9aa4a2'}"/>`)} />
             <text className="home-banner-name" y="34" textAnchor="middle">{who?.name ?? 'Pátria'}</text>
             <text className="home-banner-sub" y="52" textAnchor="middle">Região Pátria · conteúdo oculto</text>

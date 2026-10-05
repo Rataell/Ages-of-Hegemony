@@ -5,6 +5,8 @@ import type { AlphaHttp } from '../apps/server/src/alpha-http.js';
 export async function connectAlphaContext(context:BrowserContext,http:AlphaHttp){
   const handle=async(route:import('@playwright/test').Route)=>{
     const request=route.request();
+    // The in-process transport cannot stream: the browser falls back to its safety poll.
+    if(request.url().includes('stream=1')){await route.abort();return;}
     const response=await http.handle(new Request(request.url(),{
       method:request.method(),headers:await request.allHeaders(),
       ...(request.method()==='GET'?{}:{body:request.postData()??null}),

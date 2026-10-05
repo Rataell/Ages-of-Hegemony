@@ -48,7 +48,9 @@ export default function AlphaShell(){
       source=new EventSource(`/api/alpha?gameId=${encodeURIComponent(id)}&stream=1`);
       source.onmessage=event=>{try{const push=JSON.parse(event.data) as {version:number;at:number};log('push',{version:push.version,serverAt:push.at});void pull('push',push.at);}catch{/* ignore a malformed frame */}};
     }
-    const interval=setInterval(()=>{if(document.visibilityState==='hidden')return;void pull('poll');},source?10000:2500);
+    // Safety net only: 5 s while the push channel is open, 2.5 s while it is not.
+    let tick=0;
+    const interval=setInterval(()=>{if(document.visibilityState==='hidden')return;tick++;if(source?.readyState===1&&tick%2===1)return;void pull('poll');},2500);
     return()=>{active=false;source?.close();clearInterval(interval);};
   },[room?.id]);
   async function request(payload:Record<string,unknown>){

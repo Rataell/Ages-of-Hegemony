@@ -125,8 +125,8 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     const current=(await repository.find(room.id))!;
     expect(await repository.save({...current,version:current.version+1,game:beforeFinish!},current.version)).toBe(true);
     await a.reload();await openArea(a,'Cartas & Projetos');
-    const project=a.locator('article').filter({has:a.getByRole('heading',{name:'Arquivo dos Horizontes',exact:true})});
-    await expect(project).toContainText('Concluído por');await project.scrollIntoViewIfNeeded();
+    const project=a.locator('article').filter({has:a.getByRole('heading',{name:'Pátio da Investigação',exact:true})});
+    await expect(project).toContainText('Concluída por');await project.scrollIntoViewIfNeeded();
     await a.screenshot({path:`${evidence}/1440-great-project.png`});
     await openArea(a,'Eras & Hegemonia');
     await a.screenshot({path:`${evidence}/1440-era-progression.png`});

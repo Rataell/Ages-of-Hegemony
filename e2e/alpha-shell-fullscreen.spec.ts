@@ -96,7 +96,7 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
       await page.mouse.move(width / 3, height / 2); await page.mouse.wheel(0, 900);
       expect.soft((await metrics(page)).scrollTop, `${label}: wheel over the atlas does not scroll the page`).toBe(0);
       await expect.soft(page.getByRole('button', { name: 'Aumentar zoom' })).toBeInViewport();
-      await expect.soft(page.getByRole('button', { name: 'Centralizar', exact: true })).toBeInViewport();
+      await expect.soft(page.getByRole('button', { name: 'Mesa', exact: true })).toBeInViewport();
 
       // 2. The context card scrolls inside itself, never the page.
       const inner = await scroller(page, '.alpha-context .alpha-panel-body');

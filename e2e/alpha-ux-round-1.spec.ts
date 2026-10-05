@@ -98,7 +98,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     const before = await fill();
     await pa.getByRole('button', { name: 'Aumentar zoom' }).click(); await pa.getByRole('button', { name: 'Aumentar zoom' }).click();
     expect((await fill()).width).toBeGreaterThan(before.width);
-    await pa.getByRole('button', { name: 'Centralizar', exact: true }).click();
+    await pa.getByRole('button', { name: 'Mesa', exact: true }).click();
     expect((await fill()).width).toBeCloseTo(before.width, 1);
 
     // Mesa: the map is the whole table; the context card floats over it and closes away.

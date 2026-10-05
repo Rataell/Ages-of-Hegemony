@@ -604,14 +604,12 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-recruit-count { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .alpha-recruit-count select { min-width: 52px; }
 
-/* Map frame (playtest, item 6): the <svg> stays full-bleed (the map is the table), but on desktop its viewport is padded to the FREE rectangle
-   between the strip, the tray and the open inspector. The fitted territory is centred there, so the selected city never hides under a panel;
-   zoomed or panned content may still flow under the translucent panels. Mobile keeps the plain full-bleed fit. */
+/* Map frame: the <svg> is full-bleed and NEVER padded or resized by the inspector. The camera (map-frame.ts cameraBox) fits the whole board into the safe
+   rectangle (clear of the strip, the tray and the hand) and the inspector is a drawer over the map: it does not move or shrink the table. */
 @media (min-width: 901px) {
   .alpha-mesa .world-column { background: radial-gradient(ellipse at 50% 50%, var(--surface-elevated), var(--map-ground) 85%); }
   .alpha-mesa .alpha-table .map-stage { background: transparent; overflow: hidden; }
-  .alpha-mesa .alpha-table .world-map { box-sizing: border-box; overflow: visible; padding: calc(10px + var(--strip-height) + 6px) 0 calc(12px + var(--tray-height) + 6px); }
-  .alpha-mesa .alpha-table[data-inspector='open'] .world-map { padding-right: calc(12px + min(380px, calc(100vw - 24px)) + 6px); }
+  .alpha-mesa .alpha-table .world-map { box-sizing: border-box; overflow: visible; padding: 0; }
 }
 
 /* Playtest: the error banner used to sit over the strip and hide Livro, Cofre and the civilization seal until dismissed (a lost version race

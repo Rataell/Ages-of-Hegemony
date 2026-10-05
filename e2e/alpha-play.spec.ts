@@ -64,7 +64,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     const beforeMap=(await repository.find(gameId))!.game!;
     const capital=beforeMap.core.map.find(tile=>tile.id===beforeMap.core.players[0]!.civilization.cities[0]!.hexId)!;
     const claim=beforeMap.core.map.find(tile=>tile.ownerId===null&&tile.terrain==='PLAINS'&&hexDistance(capital,tile)===1)!;
-    await pa.locator(`svg.world-map [role=button][aria-label$="${claim.id}"]`).click();
+    await pa.locator(`svg.world-map [role=button][aria-label$=" ${claim.id}"]`).click();
     await pa.getByRole('button',{name:'Reivindicar para Celeiro Áureo',exact:true}).click();
     await expect(pa.locator('.alpha-inspector')).toContainText('Território de Ana');
     await pa.getByText('Melhorias e estradas',{exact:true}).click();await pa.getByRole('button',{name:'Fazenda',exact:true}).click();
@@ -115,11 +115,11 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
     // The other player deliberately does not produce this round.
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 2 / 2');
-    // The starting Explorer leaves the capital: a highlighted reachable hex offers the move with its path already chosen.
-    await openArea(pa,'Conselho');await pa.locator('.alpha-army').first().getByRole('button',{name:'Explorador ×1'}).click();await toMap(pa);
+    // A starting Pioneiro leaves the capital: a highlighted reachable hex offers the move with its path already chosen.
+    await openArea(pa,'Conselho');await pa.locator('.alpha-army').first().getByRole('button',{name:/^Pioneiro/}).click();await toMap(pa);
     await pa.locator('svg.world-map g.hex.eligible:not([aria-label^="Desconhecido"])').first().click();
     await pa.getByRole('button',{name:'Reservar movimento',exact:true}).click();
-    await expect(pa.locator('.alpha-order')).toContainText('Movimento · Explorador ×1');
+    await expect(pa.locator('.alpha-order')).toContainText(/Movimento · Pioneiro/);
     await pa.getByRole('button',{name:'Cidade',exact:true}).click();
     await pa.reload();await expect(pa.locator('.alpha-urban')).toContainText('Ações planejáveis da cidade: 1 / 2');
     await bothConfirm('Confirmar planejamento','2 / 21');
@@ -133,7 +133,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     }
     // Round 2 - recruit and build are both queued, then resolved by initiative.
     await pa.locator('.alpha-urban summary').filter({hasText:'Recrutar'}).click();
-    await pa.getByRole('button',{name:/^Recrutar Explor/i}).click();
+    await pa.getByRole('button',{name:/^Recrutar Pioneiro/i}).click();
     await expect(pa.locator('.alpha-urban-detail')).toContainText('Custo:');await expect(pa.locator('.alpha-urban-detail')).toContainText('Efeito:');
     await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
@@ -146,14 +146,14 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 2');
     {
       const planned=await game();
-      // Only the starting Explorer exists until the planned recruitment resolves.
-      expect(planned.units.filter(u=>u.ownerId===planned.players[0]!.playerId&&u.kind==='PIONEER')).toHaveLength(1);
+      // Only the two starting Pioneiros exist until the planned recruitment resolves.
+      expect(planned.units.filter(u=>u.ownerId===planned.players[0]!.playerId&&u.kind==='PIONEER')).toHaveLength(2);
       expect(planned.players[1]!.research).not.toContain('web-agriculture');
     }
     await bothConfirm('Confirmar planejamento','3 / 21');
     {
       const after=await game();
-      expect(after.units.filter(u=>u.ownerId===after.players[0]!.playerId&&u.kind==='PIONEER')).toHaveLength(2);
+      expect(after.units.filter(u=>u.ownerId===after.players[0]!.playerId&&u.kind==='PIONEER')).toHaveLength(3);
       expect(after.players[1]!.research).toContain('web-agriculture');
     }
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
@@ -183,7 +183,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await phase(pa,'4 / 21');await phase(pb,'4 / 21');
     expect((await game()).players[0]!.research).toHaveLength(1);
     const replayA=pa.locator('.alpha-resolution-phase'),replayB=pb.locator('.alpha-resolution-phase');
-    await expect(replayA).toContainText('Mobilidade');await expect(replayA).toContainText(/Ana: Explorador moveu-se para \d+,\d+\./);
+    await expect(replayA).toContainText('Mobilidade');await expect(replayA).toContainText(/Ana: Pioneiro.* moveu-se para \d+,\d+\./);
     await expect(replayB).not.toContainText('moveu-se');
     await pa.screenshot({path:`${actionEvidence}/1440x900-resolution-ana.png`});await pb.screenshot({path:`${actionEvidence}/1440x900-resolution-beto.png`});
     await replayA.getByRole('button',{name:'Continuar'}).click();await replayB.getByRole('button',{name:'Continuar'}).click();

@@ -1,0 +1,70 @@
+{
+ "players": 2,
+ "viewport": "1280x720",
+ "startedAfterMs": 430,
+ "events": [
+  {
+   "change": "2 Região(ões) virada(s) na resolução da rodada 1",
+   "observer": "A",
+   "sentToSeenMs": 284,
+   "serverSavedToPushMs": 10,
+   "pushToAppliedMs": 48,
+   "receivedPushToSeenMs": 110,
+   "serverSavedToSeenMs": 120
+  },
+  {
+   "change": "2 Região(ões) virada(s) na resolução da rodada 1",
+   "observer": "B",
+   "sentToSeenMs": 243,
+   "serverSavedToPushMs": 10,
+   "pushToAppliedMs": 24,
+   "receivedPushToSeenMs": 69,
+   "serverSavedToSeenMs": 79
+  },
+  {
+   "change": "2 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "A",
+   "validBaseline": true,
+   "sentToSeenMs": 236,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 77,
+   "seen": "2/2"
+  },
+  {
+   "change": "2 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 294,
+   "serverSavedToPushMs": 9,
+   "serverSavedToSeenMs": 135,
+   "seen": "2/2"
+  },
+  {
+   "change": "A fundou um Posto",
+   "observer": "B",
+   "validBaseline": true,
+   "sentToSeenMs": 188,
+   "serverSavedToPushMs": 20,
+   "serverSavedToSeenMs": 150
+  }
+ ],
+ "notes": [],
+ "inspectorShift": 0.23933475775199894,
+ "regionBacksBefore": [
+  29,
+  29
+ ],
+ "regionBacksAfter": [
+  27,
+  27
+ ],
+ "alertsOnScreen": [
+  0,
+  0
+ ],
+ "summary": {
+  "samples": 5,
+  "meanServerSavedToSeenMs": 112,
+  "maxServerSavedToSeenMs": 150
+ }
+}
