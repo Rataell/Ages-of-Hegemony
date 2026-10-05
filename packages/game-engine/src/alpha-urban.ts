@@ -41,9 +41,11 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
   const meta = state.cities.find(candidate => candidate.cityId === cityId);
   const city = state.core.players.find(player => player.id === actor)?.civilization.cities.find(candidate => candidate.id === cityId);
   if (!meta || !city || meta.currentOwnerId !== actor) return 'Escolha uma cidade própria.';
+  // Avanço is its own Order (canon §2: target "—"): the city only carries the research, so it is not one of the city's activations (E-1).
+  if (action === 'RESEARCH') return null;
   const occupied = meta.status === 'OCCUPIED' || state.occupations.some(occupation => occupation.cityId === cityId);
   if (occupied && action !== 'CIVIC_ACTION') return 'Cidade ocupada: apenas a Ação Cívica de integração está disponível.';
-  const planned=state.players.find(player=>player.playerId===actor)?.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.cityId===cityId).length??0;
+  const planned=state.players.find(player=>player.playerId===actor)?.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.action!=='RESEARCH'&&candidate.cityId===cityId).length??0;
   // Two activations per round when Estável or Próspera, one when Abalada (canon §10); the second costs one Ânimo when it resolves.
   // Sobre-extensão (canon §4): no second activation anywhere.
   const allowed=Math.min(state.rules.balance.cityActions,activationsAllowed(meta),administration(state,actor).overextended?1:2);
@@ -52,7 +54,7 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
   const secondLimit=governmentEffects(state,actor).secondActivationsPerRound;
   if(secondLimit!==null&&(state.phase==='PLANNING'?planned>=1:meta.urbanActionsUsed>=1)){
     const others=state.cities.filter(other=>other.currentOwnerId===actor&&other.cityId!==cityId);
-    const seconds=others.filter(other=>(state.phase==='PLANNING'?state.players.find(player=>player.playerId===actor)!.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.cityId===other.cityId).length:other.urbanActionsUsed)>=2).length;
+    const seconds=others.filter(other=>(state.phase==='PLANNING'?state.players.find(player=>player.playerId===actor)!.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.action!=='RESEARCH'&&candidate.cityId===other.cityId).length:other.urbanActionsUsed)>=2).length;
     if(seconds>=secondLimit)return 'Conselho: no máximo uma segunda ativação por rodada em toda a civilização.';
   }
   if(state.phase==='PLANNING'&&planned>=allowed)return allowed===1?'Esta cidade já possui sua ação planejada para esta rodada.':'Esta cidade já tem as duas ativações planejadas nesta rodada.';
@@ -343,9 +345,11 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       break;
     }
   }
-  meta.urbanActionsUsed += 1;
-  // The second activation of the round costs one Ânimo (canon §10).
-  if (meta.urbanActionsUsed === 2) meta.mood = Math.max(0, meta.mood - 1);
+  if (command.action !== 'RESEARCH') {
+    meta.urbanActionsUsed += 1;
+    // The second activation of the round costs one Ânimo (canon §10).
+    if (meta.urbanActionsUsed === 2) meta.mood = Math.max(0, meta.mood - 1);
+  }
   telemetry.actionsByType[command.action] = (telemetry.actionsByType[command.action] ?? 0) + 1;
   alphaEvent(state, 'URBAN_ACTION', message, [actor]);
 }
