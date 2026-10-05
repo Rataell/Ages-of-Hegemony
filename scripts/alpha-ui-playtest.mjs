@@ -1,4 +1,4 @@
-/* global setTimeout, localStorage, document */
+/* global setTimeout, setInterval, clearInterval, localStorage, document, innerWidth, innerHeight */
 // DEV-ONLY human-like UI playtest. Plays real Closed Alpha sessions (2/4/6 seats) against `npm run dev:alpha` through the
 // browser only: every action is a click on the real screen. The driver READS what the screen already shows (the projection
 // the UI itself polls, captured from the page's own network responses, so it adds no requests) and decides like a person:
@@ -146,7 +146,7 @@ async function selectCity(seat, city) {
 
 /** Plans one urban action by opening the same lists a person opens. Returns true when it consumed an Order. */
 async function planUrban(seat, city, want) {
-  const g = seat.game, options = (g.urban.cities[city.id] ?? []).filter(o => o.blocked === null);
+  const g = seat.game;
   const groupDefs = [['BUILD'], ['ELEVATE'], ['RECRUIT'], ['RESEARCH'], ['PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION', 'MOVE_CAPITAL']];
   const all = g.urban.cities[city.id] ?? [];
   const researchable = g.urban.research;
@@ -154,7 +154,7 @@ async function planUrban(seat, city, want) {
   void groupDefs;
   await selectCity(seat, city);
   const before = g.actions.reserved;
-  let ok = false;
+  let ok;
   if (want.kind === 'produce') {
     ok = await seat.click(seat.page.getByRole('button', { name: 'Escolher produzir' }), 'pick produce');
   } else {
@@ -307,7 +307,7 @@ async function diplomacyTurn(seat) {
   if (!incoming.length && !(['diplomat', 'trader', 'expansionist'].includes(seat.persona) || seat.persona === 'warrior' && g.view.round > 6)) return;
   await seat.click(seat.page.getByRole('button', { name: 'Livro', exact: true }), 'open Livro');
   await seat.click(seat.page.locator('.alpha-livro-tabs').getByRole('button', { name: 'Diplomacia' }), 'Diplomacia tab');
-  for (const t of incoming) {
+  for (let i = 0; i < incoming.length; i++) {
     const card = seat.page.getByRole('group', { name: /^Proposta de / }).first();
     const accept = card.getByRole('button', { name: /Aceitar/ });
     if (await accept.count()) await seat.click(accept, 'accept treaty'); else seat.note('dead-end', 'incoming treaty has no Aceitar button');
