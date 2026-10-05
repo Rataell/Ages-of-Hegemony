@@ -7,7 +7,7 @@ import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
 import { governmentEffects } from './alpha-government.js';
-import { activationsAllowed, administration, recruitLimit, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilize, moodBand } from './alpha-city.js';
+import { activationsAllowed, administration, recruitLimit, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilizationBlock, mobilize, moodBand } from './alpha-city.js';
 import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
@@ -65,8 +65,14 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
 /** Recrutar for `count` pieces: the Capacity rule of canon §4, then every piece must be recruitable in turn (resources, Soldados, stack). */
 function recruitCountBlock(state: AlphaState, actor: PlayerId, cityId: string, unit: NonNullable<UrbanCommand['unit']>, count: number): string | null {
   if (count > recruitLimit(state, actor, cityId)) return `Esta ativação recruta no máximo ${recruitLimit(state, actor, cityId)} peça(s).`;
-  if (count === 1) return recruitBlock(state, actor, cityId, unit);
+  // E-1: while planning, nothing is mobilized yet, so pieces already reserved by earlier planned Recrutar in this city must be
+  // counted against the Soldados/Disponíveis left, or the second plan would be accepted and lost at resolution.
+  const reserved = state.phase === 'PLANNING'
+    ? state.players.find(player => player.playerId === actor)!.plannedActions.flatMap(planned => planned.type === 'URBAN_ACTION' && planned.action === 'RECRUIT' && planned.cityId === cityId && planned.unit ? Array<NonNullable<UrbanCommand['unit']>>(planned.count ?? 1).fill(planned.unit) : [])
+    : [];
+  if (count === 1 && reserved.length === 0) return recruitBlock(state, actor, cityId, unit);
   const trial = structuredClone(state);
+  for (const earlier of reserved) { if (mobilizationBlock(trial, cityId, earlier) === null) mobilize(trial, cityId, earlier); }
   for (let index = 0; index < count; index++) {
     const blocked = recruitBlock(trial, actor, cityId, unit);
     if (blocked) return count > 1 && index > 0 ? `Só ${index} das ${count} peças podem ser recrutadas: ${blocked}` : blocked;
