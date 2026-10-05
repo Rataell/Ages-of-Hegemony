@@ -15,7 +15,7 @@ export function AlphaGuide({ game, onClose }: { game: AlphaPlayerView; onClose: 
       <p className="eyebrow">GUIA RÁPIDO</p><h2 id="alpha-guide-title">Como jogar</h2>
       <h3>Como se vence</h3>
       <p>Ao fim de {rules.roundLimit} rodadas vence quem tiver mais <b>Prestígio</b> (empates: pesquisas, população, riqueza e, por fim, iniciativa). Antes disso, uma civilização na Era VI, Ascensão, pode declarar um caminho de Hegemonia e vencer ao manter os requisitos por {rules.hegemonyHoldRounds} rodadas completas.</p>
-      <p>Prestígio vem de explorar regiões (+1), pesquisar (+1), avançar de era (+2), escolher Prestígio em eventos mundiais (+1), cumprir ambições secretas e concluir Grandes Projetos.</p>
+      <p>Prestígio vem de explorar regiões (+1), pesquisar (+1), avançar de era (+2), escolher Prestígio em eventos mundiais (+1), cumprir ambições secretas e concluir Obras de Legado (+4).</p>
       <h3>A rodada</h3>
       <ol>
         <li><b>Planejamento</b> — todos decidem ao mesmo tempo e em segredo. Você usa até {game.actions.limit} Ordens (Cidade, Expedição, Avanço, Influência, Legado; tipos podem repetir) e confirma.</li>

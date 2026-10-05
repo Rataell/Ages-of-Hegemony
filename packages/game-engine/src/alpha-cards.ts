@@ -1,4 +1,4 @@
-import { ALPHA_CARDS, GREAT_PROJECTS, AlphaEraSchema, civilizationKit, type AlphaState, type PlayerId, type AlphaCommand, type AlphaEffect } from '@aoh/game-domain';
+import { ALPHA_CARDS, AlphaEraSchema, civilizationKit, type AlphaState, type PlayerId, type AlphaCommand, type AlphaEffect } from '@aoh/game-domain';
 import { alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { governmentEffects } from './alpha-government.js';
 import { alphaRandomInteger } from './alpha-random.js';
@@ -13,7 +13,7 @@ export function initializeAlphaCards(state:AlphaState):void {
 }
 export function cardEffects(state:AlphaState,actor:PlayerId):AlphaEffect[]{
   const player=state.players.find(p=>p.playerId===actor)!;
-  return [...player.advisors.map(id=>ALPHA_CARDS.find(c=>c.id===id)!.effect!).filter(Boolean),...state.projects.filter(p=>p.ownerId===actor).map(p=>GREAT_PROJECTS.find(g=>g.id===p.projectId)!.effect),...player.temporaryEffects.filter(e=>e.round===state.core.round).map(e=>e.effect)];
+  return [...player.advisors.map(id=>ALPHA_CARDS.find(c=>c.id===id)!.effect!).filter(Boolean),...player.temporaryEffects.filter(e=>e.round===state.core.round).map(e=>e.effect)];
 }
 /**
  * Hands refill by one card each round for the whole match, so an empty strategy deck takes back the played strategy cards
@@ -33,8 +33,8 @@ export function maintainCards(state:AlphaState):void {
     state.cards.worldEvent=state.cards.worldDeck.shift()!;state.cards.worldResponded=[];state.cards.worldEventRound=state.core.round;
   }
 }
-export function manageCard(state:AlphaState,actor:PlayerId,command:Extract<AlphaCommand,{type:'CHOOSE_AMBITIONS'|'PLAY_CARD'|'HIRE_ADVISOR'|'WORLD_CHOICE'|'BUILD_PROJECT'}>):void {
-  const player=state.players.find(p=>p.playerId===actor)!,core=state.core.players.find(p=>p.id===actor)!;
+export function manageCard(state:AlphaState,actor:PlayerId,command:Extract<AlphaCommand,{type:'CHOOSE_AMBITIONS'|'PLAY_CARD'|'HIRE_ADVISOR'|'WORLD_CHOICE'}>):void {
+  const player=state.players.find(p=>p.playerId===actor)!;
   if(command.type==='CHOOSE_AMBITIONS') {
     if(player.ambitionsChosen||new Set(command.cardIds).size!==2||command.cardIds.some(id=>!player.ambitions.includes(id)))throw new Error('Escolha exatamente duas das três ambições recebidas.');
     state.cards.discarded.push(...player.ambitions.filter(id=>!command.cardIds.includes(id)));player.ambitions=[...command.cardIds];player.ambitionsChosen=true;return;
@@ -44,13 +44,6 @@ export function manageCard(state:AlphaState,actor:PlayerId,command:Extract<Alpha
     const card=ALPHA_CARDS.find(c=>c.id===state.cards.worldEvent)!;
     if(command.choice==='PRESTIGE')player.prestige++;else if(card.effect?.kind==='PRODUCTION')alphaGainLegacy(state,actor,{[card.effect.resource]:card.effect.amount});
     state.cards.worldResponded.push(actor);return;
-  }
-  if(command.type==='BUILD_PROJECT') {
-    const project=GREAT_PROJECTS.find(p=>p.id===command.projectId);const city=core.civilization.cities.find(c=>c.id===command.cityId);
-    if(!project||!city||state.occupations.some(o=>o.cityId===city.id))throw new Error('Escolha um projeto e uma cidade própria não ocupada.');
-    if(state.projects.some(p=>p.projectId===project.id))throw new Error('Este Grande Projeto já foi concluído por outra obra.');
-    if(AlphaEraSchema.options.indexOf(player.era)<AlphaEraSchema.options.indexOf(project.era)||!city.districts.some(d=>d.type===project.district))throw new Error('A cidade precisa da era e do distrito indicados.');
-    alphaPay(state,actor,project.cost);state.projects.push({projectId:project.id,ownerId:actor,cityId:city.id,completedRound:state.core.round});player.prestige+=project.prestige;return;
   }
   const card=ALPHA_CARDS.find(c=>c.id===command.cardId);
   if(!card)throw new Error('Carta desconhecida.');

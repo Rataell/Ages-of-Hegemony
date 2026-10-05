@@ -4,7 +4,8 @@ import { GameCommandSchema, GameStateSchema } from './model.js';
 import { AlphaUnitClassSchema, UnitCatalogEntrySchema, alphaUnitCatalog } from './alpha-catalog.js';
 import { ADVANCEMENTS, CIVILIZATIONS, AlphaEffectSchema } from './alpha-institutions.js';
 import { HERITAGE_ADVANCES, migrateResearch } from './alpha-web.js';
-import { ALPHA_CARDS, GREAT_PROJECTS } from './alpha-cards.js';
+import { ALPHA_CARDS } from './alpha-cards.js';
+import { LEGACY_WORKS, LEGACY_WORK_ID_ALIASES, LEGACY_WORK_STEPS, LegacyWorkProgressSchema } from './alpha-legacy-works.js';
 import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
 import { civilizationKit } from './alpha-civilization-kits.js';
 import { RegionDiscoverySchema, ThreatSchema, WORLD_ID, threatComposition } from './alpha-threats.js';
@@ -161,7 +162,7 @@ const AlphaStateBase = z.strictObject({
   wars:z.array(z.tuple([PlayerIdSchema,PlayerIdSchema])),
   routes:z.array(z.strictObject({id:IdentifierSchema,ownerId:PlayerIdSchema,fromCityId:CityIdSchema,toCityId:CityIdSchema,path:z.array(HexIdSchema).min(1),suspended:z.boolean()})),
   cards:z.strictObject({worldDeck:z.array(IdentifierSchema),strategyDeck:z.array(IdentifierSchema),ambitionDeck:z.array(IdentifierSchema),advisorDeck:z.array(IdentifierSchema),discarded:z.array(IdentifierSchema),advisorMarket:z.array(IdentifierSchema),worldEvent:IdentifierSchema.nullable(),worldEventRound:N,worldResponded:z.array(PlayerIdSchema)}),
-  projects:z.array(z.strictObject({projectId:IdentifierSchema,ownerId:PlayerIdSchema,cityId:CityIdSchema,completedRound:P})),
+  legacyWorks:z.array(LegacyWorkProgressSchema),
   cities:z.array(AlphaCitySchema).default([]),
   cultureContests:z.array(z.strictObject({
     id:IdentifierSchema,round:P,cityId:CityIdSchema,attackerCivilizationId:IdentifierSchema,defenderCivilizationId:IdentifierSchema,
@@ -238,7 +239,7 @@ const AlphaStateBase = z.strictObject({
   const cities=state.core.players.flatMap(p=>p.civilization.cities);
   if(state.cities.length!==cities.length||state.cities.some(meta=>!cities.some(city=>city.id===meta.cityId&&city.ownerId===meta.currentOwnerId)))fail('Alpha city metadata must match economic cities');
   if(new Set(state.cities.map(city=>city.cityId)).size!==state.cities.length)fail('Duplicate alpha city metadata');
-  if(new Set(state.projects.map(p=>p.projectId)).size!==state.projects.length||state.projects.some(p=>!GREAT_PROJECTS.some(g=>g.id===p.projectId)||!cities.some(c=>c.id===p.cityId&&c.ownerId===p.ownerId)||p.completedRound>state.core.round))fail('Invalid or duplicate unique project');
+  if(new Set(state.legacyWorks.map(w=>w.workId)).size!==state.legacyWorks.length||new Set(state.legacyWorks.map(w=>w.cityId)).size!==state.legacyWorks.length||state.legacyWorks.some(w=>!LEGACY_WORKS.some(g=>g.id===w.workId)||!cities.some(c=>c.id===w.cityId&&c.ownerId===w.ownerId)||w.startedRound>state.core.round||(w.completedRound===null)===(w.stepsDone>=LEGACY_WORK_STEPS)||(w.completedRound!==null&&w.completedRound>state.core.round)))fail('Invalid or duplicate Obra de Legado');
   if(new Set(state.treaties.map(t=>t.id)).size!==state.treaties.length||state.treaties.some(t=>!owners.has(t.proposerId)||!owners.has(t.recipientId)||t.proposerId===t.recipientId||t.expiresRound<t.createdRound||t.createdRound>state.core.round))fail('Invalid treaty');
   if(state.wars.some(([a,b])=>!owners.has(a)||!owners.has(b)||a>=b)||new Set(state.wars.map(p=>p.join(':'))).size!==state.wars.length)fail('Invalid war relation');
   if(new Set(state.routes.map(r=>r.id)).size!==state.routes.length||state.routes.some(r=>!owners.has(r.ownerId)||!cities.some(c=>c.id===r.fromCityId&&c.ownerId===r.ownerId)||!cities.some(c=>c.id===r.toCityId)||r.fromCityId===r.toCityId||r.path.some(id=>!hexes.has(id))))fail('Invalid trade route');
@@ -284,7 +285,19 @@ const AlphaStateBase = z.strictObject({
   }
 });
 /** V5.1a → V5.1b upgrade (never silent: a public SAVE_UPGRADED event is appended). Catalog refresh for combat arrives with the combat slice. */
-export function upgradeToV51b(raw: unknown): unknown { return fillGovernments(upgradeBody(raw)); }
+export function upgradeToV51b(raw: unknown): unknown { return migrateGreatProjects(fillGovernments(upgradeBody(raw))); }
+/** D-3: saved Grandes Projetos (one completed step each) become completed Obras de Legado; the old ids are mapped and nothing is dropped silently. */
+function migrateGreatProjects(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const input = value as Record<string, unknown>;
+  if (!('projects' in input) && 'legacyWorks' in input) return value;
+  const { projects, ...rest } = input;
+  const old = Array.isArray(projects) ? projects as { projectId?: string; ownerId?: string; cityId?: string; completedRound?: number }[] : [];
+  const legacyWorks = old.map(project => ({ workId: LEGACY_WORK_ID_ALIASES[project.projectId ?? ''] ?? project.projectId, ownerId: project.ownerId, cityId: project.cityId, stepsDone: LEGACY_WORK_STEPS, startedRound: project.completedRound, completedRound: project.completedRound }));
+  const events = Array.isArray(rest.events) ? rest.events as unknown[] : [];
+  const round = typeof (rest.core as { round?: unknown } | undefined)?.round === 'number' ? (rest.core as { round: number }).round : 1;
+  return { ...rest, legacyWorks, events: legacyWorks.length ? [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Os Grandes Projetos agora são Obras de Legado (regras V5.1b).' }] : events };
+}
 /** Matches saved before Meritocracia and Autocracia exist carry no legacy modifier row for them; they read as the neutral Conselho row (the Alpha never uses these rows). */
 function fillGovernments(value: unknown): unknown {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
@@ -349,7 +362,7 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('PLAY_CIVILIZATION_CARD'),expectedVersion:N,cardId:IdentifierSchema}),
   z.strictObject({type:z.literal('HIRE_ADVISOR'),expectedVersion:N,cardId:IdentifierSchema}),
   z.strictObject({type:z.literal('WORLD_CHOICE'),expectedVersion:N,choice:z.enum(['RESOURCE','PRESTIGE'])}),
-  z.strictObject({type:z.literal('BUILD_PROJECT'),expectedVersion:N,projectId:IdentifierSchema,cityId:CityIdSchema}),
+  z.strictObject({type:z.literal('ADVANCE_LEGACY_WORK'),expectedVersion:N,workId:IdentifierSchema,cityId:CityIdSchema}),
   z.strictObject({type:z.literal('PROPOSE_TREATY'),expectedVersion:N,planId:IdentifierSchema.optional(),recipientId:PlayerIdSchema,treaty:TreatyTypeSchema,deal:ResourceDealSchema}),
   z.strictObject({type:z.literal('RESPOND_TREATY'),expectedVersion:N,treatyId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('END_TREATY'),expectedVersion:N,treatyId:IdentifierSchema}),
@@ -388,7 +401,7 @@ export type ActionClass = z.infer<typeof ActionClassSchema>;
 export const ACTION_CLASS = {
   URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
   SETTLE:'MAIN', DECLARE_HEGEMONY:'MAIN', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
-  BUILD_PROJECT:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
+  ADVANCE_LEGACY_WORK:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
   LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', DEMOBILIZE:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
   CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE', RESOLVE_CHOICE:'FREE', SWAP_AMBITION:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
@@ -402,7 +415,7 @@ export function orderTypeForCommand(command:AlphaCommand,phase?:AlphaRoundPhase)
     case 'SETTLE':case 'EMBARK':case 'DISEMBARK':case 'DEMOBILIZE':return 'EXPEDITION';
     case 'MANAGE':return command.command.type==='ADOPT_GOVERNMENT'?'INFLUENCE':'CITY';
     case 'BUILD_ROAD':return 'CITY';
-    case 'BUILD_PROJECT':case 'DECLARE_HEGEMONY':return 'LEGACY';
+    case 'ADVANCE_LEGACY_WORK':case 'DECLARE_HEGEMONY':return 'LEGACY';
     default:return 'INFLUENCE';
   }
 }

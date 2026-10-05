@@ -74,7 +74,7 @@ async function plan(p, round) {
     const moves = Object.entries(o.moves); if (moves.length) { const [, path] = moves[moves.length - 1]; const res = await cmd(p, { type: 'QUEUE_ORDER', order: { id: `o-${round}-${u.id}`, type: 'MOVE', unitIds: [u.id], path } }); if (res === 'ok' && queued === 0 && round === 5) await cmd(p, { type: 'CANCEL_ORDER', orderId: `o-${round}-${u.id}` }); queued++; }
     if (city && round === 9) { const tgt = g3.view.visibleCities.find(c => c.id !== city.id); if (tgt) await cmd(p, { type: 'QUEUE_ORDER', order: { id: `tr-${round}`, type: 'TRADE', fromCityId: city.id, toCityId: tgt.id } }); }
   }
-  if (round === 12) { const r3 = await room(p); const first = Object.keys(r3.game.costs.projects)[0]; if (first && city) await cmd(p, { type: 'BUILD_PROJECT', projectId: first, cityId: city.id }); }
+  if (round === 12) { const r3 = await room(p); const first = r3.game.legacyWorks.find(work => work.cities.some(entry => entry.blocker === null)); if (first) await cmd(p, { type: 'ADVANCE_LEGACY_WORK', workId: first.id, cityId: first.cities.find(entry => entry.blocker === null).cityId }); }
   if (round === 13) { const g4 = (await room(p)).game; const path = g4.hegemony?.[0]?.path; if (path) await cmd(p, { type: 'DECLARE_HEGEMONY', path }); }
   if (round === 14) { const g4 = (await room(p)).game; const c = g4.culture.find(c => c.currentOwnerId !== id && c.foreignPresence.length >= 2); if (c) await cmd(p, { type: 'CONTEST_PRESENCE', cityId: c.cityId, defenderCivilizationId: c.foreignPresence[0].civilizationId }); }
   if (round === 15 && p === A) await cmd(p, { type: 'PLAY_CIVILIZATION_CARD', cardId: 'civ-valgard-1' });

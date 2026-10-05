@@ -1,5 +1,5 @@
-import { ACTION_CLASS, ADVANCEMENTS, CityLevelSchema, GREAT_PROJECTS, elevateRequirement, ladderStep, nextLevel, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { governmentOptions, operatingCapacity, recruitLimit, GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { ACTION_CLASS, ADVANCEMENTS, CityLevelSchema, elevateRequirement, ladderStep, nextLevel, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { governmentOptions, operatingCapacity, recruitLimit, GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,legacyWorkView,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, hexDistance, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -48,14 +48,13 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
       development:state.core.config.developmentCosts.map(displayCost),
       improvements:Object.fromEntries(Object.entries(territory.improvementCatalog).map(([kind,entry])=>[kind,displayCost(kitWorksCost(state,actor,entry.cost))])),
       advancements:Object.fromEntries([...ADVANCEMENTS,...heritageFor(state,actor)].map(advancement=>[advancement.id,displayCost(advanceCost(state,actor,advancement.id))])),
-      projects:Object.fromEntries(GREAT_PROJECTS.map(project=>[project.id,displayCost(project.cost)])),
     },
     milestones:eraMilestones(state,actor),
     cityDetails:economic.player.civilization.cities.map(c=>({id:c.id,category:stabilityCategory(c.stability,state.core.config),growthThreshold:infrastructureStats(c,state.core.config).growthThreshold,growth:(g=>({producedFood:g.producedFood,eats:g.eats,growCost:g.growCost,ceiling:g.ceiling,capped:g.capped,willGrow:g.willGrow,civilization:{foodProduced:growth.foodProduced,foodEaten:growth.foodEaten,shortage:growth.shortage,surplus:growth.surplus}}))(growth.cities.find(g=>g.cityId===c.id)!),production:deriveCityProductionBreakdown(c,economic.player.civilization,state.core.config,state.core.map)})),
     roundReports:state.roundReports.filter(r=>r.playerId===actor),
     hegemony:hegemonyProgress(state,actor),
     declarations:state.players.filter(p=>p.hegemony!==null).map(p=>({playerId:p.playerId,...p.hegemony})),
-    worldEvent:state.cards.worldEvent,worldDecisionPending:!state.cards.worldResponded.includes(actor),advisorMarket:state.cards.advisorMarket,projects:state.projects,
+    worldEvent:state.cards.worldEvent,worldDecisionPending:!state.cards.worldResponded.includes(actor),advisorMarket:state.cards.advisorMarket,legacyWorks:legacyWorkView(state,actor),
     players:state.core.players.map(p=>({id:p.id,name:p.name,civilization:state.players.find(s=>s.playerId===p.id)!.civilization,ready:state.players.find(s=>s.playerId===p.id)!.ready,prestige:state.players.find(s=>s.playerId===p.id)!.prestige,era:state.players.find(s=>s.playerId===p.id)!.era,/** Public summary only: how many sockets are filled, never which advances or the cards behind them. */resonanceFilled:state.players.find(s=>s.playerId===p.id)!.resonance.slots.length,resonanceCycles:state.players.find(s=>s.playerId===p.id)!.resonance.cycles})),
     initiative:state.initiative,winner:state.winner,
     /** Only once the match is over: the ranking and the tie-break figures behind it, for everyone. */

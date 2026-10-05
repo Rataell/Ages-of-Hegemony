@@ -98,7 +98,7 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   for(const [cityId,hexIds] of Object.entries(claims))for(const hexId of hexIds)manage({type:'CLAIM_HEX',cityId,hexId});
   manage({type:'IMPROVE_HEX',hexId:'1,0',improvement:'FARM'});
   submit(p1,{type:'MANAGE',command:{type:'ASSIGN_WORKED_HEXES',playerId:p1,cityId:CityIdSchema.parse('c1-0'),hexIds:['1,0'],expectedVersion:state.core.version}});
-  perform({type:'BUILD_PROJECT',projectId:'archive-of-horizons',cityId:'c1-0'});
+  for(let step=0;step<3;step++)perform({type:'ADVANCE_LEGACY_WORK',workId:'inquiry-campus',cityId:'c1-0'});
   perform({type:'DECLARE_HEGEMONY',path:'TERRITORIAL'});
   while(state.core.status==='ACTIVE'){checkpoint?.('beforeEndRound',structuredClone(state));round();}
   return {state,trace};

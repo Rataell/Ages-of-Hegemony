@@ -53,7 +53,7 @@ export function occupyCity(state:AlphaState,actor:PlayerId,cityId:CityId):void {
   for(const player of state.core.players)for(const ownCity of player.civilization.cities)ownCity.workedHexIds=ownCity.workedHexIds.filter(id=>!disconnected.some(t=>t.id===id));
   // Dependencies cannot silently retain permissions granted by a former owner.
   state.routes=state.routes.filter(r=>r.fromCityId!==cityId&&r.toCityId!==cityId);
-  for(const project of state.projects)if(project.cityId===cityId)project.ownerId=actor;
+  for(const work of state.legacyWorks)if(work.cityId===cityId)work.ownerId=actor;
   state.occupations=state.occupations.filter(o=>o.cityId!==cityId);
   if(!liberated){state.occupations.push({cityId,occupierId:actor,previousOwnerId:previous.id,sinceRound:state.core.round});state.telemetry.citiesCaptured++;}
   const meta=state.cities.find(c=>c.cityId===cityId);

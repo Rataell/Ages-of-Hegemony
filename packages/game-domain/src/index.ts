@@ -18,3 +18,4 @@ export * from './alpha-stack.js';
 export * from './alpha-civilization-kits.js';
 export * from './alpha-resonance.js';
 export * from './alpha-threats.js';
+export * from './alpha-legacy-works.js';

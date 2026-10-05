@@ -11,9 +11,9 @@ describe('deterministic complete alpha scenario',()=>{
     const duels=state.battles.filter(battle=>battle.attackerId!=='world'&&battle.defenderId!=='world');
     expect(duels).toHaveLength(1);expect(duels[0]!.losses.length).toBeGreaterThan(0);
     expect(duels[0]!.retreat).not.toBeNull();
-    expect(state.projects).toHaveLength(1);expect(state.roundReports.some(r=>r.trade.wealth>0)).toBe(true);
+    expect(state.legacyWorks.filter(work=>work.completedRound!==null)).toHaveLength(1);expect(state.roundReports.some(r=>r.trade.wealth>0)).toBe(true);
     expect(state.players[0]!.research).toHaveLength(8);
-    for(const command of ['PLAY_CARD','SETTLE','URBAN_ACTION','PROPOSE_TREATY','RESPOND_TREATY','DECLARE_WAR','DECLARE_HEGEMONY','BUILD_PROJECT'])expect(trace.some(t=>t.command===command)).toBe(true);
+    for(const command of ['PLAY_CARD','SETTLE','URBAN_ACTION','PROPOSE_TREATY','RESPOND_TREATY','DECLARE_WAR','DECLARE_HEGEMONY','ADVANCE_LEGACY_WORK'])expect(trace.some(t=>t.command===command)).toBe(true);
     for(const action of ['PRODUCE','BUILD','RECRUIT','RESEARCH','SUPPORT_TRADE'])expect(state.telemetry.actionsByType[action],action).toBeGreaterThan(0);
   },15000);
 });

@@ -1,24 +1,7 @@
 import type { AlphaEffect } from './alpha-institutions.js';
-import { emptyResourcePool, type ResourcePool } from './core.js';
 import type { AlphaEra as Era } from './alpha-concept.js';
 export type ObjectiveMetric='cities'|'territory'|'research'|'districts'|'routes'|'treaties'|'victories'|'culture';
-export interface AlphaCard {id:string;family:'WORLD_EVENT'|'STRATEGY'|'AMBITION'|'ADVISOR'|'GREAT_PROJECT';name:string;era:Era;timing:'MAINTENANCE'|'PLANNING'|'REACTION'|'END_ROUND';effect:AlphaEffect|null;reminder:string;objective?:{metric:ObjectiveMetric;threshold:number;prestige:number}}
-export interface GreatProject {id:string;name:string;era:Era;district:'AGRARIAN'|'COMMERCIAL'|'ACADEMIC'|'ADMINISTRATIVE'|'MILITARY'|'INDUSTRIAL'|'CULTURAL';cost:ResourcePool;effect:AlphaEffect;prestige:number;path:'SCIENTIFIC'|'POLITICAL'|'ECONOMIC'|'CULTURAL'|'MILITARY'|'TERRITORIAL'}
-const projectRows=[
-  ['archive-of-horizons','Arquivo dos Horizontes','ACADEMIC','knowledge','SCIENTIFIC'],
-  ['sky-instrument','Instrumento do Firmamento','ACADEMIC','knowledge','SCIENTIFIC'],
-  ['house-of-accord','Casa dos Acordos','ADMINISTRATIVE','influence','POLITICAL'],
-  ['road-of-communities','Estrada das Comunidades','INDUSTRIAL','materials','TERRITORIAL'],
-  ['tidal-exchange','Entreposto das Marés','COMMERCIAL','wealth','ECONOMIC'],
-  ['voices-monument','Monumento das Vozes','CULTURAL','influence','CULTURAL'],
-  ['common-mint','Casa da Medida Comum','COMMERCIAL','wealth','ECONOMIC'],
-  ['inquiry-campus','Pátio da Investigação','ACADEMIC','knowledge','SCIENTIFIC'],
-  ['watch-citadel','Cidadela da Vigília','MILITARY','materials','MILITARY'],
-  ['world-council','Conselho dos Horizontes','ADMINISTRATIVE','influence','POLITICAL'],
-  ['terraced-reserves','Reservas dos Terraços','AGRARIAN','food','TERRITORIAL'],
-  ['shared-foundry','Fundição Compartilhada','INDUSTRIAL','materials','ECONOMIC'],
-] as const;
-export const GREAT_PROJECTS:readonly GreatProject[]=projectRows.map(([id,name,district,resource,path],i)=>({id,name,district,path,era:i<6?'CIVILIZATION':'EMPIRES',cost:{...emptyResourcePool(),materials:6+i%3,wealth:3,knowledge:2},effect:{kind:'PRODUCTION',resource,amount:2,timing:district==='AGRARIAN'||district==='INDUSTRIAL'?'ON_PRODUCE':'MAINTENANCE'},prestige:4}));
+export interface AlphaCard {id:string;family:'WORLD_EVENT'|'STRATEGY'|'AMBITION'|'ADVISOR';name:string;era:Era;timing:'MAINTENANCE'|'PLANNING'|'REACTION'|'END_ROUND';effect:AlphaEffect|null;reminder:string;objective?:{metric:ObjectiveMetric;threshold:number;prestige:number}}
 const worldNames=['Sementes de Resistência','Chuvas de Retorno','Ventos de Travessia','Solo em Descanso','Encontro de Feiras','Novas Medidas','Mercados de Passagem','Correntes Favoráveis','Famílias em Jornada','Ofícios em Migração','Abrigos Compartilhados','Caminhos de Retorno','Achados de Fronteira','Perguntas do Céu','Instrumentos Recuperados','Mensageiros Distantes','Vozes nas Praças','Conselhos em Debate','Trégua de Trabalho','Acordos de Colheita','Safra Abundante','Reservas em Cooperação','Escassez de Madeira','Pressão nas Rotas'];
 const strategyNames=['Reservas Coordenadas','Distribuição de Emergência','Pacto de Abastecimento','Oficinas Integradas','Reparo Coletivo','Jornada de Construção','Crédito de Confiança','Feira Extraordinária','Tesouro de Reserva','Debate de Métodos','Cópias Compartilhadas','Bolsa de Investigação','Audiência Aberta','Embaixada Itinerante','Convocação de Conselhos','Linha de Escudos','Defesa Escalonada','Terreno Preparado','Guarda de Retaguarda','Sinais de Resistência','Marcha Orientada','Guias de Travessia','Pontos de Encontro','Passagens Reconhecidas','Rota Alternativa','Delegação de Tarefas','Conselho Ampliado','Escrivães em Serviço','Mandato de Coordenação','Agenda Comum'];
 const advisorNames=['Curador de Sementes','Mestre de Reservas','Supervisor de Obras','Guardião das Ferramentas','Tesoureiro das Rotas','Mediador de Feiras','Observador do Céu','Curador de Registros','Jurista das Praças','Intérprete de Acordos','Coordenador de Guardas','Instrutor de Manobras','Cartógrafo das Passagens','Guia dos Estuários','Organizador de Conselhos','Escrivão de Mandatos','Arquiteta das Comunidades','Diplomata das Margens'];
@@ -29,4 +12,4 @@ const world:AlphaCard[]=worldNames.map((name,i)=>({id:`world-${i+1}`,family:'WOR
 const strategy:AlphaCard[]=strategyNames.map((name,i)=>({id:`strategy-${i+1}`,family:'STRATEGY',name,era:'FOUNDATION',timing:i>=15&&i<20?'REACTION':'PLANNING',effect:i<15?{kind:'PRODUCTION',resource:resources[Math.floor(i/3)]!,amount:2+i%3,timing:'ONCE'}:{kind:i<20?'STRENGTH':i<25?'MOVEMENT':'COMMAND',amount:1+(i%2)},reminder:i<15?'Receba o recurso imediatamente.':i<20?'Modificador de conflito válido nesta rodada, antes dos dados.':'Modificador válido até o fim desta rodada.'}));
 const advisors:AlphaCard[]=advisorNames.map((name,i)=>({id:`advisor-${i+1}`,family:'ADVISOR',name,era:'FOUNDATION',timing:'MAINTENANCE',effect:i<10||i>15?{kind:'PRODUCTION',resource:resources[Math.floor(i/2)%5]!,amount:1,timing:'ROUND_START'}:{kind:i<12?'STRENGTH':i<14?'MOVEMENT':'COMMAND',amount:1},reminder:'Benefício persistente, creditado no início de cada rodada enquanto este conselheiro ocupar um espaço ativo.'}));
 const ambitions:AlphaCard[]=ambitionNames.map((name,i)=>({id:`ambition-${i+1}`,family:'AMBITION',name,era:'FOUNDATION',timing:'END_ROUND',effect:null,objective:{metric:metrics[Math.floor(i/3)]!,threshold:[2,3,4][i%3]!,prestige:[2,3,4][i%3]!},reminder:'Objetivo secreto. Receba Prestígio uma única vez ao atender o requisito no fim de uma rodada. Não concede Hegemonia.'}));
-export const ALPHA_CARDS:readonly AlphaCard[]=[...world,...strategy,...ambitions,...advisors,...GREAT_PROJECTS.map(p=>({id:p.id,family:'GREAT_PROJECT' as const,name:p.name,era:p.era,timing:'PLANNING' as const,effect:p.effect,reminder:'Projeto exclusivo mundial. Requer o distrito e os recursos indicados.'}))];
+export const ALPHA_CARDS:readonly AlphaCard[]=[...world,...strategy,...ambitions,...advisors];

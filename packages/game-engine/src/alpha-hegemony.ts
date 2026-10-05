@@ -1,4 +1,4 @@
-import { ADVANCEMENTS, GREAT_PROJECTS, HegemonyPathSchema, type AlphaState, type HegemonyMetric, type HegemonyPath, type PlayerId } from '@aoh/game-domain';
+import { ADVANCEMENTS, legacyWork, HegemonyPathSchema, type AlphaState, type HegemonyMetric, type HegemonyPath, type PlayerId } from '@aoh/game-domain';
 import { tradePath } from './alpha-diplomacy.js';
 import { culturalPresenceCount } from './alpha-culture.js';
 
@@ -8,7 +8,7 @@ export function hegemonyProgress(state:AlphaState,actor:PlayerId) {
   const core=state.core.players.find(p=>p.id===actor)!;
   const cities=core.civilization.cities.filter(c=>!state.occupations.some(o=>o.cityId===c.id));
   const districts=cities.flatMap(c=>c.districts);
-  const projects=state.projects.filter(p=>p.ownerId===actor&&cities.some(c=>c.id===p.cityId));
+  const works=state.legacyWorks.filter(w=>w.ownerId===actor&&w.completedRound!==null&&cities.some(c=>c.id===w.cityId));
   const foreignRoutes=state.routes.filter(r=>r.ownerId===actor&&!core.civilization.cities.some(c=>c.id===r.toCityId)).filter(r=>{
     try { tradePath(state,actor,r.fromCityId,r.toCityId);return true; } catch { return false; }
   });
@@ -21,10 +21,10 @@ export function hegemonyProgress(state:AlphaState,actor:PlayerId) {
     wealth:player.resources.wealth,internationalRoutes:foreignRoutes.length,tradePartners:partners.size,
     eraFiveResearch:player.research.filter(id=>ADVANCEMENTS.find(a=>a.id===id)?.era==='ASCENSION').length,
     academicDistricts:districts.filter(d=>d.type==='ACADEMIC').length,
-    scientificProjects:projects.filter(p=>GREAT_PROJECTS.find(g=>g.id===p.projectId)?.path==='SCIENTIFIC').length,
+    scientificProjects:works.filter(w=>legacyWork(w.workId)?.path==='SCIENTIFIC').length,
     influence:player.resources.influence,culturalDistricts:districts.filter(d=>d.type==='CULTURAL').length,foreignInfluence:culturalPresenceCount(state,actor),
     treatyPartners:new Set(treaties.map(t=>t.proposerId===actor?t.recipientId:t.proposerId)).size,
-    politicalProjects:projects.filter(p=>GREAT_PROJECTS.find(g=>g.id===p.projectId)?.path==='POLITICAL').length,
+    politicalProjects:works.filter(w=>legacyWork(w.workId)?.path==='POLITICAL').length,
     territory:state.core.map.filter(t=>t.ownerId===actor&&!state.occupations.some(o=>o.cityId===t.controllerCityId)).length,
     developedCities:state.cities.filter(m=>m.currentOwnerId===actor&&['GREAT_CITY','METROPOLIS','IMPERIAL_METROPOLIS'].includes(m.level)).length,
     withinCapacity:Number(core.civilization.administrativeLoad<=core.civilization.administrativeCapacity),

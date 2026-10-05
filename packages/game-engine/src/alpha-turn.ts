@@ -22,6 +22,7 @@ import { alphaActionCapacity, chargeMainAction } from './alpha-actions.js';
 import { contestPresence } from './alpha-culture.js';
 import { independentAction } from './alpha-independents.js';
 import { kitWorksCost } from './alpha-kits.js';
+import { advanceLegacyWork } from './alpha-legacy-works.js';
 
 export { alphaEvent, resolutionEvent } from './alpha-events.js';
 
@@ -157,7 +158,9 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     } else if(command.type==='PLAY_CIVILIZATION_CARD') {
       playCivilizationCard(state,actor,command.cardId);
       alphaEvent(state,'CARD_ACTION','Carta da civilização aplicada.',[actor]);
-    } else if(command.type==='PLAY_CARD'||command.type==='CHOOSE_AMBITIONS'||command.type==='HIRE_ADVISOR'||command.type==='WORLD_CHOICE'||command.type==='BUILD_PROJECT') {
+    } else if(command.type==='ADVANCE_LEGACY_WORK') {
+      advanceLegacyWork(state,actor,command);alphaEvent(state,'CARD_ACTION','Passo de Obra de Legado aplicado.',[actor]);
+    } else if(command.type==='PLAY_CARD'||command.type==='CHOOSE_AMBITIONS'||command.type==='HIRE_ADVISOR'||command.type==='WORLD_CHOICE') {
       manageCard(state,actor,command);
       alphaEvent(state,'CARD_ACTION','Decisão de carta ou projeto aplicada.',[actor]);
     } else if(command.type==='PROPOSE_TREATY'||command.type==='RESPOND_TREATY'||command.type==='END_TREATY'||command.type==='DECLARE_WAR') {

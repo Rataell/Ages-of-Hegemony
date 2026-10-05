@@ -86,11 +86,11 @@ const fmt = x => `${Math.round(x.attackerWins * 100)} / ${Math.round(x.tie * 100
 for (const g of gradeBenchmark()) lines.push(`| ${g.family} | ${fmt(g.gradeI)} | ${fmt(g.gradeII)} | ${fmt(g.gradeIII)} | ${fmt(g.gradeIIIDefending)} |`);
 
 lines.push('\n## F. Orders and Legado (baseline)\n');
-lines.push('| players | Legado orders / match | matches with any Legado | BUILD_PROJECT sent | rejected | probe attempts | probe OK | most common refusal |', '|---|---|---|---|---|---|---|---|');
+lines.push('| players | Legado orders / match | matches with any Legado | ADVANCE_LEGACY_WORK sent | rejected | probe attempts | probe OK | most common refusal |', '|---|---|---|---|---|---|---|---|');
 for (const p of playerCounts) {
   const s = sel('baseline', p), reasons = {}; for (const r of s) for (const [k, v] of Object.entries(r.legacyProbe.reasons)) reasons[k] = (reasons[k] ?? 0) + v;
   const top = Object.entries(reasons).sort((a, b) => b[1] - a[1])[0];
-  lines.push(`| ${p} | ${avg(s.map(r => r.facts.orders.LEGACY ?? 0))} | ${s.filter(r => (r.facts.orders.LEGACY ?? 0) > 0).length}/${s.length} | ${avg(s.map(r => r.facts.counters.byType.BUILD_PROJECT ?? 0))} | ${avg(s.map(r => Object.entries(r.facts.counters.rejectedReasons).filter(([k]) => k.startsWith('BUILD_PROJECT')).reduce((n, [, v]) => n + v, 0)))} | ${s.reduce((n, r) => n + r.legacyProbe.attempts, 0)} | ${s.reduce((n, r) => n + r.legacyProbe.ok, 0)} | ${top ? `${top[0]} (${top[1]})` : '-'} |`);
+  lines.push(`| ${p} | ${avg(s.map(r => r.facts.orders.LEGACY ?? 0))} | ${s.filter(r => (r.facts.orders.LEGACY ?? 0) > 0).length}/${s.length} | ${avg(s.map(r => r.facts.counters.byType.ADVANCE_LEGACY_WORK ?? 0))} | ${avg(s.map(r => Object.entries(r.facts.counters.rejectedReasons).filter(([k]) => k.startsWith('ADVANCE_LEGACY_WORK')).reduce((n, [, v]) => n + v, 0)))} | ${s.reduce((n, r) => n + r.legacyProbe.attempts, 0)} | ${s.reduce((n, r) => n + r.legacyProbe.ok, 0)} | ${top ? `${top[0]} (${top[1]})` : '-'} |`);
 }
 
 lines.push('\n## 5. Contact milestones (baseline; round observed at the start of planning)\n');

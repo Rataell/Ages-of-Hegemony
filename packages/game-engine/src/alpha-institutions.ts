@@ -1,4 +1,4 @@
-import { ADVANCEMENTS, HERITAGE_ADVANCES, heritageAdvance, eraForRound, eraNumeral, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, GREAT_PROJECTS, ALPHA_RESOURCE_KEYS, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type EffectTiming, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { ADVANCEMENTS, HERITAGE_ADVANCES, heritageAdvance, eraForRound, eraNumeral, ALPHA_CARDS, ALPHA_ERA_MILESTONE_CRITERIA, CIVILIZATIONS, legacyWork, ALPHA_RESOURCE_KEYS, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type EffectTiming, type AlphaMilestoneCriterion, AlphaEraSchema, type AlphaEffect, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { alphaCanAfford, alphaGainLegacy, alphaPay } from './alpha-resources.js';
 import { sum } from './arithmetic.js';
 import { alphaEvent } from './alpha-events.js';
@@ -17,18 +17,18 @@ export function institutionBonus(state:AlphaState,actor:PlayerId,kind:AlphaEffec
 }
 export const effectTiming=(effect:AlphaEffect):EffectTiming=>effect.kind==='PRODUCTION'?effect.timing??'MAINTENANCE':'ONCE';
 interface RecurringSource {effect:AlphaEffect;cityId:string|null}
-/** Sources of recurring resource effects: civilization passives, researched advancements, advisors and great projects (bound to their city). */
+/** Sources of recurring resource effects: civilization passives, researched advancements, advisors and completed Obras de Legado (bound to their city). */
 function recurringSources(state:AlphaState,actor:PlayerId):RecurringSource[] {
   const player=state.players.find(p=>p.playerId===actor)!;
   return [
     ...(CIVILIZATIONS.find(c=>c.id===player.civilization)?.passives??[]).map(effect=>({effect,cityId:null})),
     ...researchedEffects(player.research).map(effect=>({effect,cityId:null})),
     ...player.advisors.map(id=>ALPHA_CARDS.find(c=>c.id===id)!.effect).filter((effect):effect is AlphaEffect=>effect!==null).map(effect=>({effect,cityId:null})),
-    ...state.projects.filter(p=>p.ownerId===actor).map(p=>({effect:GREAT_PROJECTS.find(g=>g.id===p.projectId)!.effect,cityId:p.cityId as string|null})),
+    ...state.legacyWorks.filter(w=>w.ownerId===actor&&w.completedRound!==null).map(w=>({effect:legacyWork(w.workId)!.effect,cityId:w.cityId as string|null})),
   ];
 }
 /**
- * Credits the recurring PRODUCTION effects of one timing. ON_PRODUCE effects bound to a city (great projects) apply only with that
+ * Credits the recurring PRODUCTION effects of one timing. ON_PRODUCE effects bound to a city (Obras de Legado) apply only with that
  * city's PRODUCE; unbound ON_PRODUCE effects apply with any PRODUCE. The other timings ignore `cityId`.
  */
 /** The strength bonus of a civilization split by origin, for the combat breakdown. Adds up to institutionBonus(..., 'STRENGTH'). */

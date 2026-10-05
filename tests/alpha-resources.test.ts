@@ -90,7 +90,7 @@ describe('client projection envelope', () => {
     expect(view.schemaVersion).toBe(5);
     expect(view.costs.founding).toEqual(alphaCost(state.core.config.territory.foundingCost, state.players[0]!.resources));
     expect(view.costs.founding).not.toHaveProperty('materials');
-    expect(view.costs.projects['archive-of-horizons']).not.toHaveProperty('materials');
+    expect(view.legacyWorks.find(work => work.id === 'archive-of-horizons')!.nextStepCost).not.toHaveProperty('materials');
     expect(state.schemaVersion).toBe(5);
   });
 });

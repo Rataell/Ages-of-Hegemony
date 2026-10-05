@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { urban } from './alpha-rounds.js';
-import { ADVANCEMENTS, ALPHA_CARDS, CIVILIZATIONS, GREAT_PROJECTS, HERITAGE_ADVANCES, WEB_ROW_COUNT, AlphaStateSchema } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_CARDS, CIVILIZATIONS, LEGACY_WORKS, HERITAGE_ADVANCES, WEB_ROW_COUNT, AlphaStateSchema } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, eraMilestones, serializeAlphaState, setAlphaPhase } from '@aoh/game-engine';
 function setup(){return beginAlphaPlanning(createAlphaGame({gameId:'content-alpha',seed:25,preset:'QUICK',players:[{id:'p1',name:'Um'},{id:'p2',name:'Dois'}]}));}
 describe('declarative alpha content',()=>{
   it('provides the required original library counts and distinct identifiers',()=>{
     expect(CIVILIZATIONS).toHaveLength(12);expect(WEB_ROW_COUNT).toBe(50);expect(ADVANCEMENTS).toHaveLength(53);expect(ADVANCEMENTS.filter(a=>a.convergence&&!a.pair).length+new Set(ADVANCEMENTS.filter(a=>a.convergence&&a.pair).map(a=>a.pair)).size).toBe(10);expect(HERITAGE_ADVANCES).toHaveLength(54);
-    expect(ALPHA_CARDS).toHaveLength(108);expect(GREAT_PROJECTS).toHaveLength(12);
-    expect(['WORLD_EVENT','STRATEGY','AMBITION','ADVISOR','GREAT_PROJECT'].map(f=>ALPHA_CARDS.filter(c=>c.family===f).length)).toEqual([24,30,24,18,12]);
+    expect(ALPHA_CARDS).toHaveLength(96);expect(LEGACY_WORKS).toHaveLength(12);
+    expect(['WORLD_EVENT','STRATEGY','AMBITION','ADVISOR'].map(f=>ALPHA_CARDS.filter(c=>c.family===f).length)).toEqual([24,30,24,18]);
     for(const entries of [CIVILIZATIONS,ADVANCEMENTS,ALPHA_CARDS])expect(new Set(entries.map(e=>e.id)).size).toBe(entries.length);
     expect(new Set(CIVILIZATIONS.map(c=>JSON.stringify(c.ability.effects))).size).toBe(12);
   });

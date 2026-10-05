@@ -65,7 +65,7 @@ export function migrateSnapshotV3ToV5(input: unknown): Result<AlphaState, AlphaE
     privateRng: { algorithm: 'hmac-sha256-counter-v1', seed: deterministicAlphaSeed(core.seed, core.gameId), counter: 0 },
     players, initiative: core.players.map(player => player.id), units: [], roads: [], regions: [], occupations: [], treaties: [], wars: [], routes: [], battles: [], winner: null,
     cards: { worldDeck: [], strategyDeck: [], ambitionDeck: [], advisorDeck: [], discarded: [], advisorMarket: [], worldEvent: null, worldEventRound: 0, worldResponded: [] },
-    projects: [], cities: initialCities(core, civilizationByPlayer), tradeOffers: [], independents: [], threats: [],
+    legacyWorks: [], cities: initialCities(core, civilizationByPlayer), tradeOffers: [], independents: [], threats: [],
     worldPulse: { deck: WORLD_PULSE_CARDS.map(card => card.id), discard: [], current: null, resolvedRound: 0 },
     telemetry: initialTelemetry(core, rules.worldPreset), roundReports: [],
     events: [{ id: 'migration-v5', round: core.round, type: 'MIGRATED', audience: null, message: 'Partida convertida explicitamente para o formato alpha v5.' }],

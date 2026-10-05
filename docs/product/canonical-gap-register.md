@@ -141,3 +141,14 @@ Classes: **A** bug/correção obrigatória antes do playtest · **B** divergênc
 | V51B-13 (novo) | C | I-2 (Guarda do atacante só em Manter/Linha III) desloca 3v3 Infantaria de 14/57/29 para 8/53/39 | médio | decisão D-2 | não |
 
 Evidência e causas: `docs/evidence/v51b-investigation/` (tabelas, variantes e Graus por situação).
+
+
+### Decisões do PO e novas divergências (2026-10-05)
+
+| ID | Estado |
+|---|---|
+| V51B-11 / D-1 | FECHADO: Acampamento RECÉM-SURGIDO (`fresh`) fica vulnerável uma rodada completa de Planejamento antes de lançar o primeiro Bando (design I-5/I-20 + D-1). |
+| V51B-13 / D-2 | FECHADO sem mudança de regra: a Guarda ao atacar só vale em Manter; a identidade defensiva é preservada. Matriz em `docs/evidence/v51b-investigation/GUARDA-3V3.md`. |
+| V51B-10 / D-3 | FECHADO: as Obras de Legado (§11) são o único sistema; Grande Projeto removido (`ADVANCE_LEGACY_WORK`, `legacyWorks`, I-42…I-46). Efeitos únicos por Obra seguem como placeholders do Alpha; as 6 Obras convertidas não têm custo no texto canônico. |
+| V51B-14 (novo) | ABERTO, P2: os requisitos de Hegemonia do motor são os da V5.1a, não os do §23 (Comunidade de Descoberta, Memória do Mundo, Estrada das Comunidades etc.). Registrado, sem mudança: exige decisão de escopo. |
+| V51B-15 (novo) | ABERTO, P3: os 29 edifícios do cânone não existem (7 no motor, GR-23); o pré-requisito de uma Obra usa o distrito correspondente (I-43). |

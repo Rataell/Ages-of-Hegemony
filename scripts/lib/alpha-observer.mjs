@@ -80,16 +80,16 @@ export function makeObserver({ variant = 'baseline' } = {}) {
       const degraded = cities.filter(ci => { const m = st.cities.find(x => x.cityId === ci.id); return m && D.effectiveLevel(m.level, ci.population) !== m.level; }).length;
       data.soldiers.samples.push({ round: r, id: o.id, pop, soldiers, pieces, cities: cities.length, degraded, food: progress.resources.food });
     }
-    // ---- Legado probe: why can't a human just build a Great Project when Era IV+ opens?
+    // ---- Legado probe: why can't a human just build a Obra de Legado when Era IV+ opens?
     const eraIdx = ERAS.indexOf(st.players[0].era);
     if (eraIdx >= 3 && (r - 1) % 5 === 0) {
       for (const p of st.players) {
-        for (const proj of D.GREAT_PROJECTS) {
-          if (st.projects.some(x => x.projectId === proj.id)) continue;
+        for (const proj of D.LEGACY_WORKS) {
+          if (st.legacyWorks.some(x => x.workId === proj.id && x.ownerId !== p.playerId)) continue;
           const cities = st.core.players.find(o => o.id === p.playerId).civilization.cities;
           let best = null;
           for (const ci of cities) {
-            const res = E.applyAlphaCommand(structuredClone(st), p.playerId, { type: 'BUILD_PROJECT', expectedVersion: st.version, projectId: proj.id, cityId: ci.id });
+            const res = E.applyAlphaCommand(structuredClone(st), p.playerId, { type: 'ADVANCE_LEGACY_WORK', expectedVersion: st.version, workId: proj.id, cityId: ci.id });
             if (res.ok) { best = 'OK'; break; } best ??= res.error.message;
           }
           if (best === null) continue;

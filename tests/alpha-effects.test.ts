@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, CIVILIZATIONS, GREAT_PROJECTS, PlayerIdSchema, emptyResourcePool, type AlphaState } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_CARDS, AlphaStateSchema, CIVILIZATIONS, LEGACY_WORKS, PlayerIdSchema, emptyResourcePool, type AlphaState } from '@aoh/game-domain';
 import { applyRecurringEffects, beginAlphaPlanning, createAlphaGame, effectTiming, occupyCity } from '@aoh/game-engine';
 import { completeRound, must, produceAll } from './alpha-rounds.js';
 
@@ -17,8 +17,8 @@ function withAdvisor(state: AlphaState, id: string) {
   state.players[0]!.advisors = [id];
 }
 function withProject(state: AlphaState, district: string, cityId = 'capital-1') {
-  const project = GREAT_PROJECTS.find(candidate => candidate.district === district)!;
-  state.projects.push({ projectId: project.id, ownerId: p1, cityId: cityId as never, completedRound: 1 });
+  const project = LEGACY_WORKS.find(candidate => candidate.requires.district === district)!;
+  state.legacyWorks.push({ workId: project.id, ownerId: p1, cityId: cityId as never, stepsDone: 3, startedRound: 1, completedRound: 1 });
   return project;
 }
 
@@ -35,14 +35,14 @@ describe('effect timing taxonomy', () => {
       if (card.family === 'ADVISOR') expect(timing).toBe('ROUND_START');
       else if (card.family === 'STRATEGY' || card.family === 'WORLD_EVENT') expect(timing).toBe('ONCE');
     }
-    for (const project of GREAT_PROJECTS) expect(effectTiming(project.effect)).toBe(project.district === 'AGRARIAN' || project.district === 'INDUSTRIAL' ? 'ON_PRODUCE' : 'MAINTENANCE');
+    for (const project of LEGACY_WORKS) expect(effectTiming(project.effect)).toBe(project.requires.district === 'AGRARIAN' || project.requires.district === 'INDUSTRIAL' ? 'ON_PRODUCE' : 'MAINTENANCE');
   });
 
   it('exercises every timing with authored content', () => {
     const seen = new Set<string>();
     for (const civilization of CIVILIZATIONS) for (const effect of [...civilization.passives, ...civilization.ability.effects]) seen.add(effectTiming(effect));
     for (const card of ALPHA_CARDS) if (card.effect) seen.add(effectTiming(card.effect));
-    for (const project of GREAT_PROJECTS) seen.add(effectTiming(project.effect));
+    for (const project of LEGACY_WORKS) seen.add(effectTiming(project.effect));
     expect([...seen].sort()).toEqual(['MAINTENANCE', 'ONCE', 'ON_PRODUCE', 'ROUND_START']);
   });
 });

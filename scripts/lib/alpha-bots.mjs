@@ -333,8 +333,8 @@ export function candidates(box, id, persona) {
   }
   // Independent peoples (Influência).
   for (const people of E.independentPeopleView(state, id) ?? []) { const act = (people.actions ?? []).find(a => !a.blocked); if (act) add(42, `people:${people.id}:${act.action}`, { type: 'INDEPENDENT_ACTION', peopleId: people.id, action: act.action }); }
-  // Legacy projects.
-  if (eraIndex >= 3) for (const project of D.GREAT_PROJECTS) for (const city of cities.slice(0, 2)) add(50, `project:${project.id}`, { type: 'BUILD_PROJECT', projectId: project.id, cityId: city.id });
+  // Obras de Legado: advance an own Obra, or start the first one a city can afford (one step per Legado Order).
+  if (eraIndex >= 3) for (const work of E.legacyWorkView(state, id)) { const city = work.cities.find(entry => entry.blocker === null); if (city && (!work.progress || work.progress.ownerId === id)) { add(50, `work:${work.id}`, { type: 'ADVANCE_LEGACY_WORK', workId: work.id, cityId: city.cityId }); break; } }
   if (comp) {
     // Never eat the seed corn: a Recrutar that would leave Alimento below what the cities and pieces eat this round waits (unless a Bando is at the gate).
     const sustain = cities.reduce((n, c) => n + Math.ceil(c.population / 2), 0) + Math.ceil(army.length / 2);

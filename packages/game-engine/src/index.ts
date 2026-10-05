@@ -15,6 +15,7 @@ export * from './alpha-world.js';
 export * from './alpha-institutions.js';
 export * from './alpha-diplomacy.js';
 export * from './alpha-cards.js';
+export * from './alpha-legacy-works.js';
 export * from './alpha-hegemony.js';
 export * from './alpha-cities.js';
 export * from './alpha-culture.js';
