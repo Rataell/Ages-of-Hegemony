@@ -114,4 +114,8 @@ Baseline: `docs/product/rules-v5-proposal.md` (V5.1b FINAL). Interpretações I-
 
 ### Suspeitas de balanço (playtest, sem retuning)
 
-Ver `docs/evidence/v51b-playtest/REPORT.md`. Relacionadas a §26: item 2 (N7 raro; nenhum bot passou de N4–N5), 3 (Cofres), 4 (sustento), 5 (ritmo de Repercussão: 1,1–1,8 por civ nos bots, canon prevê 3–4), 10 (Governar × Ânimo). Pressão dos Bandos sobre a mesa e peso dos Graus: ver relatório S8b.
+Ver `docs/evidence/v51b-playtest/REPORT.md`. Relacionadas a §26: item 2 (N7 raro; nenhum bot passou de N4–N5), 3 (Cofres), 4 (sustento), 5 (ritmo de Repercussão: 1,1–1,8 por civ nos bots, canon prevê 3–4), 10 (Governar × Ânimo). Bots competentes (27 partidas, 3020f26/73d25b6/383516c): N6 em r25–29, N7 raro (1/9); Repercussões 3,5–3,7 por civ (ok); Bandos atacam cidades sem defensor (~98%) e nenhum Acampamento morre acampado (Acampamentos de Pulso ativam no mesmo turno, recompensa inalcançável: suspeita P1 para playtest humano); primeiro assalto r7–11 (sim: 5–6); Graus pouco decisivos em 3v3; Soldados saem da população e custam caro em civs pequenas.
+
+### Verificação final (2026-10-05)
+
+lint, typecheck, 914 testes (79 arquivos), build web e 10 e2e: verdes.

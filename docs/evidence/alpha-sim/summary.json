@@ -1,0 +1,34 @@
+{
+ "summary": {
+  "round": 1,
+  "era": "FOUNDATION",
+  "winner": null,
+  "standings": [],
+  "wars": [],
+  "treaties": [],
+  "battles": 0,
+  "cities": [
+   {
+    "cityId": "capital-1",
+    "hexId": "3,6",
+    "ownerId": "player-1",
+    "level": 1,
+    "capital": true,
+    "fortification": {
+     "level": "NONE",
+     "state": "INTACT"
+    },
+    "blockaded": false
+   }
+  ],
+  "units": "1PIONEER,1EXPLORER,1GUARD",
+  "prestige": [
+   "Jogador A:0",
+   "Jogador B:0"
+  ],
+  "research": 0
+ },
+ "coverage": {},
+ "errors": [],
+ "log": []
+}
