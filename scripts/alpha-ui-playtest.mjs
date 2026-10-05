@@ -359,13 +359,14 @@ async function reformTurn(seat) {
   if (!info?.window || info.planned || ordersLeft(seat) < 1) return;
   const option = info.options.find(o => o.government !== info.current.government && o.unlocked && o.block === null);
   if (!option) { seat.note('reform-unavailable', `last round of the Era: no government open for me (${info.options.filter(o => o.unlocked).length} unlocked)`); return; }
-  // the picker lives in the city card of the inspector (Cidade tab), not in the Livro: a person has to know to look there
-  await selectCity(seat, mine(seat)[0]);
-  await seat.click(seat.page.locator('.alpha-inspector .alpha-government summary'), 'open reform list');
+  // the picker lives in the Governo section of the Tabuleiro da Civilização (D-1), opened from the civilization seal
+  await seat.click(seat.page.locator('.alpha-strip-civ'), 'open Tabuleiro (Governo)');
+  const board = seat.page.getByRole('dialog', { name: 'Tabuleiro da Civilização' });
   await seat.shot('government-reform-list');
   const before = seat.game.government.planned;
-  await seat.click(seat.page.locator('.alpha-inspector .alpha-government li').filter({ hasText: option.name }).getByRole('button'), `reserve reform ${option.name}`);
+  await seat.click(board.locator('.alpha-government li').filter({ hasText: option.name }).getByRole('button'), `reserve reform ${option.name}`);
   await seat.waitState(x => x.government.planned !== before, 3000);
+  await seat.click(board.getByRole('button', { name: 'Voltar ao mapa' }), 'close Tabuleiro', { optional: true });
   await seat.shot('government-reform-reserved');
 }
 

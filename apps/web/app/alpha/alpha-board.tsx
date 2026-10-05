@@ -240,7 +240,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
         </div>
       </aside>:<button type="button" className="aoh-btn is-sm alpha-context-open" onClick={()=>togglePanel('inspector')}>Abrir cartão</button>}
     </div>
-    {civOpen&&tab==='world'&&<AlphaCivBoard game={game} selfName={player.name} cityId={city?.id??null} locked={locked} send={send} onClose={()=>setCivOpen(false)}/>}
+    {civOpen&&tab==='world'&&<AlphaCivBoard game={game} selfName={player.name} cityId={city?.id??null} locked={locked} send={send} manage={manage} onClose={()=>setCivOpen(false)}/>}
     {!civOpen&&game.phase!=='ERA_TURN'&&!replay&&game.self.pendingChoices[0]&&tab==='world'&&<div className="alpha-parchment-pop"><ChoiceParchment choice={game.self.pendingChoices[0]} locked={locked} send={send}/></div>}
     {tab!=='world'&&<section className="alpha-livro aoh-sheet aoh-glass" role="dialog" aria-label="Livro" onKeyDown={e=>{if(e.key==='Escape')setTab('world');}}>
       <nav className="alpha-livro-tabs" aria-label="Áreas do Livro">{LIVRO.map(([key,title])=><button key={key} type="button" aria-current={tab===key?'page':undefined} onClick={()=>{if(key==='civilization'){setTab('world');setCivOpen(true);}else setTab(key);}}>{title}{tabAlerts[key]&&<span className="alpha-tab-alert" aria-hidden="true" title={tabAlerts[key]}/>}</button>)}<button type="button" className="aoh-btn is-sm alpha-livro-close" onClick={()=>setTab('world')}>Voltar ao mapa</button></nav>

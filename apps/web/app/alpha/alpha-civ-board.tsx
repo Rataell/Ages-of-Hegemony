@@ -6,6 +6,7 @@ import { sealArt } from './table-art';
 import { alphaLabel as text } from './alpha-copy';
 import { cityActionGate } from './alpha-panels';
 import type { AlphaSend } from './alpha-board';
+import { GovernmentReform } from './alpha-era-turn';
 
 const COMPOSITION_NAME = { DOMINANT: 'Dominante', HYBRID: 'Híbrida', PAIR: 'Par', CONFLUENCE: 'Confluência' } as const;
 const DOMAIN_CLASS = (domains: readonly WebDomain[]) => `d-${domains[0]}${domains[1] ? ` d2-${domains[1]}` : ''}`;
@@ -34,7 +35,7 @@ export function ChoiceParchment({ choice, locked, send }: { choice: AlphaPlayerV
   </article>;
 }
 
-export function AlphaCivBoard({ game, selfName, cityId, locked, send, onClose }: { game: AlphaPlayerView; selfName: string; cityId: string | null; locked: boolean; send: AlphaSend; onClose: () => void }) {
+export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, onClose }: { game: AlphaPlayerView; selfName: string; cityId: string | null; locked: boolean; send: AlphaSend; manage: AlphaSend; onClose: () => void }) {
   const self = game.self;
   const identity = CIVILIZATIONS.find(c => c.id === self.civilization), kit = civilizationKit(self.civilization);
   const leader = LEADERS.find(l => l.id === self.leader?.leaderId);
@@ -131,7 +132,7 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, onClose }:
         {kit ? <ul><li><b>Traço</b> {kit.trait.text}</li><li><b>Assinatura</b> {kit.signature.name} · {kit.signature.item.text}</li><li><b>Limitação</b> {kit.limitation.text}</li></ul> : <p>Escolha uma civilização.</p>}
         <div className="alpha-civ-pair">
           <article className="alpha-civ-leader"><small>Líder</small><h4>{leader?.name ?? '—'}</h4>{leader && <><p>{leader.passiveAbility.name}: {leader.passiveAbility.description}</p><p><b>{self.leader?.eraAbilityUsed ? 'Poder usado nesta Era' : 'Poder disponível'}</b> · {leader.eraAbility.name}</p></>}</article>
-          <article className="alpha-civ-government"><small>Governo</small><h4>{gov.name}</h4><ul>{gov.advantages.map(line => <li key={line}>＋ {line}</li>)}<li>－ {gov.limitation}</li></ul></article>
+          <article className="alpha-civ-government"><small>Governo</small><h4>{gov.name}</h4><ul>{gov.advantages.map(line => <li key={line}>＋ {line}</li>)}<li>－ {gov.limitation}</li></ul><GovernmentReform game={game} locked={locked} manage={manage} /></article>
         </div>
       </section>
     </div>

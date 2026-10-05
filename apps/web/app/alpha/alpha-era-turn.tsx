@@ -32,7 +32,7 @@ export function GovernmentReform({ game, locked, manage }: { game: AlphaPlayerVi
   const info = game.government;
   if (game.phase !== 'PLANNING' || !info.window) return null;
   const others = info.options.filter(option => option.government !== info.current.government);
-  return <details className="alpha-government"><summary>Reforma de governo · Ordem Influência{info.planned ? ' · reservada' : ''}</summary>
+  return <details className="alpha-government" open><summary>Reforma de governo · Ordem Influência{info.planned ? ' · reservada' : ''}</summary>
     {info.planned
       ? <p>Reforma para {text(info.planned)} reservada: acontece no passo 5 da Virada de Era, por {info.cost} Influência.</p>
       : <ul>{others.map(option => <li key={option.government} data-unlocked={option.unlocked}>

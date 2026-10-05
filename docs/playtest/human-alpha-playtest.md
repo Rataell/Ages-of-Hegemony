@@ -53,8 +53,9 @@ Tente de propósito: fundar uma segunda cidade, pesquisar, **encontrar o outro j
 ## 6. Bugs: registre assim
 
 `rodada · fase · o que você tentou · o que esperava · o que aconteceu · print`
-Exemplo: `R4 · Planejamento · Recrutar 2× na mesma cidade · esperava bloqueio · a 2ª ação falhou na resolução e a Ordem sumiu`.
-Banner "Estado atualizado por outra ação" em mesas de 4–6: **normal**, clique de novo (anote quantas vezes).
+Exemplo: `R4 · Planejamento · Elevar sem Pedra · esperava botão bloqueado com motivo · a ação foi aceita e falhou na resolução`.
+Banner "Estado atualizado por outra ação" em mesas de 4–6: o cliente já tenta de novo 3 vezes sozinho; se ainda aparecer, clique de novo (anote quantas vezes).
+Reforma de governo: só na **última rodada da Era**, em Tabuleiro da Civilização (selo da civilização) → Governo.
 
 ## 7. Métricas coletadas sozinhas (só local, nada sai da máquina)
 
