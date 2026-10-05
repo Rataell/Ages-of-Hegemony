@@ -1,6 +1,6 @@
 /* global performance */
 // Headless bot playtest of the Alpha (V5.1b). Usage:
-//   npm run compile && node scripts/alpha-bot-playtest.mjs [--players=2,4,6] [--seeds=1,2,3] [--out=docs/evidence/v51b-playtest] [--rounds=35]
+//   npm run compile && node scripts/alpha-bot-playtest.mjs [--players=2,4,6] [--seeds=1,2,3] [--out=docs/evidence/v51b-playtest] [--rounds=35] [--playtest-log=<dir>]
 // Plays full matches through applyAlphaCommand only, writes per-round telemetry (JSON) and a Markdown summary that answers the
 // playtest questions of the V5.1b brief. Engine time is measured; human time is not (see the report's note).
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -14,6 +14,8 @@ const arg = (name, fallback) => (process.argv.find(a => a.startsWith(`--${name}=
 const playerCounts = arg('players', '2,4,6').split(',').map(Number), seeds = arg('seeds', '1,2,3').split(',').map(Number);
 const out = arg('out', 'docs/evidence/v51b-playtest'), rounds = Number(arg('rounds', 35));
 mkdirSync(out, { recursive: true });
+// --playtest-log=<dir>: also write the per-match JSONL event log (see scripts/alpha-playtest-summary.mjs).
+const logDir = arg('playtest-log', '') || null;
 
 const skills = arg('skills', SKILLS.join(',')).split(',');
 const scenariosOnly = process.argv.includes('--scenarios-only');
@@ -22,7 +24,7 @@ for (const skill of scenariosOnly ? [] : skills) {
   const runs = runsBySkill[skill] = [];
   for (const players of playerCounts) for (const seed of seeds) {
     const started = performance.now();
-    const result = playMatch({ seed, players, rounds, skill });
+    const result = playMatch({ seed, players, rounds, skill, ...(logDir ? { playtestLog: `${logDir}/${skill}-${players}p-seed${seed}` } : {}) });
     const summary = { skill, ...summarize(result, { players, seed }) };
     runs.push(summary);
     console.log(`[${skill}] ${players}p seed ${seed}: round ${result.state.core.round} ${result.state.core.status} · ${Math.round(performance.now() - started)} ms · crashes ${result.ctx.crashes.length} · violations ${result.ctx.violations.length}`);

@@ -71,3 +71,9 @@ npm run dev:alpha:pg -- --allow-remote
 O script **não tenta descobrir se um host é produção**: desenvolvimento e produção podem usar a mesma infraestrutura e o mesmo proxy. O marcador é uma declaração sua; só o use com o banco do ambiente de desenvolvimento. `ALPHA_PUBLIC_ORIGIN` continua precisando ser `http://127.0.0.1:3001`, o que barra um `.env` de produção copiado por engano.
 
 O smoke por HTTP (`node scripts/alpha-smoke.mjs play`, com `ALPHA_SMOKE_URL=http://127.0.0.1:3001`) funciona nos dois modos.
+
+## Playtest log (development only)
+
+`ALPHA_PLAYTEST_LOG=1 npm run dev:alpha` writes one JSONL file per match to `docs/evidence/playtests/<date>-<gameId>/events.jsonl` (raw logs are git-ignored; override the folder with `ALPHA_PLAYTEST_DIR`). It never runs when `NODE_ENV=production`, sends nothing over the network and stores seat labels (`player-N`) and civilization ids, never names or guest ids. Bot runs: `node scripts/alpha-bot-playtest.mjs --playtest-log=<dir>`.
+Summarize a session with `node scripts/alpha-playtest-summary.mjs <session-dir>` (writes `summary.json` and `SUMMARY.md`); compare two with `node scripts/alpha-playtest-summary.mjs --compare <dirA> <dirB>`.
+Events: `session_start`, `planning_open` (available actions, stock, population, levels, visible threats), `command`, `rejected` (code and message), `ready` (planning ms, Orders), `research`, `contact`, `treaty`, `war`, `combat` (Δ, outcome, losses), `threat`, `era_turn`, `round_close` (stock before/after, population, levels, Ânimo, Orders, Ressonância, combats, threats, Prestígio), `end`.

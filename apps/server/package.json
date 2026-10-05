@@ -12,6 +12,10 @@
       "types": "./dist/local-play.d.ts",
       "default": "./dist/local-play.js"
     },
+    "./playtest-log": {
+      "types": "./dist/playtest-log.d.ts",
+      "default": "./dist/playtest-log.js"
+    },
     "./debug": {
       "types": "./dist/debug-scenario.d.ts",
       "default": "./dist/debug-scenario.js"

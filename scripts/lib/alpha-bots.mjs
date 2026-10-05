@@ -3,6 +3,7 @@
 // player has. Requires the built packages (`npm run compile`). Used by scripts/alpha-bot-playtest.mjs and tests/alpha-bot-playtest.test.ts.
 import * as E from '../../packages/game-engine/dist/index.js';
 import * as D from '../../packages/game-domain/dist/index.js';
+import { FileSink, PlaytestRecorder } from '../../apps/server/dist/playtest-log.js';
 
 export const PERSONAS = {
   builder: { posture: 'HOLD', settle: 3, army: 2, districts: ['AGRARIAN', 'ADMINISTRATIVE', 'INDUSTRIAL', 'COMMERCIAL', 'CULTURAL', 'ACADEMIC', 'MILITARY'], war: 99, domains: ['LAND_AND_SEA', 'STONE_AND_METAL', 'GOVERNMENT', 'TRADE', 'KNOWLEDGE'], roles: { artisans: 3, merchants: 1, scholars: 1 }, weights: { elevate: 1.25, build: 1.3, recruit: 0.7, research: 0.9, fort: 1.2 }, govs: ['CONFEDERATION', 'MONARCHY'] },
@@ -22,13 +23,16 @@ const ERAS = D.AlphaEraSchema.options;
 const dist = (a, b) => E.hexDistance(a, b);
 
 export const SKILLS = ['naive', 'competent', 'hardcore'];
-export function createBotMatch({ seed = 1, players = 2, personas, rounds = 35, preset = 'STANDARD', worldPreset = 'MIXED', skill = 'competent' } = {}) {
+export function createBotMatch({ seed = 1, players = 2, personas, rounds = 35, preset = 'STANDARD', worldPreset = 'MIXED', skill = 'competent', playtestLog = null } = {}) {
   const civs = D.CIVILIZATIONS.map(c => c.id);
   const seats = Array.from({ length: players }, (_, i) => ({ id: `p${i + 1}`, name: `Bot ${i + 1}`, civilization: civs[(i + seed) % civs.length], persona: (personas?.[i] ?? PERSONA_ORDER[(i + seed) % PERSONA_ORDER.length]) }));
   let state = E.createAlphaGame({ gameId: `bots-${seed}-${players}`, seed, preset, worldPreset, players: seats.map(({ id, name, civilization }) => ({ id, name, civilization })) });
   state = E.beginAlphaPlanning(state);
+  // Optional local playtest log (same recorder as the dev server): pass playtestLog: <directory>. Reads states only.
+  const recorder = playtestLog ? new PlaytestRecorder(new FileSink(playtestLog)) : null;
+  recorder?.start(state);
   if (rounds !== state.rules.roundLimit) { /* custom length: keep Eras of 5 rounds, only truncate */ }
-  const ctx = { skill, activations: new Map(), seed, seats, rand: Object.fromEntries(seats.map((s, i) => [s.id, rng(seed * 7919 + i * 104729)])), failed: new Map(), counters: { commands: 0, rejected: 0, byType: {}, rejectedReasons: {} }, orderSeq: 0, maxRound: rounds, timings: [], violations: [], crashes: [], flags: {} };
+  const ctx = { recorder, skill, activations: new Map(), seed, seats, rand: Object.fromEntries(seats.map((s, i) => [s.id, rng(seed * 7919 + i * 104729)])), failed: new Map(), counters: { commands: 0, rejected: 0, byType: {}, rejectedReasons: {} }, orderSeq: 0, maxRound: rounds, timings: [], violations: [], crashes: [], flags: {} };
   return { state, ctx };
 }
 
@@ -37,6 +41,7 @@ function send(box, id, command) {
   let result;
   try { result = E.applyAlphaCommand(box.state, id, { ...command, expectedVersion: box.state.version }); }
   catch (error) { ctx.crashes.push({ round: box.state.core.round, phase: box.state.phase, actor: id, command, message: String(error?.stack ?? error).slice(0, 600) }); return false; }
+  ctx.recorder?.observe(box.state, id, { ...command, expectedVersion: box.state.version }, result);
   ctx.counters.commands++;
   ctx.counters.byType[command.type] = (ctx.counters.byType[command.type] ?? 0) + 1;
   if (!result.ok) { ctx.counters.rejected++; const key = `${command.type}:${result.error.code}`; ctx.counters.rejectedReasons[key] = (ctx.counters.rejectedReasons[key] ?? 0) + 1; ctx.lastError = result.error.message; if (process.env.BOT_TRACE) console.error('REJ', box.state.core.round, id, command.type, command.action ?? command.command?.type ?? command.order?.type ?? '', '=>', result.error.message); return false; }

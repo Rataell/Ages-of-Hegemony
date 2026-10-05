@@ -5,6 +5,7 @@ import { err, ok, type Result } from '@aoh/shared';
 import { AlphaRoomSchema, CreateAlphaRoomSchema, LobbyActionSchema, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
 import { alphaPlayerView } from './alpha-projection.js';
 import type { GuestPrincipal } from './guest-session.js';
+import { playtestRecorderFor } from './playtest-log.js';
 
 export function roomView(room:AlphaRoom,principal:GuestPrincipal){
   const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return null;
@@ -22,7 +23,7 @@ export class AlphaGameService {
   /** Server clock drives deadlines; CAS makes concurrent polling safe. No client time is accepted. */
   private async expire(room:AlphaRoom,now:number):Promise<AlphaRoom|null>{
     if(!room.game||room.deadline===null||now<room.deadline)return room;
-    const expected=room.version;
+    const expected=room.version,gameBefore=room.game;
     for(const actor of [...room.game.initiative]){
       const player=room.game.players.find(p=>p.playerId===actor)!;if(player.ready)continue;
       if(!player.ambitionsChosen){
@@ -32,6 +33,7 @@ export class AlphaGameService {
       const ready=applyAlphaCommand(room.game,actor,{type:'READY',expectedVersion:room.game.version});
       if(!ready.ok)throw new Error(`Alpha timeout failed: ${ready.error.code}`);room.game=ready.value;
     }
+    playtestRecorderFor(room.id)?.observeTransition(gameBefore,room.game);
     room.version++;room.deadline=room.game.core.status==='FINISHED'?null:now+room.planningSeconds*1000;
     return await this.repository.save(room,expected)?room:null;
   }
@@ -72,6 +74,7 @@ export class AlphaGameService {
       if(room.seats.length<2||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
       room.game=beginAlphaPlanning(createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))}));
       room.game.rules.planningSeconds=room.planningSeconds;
+      playtestRecorderFor(room.id)?.start(room.game);
       room.deadline=room.planningSeconds?now+room.planningSeconds*1000:null;
     }
     room.version++;
@@ -84,7 +87,9 @@ export class AlphaGameService {
     if(!room.game)return err({code:'NOT_STARTED',message:'Aguarde o início da partida.'});
     if(room.deadline!==null&&now>=room.deadline){await this.expire(room,now);return conflict();}
     const previousPhase=room.game.phase,previousRound=room.game.core.round;
-    const result=applyAlphaCommand(room.game,seat.playerId,raw);if(!result.ok)return result;
+    const result=applyAlphaCommand(room.game,seat.playerId,raw);
+    playtestRecorderFor(room.id)?.observe(room.game,seat.playerId,raw,result);
+    if(!result.ok)return result;
     const expected=room.version;room.game=result.value;room.version++;
     if(room.game.core.status==='FINISHED')room.deadline=null;
     else if(room.planningSeconds&&(previousPhase!==room.game.phase||previousRound!==room.game.core.round))room.deadline=now+room.planningSeconds*1000;
