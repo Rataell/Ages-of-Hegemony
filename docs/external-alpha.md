@@ -55,3 +55,8 @@ Uma instância; presença em memória (após reiniciar, todos aparecem Reconecta
 - **Ritmo:** planeja na hora; confirma "Pronto" após 0,5–1,5 s (`ALPHA_BOT_DELAY_MS`; `0` nos testes). Nunca age em SUSPENDED/CLOSED/FINISHED. Se a política falhar, responde o mínimo legal (Ambições, escolhas pendentes, evento mundial) e confirma; logs `BOT_ADDED BOT_REMOVED BOT_PLAN_STARTED BOT_PLAN_CONFIRMED BOT_COMMAND_REJECTED BOT_DECISION_FALLBACK`.
 - **Regras sociais:** bot nunca é host, não vota, não vira EM GUARDA, não pode ser removido por voto e não conta como "jogador ativo" administrativo. Humano que cai **não** vira bot (continua Ausente/EM GUARDA/Reassumir).
 - **Limitações da política (registradas, não corrigidas):** não usa reações sociais; não define prioridade de baixas nem Reação de combate (usa os padrões do motor); joga fraco em guerra/combate; memória de plano (por rodada) é em RAM e é refeita após reiniciar; Ameaças do Mundo são outro sistema.
+
+### Rollback e salas com bots
+- **Rollback para o baseline V1 preserva o banco** (nenhuma migration nova; as salas ficam no PostgreSQL). Salas **sem bots** continuam abrindo no V1: o V1.1 grava assentos humanos exatamente no formato V1 (sem as chaves `bot`/`botPersona`).
+- **Salas que contêm bots exigem V1.1+ para serem abertas.** Elas guardam assentos `bot:true`; o V1 as recusa na leitura com a falha controlada de sempre (snapshot inválido → resposta 503 daquela requisição). Nada é escrito, apagado nem convertido: o processo não cai e nenhum bot vira humano. Reimplantar o V1.1 (tag `external-alpha-v1.1-bots`) reabre essas salas intactas.
+- Salas gravadas pelo V1.1 *antes* desta correção (assentos humanos com `bot:false`) só são legíveis no V1 depois de qualquer novo save pelo V1.1; eram só salas de teste.

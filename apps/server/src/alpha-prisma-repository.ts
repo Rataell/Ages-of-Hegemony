@@ -19,6 +19,15 @@ function decode(row:{id:string;joinCode:string;version:bigint;status:string;snap
   if(room.id!==row.id||room.joinCode!==row.joinCode||BigInt(room.version)!==row.version||status(room)!==row.status)throw new Error('Corrupt alpha match metadata');
   return room;
 }
+/**
+ * Stored format. A room WITHOUT bots is written exactly as the V1 baseline wrote it (no `bot`/`botPersona` keys on human seats), so rolling back to V1
+ * keeps opening every room that has no bots. A room WITH bots carries `bot:true` seats: that is the V1.1+ format, and a V1 reader refuses it with its
+ * normal controlled "invalid snapshot" failure (HTTP 503 for that request, nothing written, nothing deleted, process unaffected).
+ */
+export function encodeRoom(room:AlphaRoom):AlphaRoom {
+  const parsed=AlphaRoomSchema.parse(room);
+  return {...parsed,seats:parsed.seats.map(seat=>seat.bot?seat:{guestId:seat.guestId,playerId:seat.playerId,name:seat.name,civilization:seat.civilization,ready:seat.ready} as typeof seat)};
+}
 class StaleWrite extends Error {}
 /** A stored payload that no longer parses as the current room is a legacy snapshot that this save is about to migrate. */
 const needsMigration=(snapshot:unknown)=>!AlphaRoomSchema.safeParse(snapshot).success;
@@ -28,7 +37,7 @@ export class PrismaAlphaRepository implements AlphaRepository {
   async find(id:string){return decode(await this.client.alphaMatch.findUnique({where:{id}}));}
   async findByCode(joinCode:string){return decode(await this.client.alphaMatch.findUnique({where:{joinCode}}));}
   async create(room:AlphaRoom){
-    const snapshot=AlphaRoomSchema.parse(room);
+    const snapshot=encodeRoom(room);
     try{await this.client.alphaMatch.create({data:{id:room.id,joinCode:room.joinCode,version:BigInt(room.version),status:status(room),snapshot}});return true;}
     catch(error:unknown){if(error instanceof Prisma.PrismaClientKnownRequestError&&error.code==='P2002')return false;throw error;}
   }
@@ -37,7 +46,7 @@ export class PrismaAlphaRepository implements AlphaRepository {
    * same transaction, so the v5 rewrite can never destroy the only copy. Reads never write.
    */
   async save(room:AlphaRoom,expectedVersion:number){
-    const snapshot=AlphaRoomSchema.parse(room);if(room.version!==expectedVersion+1)return false;
+    const snapshot=encodeRoom(room);if(room.version!==expectedVersion+1)return false;
     try{
       return await this.client.$transaction(async tx=>{
         const current=await tx.alphaMatch.findUnique({where:{id:room.id}});
