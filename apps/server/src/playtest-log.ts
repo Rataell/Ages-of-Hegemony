@@ -37,6 +37,7 @@ export function summarizeCommand(raw: unknown): Record<string, unknown> {
   const pick: Record<string, unknown> = { type: command.type };
   for (const key of ['action', 'unit', 'advancementId', 'cityId', 'cardId', 'path', 'posture', 'choice', 'choiceId', 'optionId', 'treaty', 'targetId', 'recipientId', 'peopleId', 'unitId', 'fleetId', 'hexId', 'government', 'ambitionId']) if (command[key] !== undefined) pick[key] = command[key];
   if (command.count !== undefined) pick.count = command.count;
+  if (command.type === 'SET_CASUALTY_PRIORITY') { pick.casualtyOrder = Array.isArray(command.order) ? command.order.filter(kind => typeof kind === 'string').slice(0, 10) : undefined; pick.hexId = command.hexId ?? null; }
   if (command.build && typeof command.build === 'object') pick.build = command.build;
   if (command.type === 'QUEUE_ORDER') {
     const order = (command.order ?? {}) as Record<string, unknown>;
@@ -59,6 +60,10 @@ export function availableActions(state: AlphaState, seat: PlayerId) {
     settle: units.filter(u => u.settleBlock === null).length, claims, orders: { limit: usage.limit, used: usage.used },
   };
 }
+
+/** Client-side moments a person causes, as short enums (never free text). Timing is measured against the server clock of the open round. */
+export const UI_KINDS = ['panel_open', 'panel_close', 'decision_shown', 'decision_done', 'era_turn_shown', 'planning_idle', 'casualty_panel', 'diplomacy_panel'] as const;
+export type UiKind = (typeof UI_KINDS)[number];
 
 export class PlaytestRecorder {
   private seq = 0;
@@ -105,6 +110,12 @@ export class PlaytestRecorder {
     this.emit(before, 'command', { seat, command: summary });
     if (summary.type === 'READY') this.emit(before, 'ready', { seat, planningMs: this.clock() - (this.openedAt.get(before.core.round) ?? this.clock()), orders: alphaActionUsage(before, seat).byOrder });
     this.diff(before, after);
+  }
+
+  /** A human-side moment (panel opened, decision shown/answered). Detail is a short token like a panel name, never player text. */
+  clientEvent(state: AlphaState, seat: PlayerId, kind: UiKind, detail: string): void {
+    if (!this.started) this.start(state);
+    this.emit(state, 'ui', { seat, kind, detail: detail.replace(/[^a-z0-9:_-]/gi, '').slice(0, 40), sinceOpenMs: this.clock() - (this.openedAt.get(state.core.round) ?? this.clock()) });
   }
 
   /** Observe automatic transitions that did not come from a command (timeouts). */

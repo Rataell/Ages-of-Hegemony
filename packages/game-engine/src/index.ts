@@ -41,3 +41,4 @@ export { applyOps, autoResolveChoices, addPendingChoice, pickRepercussion, regis
 export * from './alpha-threats.js';
 export * from './alpha-discoveries.js';
 export * from './alpha-telemetry.js';
+export * from './alpha-scenario-contact.js';

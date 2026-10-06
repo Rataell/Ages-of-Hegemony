@@ -118,9 +118,14 @@ if (command === 'check') {
   console.log('Preparando o workspace (prisma generate, tsc -b)…');
   if (run(bins.prisma, ['generate']) !== 0 || run(bins.tsc, ['-b']) !== 0) stop('Falha ao preparar o workspace. Corrija os erros acima e tente de novo.');
   // Memory mode: the origin follows the port and the secret is random for this run, so a restart also invalidates old sessions.
+  // --playtest: human session setup. A legal Contact between the two nearest Pátrias from round 1 (ALPHA_FORCE_CONTACT) and the local playtest log
+  // (ALPHA_PLAYTEST_LOG), including the human-side timing events. The people play; nothing here drives the game.
+  const playtest = flags.includes('--playtest');
+  const sessionEnv = playtest ? { ALPHA_FORCE_CONTACT: '1', ALPHA_PLAYTEST_LOG: '1', ALPHA_PLAYTEST_DIR: join(ROOT, 'docs', 'evidence', 'playtests') } : {};
   const childEnv = postgres
-    ? { ...process.env, ALPHA_STORAGE: 'postgres' }
-    : { ...process.env, ALPHA_STORAGE: 'memory', ALPHA_PUBLIC_ORIGIN: ORIGIN, ALPHA_SESSION_SECRET: randomBytes(48).toString('base64url') };
+    ? { ...process.env, ...sessionEnv, ALPHA_STORAGE: 'postgres' }
+    : { ...process.env, ...sessionEnv, ALPHA_STORAGE: 'memory', ALPHA_PUBLIC_ORIGIN: ORIGIN, ALPHA_SESSION_SECRET: randomBytes(48).toString('base64url') };
+  if (playtest) console.log('\nSESSÃO DE PLAYTEST HUMANO: contato forçado (2 Pioneiros frente a frente na rodada 1) + log local de playtest.\n  1. Abra a URL abaixo em duas janelas (ou dois navegadores), uma por pessoa; crie a sala com 2 lugares e comece.\n  2. O log fica em docs/evidence/playtests/<data>-<partida>/events.jsonl (veja docs/playtest/human-alpha-playtest.md).');
   console.log(`\nClosed Alpha local: ${ORIGIN}/alpha  (${postgres ? 'PostgreSQL de desenvolvimento' : 'em memória: reiniciar este comando apaga as partidas'})\n  .tsx/.css: Fast Refresh. packages/* e apps/server: recompilados por tsc -b -w. Ctrl+C encerra tudo.\n`);
   const children = [{ name: 'next', child: spawn(process.execPath, [bins.next, 'dev', '--hostname', HOST, '--port', String(PORT)], { cwd: WEB, stdio: 'inherit', windowsHide: true, env: childEnv }) }];
   if (!flags.includes('--no-watch-packages')) children.push({ name: 'tsc', child: spawn(process.execPath, [bins.tsc, '-b', '-w', '--preserveWatchOutput'], { cwd: ROOT, stdio: 'inherit', windowsHide: true, env: process.env }) });

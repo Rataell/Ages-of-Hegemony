@@ -8,6 +8,7 @@ import { ResourceDisplay } from '../play/resource-display';
 import { alphaLabel as text } from './alpha-copy';
 import { ArmyList, compositionText } from './alpha-army';
 import { CasualtyPriority } from './alpha-casualties';
+import { trackUi } from './telemetry';
 import { LeaveGame } from './alpha-leave';
 import { AlphaGuide } from './alpha-guide';
 import { AttackPreview, POSTURES, postureText } from './alpha-combat';
@@ -55,6 +56,12 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const chosen=ownUnits.filter(u=>units.includes(u.id));
   // A piece that no longer exists (Pioneiro that founded a city, a casualty) must not stay in the selection: its id would be sent with the next order and the server would refuse the whole order.
   const liveKey=ownUnits.map(u=>u.id).join();
+  // Playtest-only human telemetry (the server turns it on): which panel is open, when a decision appears and when it is answered.
+  const watched=room.playtest===true,firstChoice=game.self.pendingChoices[0]?.id??null;
+  useEffect(()=>{trackUi(watched,room.id,'panel_open',civOpen?'civ':tab);},[watched,room.id,tab,civOpen]);
+  useEffect(()=>{trackUi(watched,room.id,'panel_open',`inspector-${inspector}`);},[watched,room.id,inspector]);
+  useEffect(()=>{if(firstChoice)trackUi(watched,room.id,'decision_shown',firstChoice.slice(0,32));return()=>{if(firstChoice)trackUi(watched,room.id,'decision_done',firstChoice.slice(0,32));};},[watched,room.id,firstChoice]);
+  useEffect(()=>{if(game.phase==='ERA_TURN')trackUi(watched,room.id,'era_turn_shown',String(game.view.round));},[watched,room.id,game.phase,game.view.round]);
   useEffect(()=>{setUnits(current=>{const live=current.filter(id=>ownUnits.some(u=>u.id===id));return live.length===current.length?current:live;});},[liveKey]);
   /** Same arithmetic as the server, computed from the projected stack view before any command is sent. */
   const moveEnd=path.at(-1)??null,moveBlock=moveEnd?stackViewVerdict(game.stacks,chosen.map(u=>stackCategory(game.rules.units[u.kind]!)),moveEnd):null;

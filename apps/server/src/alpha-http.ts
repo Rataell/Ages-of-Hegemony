@@ -8,6 +8,7 @@ const envelope=z.discriminatedUnion('operation',[
   z.strictObject({operation:z.literal('join'),code:z.string().max(22),displayName:z.string().max(80)}),
   z.strictObject({operation:z.literal('lobby'),gameId:z.string().uuid(),payload:z.unknown()}),
   z.strictObject({operation:z.literal('command'),gameId:z.string().uuid(),payload:z.unknown()}),
+  z.strictObject({operation:z.literal('telemetry'),gameId:z.string().uuid(),kind:z.string().max(32),detail:z.string().max(40)}),
 ]);
 class AlphaRateLimit {
   private readonly windows=new Map<string,{until:number;count:number}>();
@@ -68,7 +69,7 @@ export class AlphaHttp {
     const cookie=request.headers.get('cookie')?.split(';').map(v=>v.trim()).find(v=>v.startsWith(`${this.cookieName}=`))?.slice(this.cookieName.length+1);
     let principal=this.sessions.resolve(cookie,now);
     // Reads (the push-driven refreshes of a busy table) have their own, larger allowance; writes keep the tight one.
-    const reads=request.method==='GET';
+    const reads=request.method==='GET'||request.headers.get('x-aoh-telemetry')==='1';
     if(!this.rate.allow(principal?`guest:${principal.guestId}${reads?':read':''}`:'anonymous',principal?(reads?600:120):30,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
     try{
       if(request.method==='GET'){
@@ -87,6 +88,11 @@ export class AlphaHttp {
       const parsed=envelope.safeParse(raw);if(!parsed.success)return error('INVALID_INPUT','Solicitação inválida.',400);
       const action=parsed.data;
       if((action.operation==='create'||action.operation==='join')&&!this.rate.allow('new-or-join',20,now))return error('RATE_LIMIT','Muitos convites processados. Aguarde um minuto.',429);
+      if(action.operation==='telemetry'){
+        if(!principal)return error('UNAUTHENTICATED','Sua sessão expirou. Entre novamente.',401);
+        if(!this.rate.allow(`guest:${principal.guestId}:telemetry`,600,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
+        return respond(await this.service.telemetry(principal,action.gameId,action.kind,action.detail));
+      }
       let setCookie:string|undefined;
       if(!principal){
         if(action.operation!=='create'&&action.operation!=='join')return error('UNAUTHENTICATED','Sua sessão expirou. Entre novamente.',401);

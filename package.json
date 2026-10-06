@@ -13,6 +13,7 @@
   "scripts": {
     "dev:web": "node scripts/project-task.mjs dev:web",
     "dev:alpha": "node scripts/local-alpha.mjs dev",
+    "playtest:human": "node scripts/local-alpha.mjs dev --playtest",
     "dev:alpha:pg": "node scripts/local-alpha.mjs dev --postgres",
     "alpha:players": "node scripts/alpha-players.mjs",
     "alpha:lab": "node scripts/alpha-lab.mjs",

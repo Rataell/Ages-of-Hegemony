@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { effectiveCasualtyList } from '../apps/web/app/alpha/alpha-casualties.js';
+import { effectiveCasualtyList } from '../apps/web/app/alpha/casualty-list.js';
 
 const defaults = ['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE'];
 describe('effectiveCasualtyList', () => {

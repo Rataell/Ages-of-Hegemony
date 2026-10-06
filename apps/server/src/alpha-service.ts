@@ -1,15 +1,15 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { GameIdSchema, PlayerIdSchema, type AlphaError } from '@aoh/game-domain';
-import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame } from '@aoh/game-engine';
+import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, forceContactSetup } from '@aoh/game-engine';
 import { err, ok, type Result } from '@aoh/shared';
 import { AlphaRoomSchema, CreateAlphaRoomSchema, LobbyActionSchema, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
 import { alphaPlayerView } from './alpha-projection.js';
 import type { GuestPrincipal } from './guest-session.js';
-import { playtestRecorderFor } from './playtest-log.js';
+import { playtestEnabled, playtestRecorderFor, UI_KINDS, type UiKind } from './playtest-log.js';
 
 export function roomView(room:AlphaRoom,principal:GuestPrincipal){
   const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return null;
-  return {id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,seed:room.seed,seatLimit:room.seatLimit,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,planningSeconds:room.planningSeconds,deadline:room.deadline,
+  return {playtest:playtestEnabled(),id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,seed:room.seed,seatLimit:room.seatLimit,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,planningSeconds:room.planningSeconds,deadline:room.deadline,
     selfPlayerId:seat.playerId,isHost:room.hostGuestId===principal.guestId,
     seats:room.seats.map(s=>({playerId:s.playerId,name:s.name,civilization:s.civilization,ready:s.ready,isHost:s.guestId===room.hostGuestId})),
     game:room.game?alphaPlayerView(room.game,seat.playerId):null};
@@ -59,6 +59,14 @@ export class AlphaGameService {
     if(!roomView(loaded,principal))return forbidden();
     const room=await this.expire(loaded,now);return room?ok(roomView(room,principal)!):conflict();
   }
+  /** Dev playtest only: a person's UI moment goes to the local log. Never changes the game; answers ok either way so the client can tell whether it was recorded. */
+  async telemetry(principal:GuestPrincipal,id:string,kind:string,detail:string):Promise<Result<{recorded:boolean},AlphaError>>{
+    const room=await this.repository.find(id);if(!room)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
+    const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return forbidden();
+    const recorder=room.game&&(UI_KINDS as readonly string[]).includes(kind)?playtestRecorderFor(room.id):null;
+    if(room.game&&recorder)recorder.clientEvent(room.game,seat.playerId,kind as UiKind,detail);
+    return ok({recorded:recorder!==null&&room.game!==null&&room.game!==undefined});
+  }
   async lobby(principal:GuestPrincipal,id:string,raw:unknown,now:number):Promise<Response>{
     const parsed=LobbyActionSchema.safeParse(raw);if(!parsed.success)return err({code:'INVALID_INPUT',message:'Decisão de lobby inválida.'});
     const room=await this.repository.find(id);if(!room)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
@@ -72,7 +80,10 @@ export class AlphaGameService {
     else {
       if(room.hostGuestId!==principal.guestId)return forbidden();
       if(room.seats.length<2||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
-      room.game=beginAlphaPlanning(createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))}));
+      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))});
+      // Dev-only test scenario (never in production): a legal Contact between the two nearest Pátrias, from the real proximity rule.
+      if(process.env.ALPHA_FORCE_CONTACT==='1'&&process.env.NODE_ENV!=='production')forceContactSetup(created);
+      room.game=beginAlphaPlanning(created);
       room.game.rules.planningSeconds=room.planningSeconds;
       playtestRecorderFor(room.id)?.start(room.game);
       room.deadline=room.planningSeconds?now+room.planningSeconds*1000:null;

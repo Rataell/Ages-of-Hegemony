@@ -2,13 +2,7 @@
 import { useState } from 'react';
 import { alphaLabel as text } from './alpha-copy';
 import type { AlphaSend } from './alpha-board';
-
-/** Casualty list shown to the owner: the saved order (stack override, else civilization list, else the engine default), restricted to the kinds the owner fields. */
-export function effectiveCasualtyList(defaults: string[], saved: { order: string[]; byHex: Record<string, string[]> }, scope: string | null, fielded: Set<string>): string[] {
-  const base = (scope ? saved.byHex[scope] : undefined) ?? (saved.order.length ? saved.order : undefined) ?? defaults;
-  const known = [...base, ...defaults.filter(kind => !base.includes(kind))];
-  return known.filter(kind => fielded.has(kind));
-}
+import { effectiveCasualtyList } from './casualty-list';
 
 /** V51B-01: PRIORIDADE DE BAIXAS. Free action while planning; the engine reads the list at resolution, no prompt during the fight. */
 export function CasualtyPriority({ defaults, saved, units, locked, send }: { defaults: string[]; saved: { order: string[]; byHex: Record<string, string[]> }; units: { kind: string; hexId: string }[]; locked: boolean; send: AlphaSend }) {

@@ -7,7 +7,7 @@
 //   node scripts/alpha-ui-playtest.mjs --players=2 --preset=QUICK --rounds=12 --out=docs/evidence/v51b-ui-playtest/run-2p
 //   options: --players=2|4|6  --preset=QUICK|STANDARD  --rounds=N (stop after N rounds)  --out=DIR  --headed  --reveal
 //            --personas=scholar,diplomat,...  (strategy per seat; default cycles expansionist,warrior,scholar,trader,diplomat,builder)
-//            --contact=forced  (V51B-12: every seat walks its Explorador toward the far side of the map and the warrior marches on the nearest foreign city, still through clicks only)
+//            --contact=forced  (needs the server started with ALPHA_FORCE_CONTACT=1: two Pioneiros are set face to face and the real Contact rule fires by round 2; was: every seat walks its Explorador toward the far side of the map and the warrior marches on the nearest foreign city, still through clicks only)
 //            --viewport=1366x768  --shots=natural (screenshot the first time each milestone appears)
 // Output (in --out): session.json (per-round client-observed telemetry, contact metrics, friction log), shots/*.png.
 import { chromium } from '@playwright/test';
@@ -597,4 +597,11 @@ const session = {
 writeFileSync(`${OUT}/session.json`, JSON.stringify(session, null, 2));
 console.log(`fim: rodada ${session.reachedRound}, ${session.wallSeconds}s, atrito ${seats.reduce((n, s) => n + s.friction.length, 0)}, contato ${JSON.stringify(session.contact)}`);
 await browser.close();
+// --contact=forced contract: the server was started with ALPHA_FORCE_CONTACT=1 (npm run playtest:human), which places two Pioneiros face to face
+// through the real proximity rule, so Contact exists in the first rounds. A seed that never shows it means the harness was not set up.
+if (CONTACT) {
+  const first = session.contact.firstContactRound;
+  console.log(`contato forçado: ${first === null ? 'NÃO OCORREU' : `rodada ${first}`} (janela: rodada ≤ 2)`);
+  if (first === null || first > 2) { console.error('--contact=forced falhou: inicie o servidor com ALPHA_FORCE_CONTACT=1 (npm run playtest:human).'); process.exit(2); }
+}
 process.exit(0);
