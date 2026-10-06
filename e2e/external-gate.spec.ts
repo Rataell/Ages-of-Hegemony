@@ -5,6 +5,12 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
  * reconnect to the same seat, host transfer, leave-and-return, suspend/resume. No 35-round games.
  */
 const ENTRY = '/alpha';
+/** Against a protected deployment: ALPHA_ACCESS_CODE=... npx playwright test -c playwright.external.config.ts */
+async function unlock(page: Page) {
+  const field = page.getByLabel('Código de acesso do Alpha');
+  // The entry screen learns whether a code is required from /api/alpha?info=1; wait briefly for the field (absent on open deployments).
+  if (process.env.ALPHA_ACCESS_CODE) { await field.waitFor({ timeout: 8000 }).catch(() => undefined); if (await field.isVisible().catch(() => false)) await field.fill(process.env.ALPHA_ACCESS_CODE); }
+}
 async function guest(browser: Browser, name: string) {
   const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   await context.addInitScript(() => { try { localStorage.setItem('aoh-tour-off', '1'); } catch { /* no storage */ } });
@@ -14,6 +20,7 @@ async function guest(browser: Browser, name: string) {
 async function create(page: Page, name: string, seats: number) {
   await page.goto(ENTRY);
   await page.getByLabel('Seu nome', { exact: true }).fill(name);
+  await unlock(page);
   await page.getByLabel('Lugares', { exact: false }).selectOption(String(seats));
   await page.getByRole('button', { name: 'Criar partida', exact: true }).click();
   await page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
@@ -23,6 +30,7 @@ async function joinByLink(page: Page, name: string, code: string) {
   await page.goto(`/alpha/join/${code}`);
   await expect(page.getByLabel('Código de convite')).toHaveValue(code); // the link pre-fills the code
   await page.getByLabel('Seu nome', { exact: true }).fill(name);
+  await unlock(page);
   await page.getByRole('button', { name: 'Entrar na partida', exact: true }).click();
   await page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
 }

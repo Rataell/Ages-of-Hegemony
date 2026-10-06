@@ -39,3 +39,11 @@ Pausar ou escalar a zero o serviço (as mesas ficam no PostgreSQL). Rollback = r
 
 ## Limitações conhecidas
 Uma instância; presença em memória (após reiniciar, todos aparecem Reconectando por 20 s); código de convite é o link longo; animação de dado não está ligada ao relatório de batalha (a face exibida já é a autoritativa); áudio não foi ouvido em navegador por humano; 5–6 jogadores existem no motor mas não são oferecidos.
+
+## Deploy real (Railway) — registro
+- Projeto Railway **AoH External Alpha** (ambiente `production`), serviço `aoh-alpha` + `Postgres`, domínio `https://aoh-alpha-production.up.railway.app`, região ams, **1 réplica**.
+- Fonte: GitHub `Rataell/Ages-of-Hegemony`, branch **`fix/aoh-alpha-correctness-pre-v2`** (nunca `main`). Push nessa branch reimplanta.
+- `railway.json`: `startCommand = npx prisma migrate deploy && npm run start -w @aoh/web` (migrations aditivas na subida; instância única, sem corrida), health `/api/alpha/health`, `numReplicas: 1`.
+- Variáveis (só no Railway): `DATABASE_URL`/`DIRECT_URL` = referência `${{Postgres.DATABASE_URL}}` (rede privada), `ALPHA_SESSION_SECRET`, `ALPHA_ACCESS_CODE`, `ALPHA_PUBLIC_ORIGIN`, `ALPHA_MAX_SEATS=4`.
+- Logs: `railway logs -s aoh-alpha -d` (deploy), `-b` (build). Pausar: `railway service scale ams=0 -s aoh-alpha` (ou remover o deploy: `railway down -s aoh-alpha`). Rollback: Railway → serviço → Deployments → Redeploy do deploy anterior (ou `git revert` + push na branch).
+- Verificação viva: `ALPHA_BASE_URL=… ALPHA_ACCESS_CODE=… npx playwright test -c playwright.external.config.ts`; `node scripts/alpha-live-persistence.mjs plan|verify`; `node scripts/alpha-live-rooms.mjs`.
