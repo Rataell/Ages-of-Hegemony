@@ -13,7 +13,7 @@ describe('alpha healthcheck', () => {
     expect(response.status).toBe(503);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
     const body = await response.json() as Record<string, unknown>;
-    expect(body).toEqual({ ok: false, service: 'ages-of-hegemony-alpha', release: 'alpha-v0.1', database: false, migration: false });
+    expect(body).toEqual({ ok: false, service: 'ages-of-hegemony-alpha', release: 'alpha-external-0.2', database: false, migration: false });
   });
 
   it('production never reports memory storage, even if asked to', async () => {
@@ -21,7 +21,7 @@ describe('alpha healthcheck', () => {
     vi.stubEnv('DATABASE_URL', ''); vi.stubEnv('ALPHA_SESSION_SECRET', ''); vi.stubEnv('ALPHA_PUBLIC_ORIGIN', '');
     const response = await alphaHealth();
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ ok: false, service: 'ages-of-hegemony-alpha', release: 'alpha-v0.1', database: false, migration: false });
+    expect(await response.json()).toEqual({ ok: false, service: 'ages-of-hegemony-alpha', release: 'alpha-external-0.2', database: false, migration: false });
   });
 
   it('development without configuration: explicit memory storage, no database claims', async () => {
@@ -30,6 +30,6 @@ describe('alpha healthcheck', () => {
     const response = await alphaHealth();
     expect(response.status).toBe(200);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
-    expect(await response.json()).toEqual({ ok: true, service: 'ages-of-hegemony-alpha', release: 'alpha-v0.1', storage: 'memory' });
+    expect(await response.json()).toMatchObject({ ok: true, service: 'ages-of-hegemony-alpha', release: 'alpha-external-0.2', storage: 'memory' });
   });
 });

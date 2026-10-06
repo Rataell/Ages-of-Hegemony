@@ -21,7 +21,7 @@ async function frames(response: Response, count: number, ms = 1500): Promise<{ v
     const next = await Promise.race([reader.read(), new Promise<{ done: true; value: undefined }>(resolve => setTimeout(() => resolve({ done: true, value: undefined }), Math.max(1, stop - Date.now())))]);
     if (next.done) break;
     buffer += decoder.decode(next.value, { stream: true });
-    for (const part of buffer.split('\n\n').slice(0, -1)) { const line = part.split('\n').find(entry => entry.startsWith('data: ')); if (line) out.push({ ...(JSON.parse(line.slice(6)) as { version: number; at: number }), received: Date.now() }); }
+    for (const part of buffer.split('\n\n').slice(0, -1)) { const line = part.split('\n').find(entry => entry.startsWith('data: ')); if (line && !line.includes('"event"')) out.push({ ...(JSON.parse(line.slice(6)) as { version: number; at: number }), received: Date.now() }); }
     buffer = buffer.slice(buffer.lastIndexOf('\n\n') + 2);
   }
   await reader.cancel();

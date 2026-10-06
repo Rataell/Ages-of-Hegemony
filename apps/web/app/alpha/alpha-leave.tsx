@@ -1,13 +1,18 @@
 'use client';
 import { useState } from 'react';
 
-/** Leaving only forgets the match in this browser. The saved match, the seat and the session are untouched, so the invite code brings the person back. */
+/**
+ * Leaving is NOT abandoning and NOT ending the match: it only closes this session. The seat, the civilization and the match stay exactly as they were,
+ * and the same browser (or the invite link) brings the person back to the same seat.
+ */
 export function LeaveGame({ joinCode, onLeave }: { joinCode: string; onLeave: () => void }) {
   const [confirming, setConfirming] = useState(false);
-  if (!confirming) return <button type="button" className="alpha-leave" onClick={() => setConfirming(true)}>Sair da partida</button>;
-  return <span className="alpha-leave-confirm" role="group" aria-label="Confirmar saída">
-    <small>Sair só deste navegador. Para voltar, use o código <code>{joinCode}</code>.</small>
-    <button type="button" onClick={onLeave}>Sair agora</button>
-    <button type="button" onClick={() => setConfirming(false)}>Ficar</button>
-  </span>;
+  return <>
+    <button type="button" className="alpha-leave" onClick={() => setConfirming(true)}>Sair da partida</button>
+    {confirming && <div className="alpha-modal-backdrop"><section className="alpha-modal alpha-leave-modal" role="dialog" aria-modal="true" aria-labelledby="alpha-leave-title">
+      <h2 id="alpha-leave-title">SAIR DESTA SESSÃO?</h2>
+      <p>Sua civilização continua no lugar. Para voltar, abra o convite <code>/alpha/join/{joinCode}</code> neste navegador.</p>
+      <div className="alpha-finale-actions"><button type="button" className="primary" onClick={onLeave}>Sair e poder voltar</button><button type="button" onClick={() => setConfirming(false)}>Cancelar</button></div>
+    </section></div>}
+  </>;
 }

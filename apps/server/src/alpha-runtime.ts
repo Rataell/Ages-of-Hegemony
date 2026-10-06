@@ -7,11 +7,13 @@ import { GuestSessions } from './guest-session.js';
 import { AlphaHttp } from './alpha-http.js';
 import { PublishingAlphaRepository } from './alpha-bus.js';
 import { InMemoryAlphaRepository, type AlphaRoom } from './alpha-room.js';
+import { maxSeats } from './alpha-lifecycle.js';
 import { alphaStorageMode, type AlphaStorageMode } from './alpha-storage.js';
 export type { AlphaRoomView } from './alpha-service.js';
 export type { AlphaPlayerView } from './alpha-projection.js';
 const expectedMigrations=['20260919000100_alpha_match','20260920000100_alpha_match_archive'];
-const release='alpha-v0.1';
+const release='alpha-external-0.2';
+const posture=()=>({maxSeats:maxSeats(),accessProtected:Boolean(process.env.ALPHA_ACCESS_CODE),singleInstance:true});
 type Runtime={http:AlphaHttp;client:PrismaClient|null;storage:AlphaStorageMode;module:symbol};
 /** Development-only memory storage. It lives on globalThis so a hot reload keeps the matches; restarting the process clears them. */
 type Memory={rooms:Map<string,AlphaRoom>;secret:string};
@@ -41,12 +43,12 @@ export async function handleAlphaRequest(request:Request):Promise<Response>{
 }
 export async function alphaHealth():Promise<Response>{
   try{
-    if(alphaStorageMode(process.env)==='memory'){runtime();return Response.json({ok:true,service:'ages-of-hegemony-alpha',release,storage:'memory'},{headers:{'Cache-Control':'no-store'}});}
+    if(alphaStorageMode(process.env)==='memory'){runtime();return Response.json({ok:true,service:'ages-of-hegemony-alpha',release,storage:'memory',...posture()},{headers:{'Cache-Control':'no-store'}});}
     const client=runtime().client!;await client.$queryRaw`SELECT 1`;
     const rows=await client.$queryRaw<{migration_name:string;finished_at:Date|null;rolled_back_at:Date|null}[]>`SELECT migration_name, finished_at, rolled_back_at FROM _prisma_migrations`;
     const migration=expectedMigrations.every(name=>rows.some(r=>r.migration_name===name&&r.finished_at!==null&&r.rolled_back_at===null));
     const failed=rows.some(r=>r.finished_at===null&&r.rolled_back_at===null);
     const ready=migration&&!failed;
-    return Response.json({ok:ready,service:'ages-of-hegemony-alpha',release,database:true,migration:ready},{status:ready?200:503,headers:{'Cache-Control':'no-store'}});
+    return Response.json({ok:ready,service:'ages-of-hegemony-alpha',release,database:true,migration:ready,...posture()},{status:ready?200:503,headers:{'Cache-Control':'no-store'}});
   }catch{return Response.json({ok:false,service:'ages-of-hegemony-alpha',release,database:false,migration:false},{status:503,headers:{'Cache-Control':'no-store'}});}
 }

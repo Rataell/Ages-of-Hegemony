@@ -1,4 +1,4 @@
-/* global document, getComputedStyle */
+/* global document, getComputedStyle, window */
 // NO-SCROLL UX checkpoint: opens a 2-seat table on the local playtest server (npm run playtest:human) and, as seat A, visits every
 // strategic surface in the viewport under test, taking one capture each and auditing scroll: for every state it lists elements that
 // scroll (overflow auto/scroll with hidden content) and elements that CLIP their own content (overflow hidden, content larger).
@@ -7,7 +7,7 @@ import { writeFileSync } from 'node:fs';
 import { openTable, shot, clickHex, clickPiece, skipOverlays, OUT, VW, VH } from './alpha-ux-smoke.mjs';
 const table = await openTable(), a = table.seats[0].page, report = {};
 const audit = page => page.evaluate(() => {
-  const out = { scrolls: [], clipped: [], page: document.documentElement.scrollHeight > innerHeight + 1 || document.documentElement.scrollWidth > innerWidth + 1 };
+  const out = { scrolls: [], clipped: [], page: document.documentElement.scrollHeight > window.innerHeight + 1 || document.documentElement.scrollWidth > window.innerWidth + 1 };
   const name = el => `${el.tagName.toLowerCase()}${el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''}`;
   for (const el of document.querySelectorAll('.alpha-mesa *')) {
     const box = el.getBoundingClientRect(); if (!box.width || !box.height) continue;
@@ -52,7 +52,7 @@ await seg('.alpha-civ-identity', 'Governo'); await a.waitForTimeout(250); await 
 await a.keyboard.press('Escape'); await a.waitForTimeout(200);
 // 8 · Livro
 await a.getByRole('button', { name: 'Livro', exact: true }).click(); await a.waitForTimeout(300); await note('08-livro-conselho');
-for (const [tab, file, inner] of [['Cartas & Projetos', '08b-livro-cartas', null], ['Diplomacia', '08c-livro-diplomacia', null], ['Eras & Hegemonia', '08d-livro-eras', null], ['Crônicas', '08e-livro-cronicas', null]]) {
+for (const [tab, file] of [['Cartas & Projetos', '08b-livro-cartas'], ['Diplomacia', '08c-livro-diplomacia', null], ['Eras & Hegemonia', '08d-livro-eras', null], ['Crônicas', '08e-livro-cronicas', null]]) {
   await a.locator('.alpha-livro-tabs').getByRole('button', { name: tab }).click(); await a.waitForTimeout(250); await note(file);
 }
 await a.getByRole('button', { name: 'Voltar ao mapa' }).click().catch(() => undefined);

@@ -1,4 +1,5 @@
 'use client';
+import type { MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyEvent } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LocalView } from '@aoh/server/local-play';
 import type { AlphaUnit, HexTile } from '@aoh/game-domain';
@@ -38,6 +39,10 @@ type Props = {
   board?: readonly { id: string; hexIds: readonly string[]; closed: boolean; homeOf: string | null }[];
   /** Status line per seat shown on the table edge ("Planejando…", "✓ Pronto"). */
   seatStatus?: Readonly<Record<string, string>>;
+  /** Social layer on the seat plates: a short reaction bubble above a plate, a presence tone, and a click on the viewer's own plate. */
+  plateBubble?: Readonly<Record<string, { glyph: string; label: string; key: number }>>;
+  plateTone?: Readonly<Record<string, string>>;
+  onSelfPlate?: (anchor: HTMLElement) => void;
   safe?: SafeInsets;
   /** Interaction V2 target mode: the hexes a pending decision may land on, by kind (move, explore, attack, claim, mission). The map answers the decision. */
   targets?: { kind: string; hexIds: readonly string[] } | null;
@@ -102,6 +107,9 @@ export const HexMap = memo(function HexMap({
   art,
   board,
   seatStatus = {},
+  plateBubble = {},
+  plateTone = {},
+  onSelfPlate,
   safe = DEFAULT_SAFE,
   targets = null,
   onBackground,
@@ -541,8 +549,11 @@ export const HexMap = memo(function HexMap({
           const left = Math.min(Math.max(rawLeft, 100), Math.max(100, size.w - 100)), top = Math.min(Math.max(rawTop, 18), Math.max(18, size.h - 18));
           const who = data.players.find(player => player.id === region.homeOf), seat = art?.seats[region.homeOf!];
           const mine = region.homeOf === data.view.player.id;
-          return <li key={region.id} className={`seat-plate${mine ? ' is-mine' : ''}`} style={{ left, top, ['--seat' as string]: seat?.color ?? '#9aa4a2' }}>
+          const bubble = plateBubble[region.homeOf!];
+          return <li key={region.id} className={`seat-plate${mine ? ' is-mine' : ''}${plateTone[region.homeOf!] ? ` is-${plateTone[region.homeOf!]}` : ''}`} style={{ left, top, ['--seat' as string]: seat?.color ?? '#9aa4a2' }}
+            {...(mine && onSelfPlate ? { role: 'button', tabIndex: 0, 'aria-label': 'Reagir', title: 'Reagir aos outros jogadores', onClick: (e: ReactMouseEvent<HTMLElement>) => onSelfPlate(e.currentTarget), onKeyDown: (e: ReactKeyEvent<HTMLElement>) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelfPlate(e.currentTarget); } } } : {})}>
             <i aria-hidden="true" /><b>{who?.name ?? 'Pátria'}</b><small>{seatStatus[region.homeOf!] ?? ''}</small>
+            {bubble && <span key={bubble.key} className="seat-bubble" role="status" aria-label={bubble.label}><span aria-hidden="true">{bubble.glyph}</span><em>{bubble.label}</em></span>}
           </li>;
         });
       })()}</ul>}

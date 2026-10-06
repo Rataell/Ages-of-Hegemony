@@ -2,10 +2,15 @@ import { z } from 'zod';
 import { AlphaGameService } from './alpha-service.js';
 import { GuestSessions } from './guest-session.js';
 import { subscribeAlpha, type AlphaPush } from './alpha-bus.js';
+import { connect as presenceConnect, disconnect as presenceDisconnect } from './alpha-presence.js';
+import { alphaLog, short } from './alpha-log.js';
+import { maxSeats } from './alpha-lifecycle.js';
+import { timingSafeEqual } from 'node:crypto';
 
 const envelope=z.discriminatedUnion('operation',[
-  z.strictObject({operation:z.literal('create'),payload:z.unknown()}),
-  z.strictObject({operation:z.literal('join'),code:z.string().max(22),displayName:z.string().max(80)}),
+  z.strictObject({operation:z.literal('create'),payload:z.unknown(),accessCode:z.string().max(80).optional()}),
+  z.strictObject({operation:z.literal('join'),code:z.string().max(22),displayName:z.string().max(80),accessCode:z.string().max(80).optional()}),
+  z.strictObject({operation:z.literal('room'),gameId:z.string().uuid(),payload:z.unknown()}),
   z.strictObject({operation:z.literal('lobby'),gameId:z.string().uuid(),payload:z.unknown()}),
   z.strictObject({operation:z.literal('command'),gameId:z.string().uuid(),payload:z.unknown()}),
   z.strictObject({operation:z.literal('telemetry'),gameId:z.string().uuid(),kind:z.string().max(32),detail:z.string().max(40)}),
@@ -38,7 +43,7 @@ export class AlphaHttp {
     this.origin=url.origin;
     this.cookieName=production||url.protocol==='https:'?'__Host-aoh_alpha_session':'aoh_alpha_session';
   }
-  private stream(request:Request,gameId:string):Response{
+  private stream(request:Request,gameId:string,guestId:string):Response{
     const encoder=new TextEncoder();let cleanup=()=>{};
     const body=new ReadableStream<Uint8Array>({
       start:controller=>{
@@ -46,14 +51,20 @@ export class AlphaHttp {
         const push=(message:AlphaPush)=>send(`data: ${JSON.stringify(message)}\n\n`);
         send('retry: 1000\n\n');
         const unsubscribe=subscribeAlpha(gameId,push);
+        presenceConnect(gameId,guestId,Date.now());alphaLog('SSE_CONNECTED',{room:short(gameId)});
         const keepalive=setInterval(()=>send(': ping\n\n'),15000);
-        cleanup=()=>{clearInterval(keepalive);unsubscribe();try{controller.close();}catch{/* already closed */}};
+        let closed=false;
+        cleanup=()=>{if(closed)return;closed=true;clearInterval(keepalive);unsubscribe();presenceDisconnect(gameId,guestId,Date.now());alphaLog('SSE_DISCONNECTED',{room:short(gameId)});try{controller.close();}catch{/* already closed */}};
         request.signal.addEventListener('abort',cleanup,{once:true});
         push({gameId,version:-1,at:Date.now()});
       },
       cancel:()=>cleanup(),
     });
     return new Response(body,{headers:{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-store, no-transform','Connection':'keep-alive','X-Accel-Buffering':'no','X-Content-Type-Options':'nosniff'}});
+  }
+  private accessOk(given:string|undefined):boolean{
+    const required=process.env.ALPHA_ACCESS_CODE;if(!required)return true;
+    const a=Buffer.from(given??''),b=Buffer.from(required);return a.length===b.length&&timingSafeEqual(a,b);
   }
   async handle(request:Request,now=Date.now()):Promise<Response>{
     const respond=(body:unknown,status=200,cookie?:string)=>{
@@ -73,6 +84,8 @@ export class AlphaHttp {
     if(!this.rate.allow(principal?`guest:${principal.guestId}${reads?':read':''}`:'anonymous',principal?(reads?600:120):30,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
     try{
       if(request.method==='GET'){
+        // Public: what the entry screen needs before anyone has a session.
+        if(new URL(request.url).searchParams.get('info')==='1')return respond({ok:true,value:{accessRequired:Boolean(process.env.ALPHA_ACCESS_CODE),maxSeats:maxSeats()}});
         if(!principal)return error('UNAUTHENTICATED','Entre com seu convite ou crie uma partida.',401);
         const gameId=new URL(request.url).searchParams.get('gameId');
         if(!gameId||!z.string().uuid().safeParse(gameId).success)return error('INVALID_INPUT','Identificador de partida inválido.',400);
@@ -80,7 +93,7 @@ export class AlphaHttp {
           // Shared-table push (SSE): membership is checked like a read; the stream carries only room versions, never state.
           const allowed=await this.service.read(principal,gameId,now);
           if(!allowed.ok)return respond(allowed,allowed.error.code==='FORBIDDEN'?403:404);
-          return this.stream(request,gameId);
+          return this.stream(request,gameId,principal.guestId);
         }
         const result=await this.service.read(principal,gameId,now);return respond(result,result.ok?200:result.error.code==='FORBIDDEN'?403:result.error.code==='VERSION_CONFLICT'?409:404);
       }
@@ -93,13 +106,14 @@ export class AlphaHttp {
         if(!this.rate.allow(`guest:${principal.guestId}:telemetry`,600,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
         return respond(await this.service.telemetry(principal,action.gameId,action.kind,action.detail));
       }
+      if((action.operation==='create'||action.operation==='join')&&!this.accessOk(action.accessCode))return error('ACCESS_CODE','Código de acesso do Alpha incorreto.',403);
       let setCookie:string|undefined;
       if(!principal){
         if(action.operation!=='create'&&action.operation!=='join')return error('UNAUTHENTICATED','Sua sessão expirou. Entre novamente.',401);
         const issued=this.sessions.issue(now);principal=issued.principal;
         setCookie=`${this.cookieName}=${issued.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${issued.maxAge}${this.production||this.origin.startsWith('https:')?'; Secure':''}`;
       }
-      const result=action.operation==='create'?await this.service.create(principal,action.payload):action.operation==='join'?await this.service.join(principal,action.code,action.displayName):action.operation==='lobby'?await this.service.lobby(principal,action.gameId,action.payload,now):await this.service.command(principal,action.gameId,action.payload,now);
+      const result=action.operation==='create'?await this.service.create(principal,action.payload):action.operation==='join'?await this.service.join(principal,action.code,action.displayName,now):action.operation==='room'?await this.service.roomAction(principal,action.gameId,action.payload,now):action.operation==='lobby'?await this.service.lobby(principal,action.gameId,action.payload,now):await this.service.command(principal,action.gameId,action.payload,now);
       const status=result.ok?200:result.error.code==='FORBIDDEN'?403:result.error.code==='NOT_FOUND'?404:result.error.code==='VERSION_CONFLICT'?409:400;
       return respond(result,status,result.ok?setCookie:undefined);
     }catch(cause:unknown){

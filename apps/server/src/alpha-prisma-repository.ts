@@ -1,7 +1,7 @@
 import { Prisma, type PrismaClient } from './generated/prisma/client.js';
-import { AlphaRoomSchema, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
+import { AlphaRoomSchema, roomStatus, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
 import { migrateSnapshotV4ToV5 } from '@aoh/game-engine';
-const status=(room:AlphaRoom)=>room.game?.core.status??'LOBBY';
+const status=roomStatus;
 function decode(row:{id:string;joinCode:string;version:bigint;status:string;snapshot:unknown}|null):AlphaRoom|null {
   if(!row)return null;
   let parsed=AlphaRoomSchema.safeParse(row.snapshot);

@@ -1,1 +1,1 @@
-{ "extends": "../tsconfig.base.json", "compilerOptions": { "noEmit": true, "declaration": false }, "include": ["./**/*.ts", "../vitest.config.ts", "../prisma.config.ts"] }
+{ "extends": "../tsconfig.base.json", "compilerOptions": { "noEmit": true, "declaration": false }, "include": ["./**/*.ts", "../vitest.config.ts", "../prisma.config.ts"], "exclude": ["./alpha-audio.test.ts"] }

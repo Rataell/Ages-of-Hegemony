@@ -10,6 +10,14 @@ export const AlphaRoomSchema=z.strictObject({
   deadline:z.number().int().nonnegative().nullable(),
   seats:z.array(z.strictObject({guestId:z.string().uuid(),playerId:PlayerIdSchema,name:z.string().trim().min(1).max(80),civilization:z.string().nullable(),ready:z.boolean()})).min(1).max(6),
   game:AlphaStateSchema.nullable(),
+  /** External-alpha lifecycle (all optional on old snapshots). LOBBY / ACTIVE / SUSPENDED / FINISHED / CLOSED are derived by `lifecycleOf`. */
+  suspended:z.boolean().default(false),
+  closedReason:z.enum(['HOST','VOTE']).nullable().default(null),
+  /** Civilizations EM GUARDA: kept on the table (cities, territory, pieces), confirm every phase without Orders until their person resumes. */
+  onGuard:z.array(PlayerIdSchema).max(6).default([]),
+  vote:z.strictObject({id:z.string().max(40),kind:z.enum(['REMOVE','END']),target:PlayerIdSchema.nullable(),proposer:PlayerIdSchema,yes:z.array(PlayerIdSchema).max(6),no:z.array(PlayerIdSchema).max(6),createdAt:z.number().int().nonnegative()}).nullable().default(null),
+  /** Short public log of room-level events (host transfer, joins, votes…), newest last. */
+  notices:z.array(z.strictObject({id:z.number().int().nonnegative(),at:z.number().int().nonnegative(),type:z.string().max(40),text:z.string().max(160)})).max(30).default([]),
 }).superRefine((room,ctx)=>{
   const fail=(message:string)=>ctx.addIssue({code:'custom',message});
   if(room.seats.length>room.seatLimit||!room.seats.some(s=>s.guestId===room.hostGuestId))fail('Invalid lobby host or seat count');
@@ -21,11 +29,34 @@ export const AlphaRoomSchema=z.strictObject({
   if((!room.game||room.game.core.status==='FINISHED'||room.planningSeconds===0)&&room.deadline!==null)fail('Unexpected phase deadline');
 });
 export type AlphaRoom=z.infer<typeof AlphaRoomSchema>;
+export type AlphaLifecycle='LOBBY'|'ACTIVE'|'SUSPENDED'|'FINISHED'|'CLOSED';
+export const lifecycleOf=(room:AlphaRoom):AlphaLifecycle=>room.closedReason!==null?'CLOSED':!room.game?'LOBBY':room.game.core.status==='FINISHED'?'FINISHED':room.suspended?'SUSPENDED':'ACTIVE';
+/** Stored status column: the engine status as before, plus the two room-level states. */
+export const roomStatus=(room:AlphaRoom):string=>room.closedReason!==null?'CLOSED':room.suspended&&room.game?.core.status!=='FINISHED'?'SUSPENDED':room.game?.core.status??'LOBBY';
 export const CreateAlphaRoomSchema=z.strictObject({name:z.string().trim().min(1).max(80),displayName:z.string().trim().min(1).max(80),preset:AlphaPresetSchema,worldPreset:MapPresetSchema.default('MIXED'),seatLimit:z.number().int().min(2).max(6),seed:SeedSchema,planningSeconds:AlphaRoomSchema.shape.planningSeconds,actionsPerRound:z.number().int().min(3).max(6).default(5),revealMap:z.boolean().default(false)});
 export const LobbyActionSchema=z.discriminatedUnion('type',[
   z.strictObject({type:z.literal('CHOOSE_CIVILIZATION'),expectedVersion:NonNegativeIntegerSchema,civilization:z.string()}),
   z.strictObject({type:z.literal('LOBBY_READY'),expectedVersion:NonNegativeIntegerSchema,ready:z.boolean()}),
   z.strictObject({type:z.literal('START'),expectedVersion:NonNegativeIntegerSchema}),
+  // Host-only, LOBBY only.
+  z.strictObject({type:z.literal('KICK'),expectedVersion:NonNegativeIntegerSchema,playerId:PlayerIdSchema}),
+  z.strictObject({type:z.literal('SET_SEATS'),expectedVersion:NonNegativeIntegerSchema,seatLimit:z.number().int().min(2).max(6)}),
+  z.strictObject({type:z.literal('CLOSE_ROOM'),expectedVersion:NonNegativeIntegerSchema}),
+]);
+export const REACTIONS=['APPLAUSE','SURPRISE','THINKING','ATTENTION','CHEER','WATCHING'] as const;
+export const PINGS=['MARK','ATTENTION'] as const;
+/** Room-level actions of a running (or suspended) table. None of them is an Order; none can touch a civilization except the vote-approved EM GUARDA. */
+export const RoomActionSchema=z.discriminatedUnion('type',[
+  z.strictObject({type:z.literal('LEAVE')}),
+  z.strictObject({type:z.literal('SUSPEND')}),
+  z.strictObject({type:z.literal('RESUME')}),
+  z.strictObject({type:z.literal('PROPOSE_REMOVE'),target:PlayerIdSchema}),
+  z.strictObject({type:z.literal('PROPOSE_END')}),
+  z.strictObject({type:z.literal('VOTE'),yes:z.boolean()}),
+  z.strictObject({type:z.literal('CANCEL_VOTE')}),
+  z.strictObject({type:z.literal('RESUME_SEAT')}),
+  z.strictObject({type:z.literal('REACT'),reaction:z.enum(REACTIONS)}),
+  z.strictObject({type:z.literal('PING'),hexId:z.string().regex(/^-?\d{1,3},-?\d{1,3}$/),reaction:z.enum(PINGS).default('MARK')}),
 ]);
 
 export interface AlphaRepository {

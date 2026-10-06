@@ -151,11 +151,11 @@ function OrdersList({ game, orderLabel, locked, send }: { game: Game; orderLabel
 
 /* ───────────────────────────── Territory ───────────────────────────── */
 export type TerritoryPage = 'hex' | 'people' | 'threat' | 'culture';
-export function TerritoryDetails({ title, selected, tile, sections, page, onPage, yields }: { title: string; selected: string | null; tile: { owner: string | null; improvement: string | null } | null; sections: { key: TerritoryPage; title: string; node: ReactNode }[]; page: TerritoryPage; onPage: (p: TerritoryPage) => void; yields: Record<string, number> | null }) {
+export function TerritoryDetails({ onPing, title, selected, tile, sections, page, onPage, yields }: { onPing?: (() => void) | undefined; title: string; selected: string | null; tile: { owner: string | null; improvement: string | null } | null; sections: { key: TerritoryPage; title: string; node: ReactNode }[]; page: TerritoryPage; onPage: (p: TerritoryPage) => void; yields: Record<string, number> | null }) {
   const keys = sections.map(s => s.key), active = keys.includes(page) ? page : (keys[0] ?? 'hex');
   const current = sections.find(s => s.key === active);
   return <Frame title={title} subtitle={selected ?? undefined} page={`ter-${active}`} segments={sections.length > 1 ? <Segments label="Detalhes do território" value={active} onChange={onPage} items={sections.map(s => [s.key, s.title] as const)} /> : undefined}>
     {current?.node}
-    {active === 'hex' && <>{yields && <ResourceDisplay values={yields} compact labels={{ materials: 'Madeira/Pedra' }} />}{tile && <p className="alpha-line">{tile.owner ? `Território de ${tile.owner}` : 'Território livre'} · {tile.improvement ?? 'Sem melhoria'}</p>}<p className="alpha-line is-muted">Reivindicar, Melhorar e Estrada nascem ao clicar no hex, ao redor dele.</p></>}
+    {active === 'hex' && <>{yields && <ResourceDisplay values={yields} compact labels={{ materials: 'Madeira/Pedra' }} />}{tile && <p className="alpha-line">{tile.owner ? `Território de ${tile.owner}` : 'Território livre'} · {tile.improvement ?? 'Sem melhoria'}</p>}<p className="alpha-line is-muted">Reivindicar, Melhorar e Estrada nascem ao clicar no hex, ao redor dele.</p>{onPing && <button type="button" className="aoh-btn is-sm" onClick={onPing}>Marcar para todos</button>}</>}
   </Frame>;
 }

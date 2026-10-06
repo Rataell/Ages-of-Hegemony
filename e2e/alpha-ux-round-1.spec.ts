@@ -41,7 +41,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     expect(await pa.evaluate(() => navigator.clipboard.readText())).toBe(code);
     await pa.getByRole('button', { name: 'Copiar link', exact: true }).click();
     await expect(pa.getByRole('status').filter({ hasText: 'Link copiado' })).toBeVisible();
-    expect(await pa.evaluate(() => navigator.clipboard.readText())).toBe(`${origin}/alpha?join=${code}`);
+    expect(await pa.evaluate(() => navigator.clipboard.readText())).toBe(`${origin}/alpha/join/${code}`);
     await pa.screenshot({ path: `${shots}/lobby-invites.png` });
 
     // Manual entry by code still works, and leaving the lobby is client-only.
@@ -51,10 +51,11 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     const seated = (await repository.find(roomId))!;
     expect(seated.seats.map(seat => seat.name)).toEqual(['Ana', 'Beto']);
     await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click();
-    await pb.getByRole('button', { name: 'Sair agora', exact: true }).click();
+    await pb.getByRole('button', { name: 'Sair e poder voltar', exact: true }).click();
     await expect(pb.getByRole('heading', { name: 'Preparar uma mesa' })).toBeVisible();
     expect(new URL(pb.url()).search).toBe('');
-    expect(await pb.evaluate(() => localStorage.getItem('aoh-alpha-room'))).toBeNull();
+    // Leaving only closes this session: the room is remembered and flagged as left (the entry offers "Voltar à minha partida").
+    expect(await pb.evaluate(() => localStorage.getItem('aoh-alpha-left'))).toBe('1');
     const afterLeave = (await repository.find(roomId))!;
     expect(afterLeave.version).toBe(seated.version); expect(afterLeave.seats).toEqual(seated.seats);
     await pb.getByLabel('Seu nome', { exact: true }).fill('Beto');
@@ -121,10 +122,10 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     const running = (await repository.find(roomId))!;
     await pb.getByRole('dialog', { name: 'Escolha duas ambições secretas' }).getByRole('button', { name: 'Ver o mapa primeiro', exact: true }).click();
     await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click();
-    await expect(pb.getByText(`Para voltar, use o código ${code}`, { exact: false })).toBeVisible();
-    await pb.getByRole('button', { name: 'Ficar', exact: true }).click();
+    await expect(pb.getByRole('dialog', { name: 'SAIR DESTA SESSÃO?' })).toBeVisible();
+    await pb.getByRole('button', { name: 'Cancelar', exact: true }).click();
     await expect(pb.locator('.alpha-player-board h1')).toHaveText('Valgard');
-    await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click(); await pb.getByRole('button', { name: 'Sair agora', exact: true }).click();
+    await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click(); await pb.getByRole('button', { name: 'Sair e poder voltar', exact: true }).click();
     await expect(pb.getByRole('heading', { name: 'Preparar uma mesa' })).toBeVisible();
     expect(new URL(pb.url()).search).toBe('');
     const afterRunningLeave = (await repository.find(roomId))!;
