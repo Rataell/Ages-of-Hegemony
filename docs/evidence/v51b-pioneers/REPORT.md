@@ -32,7 +32,7 @@ Condição inicial injetada (tropas/guerra/muralha), `ATTACK` enfileirado por `a
 - Verificado em batalhas reais: posturas (Assalto vence Manobra, Manter vence Assalto: +1 nos modificadores), Guarda ("Muro (Guarda I)+1"), Cavalaria ("Flanco (Cavalaria I)+1"), Cerco ("Brecha (Engenho de cerco I)+2" por Cerco; Infantaria sem Cerco não ganha Brecha), Fortificação +2, Arqueiros contam como peças táticas, resultados VICTORY/DECISIVE/TIE com baixas 0–2 e recuo do perdedor (retreat), captura de cidade (sem guarnição e DECISIVE com muralha).
 - Suprimento ("Sem suprimento") não apareceu nesses casos (a pilha estava ao lado da própria Pátria): **não validado** aqui.
 - Observação a investigar, não afirmada como bug: com 2 Cerco e DECISIVE a muralha seguiu `STONE_WALL/INTACT→INTACT` no registro.
-- Armadura de tamanho 5–6 vs 3: ataque vence ~70% (32 de 45 com vitória do atacante).
+- Atacante com superioridade numérica injetada venceu 31 de 45 batalhas (69%); os 14 empates TIE com recuo do atacante concentram-se em 4p/6p.
 
 ## 5. Sessão de UI com contato forçado (automação, **não é humano**)
 2p QUICK, 14 rodadas, 287 s de parede, 682 ações de UI, atrito 18 (14 do guerreiro). Tempo médio de Planejamento do driver: 10,5 s (A), 13,2 s (B) — são tempos de cliques automáticos, não de pessoa. Contato forçado **não ocorreu** em 14 rodadas (o driver forçado ainda segue o fluxo do antigo Explorador); nenhum tratado/guerra/combate. Sessão humana real continua necessária (V51B-12 aberto).
