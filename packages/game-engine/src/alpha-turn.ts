@@ -23,6 +23,7 @@ import { contestPresence } from './alpha-culture.js';
 import { independentAction } from './alpha-independents.js';
 import { kitWorksCost } from './alpha-kits.js';
 import { advanceLegacyWork } from './alpha-legacy-works.js';
+import { casualtyPriorityBlock } from './alpha-casualties.js';
 
 export { alphaEvent, resolutionEvent } from './alpha-events.js';
 
@@ -100,6 +101,12 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       if (!result.ok) return result;
       state.core = result.value; syncCityMetadata(state);
       alphaEvent(state,'MANAGEMENT','Decisão de gestão aplicada.',[actor]);
+    } else if (command.type === 'SET_CASUALTY_PRIORITY') {
+      const blocked = casualtyPriorityBlock(state, actor, command.order, command.hexId);
+      if (blocked) return err({ code: 'RULE_FAILURE', message: blocked });
+      const unique = [...new Set(command.order)];
+      if (command.hexId === null) player.casualtyPriority.order = unique; else if (unique.length) player.casualtyPriority.byHex[command.hexId] = unique; else delete player.casualtyPriority.byHex[command.hexId];
+      alphaEvent(state, 'CASUALTY_PRIORITY', 'Prioridade de baixas definida.', [actor]);
     } else if (command.type === 'SET_DEFENSE_POSTURE') {
       player.defensePosture = command.posture;
       alphaEvent(state, 'DEFENSE_POSTURE', 'Postura defensiva definida.', [actor]);

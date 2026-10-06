@@ -7,6 +7,7 @@ import { HexMap } from '../play/hex-map';
 import { ResourceDisplay } from '../play/resource-display';
 import { alphaLabel as text } from './alpha-copy';
 import { ArmyList, compositionText } from './alpha-army';
+import { CasualtyPriority } from './alpha-casualties';
 import { LeaveGame } from './alpha-leave';
 import { AlphaGuide } from './alpha-guide';
 import { AttackPreview, POSTURES, postureText } from './alpha-combat';
@@ -254,6 +255,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
         <section><h3>Postura defensiva</h3>
           <label>Se for atacado, sua civilização adota<select value={game.self.defensePosture} disabled={locked} onChange={e=>void send({type:'SET_DEFENSE_POSTURE',posture:e.target.value})}>{POSTURES.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
           <small>Escolha privada; só é revelada quando houver batalha.</small></section>
+        <CasualtyPriority defaults={game.casualtyDefault} saved={game.self.casualtyPriority} units={ownUnits} locked={locked||game.phase!=='PLANNING'||game.self.ready} send={send}/>
         <section><div className="section-head"><h3>Peças</h3><span className="count-pill">{ownUnits.length}</span></div>
           <ArmyList units={ownUnits} selected={units} onSelect={pick} stacks={game.stacks} rules={game.rules.units} grades={game.grades}/></section>
         <details className="developer alpha-about"><summary>Sobre o teste · Feedback</summary><p>Alpha v0.1 em desenvolvimento · Partida {room.id} · Versão {game.version}</p><p>Código para voltar: <code>{room.joinCode}</code></p><button onClick={()=>void navigator.clipboard.writeText(`Ages of Hegemony Alpha v0.1\nPartida: ${room.id}\nRodada: ${game.view.round}\nTela: ${tab}\nNavegador: ${navigator.userAgent}`).catch(()=>undefined)}>Copiar diagnóstico para feedback</button><p>Diagnóstico contém identificação da partida e navegador; não contém sessão, cartas ou ordens.</p>{feedbackUrl&&<a href={feedbackUrl} target="_blank" rel="noreferrer">Enviar feedback</a>}<p>Ambiente de teste: a partida pode ser reiniciada ou apagada.</p></details>

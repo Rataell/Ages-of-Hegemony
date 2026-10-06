@@ -126,6 +126,8 @@ const StrategicPlayerSchema = z.strictObject({
   contacts:z.array(PlayerIdSchema),abilityRound:N,
   /** Posture this civilization holds when attacked. Private until a battle reveals it. */
   defensePosture:BattlePostureSchema.default('HOLD'),
+  /** V51B-01: owner-defined order in which combat kinds are lost (first listed dies first). `order` is the civilization default, `byHex` overrides it for the stack standing on a hex. Empty = the engine's own rule. */
+  casualtyPriority:z.strictObject({order:z.array(AlphaUnitClassSchema).max(10).default([]),byHex:z.record(z.string(),z.array(AlphaUnitClassSchema).max(10)).default({})}).default({order:[],byHex:{}}),
   /** The civilization's permanent leader (assigned automatically) and whether this Era's ability was used. */
   leader:LeaderStateSchema.nullable().default(null),
   influencedCities:z.array(CityIdSchema),
@@ -382,6 +384,7 @@ export const AlphaCommandSchema = z.discriminatedUnion('type', [
   z.strictObject({type:z.literal('DECLARE_WAR'),expectedVersion:N,planId:IdentifierSchema.optional(),targetId:PlayerIdSchema}),
   z.strictObject({type:z.literal('LEADER_ABILITY'),expectedVersion:N}),
   z.strictObject({type:z.literal('SET_DEFENSE_POSTURE'),expectedVersion:N,posture:BattlePostureSchema}),
+  z.strictObject({type:z.literal('SET_CASUALTY_PRIORITY'),expectedVersion:N,order:z.array(AlphaUnitClassSchema).max(10),hexId:HexIdSchema.nullable().default(null)}),
   z.strictObject({type:z.literal('BUILD_ROAD'),expectedVersion:N,hexId:HexIdSchema}),
   /** Naval vertical slice (DEC-014): land pieces board an adjacent own fleet, or step from it to an adjacent land hex. */
   /** Demobilization (canon §6): a land piece inside an own city returns as one Disponível. */
@@ -415,7 +418,7 @@ export const ACTION_CLASS = {
   URBAN_ACTION:'MAIN', PROPOSE_TRADE:'MAIN', RESPOND_TRADE:'FREE', CONTEST_PRESENCE:'MAIN', INDEPENDENT_ACTION:'MAIN',
   SETTLE:'MAIN', DECLARE_HEGEMONY:'MAIN', CHOOSE_AMBITIONS:'FREE', PLAY_CARD:'FREE', PLAY_CIVILIZATION_CARD:'FREE', HIRE_ADVISOR:'MAIN', WORLD_CHOICE:'FREE',
   ADVANCE_LEGACY_WORK:'MAIN', PROPOSE_TREATY:'MAIN', RESPOND_TREATY:'FREE', END_TREATY:'FREE', DECLARE_WAR:'MAIN',
-  LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', BUILD_ROAD:'MAIN', DEMOBILIZE:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
+  LEADER_ABILITY:'FREE', SET_DEFENSE_POSTURE:'FREE', SET_CASUALTY_PRIORITY:'FREE', BUILD_ROAD:'MAIN', DEMOBILIZE:'MAIN', EMBARK:'MAIN', DISEMBARK:'MAIN', MANAGE:'MAIN', QUEUE_ORDER:'MAIN',
   CANCEL_ORDER:'FREE', READY:'FREE', UNREADY:'FREE', RESOLVE_CHOICE:'FREE', SWAP_AMBITION:'FREE',
 } as const satisfies Record<AlphaCommand['type'], ActionClass>;
 

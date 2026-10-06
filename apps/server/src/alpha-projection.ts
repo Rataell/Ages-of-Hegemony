@@ -1,5 +1,5 @@
 import { ACTION_CLASS, ADVANCEMENTS, CityLevelSchema, elevateRequirement, ladderStep, nextLevel, type AlphaState, type PlayerId } from '@aoh/game-domain';
-import { governmentOptions, operatingCapacity, recruitLimit, GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,legacyWorkView,boardView,regionOpenFor,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
+import { defaultCasualtyPriority, governmentOptions, operatingCapacity, recruitLimit, GRADE_FAMILIES, unitGrade, activationCapacity, activationsAllowed, administration, advanceCost, blockadedBy, cityLevels, cityPair, districtSlots, elevateBlock, heritageFor, kitWorksCost, moodBand, growthForecast, alphaActionUsage, alphaCommandCapacity, alphaCost, alphaStorageCapacity, alphaUnitOptions, tradeOfferView, alphaClaimOptions, pendingAttacks, prestigeRanking, combatPreview, culturalPresenceView, independentPeopleView, threatView,legacyWorkView,boardView,regionOpenFor,threatAlerts,explorationHints, stackView, leaderAbilityBlock, urbanOptions, infrastructureStats, deriveCityProductionBreakdown, eraMilestones, hegemonyProgress, stabilityCategory, unitSupply, visibleHexIds } from '@aoh/game-engine';
 import { playerView } from './game-service.js';
 
 /** Explicit public allowlist. Never serialize the alpha aggregate to a player. */
@@ -42,7 +42,7 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     /** While reactions are open, the defender learns who attacks which of its hexes (never the force or posture). */
     incomingAttacks:state.phase==='CONFLICTS'?pendingAttacks(state).filter(attack=>attack.defenderId===actor).map(({attackerId,target})=>({attackerId,target})):[],
     orderPreviews:Object.fromEntries(progress.orders.flatMap(order=>order.type==='ATTACK'?[[order.id,combatPreview(state,actor,order)] as const]:[])),
-    self:progress,storage:alphaStorageCapacity(state,actor),actions:alphaActionUsage(state,actor),actionClasses:ACTION_CLASS,commandCapacity:alphaCommandCapacity(state,actor),rules:state.rules,
+    self:progress,casualtyDefault:defaultCasualtyPriority(state),storage:alphaStorageCapacity(state,actor),actions:alphaActionUsage(state,actor),actionClasses:ACTION_CLASS,commandCapacity:alphaCommandCapacity(state,actor),rules:state.rules,
     costs:{
       claim:displayCost(territory.claimCost),founding:displayCost(territory.foundingCost),road:displayCost(kitWorksCost(state,actor,state.rules.roadCost)),advisor:displayCost(state.rules.advisorCost),
       development:state.core.config.developmentCosts.map(displayCost),

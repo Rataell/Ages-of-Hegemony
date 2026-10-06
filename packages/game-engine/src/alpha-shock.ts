@@ -142,8 +142,33 @@ export function resolveShock(state: AlphaState, input: ShockInput): ShockResult 
 }
 
 /** Casualty order (I-4/I-17): fighting pieces first, weakest Power first, Cerco last, then id. Pieces without Power only die when no fighter is left. */
+/** The engine's own casualty order (V5.1b I-4/I-17): pieces with strength before those without, weakest first, Cerco last, id as the tie-break. */
+const engineOrder = <T extends { id: string; kind: AlphaUnit['kind'] }>(state: AlphaState, pieces: readonly T[]): T[] => {
+  const power = (piece: T) => state.rules.units[piece.kind].strength;
+  return [...pieces].sort((a, b) => Number(power(a) === 0) - Number(power(b) === 0) || Number(a.kind === 'SIEGE') - Number(b.kind === 'SIEGE') || power(a) - power(b) || (a.id < b.id ? -1 : 1));
+};
+
+/** The order a player would see untouched: every combat kind in the sequence the engine uses when the owner never sets a priority (ties keep catalog order). */
+export function defaultCasualtyPriority(state: AlphaState): AlphaUnit['kind'][] {
+  const kinds = (Object.keys(state.rules.units) as AlphaUnit['kind'][]).filter(kind => state.rules.units[kind].strength > 0);
+  return kinds.sort((a, b) => Number(a === 'SIEGE') - Number(b === 'SIEGE') || state.rules.units[a].strength - state.rules.units[b].strength);
+}
+
+/**
+ * Which pieces fall. Without an owner priority this is exactly the engine order. With one, strengthless pieces still come last (civil
+ * pieces are never chosen ahead of fighters), then the owner's list decides (kinds not listed follow, in engine order); each piece uses the priority of the
+ * stack it stands in (hex override, else the civilization default). No prompt, no randomness: the list is read at resolution.
+ */
 export function chooseLosses<T extends { id: string; kind: AlphaUnit['kind'] }>(state: AlphaState, pieces: readonly T[], count: number): string[] {
   const power = (piece: T) => state.rules.units[piece.kind].strength;
-  const ranked = [...pieces].sort((a, b) => Number(power(a) === 0) - Number(power(b) === 0) || Number(a.kind === 'SIEGE') - Number(b.kind === 'SIEGE') || power(a) - power(b) || (a.id < b.id ? -1 : 1));
+  const rank = new Map<string, number>();
+  for (const piece of pieces) {
+    const unit = state.units.find(candidate => candidate.id === piece.id);
+    const owner = unit && state.players.find(player => player.playerId === unit.ownerId);
+    const list = owner ? (owner.casualtyPriority.byHex[unit!.hexId] ?? owner.casualtyPriority.order) : [];
+    const index = list.indexOf(piece.kind);
+    rank.set(piece.id, index < 0 ? list.length : index);
+  }
+  const ranked = engineOrder(state, pieces).sort((a, b) => (Number(power(a) === 0) - Number(power(b) === 0)) || (rank.get(a.id)! - rank.get(b.id)!));
   return ranked.slice(0, count).map(piece => piece.id);
 }
