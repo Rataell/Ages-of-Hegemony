@@ -1,0 +1,205 @@
+{
+ "01-cidade-resumo": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "02-cidade-producao": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "03-cidade-populacao": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "03b-cidade-defesa": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "03c-cidade-acoes": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "03d-cidade-acoes-pesquisar": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "04-pilha-resumo": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "04b-pilha-composicao": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "04c-pilha-suprimento": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "05-cofre-recursos": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "05b-cofre-limites": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "07-tabuleiro-resonancia": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1",
+   "div.pan-zoom-view 685>330"
+  ],
+  "page": false
+ },
+ "07b-teia-selecionado": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1",
+   "div.pan-zoom-view 685>231"
+  ],
+  "page": false
+ },
+ "07c-teia-desbloqueia": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1",
+   "div.pan-zoom-view 685>231"
+  ],
+  "page": false
+ },
+ "07d-heranca": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "06a-identidade": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "06-governo": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "08-livro-conselho": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "08b-livro-cartas": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "08c-livro-diplomacia": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "08d-livro-eras": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "08e-livro-cronicas": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "09-mobile-resumo": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "09b-mobile-populacao": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ },
+ "09c-mobile-producao": {
+  "scrolls": [],
+  "clipped": [
+   "span.alpha-sr-only 21>1",
+   "span.alpha-sr-only 21>1"
+  ],
+  "page": false
+ }
+}

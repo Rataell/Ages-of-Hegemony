@@ -48,7 +48,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
       await choices.nth(0).check();await choices.nth(1).check();await expect(choices.nth(2)).toBeDisabled();await dialog.getByRole('button',{name:'Confirmar duas ambições',exact:true}).click();
       await expect(dialog).toHaveCount(0);
       // The match details live in the Livro's Conselho; the version is the one the board opened with.
-      await openArea(page,'Conselho');await expect(page.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(currentId))!.game!.version}`);
+      await openArea(page,'Conselho');await page.locator('.alpha-pages').getByRole('tab',{name:'Sobre o teste'}).click();await expect(page.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(currentId))!.game!.version}`);
       await openArea(page,'Cartas & Projetos');
     }
     await pa.screenshot({path:`${evidence}/1440-card-hand.png`});
@@ -56,9 +56,10 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     const actionCounter=pa.locator('.alpha-tray .bud');await expect(actionCounter).toContainText('Ordens');await expect(actionCounter).toContainText('0 / 5');
     for(const [width,height] of [[1366,768],[1440,900],[1920,1080]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${actionEvidence}/${width}x${height}-counter.png`});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.setViewportSize({width:1440,height:900});
-    await openArea(pa,'Conselho');await expect(pa.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(new URL(pa.url()).searchParams.get('game')!))!.game!.version}`);await toMap(pa);
+    await openArea(pa,'Conselho');await pa.locator('.alpha-pages').getByRole('tab',{name:'Sobre o teste'}).click();await expect(pa.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(new URL(pa.url()).searchParams.get('game')!))!.game!.version}`);await toMap(pa);
     // Habitantes e papéis are details of the city: Detalhes opens them, the map stays the table.
     await pa.getByRole('button',{name:'Detalhes',exact:true}).click();
+    await pa.locator('.alpha-frame').getByRole('tab',{name:'População',exact:true}).click();
     await pa.getByLabel('Produtores',{exact:true}).fill('1');await pa.getByLabel('Artesãos',{exact:true}).fill('1');await pa.getByLabel('Eruditos',{exact:true}).fill('0');
     await pa.getByRole('button',{name:'Aplicar distribuição'}).click();
     await pa.getByRole('button',{name:'Fechar cartão',exact:true}).click();
@@ -140,7 +141,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
       expect(after.phase).toBe('PLANNING');
     }
     // Round 2 - recruit and build are both queued, then resolved by initiative.
-    await pa.locator('.alpha-urban summary').filter({hasText:'Recrutar'}).click();
+    await pa.locator('.alpha-urban').getByRole('tab',{name:/Recrutar/}).click();
     await pa.getByRole('button',{name:/^Recrutar Pioneiro/i}).click();
     await expect(pa.locator('.alpha-urban-detail')).toContainText('Custo:');await expect(pa.locator('.alpha-urban-detail')).toContainText('Efeito:');
     await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();

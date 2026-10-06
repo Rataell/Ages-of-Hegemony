@@ -40,9 +40,12 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     // Ten pieces on one hex collapse into a single stack card (Detalhes); individual pieces stay reachable under 'ver composição'.
     await a.locator('svg.world-map g.hex[aria-label$=" 8,0"], svg.world-map g.hex[aria-label$=" 8,0, trabalhado"]').first().click();
     await a.getByRole('button',{name:'Detalhes',exact:true}).click();
-    await expect(a.locator('.alpha-piece-row').filter({hasText:'8,0'})).toHaveCount(10);
-    const stack=a.locator('.alpha-army').filter({hasText:'8,0'});
+    const stack=a.locator('.alpha-inspector .alpha-frame').filter({hasText:'8,0'});
     await expect(stack).toHaveCount(1);await expect(stack).toContainText('Exército · 10 peças');await expect(stack).toContainText('×');
+    // Individual pieces are one segment away (Composição), never stacked under the summary.
+    await stack.getByRole('tab',{name:'Composição'}).click();
+    await expect(stack.locator('.alpha-piece-row')).toHaveCount(10);
+    await stack.getByRole('tab',{name:'Resumo'}).click();
     // The scripted army starts above the limit; the counter says so and only new arrivals are refused.
     await expect(stack.locator('.alpha-stack-tag')).toContainText('Exército 10/6');
     // "Selecionar todas" hands the stack to the Table: its cloud opens on the piece.
@@ -54,9 +57,11 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     await expect(a.locator('.ctx-chip')).toContainText('Limite de pilha atingido em');
     await a.keyboard.press('Escape');
     await cloudNode(a,'posture').click();await a.locator('.ctx-node',{hasText:'Manobra'}).click();
-    await openArea(b,'Conselho');await b.getByLabel('Se for atacado, sua civilização adota',{exact:false}).selectOption('HOLD');await toMap(b);
+    await openArea(b,'Conselho');await b.locator('.alpha-pages').getByRole('tab',{name:'Postura defensiva'}).click();await b.getByLabel('Se for atacado, sua civilização adota',{exact:false}).selectOption('HOLD');await toMap(b);
     await cloudNode(a,'attack').click();
     await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
+    // The reserved order and its preview are one segment (Ordens) of the stack's Detalhes frame.
+    await a.locator('.alpha-inspector .alpha-frame').getByRole('tab',{name:/^Ordens/}).click();
     await expect(a.locator('.alpha-order')).toContainText('Ataque');
     // The preview explains the static modifiers by origin and reveals neither dice nor the defender's posture.
     const preview=a.locator('.alpha-attack-preview');
@@ -99,7 +104,7 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     // Only as many victors as the stack limit allows moved in; the rest stayed where they attacked from.
     if(battle.winnerId==='p1'){expect(after.units.filter(u=>u.ownerId==='p1'&&u.hexId===battle.hexId)).toHaveLength(6);expect(after.events.some(e=>e.type==='STACK_LIMIT')).toBe(true);}
     for(const [i,page] of pages.entries()){
-      await page.reload();await openArea(page,'Crônicas');
+      await page.reload();await openArea(page,'Crônicas');await page.locator('.alpha-pages').getByRole('tab',{name:/^Conflitos/}).click();
       const displayed=page.locator('.alpha-battle');await expect(displayed).toHaveCount(1);
       const face:Record<string,string>={EMPTY:'Vazio',IMPACT:'Impacto',GUARD:'Guarda',MANEUVER:'Manobra',COMMAND:'Comando'};
       await expect(displayed.getByLabel(`Faces do ataque ${battle.attackerTactical.map(r=>face[r.face]).join(' e ')}`,{exact:true})).toBeVisible();
@@ -114,16 +119,18 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
       expect(view.ok&&view.value.game!.battles[0]).toEqual(battle);
       if(i===0){await displayed.scrollIntoViewIfNeeded();await page.screenshot({path:`${evidence}/1440-battle.png`});}
     }
-    await openArea(a,'Conselho');
-    await expect(a.locator('.alpha-piece-row')).toHaveCount(after.units.filter(u=>u.ownerId==='p1').length);
-    await openArea(b,'Conselho');
-    await expect(b.locator('.alpha-piece-row')).toHaveCount(after.units.filter(u=>u.ownerId==='p2').length);
+    // Conselho → Peças lists one card per stack (individual pieces live in Detalhes → Composição).
+    const stacksOf=(owner:string)=>new Set(after.units.filter(u=>u.ownerId===owner).map(u=>u.hexId)).size;
+    await openArea(a,'Conselho');await a.locator('.alpha-pages').getByRole('tab',{name:/^Peças/}).click();
+    await expect(a.locator('.alpha-army')).toHaveCount(stacksOf('p1'));
+    await openArea(b,'Conselho');await b.locator('.alpha-pages').getByRole('tab',{name:/^Peças/}).click();
+    await expect(b.locator('.alpha-army')).toHaveCount(stacksOf('p2'));
 
     // Restore another checkpoint produced by the same legal command scenario.
     // This is a test-repository fixture; the product exposes no snapshot-injection endpoint.
     const current=(await repository.find(room.id))!;
     expect(await repository.save({...current,version:current.version+1,game:beforeFinish!},current.version)).toBe(true);
-    await a.reload();await openArea(a,'Cartas & Projetos');
+    await a.reload();await openArea(a,'Cartas & Projetos');await a.locator('.alpha-pages').getByRole('tab',{name:'Obras de Legado'}).click();
     const project=a.locator('article').filter({has:a.getByRole('heading',{name:'Pátio da Investigação',exact:true})});
     await expect(project).toContainText('Concluída por');await project.scrollIntoViewIfNeeded();
     await a.screenshot({path:`${evidence}/1440-great-project.png`});

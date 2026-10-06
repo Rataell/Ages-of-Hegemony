@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { ALPHA_CARDS, ERA_TURN_STEPS } from '@aoh/game-domain';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 import { alphaLabel as text } from './alpha-copy';
@@ -45,21 +46,34 @@ export function GovernmentReform({ game, locked, manage }: { game: AlphaPlayerVi
 }
 
 /**
- * Governo (strategic surface): the government in force is the page; eligible reforms come next; the closed ones fold away.
- * A reform can only be reserved in the last round of an Era; outside that window the same list is read-only, so nothing is hidden.
+ * Governo (strategic surface): ONE frame. List mode: the government in force + the eligible ones as compact cards + "Ainda fechados: N".
+ * Choosing a card swaps the same space for that government's detail ("← Voltar aos governos"). A reform can only be reserved in the
+ * last round of an Era; outside that window the detail is read-only, so nothing is hidden.
  */
 export function GovernmentPanel({ game, locked, manage }: { game: AlphaPlayerView; locked: boolean; manage: AlphaSend }) {
   const info = game.government, state = reformState(info);
+  const [sel, setSel] = useState<string | null>(null), [showClosed, setShowClosed] = useState(false);
   const others = info.options.filter(option => option.government !== info.current.government);
   const eligible = others.filter(option => option.unlocked && option.block === null), closed = others.filter(option => !(option.unlocked && option.block === null));
   const open = info.window && !info.planned;
+  const chosen = sel ? others.find(option => option.government === sel) ?? null : null;
+  const note = info.planned ? <p className="alpha-line" role="status">Reforma para <b>{text(info.planned)}</b> reservada: acontece no passo 5 da Virada de Era, por {info.cost} Influência.</p>
+    : !info.window ? <p className="alpha-line is-muted">A reforma se reserva na última rodada de cada Era (Ordem Influência).</p> : null;
+  if (chosen) return <div className="alpha-government-panel is-detail">
+    <button type="button" className="aoh-btn is-sm is-ghost alpha-back" onClick={() => setSel(null)}>← Voltar aos governos</button>
+    <article className="alpha-gov-detail"><h4>{chosen.name}</h4><ul>{chosen.advantages.map(line => <li key={line}>＋ {line}</li>)}<li>－ {chosen.limitation}</li></ul>
+      {chosen.unlocked && chosen.block === null
+        ? <button type="button" className="alpha-recommended" disabled={locked || !open} title={open ? `Custa ${info.cost} Influência` : 'Abre na última rodada da Era'} onClick={() => void manage({ type: 'ADOPT_GOVERNMENT', government: chosen.government })}>{open ? `Reservar · ${info.cost} Influência` : 'Fora da janela de reforma'}</button>
+        : <small role="note">{chosen.unlocked ? chosen.block : 'A Teia ainda não abriu este governo.'}</small>}
+    </article></div>;
   return <div className="alpha-government-panel">
-    {info.planned && <p className="alpha-hint" role="status">Reforma para <b>{text(info.planned)}</b> reservada: acontece no passo 5 da Virada de Era, por {info.cost} Influência.</p>}
-    {!info.planned && !info.window && <p className="alpha-hint">A reforma se reserva na última rodada de cada Era (Ordem Influência).</p>}
-    {state === 'none' && <p className="alpha-hint" role="status">Nenhuma reforma disponível agora: a Teia ainda não abriu outro governo.</p>}
-    {eligible.length > 0 && <><h5>Elegíveis</h5><ul className="alpha-gov-list">{eligible.map(option => <li key={option.government}>
-      <span><b>{option.name}</b><small>＋ {option.advantages.join(' · ')} · － {option.limitation}</small></span>
-      <button type="button" disabled={locked || !open} title={open ? `Custa ${info.cost} Influência` : 'Abre na última rodada da Era'} onClick={() => void manage({ type: 'ADOPT_GOVERNMENT', government: option.government })}>{open ? `Reservar · ${info.cost} Influência` : 'Fora da janela'}</button></li>)}</ul></>}
-    {closed.length > 0 && <details className="alpha-gov-closed"><summary>Ainda fechados · {closed.length}</summary><ul className="alpha-gov-list is-muted">{closed.map(option => <li key={option.government}><span><b>{option.name}</b><small>{option.unlocked ? option.block : 'A Teia ainda não abriu este governo.'}</small></span></li>)}</ul></details>}
+    {note}
+    {state === 'none' && <p className="alpha-line is-muted" role="status">Nenhuma reforma disponível agora: a Teia ainda não abriu outro governo.</p>}
+    <div className="alpha-gov-grid">
+      <article className="alpha-gov-card is-current"><small>Governo atual</small><b>{info.current.name}</b><span>{info.current.advantages.map(line => `＋ ${line}`).join(' · ')} · － {info.current.limitation}</span></article>
+      {eligible.map(option => <button type="button" key={option.government} className="alpha-gov-card" onClick={() => setSel(option.government)}><small>Elegível</small><b>{option.name}</b><span>{option.advantages[0] ? `＋ ${option.advantages[0]}` : ''}</span></button>)}
+    </div>
+    {closed.length > 0 && <div className="alpha-gov-closed"><button type="button" className="aoh-btn is-sm is-ghost" aria-expanded={showClosed} onClick={() => setShowClosed(!showClosed)}>Ainda fechados: {closed.length} {showClosed ? '▴' : '▾'}</button>
+      {showClosed && <ul className="alpha-chip-row is-muted">{closed.map(option => <li key={option.government}><button type="button" onClick={() => setSel(option.government)}>{option.name}</button></li>)}</ul>}</div>}
   </div>;
 }

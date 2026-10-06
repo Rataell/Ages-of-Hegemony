@@ -142,6 +142,7 @@ test('combat: preview with Δ thresholds and the result card with outcome, losse
   await cloudNode(a, 'attack').click();
   await a.getByRole('button', { name: 'Planície 9,0', exact: true }).click();
   await a.getByRole('button', { name: 'Detalhes', exact: true }).click();
+  await a.locator('.alpha-inspector .alpha-frame').getByRole('tab', { name: /^Ordens/ }).click();
   const preview = a.locator('.alpha-attack-preview');
   await expect(preview).toBeVisible(); await preview.locator('summary').first().evaluate(el => (el as HTMLElement).click()); await preview.scrollIntoViewIfNeeded();
   await a.screenshot({ path: `${evidence}/09-combate-previa-1366.png` });
@@ -160,7 +161,7 @@ test('combat: preview with Δ thresholds and the result card with outcome, losse
   await confirmRound();
   await a.reload();
   await a.screenshot({ path: `${evidence}/10a-combate-resolucao-1366.png` });
-  await openArea(a, 'Crônicas');
+  await openArea(a, 'Crônicas'); await a.locator('.alpha-pages').getByRole('tab', { name: /^Conflitos/ }).click();
   const battle = a.locator('.alpha-battle'); await expect(battle).toHaveCount(1);
   await expect(battle).toContainText(/Δ/);
   await battle.evaluate(el => { el.closest('details')?.setAttribute('open', ''); el.scrollIntoView({ block: 'start' }); });

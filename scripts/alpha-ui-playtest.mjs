@@ -170,15 +170,16 @@ async function planUrbanCatalog(seat, city, want) {
   await closeClouds(seat);
   if (!await page.locator('.alpha-inspector').isVisible().catch(() => false)) await seat.click(page.getByRole('button', { name: 'Detalhes', exact: true }), 'open details', { optional: true });
   await seat.click(page.locator('.inspector-tabs').getByRole('button', { name: 'Cidade' }), 'city tab', { optional: true });
-  await seat.click(page.getByRole('button', { name: 'Ver todas as ações' }), 'open catalog', { optional: true, timeout: 1200 });
+  await seat.click(page.locator('.alpha-frame').getByRole('tab', { name: 'Ações', exact: true }), 'open catalog', { optional: true, timeout: 1200 });
   const g = seat.game, all = g.urban.cities[city.id] ?? [];
   const groups = [all.filter(o => o.action === 'BUILD'), all.filter(o => o.action === 'ELEVATE'), all.filter(o => o.action === 'RECRUIT'), g.urban.research, all.filter(o => ['PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION', 'MOVE_CAPITAL'].includes(o.action))];
   const same = o => JSON.stringify([o.action, o.build, o.unit, o.advancementId]) === JSON.stringify([want.option.action, want.option.build, want.option.unit, want.option.advancementId]);
   const gi = groups.findIndex(list => list.some(same));
   if (gi < 0) { seat.note('option-not-listed', `${want.kind}: option exists in projection but in no UI group`); return false; }
-  const details = page.locator('.alpha-urban details').nth(gi);
-  if (!await details.evaluate(d => d.open).catch(() => false)) await seat.click(details.locator('summary'), `open group ${gi}`);
-  if (!await seat.click(details.locator('.alpha-urban-pick').nth(groups[gi].findIndex(same)), `pick ${want.kind}`)) return false;
+  const groupName = ['Construir', 'Elevar', 'Recrutar', 'Pesquisar', 'Cívica'][gi], index = groups[gi].findIndex(same);
+  await seat.click(page.locator('.alpha-urban').getByRole('tab', { name: new RegExp(`^${groupName}`) }), `open group ${groupName}`);
+  for (let p = 0; p < Math.floor(index / 8); p++) await seat.click(page.getByRole('button', { name: 'Próxima página' }), 'next page');
+  if (!await seat.click(page.locator('.alpha-urban-list .alpha-urban-pick').nth(index % 8), `pick ${want.kind}`)) return false;
   return seat.click(page.locator('.alpha-urban-detail button.alpha-recommended'), 'plan urban action');
 }
 
@@ -463,6 +464,7 @@ async function redistribute(seat, city) {
   const order = Object.entries(weights).filter(([role, weight]) => role !== 'soldiers' && weight > 0).sort((a, b) => b[1] - a[1]);
   for (let i = 0; rest > 0; i = (i + 1) % order.length) { target[order[i][0]]++; rest--; }
   const panel = seat.page.locator('.alpha-inspector');
+  await seat.click(panel.locator('.alpha-frame').getByRole('tab', { name: 'População', exact: true }), 'population tab', { optional: true, timeout: 1200 });
   for (const [role, n] of Object.entries(target)) {
     const input = panel.getByLabel(ROLE_LABEL[role], { exact: true });
     try { await input.scrollIntoViewIfNeeded({ timeout: 1500 }); await input.fill(String(n), { timeout: 1500 }); } catch (error) { seat.note('population-field', `${ROLE_LABEL[role]}: ${String(error.message).split('\n')[0].slice(0, 100)}`); return false; }

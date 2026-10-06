@@ -37,6 +37,23 @@ export function ChoiceParchment({ choice, locked, send }: { choice: AlphaPlayerV
   </article>;
 }
 
+type Node = (typeof ADVANCEMENTS)[number];
+/** The selected advancement as ONE small card: [Resumo] [Desbloqueia] swap in place, so the card never grows over the Teia. */
+function NodeDetail({ node, done, why, opt, gate, cost, unlocks, locked, cityId, onResearch }: { node: Node; done: boolean; why: string | null; opt: { blocked: string | null } | undefined; gate: string | null; cost: Record<string, number>; unlocks: Node[]; locked: boolean; cityId: string | null; onResearch: (id: string) => void }) {
+  const [page, setPage] = useState<'summary' | 'unlocks'>('summary');
+  const reason = done ? null : why ?? gate ?? opt?.blocked ?? null;
+  const name = (id: string) => ADVANCEMENTS.find(n => n.id === id)?.name;
+  return <article className="alpha-node-detail" aria-label={node.name}>
+    <header><h4>{node.name}</h4><small>{WEB_DOMAIN_NAMES[node.domain]} · Era {ALPHA_ERA_NUMERALS[ERAS.indexOf(node.era)]}{node.convergence ? ' · Convergência' : ''}{node.pair ? ' · escolha OU' : ''}{node.milestone ? ' · ★ +3 Prestígio' : ''}</small></header>
+    <div className="alpha-seg is-sub" role="tablist" aria-label="Avanço">{([['summary', 'Resumo'], ['unlocks', 'Desbloqueia']] as const).map(([key, title]) => <button key={key} type="button" role="tab" aria-selected={page === key} onClick={() => setPage(key)}>{title}</button>)}</div>
+    <div className="alpha-node-page" key={page}>{page === 'summary'
+      ? <p>{node.description}</p>
+      : <>{node.prerequisites.length > 0 && <p>Requer: {node.prerequisites.map(name).join(' · ')}</p>}{node.prerequisitesAny.length > 0 && <p>Requer um de: {node.prerequisitesAny.map(name).join(' · ')}</p>}{node.excludes.length > 0 && <p>Fecha: {node.excludes.map(name).join(' · ')}</p>}<p>Abre: {unlocks.length ? unlocks.map(n => n.name).join(' · ') : 'nada além de si mesmo'}</p></>}</div>
+    <div className="alpha-node-act">{!done && <span>Custo: {Object.entries(cost).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${text(k)}`).join(' · ') || 'nenhum'}</span>}{reason && !done && <small role="note">{reason}</small>}
+      <button type="button" className={reason === null && !done ? 'primary' : ''} disabled={locked || done || reason !== null || !cityId} onClick={() => onResearch(node.id)}>{done ? 'Marco permanente' : 'Pesquisar · Ordem Avanço'}</button></div>
+  </article>;
+}
+
 export type CivView = 'web' | 'heritage' | 'identity';
 export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, onClose, initialView = 'web' }: { game: AlphaPlayerView; selfName: string; cityId: string | null; locked: boolean; send: AlphaSend; manage: AlphaSend; onClose: () => void; initialView?: CivView }) {
   const self = game.self;
@@ -45,7 +62,7 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
   const gov = game.government.current;
   const eraIndex = ERAS.indexOf(self.era);
   const slots = self.resonance.slots, composition = slots.length ? classifyResonance(slots) : null;
-  const [selected, setSelected] = useState<string | null>(null), [view, setView] = useState<CivView>(initialView);
+  const [selected, setSelected] = useState<string | null>(null), [view, setView] = useState<CivView>(initialView), [idPage, setIdPage] = useState<'identity' | 'leader' | 'government'>('identity');
   // Research flow: a mark that appeared since the last render flies from the Reserva to its node and a diamond lands in the socket.
   const known = useRef<Set<string> | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
@@ -120,17 +137,9 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
           })}
         </div>
       </PanZoom>
-        {node && <article className="alpha-node-detail" aria-label={node.name}>
-          <small>{WEB_DOMAIN_NAMES[node.domain]} · Era {ALPHA_ERA_NUMERALS[ERAS.indexOf(node.era)]}{node.convergence ? ' · Convergência' : ''}{node.pair ? ' · escolha OU' : ''}{node.milestone ? ' · ★ +3 Prestígio' : ''}</small>
-          <h4>{node.name}</h4><p>{node.description}</p>
-          {node.prerequisites.length > 0 && <p>Requer: {node.prerequisites.map(id => ADVANCEMENTS.find(n => n.id === id)?.name).join(' · ')}</p>}
-          {node.excludes.length > 0 && <p>Fecha: {node.excludes.map(id => ADVANCEMENTS.find(n => n.id === id)?.name).join(' · ')}</p>}
-          {(() => { const done = self.research.includes(node.id), why = structuralBlock(self.research, self.era, node), opt = game.urban.research.find(o => o.advancementId === node.id), reason = done ? null : why ?? gate ?? opt?.blocked ?? null;
-            return <div className="alpha-node-act">{!done && <span>Custo: {Object.entries(game.costs.advancements[node.id] ?? {}).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${text(k)}`).join(' · ') || 'nenhum'}</span>}{reason && !done && <small role="note">{reason}</small>}
-              <button type="button" className={reason === null && !done ? 'primary' : ''} disabled={locked || done || reason !== null || !cityId} onClick={() => research(node.id)}>{done ? 'Marco permanente' : 'Pesquisar · Ordem Avanço'}</button></div>; })()}
-        </article>}
+        {node && <NodeDetail key={node.id} node={node} done={self.research.includes(node.id)} why={structuralBlock(self.research, self.era, node)} opt={game.urban.research.find(o => o.advancementId === node.id)} gate={gate} cost={game.costs.advancements[node.id] ?? {}} unlocks={ADVANCEMENTS.filter(n => n.prerequisites.includes(node.id) || n.prerequisitesAny.includes(node.id))} locked={locked} cityId={cityId} onResearch={research} />}
         </section>}
-        {view === 'heritage' && <section className="alpha-civ-heritage alpha-civ-view is-scroll" aria-label="Herança da Civilização">
+        {view === 'heritage' && <section className="alpha-civ-heritage alpha-civ-view" aria-label="Herança da Civilização">
         <h3>C · Herança da Civilização <small>só sua · não é a Teia universal</small></h3>
         <div className="alpha-heritage-row">{heritage.map((h, index) => {
           const done = self.research.includes(h.id), gateNode = ADVANCEMENTS.find(n => n.id === h.prerequisite)!, gateOpen = self.research.includes(h.prerequisite), eraOk = eraIndex >= ERAS.indexOf(h.era);
@@ -143,12 +152,12 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
             <button type="button" disabled={locked || done || reason !== null || !cityId} onClick={() => research(h.id)}>{done ? 'Adquirida' : 'Pesquisar Herança'}</button></article>;
         })}</div>
       </section>}
-        {view === 'identity' && <section className="alpha-civ-identity alpha-civ-view is-scroll" aria-label="Identidade">
-        <h3>D · Identidade</h3>
-        {kit ? <ul><li><b>Traço</b> {kit.trait.text}</li><li><b>Assinatura</b> {kit.signature.name} · {kit.signature.item.text}</li><li><b>Limitação</b> {kit.limitation.text}</li></ul> : <p>Escolha uma civilização.</p>}
-        <div className="alpha-civ-pair">
-          <article className="alpha-civ-leader"><small>Líder</small><h4>{leader?.name ?? '—'}</h4>{leader && <><p>{leader.passiveAbility.name}: {leader.passiveAbility.description}</p><p><b>{self.leader?.eraAbilityUsed ? 'Poder usado nesta Era' : 'Poder disponível'}</b> · {leader.eraAbility.name}</p></>}</article>
-          <article className="alpha-civ-government"><small>Governo</small><h4>{gov.name}</h4><ul>{gov.advantages.map(line => <li key={line}>＋ {line}</li>)}<li>－ {gov.limitation}</li></ul><GovernmentPanel game={game} locked={locked} manage={manage} /></article>
+        {view === 'identity' && <section className="alpha-civ-identity alpha-civ-view" aria-label="Identidade">
+        <div className="alpha-seg is-sub" role="tablist" aria-label="Identidade e Governo">{([['identity', 'Identidade'], ['leader', 'Líder'], ['government', 'Governo']] as const).map(([key, title]) => <button key={key} type="button" role="tab" aria-selected={idPage === key} onClick={() => setIdPage(key)}>{title}</button>)}</div>
+        <div className="alpha-page" key={idPage} role="tabpanel">
+          {idPage === 'identity' && (kit ? <ul className="alpha-civ-facts-list"><li><b>Traço</b> {kit.trait.text}</li><li><b>Assinatura</b> {kit.signature.name} · {kit.signature.item.text}</li><li><b>Limitação</b> {kit.limitation.text}</li></ul> : <p>Escolha uma civilização.</p>)}
+          {idPage === 'leader' && <article className="alpha-civ-leader"><small>Líder</small><h4>{leader?.name ?? '—'}</h4>{leader && <><p>{leader.passiveAbility.name}: {leader.passiveAbility.description}</p><p><b>{self.leader?.eraAbilityUsed ? 'Poder usado nesta Era' : 'Poder disponível'}</b> · {leader.eraAbility.name}</p></>}</article>}
+          {idPage === 'government' && <article className="alpha-civ-government"><GovernmentPanel game={game} locked={locked} manage={manage} /></article>}
         </div>
       </section>}
       </div>

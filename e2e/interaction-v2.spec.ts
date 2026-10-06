@@ -192,6 +192,8 @@ test('strategic surfaces are glass over the Mesa: Teia keeps its own pan/zoom an
   await shot(page, 'F-teia-glass-focus');
   // Governo: the one in force first, closed ones folded away.
   await surface.getByRole('tab', { name: 'Identidade e Governo' }).click();
+  // One page at a time: Governo is a segment of its own; the closed governments are one compact chip until asked.
+  await surface.locator('.alpha-civ-identity').getByRole('tab', { name: 'Governo' }).click();
   await expect(surface.locator('.alpha-gov-closed')).toBeVisible();
   await shot(page, 'G-tabuleiro-glass');
   expect(await noGlobalScroll(page)).toBe(true);

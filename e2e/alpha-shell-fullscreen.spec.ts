@@ -79,8 +79,7 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
     await page.getByRole('status', { name: 'Resolvendo a rodada' }).getByRole('button', { name: 'Continuar' }).click();
     await page.locator('svg.world-map g.hex[aria-label$=" 8,0"], svg.world-map g.hex[aria-label$=" 8,0, trabalhado"]').first().click();
     await page.getByRole('button', { name: 'Detalhes', exact: true }).click();
-    await page.locator('.alpha-army details summary').first().click();
-    await page.locator('.alpha-army').filter({ hasText: '8,0' }).getByRole('button', { name: 'Selecionar todas', exact: true }).click();
+    await page.locator('.alpha-inspector .alpha-frame').filter({ hasText: '8,0' }).getByRole('button', { name: 'Selecionar todas', exact: true }).click();
     await expect.soft(page.locator('.table-cloud .ctx-plate')).toContainText('MILITARES · 10');
     await page.locator('.ctx-node[data-node="attack"]').click();
     await expect.soft(page.locator('.ctx-chip')).toBeVisible();
@@ -96,12 +95,11 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
       await expect.soft(page.getByRole('button', { name: 'Aumentar zoom' })).toBeInViewport();
       await expect.soft(page.getByRole('button', { name: 'Mesa', exact: true })).toBeInViewport();
 
-      // 2. The context card scrolls inside itself, never the page.
+      // 2. NO-SCROLL: the context card is one fixed frame (segments swap its content); it neither scrolls nor lets the page move.
       const inner = await scroller(page, '.alpha-context .alpha-panel-body');
-      expect.soft(inner.overflowY, `${label} card`).toBe('auto');
-      expect.soft(inner.overscroll, `${label} card overscroll`).toBe('contain');
+      expect.soft(inner.overflowY, `${label} card`).toBe('hidden');
+      expect.soft(inner.overflows, `${label} card: content fits, nothing is clipped`).toBe(false);
       expect.soft(inner.pageScroll, `${label} card: page must not move`).toBe(0);
-      if (inner.overflows) expect.soft(inner.moved, `${label} card: scrolls internally`).toBeGreaterThan(0);
       const card = (await metrics(page)).card!;
       await page.mouse.move(card.left + card.width / 2, card.top + card.height / 2); await page.mouse.wheel(0, 500);
       expect.soft((await metrics(page)).scrollTop, `${label}: wheel over the card`).toBe(0);
@@ -126,10 +124,9 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
         const area = await assertMesa(page, `${label} ${tab}`);
         expect.soft(area.livro, `${label} ${tab}: Livro open`).not.toBeNull();
         const body = await scroller(page, '.alpha-livro .alpha-tab-body');
-        expect.soft(body.overflowY, `${label} ${tab}`).toBe('auto');
-        expect.soft(body.overscroll, `${label} ${tab} overscroll`).toBe('contain');
+        // Livro pages swap in place; only a naturally textual page scrolls, and then in its own single region (never nested).
+        expect.soft(body.overflowY, `${label} ${tab}`).toBe('hidden');
         expect.soft(body.pageScroll, `${label} ${tab}: page must not move`).toBe(0);
-        if (body.overflows) expect.soft(body.moved, `${label} ${tab}: region scrolls`).toBeGreaterThan(0);
         if (tab === 'Crônicas') { await page.waitForTimeout(400); await page.screenshot({ path: `${shots}/${label}-chronicles.png` }); }
       }
       await page.keyboard.press('Escape');

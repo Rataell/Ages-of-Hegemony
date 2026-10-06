@@ -56,6 +56,6 @@ export async function openCatalog(page:import('@playwright/test').Page){
   await inspector.or(open).first().waitFor();
   if(!(await inspector.isVisible()))await open.click();
   await inspector.getByRole('button',{name:'Cidade',exact:true}).click();
-  const all=inspector.getByRole('button',{name:'Ver todas as ações',exact:true});
+  const all=inspector.getByRole('tab',{name:'Ações',exact:true});
   if(await all.isVisible().catch(()=>false))await all.click();
 }
