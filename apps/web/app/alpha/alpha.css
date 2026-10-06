@@ -688,3 +688,6 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-confirm p { margin: 0; font-size: 13px; }
 .alpha-confirm button { justify-self: start; margin: 0 6px 0 0; }
 @media (max-width: 1500px) { .alpha-strip-audio .audio-music-hint { display: none; } .alpha-strip-tools .alpha-theme { font-size: 0; } .alpha-strip-tools .alpha-theme select { font-size: 12px; } }
+.presence-dot.is-bot { background: var(--mark, #8ab4c8); border-radius: 2px; }
+.alpha-add-bot { display: flex; align-items: center; gap: 12px; margin: 10px 0; flex-wrap: wrap; }
+.alpha-add-bot small { color: var(--text-secondary); }

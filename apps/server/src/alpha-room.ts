@@ -8,7 +8,7 @@ export const AlphaRoomSchema=z.strictObject({
   revealMap:z.boolean().default(false),
   planningSeconds:z.union([z.literal(0),z.literal(180),z.literal(300),z.literal(480),z.literal(3600),z.literal(14400),z.literal(28800)]),
   deadline:z.number().int().nonnegative().nullable(),
-  seats:z.array(z.strictObject({guestId:z.string().uuid(),playerId:PlayerIdSchema,name:z.string().trim().min(1).max(80),civilization:z.string().nullable(),ready:z.boolean()})).min(1).max(6),
+  seats:z.array(z.strictObject({guestId:z.string().uuid(),playerId:PlayerIdSchema,name:z.string().trim().min(1).max(80),civilization:z.string().nullable(),ready:z.boolean(),bot:z.boolean().default(false),botPersona:z.string().max(20).nullable().default(null)})).min(1).max(6),
   game:AlphaStateSchema.nullable(),
   /** External-alpha lifecycle (all optional on old snapshots). LOBBY / ACTIVE / SUSPENDED / FINISHED / CLOSED are derived by `lifecycleOf`. */
   suspended:z.boolean().default(false),
@@ -42,6 +42,8 @@ export const LobbyActionSchema=z.discriminatedUnion('type',[
   z.strictObject({type:z.literal('KICK'),expectedVersion:NonNegativeIntegerSchema,playerId:PlayerIdSchema}),
   z.strictObject({type:z.literal('SET_SEATS'),expectedVersion:NonNegativeIntegerSchema,seatLimit:z.number().int().min(2).max(6)}),
   z.strictObject({type:z.literal('CLOSE_ROOM'),expectedVersion:NonNegativeIntegerSchema}),
+  z.strictObject({type:z.literal('ADD_BOT'),expectedVersion:NonNegativeIntegerSchema}),
+  z.strictObject({type:z.literal('REMOVE_BOT'),expectedVersion:NonNegativeIntegerSchema,playerId:PlayerIdSchema}),
 ]);
 export const REACTIONS=['APPLAUSE','SURPRISE','THINKING','ATTENTION','CHEER','WATCHING'] as const;
 export const PINGS=['MARK','ATTENTION'] as const;

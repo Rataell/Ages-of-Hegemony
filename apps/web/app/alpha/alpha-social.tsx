@@ -60,16 +60,16 @@ export function NoticeToast({ notices }: { notices: AlphaRoomView['notices'] }) 
   return shown ? <div className="alpha-toast" role="status">{shown.text}</div> : null;
 }
 
-const PRESENCE: Record<string, string> = { ONLINE: 'Online', RECONNECTING: 'Reconectando…', ABSENT: 'Ausente' };
+const PRESENCE: Record<string, string> = { ONLINE: 'Online', RECONNECTING: 'Reconectando…', ABSENT: 'Ausente', BOT: 'Bot' };
 /** Livro → Mesa: who is here, host, suspend, EM GUARDA proposals, ending the match. Every destructive step is a vote of the active players. */
 export function RoomPanel({ room, send }: { room: AlphaRoomView; send: RoomSend }) {
   const [confirm, setConfirm] = useState<null | 'end' | string>(null);
   const active = room.lifecycle === 'ACTIVE';
   return <section className="alpha-room-panel" aria-label="Mesa e jogadores">
     <ul className="alpha-room-seats">{room.seats.map(s => <li key={s.playerId} className={s.playerId === room.selfPlayerId ? 'is-self' : ''}>
-      <i className={`presence-dot is-${s.presence.toLowerCase()}`} aria-hidden="true" /><b>{s.name}</b>{s.isHost && <small className="aoh-chip">anfitrião</small>}{s.onGuard && <small className="aoh-chip">EM GUARDA</small>}
+      <i className={`presence-dot is-${s.presence.toLowerCase()}`} aria-hidden="true" /><b>{s.name}</b>{s.bot && <small className="aoh-chip">BOT</small>}{s.isHost && <small className="aoh-chip">anfitrião</small>}{s.onGuard && <small className="aoh-chip">EM GUARDA</small>}
       <small>{s.presence === 'ONLINE' ? PRESENCE.ONLINE : PRESENCE[s.presence]}</small>
-      {active && s.playerId !== room.selfPlayerId && !s.onGuard && !room.vote && <button type="button" className="aoh-btn is-sm is-ghost" onClick={() => setConfirm(s.playerId)}>Propor EM GUARDA…</button>}
+      {active && !s.bot && s.playerId !== room.selfPlayerId && !s.onGuard && !room.vote && <button type="button" className="aoh-btn is-sm is-ghost" onClick={() => setConfirm(s.playerId)}>Propor EM GUARDA…</button>}
     </li>)}</ul>
     {confirm && confirm !== 'end' && <div className="alpha-confirm" role="alert"><p>Colocar <b>{room.seats.find(s => s.playerId === confirm)?.name}</b> EM GUARDA? A civilização é mantida (cidades, território, peças) mas passa a confirmar sem Ordens até a pessoa reassumir. Os jogadores ativos votam; ninguém é removido sozinho.</p>
       <button type="button" className="primary" onClick={() => { void send({ type: 'PROPOSE_REMOVE', target: confirm }); setConfirm(null); }}>Abrir votação</button><button type="button" onClick={() => setConfirm(null)}>Cancelar</button></div>}

@@ -16,6 +16,8 @@ export function addNotice(room:AlphaRoom,type:string,text:string,now:number):voi
 }
 export const seatOfGuest=(room:AlphaRoom,guestId:string)=>room.seats.find(s=>s.guestId===guestId);
 export const presenceOf=(room:AlphaRoom,guestId:string,now:number):Presence=>stateOf(room.id,guestId,now);
+/** Bots are seats but never administrators: they cannot be host, vote, be removed or be put EM GUARDA. */
+export const humanSeats=(room:AlphaRoom)=>room.seats.filter(s=>!s.bot);
 const nextPlayerNumber=(room:AlphaRoom)=>{const used=new Set(room.seats.map(s=>s.playerId));for(let n=1;n<=6;n++)if(!used.has(`player-${n}` as never))return n;return room.seats.length+1;};
 export const nextPlayerId=(room:AlphaRoom)=>`player-${nextPlayerNumber(room)}`;
 
@@ -36,7 +38,7 @@ export function maybeTransferHost(room:AlphaRoom,now:number):boolean{
   const state=presenceOf(room,host.guestId,now);if(state==='ONLINE')return false;
   const explicit=hasLeft(room.id,host.guestId),silentLong=state==='ABSENT'&&absentForMs(room.id,host.guestId,now)>=hostGraceMs();
   if(!explicit&&!silentLong)return false;
-  const next=room.seats.find(s=>s.guestId!==host.guestId&&!room.onGuard.includes(s.playerId)&&presenceOf(room,s.guestId,now)==='ONLINE')??room.seats.find(s=>s.guestId!==host.guestId&&!room.onGuard.includes(s.playerId)&&presenceOf(room,s.guestId,now)==='RECONNECTING');
+  const next=room.seats.find(s=>!s.bot&&s.guestId!==host.guestId&&!room.onGuard.includes(s.playerId)&&presenceOf(room,s.guestId,now)==='ONLINE')??room.seats.find(s=>!s.bot&&s.guestId!==host.guestId&&!room.onGuard.includes(s.playerId)&&presenceOf(room,s.guestId,now)==='RECONNECTING');
   if(!next)return false;
   room.hostGuestId=next.guestId;addNotice(room,'HOST_TRANSFERRED',`${next.name} agora é o anfitrião.`,now);return true;
 }
@@ -62,7 +64,7 @@ export function runGuards(room:AlphaRoom):boolean{
 /** Players who may vote: seated, not EM GUARDA, not absent. The target of a removal does not vote on their own removal. */
 export function eligibleVoters(room:AlphaRoom,now:number):string[]{
   const vote=room.vote;
-  return room.seats.filter(s=>!room.onGuard.includes(s.playerId)&&presenceOf(room,s.guestId,now)!=='ABSENT'&&!(vote?.kind==='REMOVE'&&vote.target===s.playerId)).map(s=>s.playerId);
+  return room.seats.filter(s=>!s.bot&&!room.onGuard.includes(s.playerId)&&presenceOf(room,s.guestId,now)!=='ABSENT'&&!(vote?.kind==='REMOVE'&&vote.target===s.playerId)).map(s=>s.playerId);
 }
 export type VoteOutcome='OPEN'|'APPROVED'|'REJECTED'|'EXPIRED';
 /** Simple strict majority of the eligible voters. A removal with fewer than two voters (a 2-person table) additionally needs the target to have been away for UXDEC-003's 10 minutes. */

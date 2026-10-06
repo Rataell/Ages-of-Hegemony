@@ -7,6 +7,8 @@ import { addNotice, eligibleVoters, maxSeats, maybeTransferHost, nextPlayerId, p
 import { leave as presenceLeave, touch as presenceTouch } from './alpha-presence.js';
 import { publishAlphaEvent } from './alpha-bus.js';
 import { alphaLog, short } from './alpha-log.js';
+import { botDelayMs, botPersonaFor, confirmBotSeat, planBotSeat } from './alpha-bot.js';
+import { CIVILIZATION_KITS } from '@aoh/game-domain';
 import { alphaPlayerView } from './alpha-projection.js';
 import type { GuestPrincipal } from './guest-session.js';
 import { playtestEnabled, playtestRecorderFor, UI_KINDS, type UiKind } from './playtest-log.js';
@@ -19,7 +21,7 @@ export function roomView(room:AlphaRoom,principal:GuestPrincipal,now=Date.now())
     lifecycle,suspended:room.suspended,closedReason:room.closedReason,selfOnGuard:room.onGuard.includes(seat.playerId),
     canSuspend:lifecycle==='ACTIVE'&&room.hostGuestId===principal.guestId&&safe?.ok===true,suspendBlock:safe&&!safe.ok?safe.reason:null,
     vote:voteView(room,seat.playerId,now),notices:room.notices.slice(-8),
-    seats:room.seats.map(s=>({playerId:s.playerId,name:s.name,civilization:s.civilization,ready:s.ready,isHost:s.guestId===room.hostGuestId,presence:presenceOf(room,s.guestId,now),onGuard:room.onGuard.includes(s.playerId)})),
+    seats:room.seats.map(s=>({playerId:s.playerId,name:s.name,civilization:s.civilization,ready:s.ready,isHost:s.guestId===room.hostGuestId,bot:s.bot,presence:s.bot?'BOT' as const:presenceOf(room,s.guestId,now),onGuard:room.onGuard.includes(s.playerId)})),
     game:room.game?alphaPlayerView(room.game,seat.playerId):null};
 }
 export type AlphaRoomView=NonNullable<ReturnType<typeof roomView>>;
@@ -28,6 +30,64 @@ const forbidden=()=>err({code:'FORBIDDEN',message:'Esta sessão não ocupa um lu
 const conflict=()=>{alphaLog('SAVE_CONFLICT');return err({code:'VERSION_CONFLICT',message:'A partida mudou. Atualize antes de confirmar novamente.'});};
 export class AlphaGameService {
   constructor(private readonly repository:AlphaRepository){}
+  /** In-process memory of what each bot already planned this phase and which confirmation timers are armed (single instance, like the SSE bus). A restart just replans. */
+  private readonly botPlanned=new Set<string>();
+  private readonly botScheduled=new Set<string>();
+  /**
+   * Bots act on the server, from their own seat-redacted view, through canonical commands. Per bot and phase: plan (instant), then confirm after a short
+   * presentation delay (none when ALPHA_BOT_DELAY_MS=0). Only while the table is ACTIVE: suspended, closed or finished tables never move.
+   */
+  private settleBots(room:AlphaRoom,now:number,readyNow:ReadonlySet<string>=new Set()):{timers:{key:string;delay:number}[];changed:boolean;planned:string[]}{
+    const out={timers:[] as {key:string;delay:number}[],changed:false,planned:[] as string[]};
+    const first=room.game;if(!first||lifecycleOf(room)!=='ACTIVE')return out;
+    const bots=room.seats.filter(s=>s.bot);if(!bots.length)return out;
+    const prevPhase=first.phase,prevRound=first.core.round,delay=botDelayMs();
+    for(let pass=0;pass<16;pass++){
+      let progressed=false;
+      for(const seat of bots){
+        const game=room.game!;if(game.core.status==='FINISHED'||!['PLANNING','ERA_TURN','CONFLICTS'].includes(game.phase))break;
+        const me=game.players.find(p=>p.playerId===seat.playerId);if(!me||me.ready)continue;
+        const key=`${room.id}:${seat.playerId}:${game.core.round}:${game.phase}`;
+        if(!this.botPlanned.has(key)){
+          alphaLog('BOT_PLAN_STARTED',{room:short(room.id),seat:seat.playerId,round:game.core.round,phase:game.phase});
+          room.game=planBotSeat(room.id,game,seat.playerId,seat.botPersona??'balanced',room.seed).game;
+          this.botPlanned.add(key);out.planned.push(key);if(this.botPlanned.size>4096)this.botPlanned.clear();
+          progressed=true;out.changed=true;
+        }
+        if(delay===0||readyNow.has(key)){
+          const done=confirmBotSeat(room.id,room.game!,seat.playerId);
+          if(done.ok){room.game=done.game;alphaLog('BOT_PLAN_CONFIRMED',{room:short(room.id),seat:seat.playerId,round:game.core.round});progressed=true;out.changed=true;}
+        }else if(!this.botScheduled.has(key)){this.botScheduled.add(key);out.timers.push({key,delay});}
+      }
+      if(!progressed)break;
+    }
+    if(out.changed){
+      runGuards(room);
+      const now2=room.game!;
+      if(now2.core.status==='FINISHED')room.deadline=null;
+      else if(room.planningSeconds&&(prevPhase!==now2.phase||prevRound!==now2.core.round))room.deadline=now+room.planningSeconds*1000;
+    }
+    return out;
+  }
+  /** A save that lost the race discards the in-memory plans of that attempt, so the next look replans from the stored room. */
+  private unplan(settled:{timers:{key:string;delay:number}[];planned:string[]}):void{for(const key of settled.planned)this.botPlanned.delete(key);for(const t of settled.timers)this.botScheduled.delete(t.key);}
+  private armBotTimers(roomId:string,timers:{key:string;delay:number}[]):void{
+    for(const timer of timers){
+      const handle=setTimeout(()=>{this.botScheduled.delete(timer.key);void this.botReady(roomId,timer.key).catch(()=>undefined);},timer.delay);
+      (handle as {unref?:()=>void}).unref?.();
+    }
+  }
+  /** A bot's delayed confirmation: re-read the room (it may have been suspended, closed or advanced) and confirm only if that exact phase is still open. */
+  async botReady(roomId:string,key:string):Promise<void>{
+    for(let attempt=0;attempt<3;attempt++){
+      const room=await this.repository.find(roomId);if(!room||lifecycleOf(room)!=='ACTIVE')return;
+      const expected=room.version,settled=this.settleBots(room,Date.now(),new Set([key]));
+      if(!settled.changed){this.armBotTimers(roomId,settled.timers);return;}
+      room.version=expected+1;
+      if(await this.repository.save(room,expected)){this.armBotTimers(roomId,settled.timers);return;}
+      this.unplan(settled);
+    }
+  }
   /** Server clock drives deadlines; CAS makes concurrent polling safe. No client time is accepted. */
   private async expire(room:AlphaRoom,now:number):Promise<AlphaRoom|null>{
     if(!room.game||room.deadline===null||now<room.deadline||room.suspended||room.closedReason!==null)return room;
@@ -42,16 +102,18 @@ export class AlphaGameService {
       if(!ready.ok)throw new Error(`Alpha timeout failed: ${ready.error.code}`);room.game=ready.value;
     }
     runGuards(room);
+    const bots=this.settleBots(room,now);
     playtestRecorderFor(room.id)?.observeTransition(gameBefore,room.game);
     room.version++;room.deadline=room.game.core.status==='FINISHED'?null:now+room.planningSeconds*1000;
-    return await this.repository.save(room,expected)?room:null;
+    if(await this.repository.save(room,expected)){this.armBotTimers(room.id,bots.timers);return room;}
+    this.unplan(bots);return null;
   }
   async create(principal:GuestPrincipal,raw:unknown):Promise<Response>{
     const input=CreateAlphaRoomSchema.safeParse(raw);if(!input.success)return err({code:'INVALID_INPUT',message:'Revise nome, jogadores, duração e semente da partida.'});
     if(input.data.seatLimit>maxSeats())return err({code:'INVALID_INPUT',message:`Neste Alpha a partida comporta de 2 a ${maxSeats()} jogadores.`});
     const {displayName,...options}=input.data;
     const room=AlphaRoomSchema.parse({...options,id:GameIdSchema.parse(randomUUID()),joinCode:randomBytes(16).toString('base64url'),version:0,hostGuestId:principal.guestId,deadline:null,game:null,
-      seats:[{guestId:principal.guestId,playerId:PlayerIdSchema.parse('player-1'),name:displayName,civilization:null,ready:false}]});
+      seats:[{guestId:principal.guestId,playerId:PlayerIdSchema.parse('player-1'),name:displayName,civilization:null,ready:false,bot:false,botPersona:null}]});
     if(!await this.repository.create(room))return err({code:'ALREADY_EXISTS',message:'Não foi possível criar a partida. Tente novamente.'});
     presenceTouch(room.id,principal.guestId,Date.now());
     alphaLog('ROOM_CREATED',{room:short(room.id),seats:room.seatLimit,preset:room.preset});
@@ -64,7 +126,7 @@ export class AlphaGameService {
     if(room.closedReason!==null)return err({code:'LOBBY_CLOSED',message:'Esta sala foi encerrada.'});
     if(room.game||room.seats.length>=Math.min(room.seatLimit,maxSeats()))return err({code:'LOBBY_CLOSED',message:'A partida já começou ou não possui vagas.'});
     const expected=room.version;
-    room.seats.push({guestId:principal.guestId,playerId:PlayerIdSchema.parse(nextPlayerId(room)),name:displayName.trim(),civilization:null,ready:false});room.version++;
+    room.seats.push({guestId:principal.guestId,playerId:PlayerIdSchema.parse(nextPlayerId(room)),name:displayName.trim(),civilization:null,ready:false,bot:false,botPersona:null});room.version++;
     addNotice(room,'PLAYER_JOINED',`${displayName.trim()} entrou na sala.`,now);
     if(!await this.repository.save(room,expected))return conflict();
     presenceTouch(room.id,principal.guestId,now);alphaLog('PLAYER_JOINED',{room:short(room.id),seats:room.seats.length});
@@ -72,9 +134,11 @@ export class AlphaGameService {
   }
   /** Saves the room after a rule changed it; the CAS decides, nothing is applied twice. */
   private async commit(room:AlphaRoom,expected:number,principal:GuestPrincipal,now:number):Promise<Response>{
+    const bots=this.settleBots(room,now);
     room.version=expected+1;
-    const valid=AlphaRoomSchema.safeParse(room);if(!valid.success)return err({code:'INVALID_CHOICE',message:'Estado de sala inválido.'});
-    return await this.repository.save(valid.data,expected)?ok(roomView(valid.data,principal,now)!):conflict();
+    const valid=AlphaRoomSchema.safeParse(room);if(!valid.success){this.unplan(bots);return err({code:'INVALID_CHOICE',message:'Estado de sala inválido.'});}
+    if(await this.repository.save(valid.data,expected)){this.armBotTimers(room.id,bots.timers);return ok(roomView(valid.data,principal,now)!);}
+    this.unplan(bots);return conflict();
   }
   /** What happens on every look at the room: the host role follows presence, a decided vote is applied, a deadline that passed is resolved. */
   private async housekeeping(room:AlphaRoom,now:number):Promise<AlphaRoom|null>{
@@ -89,9 +153,11 @@ export class AlphaGameService {
         alphaLog('VOTE_RESOLVED',{room:short(room.id),kind:vote.kind,outcome});
       }
     }
-    if(!changed)return room;
+    const bots=this.settleBots(room,now);if(bots.changed)changed=true;
+    if(!changed){this.armBotTimers(room.id,bots.timers);return room;}
     room.version=expected+1;
-    return await this.repository.save(room,expected)?room:null;
+    if(await this.repository.save(room,expected)){this.armBotTimers(room.id,bots.timers);return room;}
+    this.unplan(bots);return null;
   }
   private applyVote(room:AlphaRoom,vote:NonNullable<AlphaRoom['vote']>,now:number):void{
     if(vote.kind==='REMOVE'&&vote.target){
@@ -129,6 +195,7 @@ export class AlphaGameService {
     if(room.game)return err({code:'LOBBY_CLOSED',message:'A partida já começou.'});
     const command=parsed.data;if(room.version!==command.expectedVersion)return conflict();
     const isHost=room.hostGuestId===principal.guestId;
+    let lobbyBots:{timers:{key:string;delay:number}[];changed:boolean;planned:string[]}={timers:[],changed:false,planned:[]};
     if(command.type==='CHOOSE_CIVILIZATION'){
       if(seat.ready)return err({code:'ALREADY_READY',message:'Desmarque Pronto antes de trocar de civilização.'});
       seat.civilization=command.civilization;
@@ -141,12 +208,25 @@ export class AlphaGameService {
       if(!isHost)return forbidden();
       if(command.seatLimit>maxSeats()||command.seatLimit<Math.max(2,room.seats.length))return err({code:'INVALID_INPUT',message:`Escolha entre ${Math.max(2,room.seats.length)} e ${maxSeats()} lugares.`});
       room.seatLimit=command.seatLimit;
+    }else if(command.type==='ADD_BOT'){
+      if(!isHost)return forbidden();
+      if(room.seats.length>=Math.min(room.seatLimit,maxSeats()))return err({code:'LOBBY_FULL',message:'Não há lugar vazio para um bot.'});
+      const taken=new Set(room.seats.map(s=>s.civilization)),playable=CIVILIZATION_KITS.filter(k=>k.availability!=='AUTHORING').map(k=>k.id);
+      const start=room.seed%playable.length,civilization=[...playable.slice(start),...playable.slice(0,start)].find(id=>!taken.has(id));
+      if(!civilization)return err({code:'NO_CIVILIZATION',message:'Nenhuma civilização livre para o bot.'});
+      const botNumber=room.seats.filter(s=>s.bot).length+1;
+      room.seats.push({guestId:randomUUID(),playerId:PlayerIdSchema.parse(nextPlayerId(room)),name:`Bot ${botNumber}`,civilization,ready:true,bot:true,botPersona:botPersonaFor(room.seed,room.seats.length)});
+      addNotice(room,'BOT_ADDED',`Bot ${botNumber} entrou na sala.`,now);alphaLog('BOT_ADDED',{room:short(room.id),seats:room.seats.length});
+    }else if(command.type==='REMOVE_BOT'){
+      if(!isHost)return forbidden();
+      const target=room.seats.find(s=>s.playerId===command.playerId);if(!target||!target.bot)return err({code:'INVALID_INPUT',message:'Só é possível remover bots por aqui.'});
+      room.seats=room.seats.filter(s=>s!==target);addNotice(room,'BOT_REMOVED',`${target.name} saiu da sala.`,now);alphaLog('BOT_REMOVED',{room:short(room.id),seats:room.seats.length});
     }else if(command.type==='CLOSE_ROOM'){
       if(!isHost)return forbidden();
       room.closedReason='HOST';addNotice(room,'GAME_CLOSED','O anfitrião encerrou a sala.',now);alphaLog('GAME_CLOSED',{room:short(room.id),by:'host'});
     }else {
       if(!isHost)return forbidden();
-      if(room.seats.length<2||room.seats.length>maxSeats()||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
+      if(room.seats.length<2||room.seats.length>maxSeats()||room.seats.every(s=>s.bot)||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
       const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))});
       // Dev-only test scenario (never in production): a legal Contact between the two nearest Pátrias, from the real proximity rule.
       if(process.env.ALPHA_FORCE_CONTACT==='1'&&process.env.NODE_ENV!=='production')forceContactSetup(created);
@@ -154,11 +234,13 @@ export class AlphaGameService {
       room.game.rules.planningSeconds=room.planningSeconds;
       playtestRecorderFor(room.id)?.start(room.game);
       room.deadline=room.planningSeconds?now+room.planningSeconds*1000:null;
-      alphaLog('GAME_STARTED',{room:short(room.id),seats:room.seats.length});
+      lobbyBots=this.settleBots(room,now);
+      alphaLog('GAME_STARTED',{room:short(room.id),seats:room.seats.length,bots:room.seats.filter(s=>s.bot).length});
     }
     room.version++;
     const valid=AlphaRoomSchema.safeParse(room);if(!valid.success)return err({code:'INVALID_CHOICE',message:'Escolha uma civilização disponível antes de confirmar Pronto.'});
-    return await this.repository.save(valid.data,command.expectedVersion)?ok(roomView(valid.data,principal,now)!):conflict();
+    if(await this.repository.save(valid.data,command.expectedVersion)){this.armBotTimers(room.id,lobbyBots.timers);return ok(roomView(valid.data,principal,now)!);}
+    this.unplan(lobbyBots);return conflict();
   }
   async command(principal:GuestPrincipal,id:string,raw:unknown,now:number):Promise<Response>{
     const room=await this.repository.find(id);if(!room)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
@@ -176,9 +258,11 @@ export class AlphaGameService {
     if(!result.ok){alphaLog('COMMAND_REJECTED',{room:short(room.id),code:result.error.code});return result;}
     const expected=room.version;room.game=result.value;room.version++;
     runGuards(room);
+    const bots=this.settleBots(room,now);
     if(room.game.core.status==='FINISHED')room.deadline=null;
     else if(room.planningSeconds&&(previousPhase!==room.game.phase||previousRound!==room.game.core.round))room.deadline=now+room.planningSeconds*1000;
-    return await this.repository.save(room,expected)?ok(roomView(room,principal,now)!):conflict();
+    if(await this.repository.save(room,expected)){this.armBotTimers(room.id,bots.timers);return ok(roomView(room,principal,now)!);}
+    this.unplan(bots);return conflict();
   }
   /** Room-level actions: leaving, suspending, voting, EM GUARDA, and the social reactions (which are never saved). */
   private readonly cooldown=new Map<string,{reaction:number;ping:number}>();
@@ -221,7 +305,7 @@ export class AlphaGameService {
       let target:AlphaRoom['seats'][number]['playerId']|null=null;
       if(action.type==='PROPOSE_REMOVE'){
         const found=room.seats.find(s=>s.playerId===action.target);
-        if(!found||found.playerId===seat.playerId)return err({code:'INVALID_INPUT',message:'Escolha outra civilização.'});
+        if(!found||found.playerId===seat.playerId||found.bot)return err({code:'INVALID_INPUT',message:'Escolha outra civilização (bots não são removidos por votação).'});
         if(room.onGuard.includes(found.playerId))return err({code:'ALREADY_ON_GUARD',message:'Essa civilização já está EM GUARDA.'});
         target=found.playerId;
       }

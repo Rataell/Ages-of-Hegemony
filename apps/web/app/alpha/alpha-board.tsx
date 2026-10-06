@@ -96,7 +96,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
   /** Table-edge plates: where each seat is in the round, from public readiness only. */
   const seatStatus=Object.fromEntries(game.players.map(p=>{
     const seat=room.seats.find(s=>s.playerId===p.id),base=game.phase==='PLANNING'?(p.ready?'✓ Pronto':'Planejando…'):game.phase==='ERA_TURN'?(p.ready?'✓ Pronto':'Virada de Era'):'Resolvendo…';
-    return [p.id,room.lifecycle==='SUSPENDED'?'Suspensa':seat?.onGuard?'EM GUARDA':seat?.presence==='ABSENT'?'Ausente':seat?.presence==='RECONNECTING'?'Reconectando…':base];
+    return [p.id,seat?.bot?`BOT · ${room.lifecycle==='SUSPENDED'?'Suspensa':base}`:room.lifecycle==='SUSPENDED'?'Suspensa':seat?.onGuard?'EM GUARDA':seat?.presence==='ABSENT'?'Ausente':seat?.presence==='RECONNECTING'?'Reconectando…':base];
   }));
   const planned=[...game.self.orders.map(order=>({id:order.id,label:orderLabel(order)})),...game.self.plannedActions.map(action=>({id:action.id,label:action.type==='URBAN_ACTION'?`${text(action.action)} · ${civ.cities.find(candidate=>candidate.id===action.cityId)?.name??'Cidade'}`:text(action.type)}))];
   /** Decisions waiting in other areas, flagged on their tab so the player does not have to go looking. */
