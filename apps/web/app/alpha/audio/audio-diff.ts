@@ -4,7 +4,8 @@ import type { AudioEvent } from './audio-events';
 export type GameLike = {
   phase: string;
   view: { round: number };
-  self: { era?: string; ready?: boolean; resonance?: { slots?: unknown[] }; pendingChoices?: unknown[] };
+  self: { era?: string; ready?: boolean; resonance?: { slots?: unknown[] }; pendingChoices?: unknown[]; orders?: unknown[]; plannedActions?: unknown[] };
+  roundReports?: { resolution: { id: string; type: string }[] }[];
   events: { id: string; type: string }[];
   battles: { id: string; attackerId: string; defenderId: string; winnerId: string; losses: string[]; retreat: string | null; outcome?: string;
     attackerTactical: { face: string }[]; defenderTactical: { face: string }[]; fortification?: { before: { state: string }; after: { state: string } } | null }[];
@@ -20,7 +21,7 @@ export type GameLike = {
 export type AudioSnapshot = {
   eventIds: Set<string>; battleIds: Set<string>; threatIds: Set<string>; threatMarching: Set<string>; playerIds: Set<string>; cityIds: Set<string>;
   phase: string; era: string | undefined; round: number; resonance: number; worldPulseId: string | null; worldEventId: string | null;
-  pending: number; ownUnitHex: Map<string, string>; regions: Set<string>; presence: Map<string, boolean>;
+  pending: number; planned: number; resolutionIds: Set<string>; ownUnitHex: Map<string, string>; regions: Set<string>; presence: Map<string, boolean>;
 };
 export type Presence = { id: string; connected: boolean }[];
 
@@ -30,7 +31,8 @@ export function snapshotOf(game: GameLike, selfId: string, presence: Presence = 
     threatIds: new Set(game.threats.map(t => t.id)), threatMarching: new Set(game.threats.filter(t => t.status === 'MARCHING').map(t => t.id)),
     playerIds: new Set(game.players.map(p => p.id)), cityIds: new Set((game.cityStates ?? []).map(c => c.cityId)),
     phase: game.phase, era: game.self.era, round: game.view.round, resonance: game.self.resonance?.slots?.length ?? 0,
-    worldPulseId: game.worldPulse?.id ?? null, worldEventId: game.worldEvent?.id ?? null, pending: game.self.pendingChoices?.length ?? 0,
+    worldPulseId: game.worldPulse?.id ?? null, worldEventId: game.worldEvent?.id ?? null, pending: game.self.pendingChoices?.length ?? 0, planned: (game.self.orders?.length ?? 0) + (game.self.plannedActions?.length ?? 0),
+    resolutionIds: new Set((game.roundReports ?? []).flatMap(r => r.resolution.map(e => e.id))),
     ownUnitHex: new Map(game.units.filter(u => u.ownerId === selfId).map(u => [u.id, u.hexId])),
     regions: new Set((game.regions ?? []).map(r => r.id)), presence: new Map(presence.map(p => [p.id, p.connected])),
   };
@@ -44,6 +46,8 @@ const EVENT_MAP: Record<string, AudioEvent> = {
   THREAT_BATTLE: 'BATTLE_START', THREAT_DESTROYED: 'BUILD_DONE', HEGEMONY_DECLARED: 'WORLD_EVENT', WAR_DECLARED: 'WORLD_EVENT', CULTURAL_CONTEST: 'WORLD_EVENT',
   FOOD_SHORTAGE: 'WORLD_EVENT', UPKEEP_SHORTAGE: 'WORLD_EVENT', PORT_BLOCKED: 'WORLD_EVENT', DEMOBILIZED: 'RETREAT', ORDER_FAILED: 'UI_SELECT',
 };
+/** Round-report resolution types (what the table resolved this round) -> sound, for what the engine's event feed does not carry. */
+const RESOLUTION_MAP: Record<string, AudioEvent> = { CONSTRUCTION: 'BUILD_DONE', RECRUITMENT: 'BUILD_DONE', RESEARCH: 'RESEARCH_DONE', MOVEMENT: 'UNIT_MOVED', EXPLORATION: 'REGION_REVEALED', FOUNDATION: 'CITY_FOUNDED' };
 const FACE_EVENT: Record<string, AudioEvent> = { IMPACT: 'DICE_RESULT_IMPACT', GUARD: 'DICE_RESULT_GUARD', MANEUVER: 'DICE_RESULT_MANEUVER', COMMAND: 'DICE_RESULT_COMMAND', EMPTY: 'DICE_RESULT_EMPTY' };
 
 /**
@@ -58,6 +62,9 @@ export function diffGame(prev: AudioSnapshot | null, game: GameLike, selfId: str
   const add = (e: AudioEvent) => { if (!out.includes(e)) out.push(e); };
 
   for (const event of game.events) if (!prev.eventIds.has(event.id) && EVENT_MAP[event.type]) add(EVENT_MAP[event.type]!);
+
+  for (const report of game.roundReports ?? []) for (const event of report.resolution) if (!prev.resolutionIds.has(event.id) && RESOLUTION_MAP[event.type]) add(RESOLUTION_MAP[event.type]!);
+  if (next.planned > prev.planned) add('ORDER_PLANNED');
 
   const fresh = game.battles.filter(b => !prev.battleIds.has(b.id));
   for (const battle of fresh) {

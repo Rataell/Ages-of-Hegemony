@@ -94,3 +94,15 @@ describe('music score and dice frames', () => {
     }
   });
 });
+
+describe('audio wiring for build, research and planned orders', () => {
+  const base = { phase: 'PLANNING', view: { round: 2 }, self: { era: 'FOUNDATION', orders: [] as unknown[], plannedActions: [] as unknown[], pendingChoices: [] as unknown[], resonance: { slots: [] as unknown[] } }, events: [], battles: [], threats: [], worldPulse: null, players: [{ id: 'p1' }], units: [], roundReports: [] as { resolution: { id: string; type: string }[] }[] };
+  it('emits ORDER_PLANNED when an order is reserved, and BUILD/RESEARCH/MOVE/EXPLORE/FOUND from the round report', () => {
+    const first = diffGame(null, base as never, 'p1');
+    const planned = diffGame(first.next, { ...base, self: { ...base.self, plannedActions: [{}] } } as never, 'p1');
+    expect(planned.events).toContain('ORDER_PLANNED');
+    const resolved = diffGame(first.next, { ...base, roundReports: [{ resolution: [{ id: 'a', type: 'CONSTRUCTION' }, { id: 'b', type: 'RESEARCH' }, { id: 'c', type: 'EXPLORATION' }, { id: 'd', type: 'FOUNDATION' }, { id: 'e', type: 'MOVEMENT' }] }] } as never, 'p1');
+    expect(resolved.events).toEqual(expect.arrayContaining(['BUILD_DONE', 'RESEARCH_DONE', 'REGION_REVEALED', 'CITY_FOUNDED', 'UNIT_MOVED']));
+    expect(diffGame(null, { ...base, roundReports: [{ resolution: [{ id: 'a', type: 'CONSTRUCTION' }] }] } as never, 'p1').events).toEqual([]); // history is never replayed
+  });
+});

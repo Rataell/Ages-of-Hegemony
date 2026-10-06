@@ -346,9 +346,9 @@ export const HexMap = memo(function HexMap({
                 const mark = art.cityMarks.find(m => m.cityId === city.id), seat = art.seats[city.ownerId];
                 const level = mark?.level ?? 1, color = seat?.color ?? '#9aa4a2';
                 return <g className="city-anchor art-city" data-level={level} data-fortification={mark?.fortification.level ?? 'NONE'}>
-                  <g dangerouslySetInnerHTML={svgFragment(cityArt(level, 50, { color, seed: seedOf(city.id) }) + (mark ? fortificationArt(mark.fortification.level, mark.fortification.state, 50) : '') + (seat?.mark ? `<g transform="translate(29 -24)">${bannerArt(seat.mark, color, 30)}</g>` : ''))} />
+                  <g dangerouslySetInnerHTML={svgFragment(cityArt(level, 50, { color, seed: seedOf(city.id) }) + (mark ? fortificationArt(mark.fortification.level, mark.fortification.state, 50) : '') + (seat?.mark ? `<g transform="translate(30 -5)">${bannerArt(seat.mark, color, 22)}</g>` : ''))} />
                   {/* The seal reads N·Capacidade (canon §4): level built and the power of one activation. */}
-                  <g transform="translate(-30 -26)"><rect x={mark?.capacity ? -15 : -9} y="-9" width={mark?.capacity ? 30 : 18} height="18" rx="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{mark?.capacity ? `${level}·${mark.capacity}` : level}</text></g>
+                  <g transform="translate(-21 -23)"><rect x={mark?.capacity ? -15 : -9} y="-9" width={mark?.capacity ? 30 : 18} height="18" rx="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{mark?.capacity ? `${level}·${mark.capacity}` : level}</text></g>
                 </g>;
               })() : city ? (
                 <g className={`city-anchor ${isCapital ? 'is-capital' : ''}`}>
@@ -431,8 +431,8 @@ export const HexMap = memo(function HexMap({
               {(() => {
                 const people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null), threat = threats.find(r => r.hexId === tile.id);
                 return <>
-                  {people && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
-                  {threat && <g transform={city && art ? 'translate(0 -44)' : 'translate(0 -30)'} className={`alpha-raid alpha-threat kind-${threat.kind} status-${threat.status}${threat.fresh ? ' is-fresh' : ''}`} data-level={threat.level}><rect x="-19" y="-10" width="38" height="20" rx="4" className="raid-badge" />{threat.kind === 'PIRATE' ? <path d="M-14 6L-3 6L-9 -6Z M-9 -6V7" className="raid-glyph" /> : threat.status === 'CAMPED' ? <path d="M-14 6L-8 -6L-2 6Z M-8 -6V6" className="raid-glyph" /> : <path d="M-13 6L-3 -5M-13 -5L-3 6" className="raid-glyph" />}<text x="9" y="4" className="raid-count" textAnchor="middle">{['I', 'II', 'III'][threat.level - 1]}</text><title>{threat.kind === 'PIRATE' ? (threat.status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : (threat.status === 'CAMPED' ? 'Acampamento' : 'Bando em marcha')} · Ameaça {['I', 'II', 'III'][threat.level - 1]}</title></g>}
+                  {people && <g transform={city && art ? 'translate(0 -40)' : 'translate(0 -28)'} className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
+                  {threat && <g transform={city && art ? 'translate(0 -40)' : 'translate(0 -28)'} className={`alpha-raid alpha-threat kind-${threat.kind} status-${threat.status}${threat.fresh ? ' is-fresh' : ''}`} data-level={threat.level}><rect x="-19" y="-10" width="38" height="20" rx="4" className="raid-badge" />{threat.kind === 'PIRATE' ? <path d="M-14 6L-3 6L-9 -6Z M-9 -6V7" className="raid-glyph" /> : threat.status === 'CAMPED' ? <path d="M-14 6L-8 -6L-2 6Z M-8 -6V6" className="raid-glyph" /> : <path d="M-13 6L-3 -5M-13 -5L-3 6" className="raid-glyph" />}<text x="9" y="4" className="raid-count" textAnchor="middle">{['I', 'II', 'III'][threat.level - 1]}</text><title>{threat.kind === 'PIRATE' ? (threat.status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : (threat.status === 'CAMPED' ? 'Acampamento' : 'Bando em marcha')} · Ameaça {['I', 'II', 'III'][threat.level - 1]}</title></g>}
                 </>;
               })()}
               {/* One badge per owner: the owner's colour, a soldier or a flag for civil pieces, and the count. Foreign pieces are outlined. */}
@@ -449,11 +449,12 @@ export const HexMap = memo(function HexMap({
                   const military = mine.filter(u => !CIVIL_PIECES.has(u.kind)), civil = [...new Set(mine.filter(u => CIVIL_PIECES.has(u.kind)).map(u => u.kind))];
                   const lead = military.some(u => u.kind === 'FLEET') ? 'FLEET' : mine.some(u => u.kind === 'COASTAL_VESSEL') ? 'COASTAL_VESSEL' : military.length ? [...military.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1])[0]![0] : civil[0]!;
                   const count = lead === 'FLEET' || lead === 'COASTAL_VESSEL' ? mine.filter(u => u.kind === lead).length : military.length || mine.filter(u => u.kind === lead).length, side = military.length ? civil : civil.slice(1);
-                  const x = city ? (slot === 0 ? -24 : 24) : owners.length > 1 ? (slot === 0 ? -20 : 20) : 0, y = city ? 22 : 0;
+                  // Inside the hex: the lower corners of a city hex are narrow (apothem 45, circumradius 52), so pieces sit higher and smaller there.
+                  const x = city ? (slot === 0 ? -23 : 23) : owners.length > 1 ? (slot === 0 ? -21 : 19) : -2, y = city ? 17 : 0;
                   const kinds = [...all.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
                   return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={lead} style={own && onSelectPieces ? { cursor: 'pointer' } : undefined} onClick={own && onSelectPieces ? (e => { if (!moved) { e.stopPropagation(); onSelectPieces(tile.id); } }) : undefined}>
                     <title>{own ? 'Suas peças' : `Peças de ${data.players.find(p => p.id === ownerId)?.name ?? 'outra civilização'}`}: {kinds}</title>
-                    <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 30 : 38, count, art.seats[ownerId]?.signature === lead) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20, 0, art.seats[ownerId]?.signature === kind)}</g>`).join(''))} />
+                    <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 26 : 34, count, art.seats[ownerId]?.signature === lead) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20, 0, art.seats[ownerId]?.signature === kind)}</g>`).join(''))} />
                     {cargo.length > 0 && <g transform="translate(0 -24)" className="art-cargo"><rect x="-22" y="-8" width="44" height="15" rx="7" /><text y="3">carga {cargo.length}</text></g>}
                   </g>;
                 });
