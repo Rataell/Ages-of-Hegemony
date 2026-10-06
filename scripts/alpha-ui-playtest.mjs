@@ -13,7 +13,6 @@
 import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { ADVANCEMENTS, HERITAGE_ADVANCES } from '@aoh/game-domain';
-const KIND_LABEL = { PIONEER: 'Pioneiro', ENVOY: 'Enviado', INFANTRY: 'Infantaria', GUARD: 'Guarda', RANGED: 'Arqueiros', CAVALRY: 'Cavalaria', SIEGE: 'Cerco', FLEET: 'Frota', COASTAL_VESSEL: 'Embarcação' };
 
 const arg = new Map(process.argv.slice(2).map(a => { const [k, v] = a.replace(/^--/, '').split('='); return [k, v ?? true]; }));
 const PORT = Number(process.env.ALPHA_LOCAL_PORT ?? 3001), BASE = `http://127.0.0.1:${PORT}`;
@@ -157,37 +156,60 @@ async function dismissOverlays(seat) {
   }
 }
 
+/** Interaction Model V2: every piece and city is touched ON the table; its cloud is born on it. Esc closes whatever is open first, like a person would. */
+async function closeClouds(seat) { for (let i = 0; i < 3 && await seat.page.locator('.table-cloud').count(); i++) { await seat.page.keyboard.press('Escape'); await nap(160); } }
 async function selectCity(seat, city) {
+  await closeClouds(seat);
   await seat.clickHex(city.hexId, `select city ${city.name}`);
-  await seat.click(seat.page.locator('.inspector-tabs').getByRole('button', { name: 'Cidade' }), 'city tab', { optional: true });
+  await seat.page.locator('.table-cloud .ctx-plate').first().waitFor({ state: 'visible', timeout: 2500 }).catch(() => seat.note('cloud-missing', `touching ${city.name} opened no cloud`));
+}
+const cloudNode = (seat, id) => seat.page.locator(`.ctx-node[data-node='${id}']`);
+/** The city's catalog ("Ver todas as ações"): the strategic surface for the rare option the cloud lists only as a count. */
+async function planUrbanCatalog(seat, city, want) {
+  const page = seat.page;
+  await closeClouds(seat);
+  if (!await page.locator('.alpha-inspector').isVisible().catch(() => false)) await seat.click(page.getByRole('button', { name: 'Detalhes', exact: true }), 'open details', { optional: true });
+  await seat.click(page.locator('.inspector-tabs').getByRole('button', { name: 'Cidade' }), 'city tab', { optional: true });
+  await seat.click(page.getByRole('button', { name: 'Ver todas as ações' }), 'open catalog', { optional: true, timeout: 1200 });
+  const g = seat.game, all = g.urban.cities[city.id] ?? [];
+  const groups = [all.filter(o => o.action === 'BUILD'), all.filter(o => o.action === 'ELEVATE'), all.filter(o => o.action === 'RECRUIT'), g.urban.research, all.filter(o => ['PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION', 'MOVE_CAPITAL'].includes(o.action))];
+  const same = o => JSON.stringify([o.action, o.build, o.unit, o.advancementId]) === JSON.stringify([want.option.action, want.option.build, want.option.unit, want.option.advancementId]);
+  const gi = groups.findIndex(list => list.some(same));
+  if (gi < 0) { seat.note('option-not-listed', `${want.kind}: option exists in projection but in no UI group`); return false; }
+  const details = page.locator('.alpha-urban details').nth(gi);
+  if (!await details.evaluate(d => d.open).catch(() => false)) await seat.click(details.locator('summary'), `open group ${gi}`);
+  if (!await seat.click(details.locator('.alpha-urban-pick').nth(groups[gi].findIndex(same)), `pick ${want.kind}`)) return false;
+  return seat.click(page.locator('.alpha-urban-detail button.alpha-recommended'), 'plan urban action');
 }
 
-/** Plans one urban action by opening the same lists a person opens. Returns true when it consumed an Order. */
+/** Plans one urban action from the city's cloud. Returns true when it consumed an Order. */
 async function planUrban(seat, city, want) {
-  const g = seat.game;
-  const groupDefs = [['BUILD'], ['ELEVATE'], ['RECRUIT'], ['RESEARCH'], ['PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION', 'MOVE_CAPITAL']];
-  const all = g.urban.cities[city.id] ?? [];
-  const researchable = g.urban.research;
-  const groups = [all.filter(o => o.action === 'BUILD'), all.filter(o => o.action === 'ELEVATE'), all.filter(o => o.action === 'RECRUIT'), researchable, all.filter(o => ['PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION', 'MOVE_CAPITAL'].includes(o.action))];
-  void groupDefs;
+  const g = seat.game, page = seat.page, before = g.actions.reserved;
   await selectCity(seat, city);
-  const before = g.actions.reserved;
   let ok;
-  if (want.kind === 'produce') {
-    ok = await seat.click(seat.page.getByRole('button', { name: 'Escolher produzir' }), 'pick produce');
-  } else {
-    const gi = groups.findIndex(list => list.includes(want.option) || list.some(o => JSON.stringify([o.action, o.build, o.unit, o.advancementId]) === JSON.stringify([want.option.action, want.option.build, want.option.unit, want.option.advancementId])));
-    if (gi < 0) { seat.note('option-not-listed', `${want.kind}: option exists in projection but in no UI group`); return false; }
-    const index = groups[gi].findIndex(o => JSON.stringify([o.action, o.build, o.unit, o.advancementId]) === JSON.stringify([want.option.action, want.option.build, want.option.unit, want.option.advancementId]));
-    const details = seat.page.locator('.alpha-urban details').nth(gi);
-    if (!await details.evaluate(d => d.open).catch(() => false)) await seat.click(details.locator('summary'), `open group ${gi}`);
-    ok = await seat.click(details.locator('.alpha-urban-pick').nth(index), `pick ${want.kind}`);
+  if (want.kind === 'produce') ok = await seat.click(cloudNode(seat, 'PRODUCE'), 'cloud: Produzir');
+  else {
+    const o = want.option, key = JSON.stringify([o.action, o.build ?? null, o.unit ?? null, o.advancementId ?? null]);
+    if (o.action === 'BUILD' || o.action === 'RECRUIT') {
+      ok = await seat.click(cloudNode(seat, o.action), `cloud: ${o.action}`);
+      const category = o.build?.kind;
+      if (ok && category && await cloudNode(seat, category).count()) ok = await seat.click(cloudNode(seat, category), `cloud: ${category}`);
+      if (ok) {
+        const node = cloudNode(seat, key);
+        if (await node.count()) ok = await seat.click(node, `cloud: ${want.kind}`) && await seat.click(page.locator('.ctx-go'), 'cloud: Confirmar');
+        else { seat.note('cloud-lists-as-count', `${want.kind}: not among the nodes; using the catalog (Ver todas)`); ok = await planUrbanCatalog(seat, city, want); }
+      }
+    } else {
+      // Elevar / Governar / Comércio / Cívica: a node of the root, or of the ••• level.
+      let node = cloudNode(seat, o.action);
+      if (!await node.count()) { await seat.click(cloudNode(seat, 'more'), 'cloud: •••', { optional: true }); node = cloudNode(seat, o.action); }
+      ok = await node.count() ? await seat.click(node, `cloud: ${want.kind}`) : await planUrbanCatalog(seat, city, want);
+    }
   }
-  if (!ok) return false;
-  const confirm = seat.page.locator('.alpha-urban-detail button.alpha-recommended');
-  if (!await seat.click(confirm, 'plan urban action')) return false;
+  if (!ok) { await closeClouds(seat); return false; }
   const done = await seat.waitState(x => x.actions.reserved > before, 4000);
-  if (!done) seat.note('plan-no-effect', `${want.kind} in ${city.name}: clicked Planejar but no Order was reserved`);
+  if (!done) seat.note('plan-no-effect', `${want.kind} in ${city.name}: clicked but no Order was reserved`);
+  await closeClouds(seat);
   return done;
 }
 
@@ -220,55 +242,58 @@ async function planResearch(seat) {
   return done;
 }
 
-/** Clicking a destination hex moves the inspector to the hex; a person goes back to the Militar tab to confirm the order. */
-const militaryTab = seat => seat.click(seat.page.locator('.inspector-tabs').getByRole('button', { name: /^Militar/ }), 'military tab', { optional: true, timeout: 800 }).then(() => true);
+/** Touches a piece badge on its hex (a painted pixel of the badge: its bounding box also covers empty corners that hit the hex below). */
+async function touchPieces(seat, hexId) {
+  const point = await seat.page.evaluate(id => {
+    const hex = [...document.querySelectorAll('g.hex')].find(h => new RegExp(` ${id.replace(/[-.]/g, '\\$&')}(,|$)`).test(h.getAttribute('aria-label') ?? ''));
+    const stack = hex?.querySelector('.art-stack.own'); if (!stack) return null;
+    const b = stack.getBoundingClientRect();
+    for (let i = 1; i < 12; i++) for (let j = 1; j < 12; j++) { const x = b.left + (b.width * i) / 12, y = b.top + (b.height * j) / 12, el = document.elementFromPoint(x, y); if (el?.closest('.art-stack.own') === stack) return { x, y }; }
+    return null;
+  }, hexId);
+  if (!point) return false;
+  await seat.page.mouse.click(point.x, point.y); seat.actions++; await nap(220);
+  return true;
+}
+/** One piece order, the V2 way: touch the piece, pick its node, and let the MAP take the destination / Region / target. */
 async function pieceOrder(seat, unit, kind) {
-  const g = seat.game, opt = g.unitOptions[unit.id];
+  const g = seat.game, opt = g.unitOptions[unit.id], page = seat.page;
   if (!opt) return false;
   const before = g.actions.reserved;
-  // the previous order leaves its pieces selected; a person presses 'Limpar seleção' before picking other pieces
-  await seat.click(seat.page.getByRole('button', { name: 'Limpar seleção' }).first(), 'clear selection', { optional: true, timeout: 500 });
-  for (let attempt = 0; attempt < 3; attempt++) {
-    await seat.clickHex(unit.hexId, `select ${unit.kind} stack`);
-    await seat.click(seat.page.locator('.inspector-tabs').getByRole('button', { name: /^Militar/ }), 'military tab', { optional: true });
-    if (await seat.page.locator('.alpha-inspector .alpha-armies, .alpha-inspector .alpha-order-builder').first().isVisible().catch(() => false)) break;
-    if (attempt === 2) seat.note('select-stack-failed', `clicking ${unit.hexId} did not open the army list for ${unit.kind}`);
-    await nap(300);
+  await closeClouds(seat);
+  let opened = false;
+  for (let attempt = 0; attempt < 3 && !opened; attempt++) { opened = await touchPieces(seat, unit.hexId); if (opened) opened = await page.locator('.table-cloud .ctx-plate').first().waitFor({ state: 'visible', timeout: 1500 }).then(() => true).catch(() => false); if (!opened) await closeClouds(seat); }
+  if (!opened) { seat.note('select-stack-failed', `touching the ${unit.kind} piece on ${unit.hexId} opened no cloud`); return false; }
+  // several groups on one hex (Pioneiro, Militares): the tabs of the plate choose which piece the nodes talk to
+  const label = unit.kind === 'PIONEER' ? 'Pioneiro' : unit.kind === 'ENVOY' ? 'Enviado' : unit.kind === 'FLEET' || unit.kind === 'COASTAL_VESSEL' ? 'Frota' : 'Militares';
+  const tabs = page.locator('.ctx-tabs button').filter({ hasText: new RegExp(`^${label}`) });
+  // The piece asked for is the first of its kind whose node is not off (a piece that already has an order shows its nodes disabled).
+  const probe = { explore: 'explore', settle: 'found', move: 'move', attack: 'attack' }[kind];
+  for (let i = 0; i < await tabs.count(); i++) {
+    await seat.click(tabs.nth(i), `cloud tab ${label} ${i + 1}`, { optional: true, timeout: 800 });
+    await nap(200);
+    if (probe && await cloudNode(seat, probe).first().getAttribute('aria-disabled').then(v => v !== 'true').catch(() => false)) break;
   }
-  // clicking a stack may auto-select a different piece of it; clear, then choose exactly this class with its chip
-  if (await seat.page.locator('.alpha-inspector .alpha-order-builder').count()) {
-    await seat.click(seat.page.locator('.alpha-inspector').getByRole('button', { name: 'Limpar seleção' }).first(), 'clear selection', { optional: true, timeout: 800 });
-    await militaryTab(seat); // clearing flips the inspector to Território; a person clicks Militar again
-    await nap(250);
-  }
-  // choose exactly this class of the stack, as a person does with the class chip
-  const kindChip = seat.page.locator('.alpha-inspector .alpha-army-classes button').filter({ hasText: new RegExp(`^${KIND_LABEL[unit.kind] ?? unit.kind}`) });
-  const needsOne = kind === 'explore' || kind === 'settle';
-  const chipText = await kindChip.first().innerText().catch(() => '');
-  if (needsOne && /×\s*[2-9]/.test(chipText)) {
-    // two pieces of the same class: ordering ONE of them means opening 'ver composição' and ticking it (a real discoverability cost)
-    seat.note('single-piece-needs-composition', `${unit.kind} stack of ${chipText.trim()}: one piece can only be picked in 'ver composição'`);
-    await seat.click(seat.page.locator('.alpha-inspector .alpha-army summary').filter({ hasText: 'ver composição' }).first(), 'open composition', { optional: true, timeout: 800 });
-    await seat.click(seat.page.locator('.alpha-inspector .alpha-piece-row input[type=checkbox]').first(), 'tick one piece', { optional: true, timeout: 800 });
-  } else if (await kindChip.count()) await seat.click(kindChip, `select class ${unit.kind}`, { optional: true });
-  else await seat.click(seat.page.getByRole('button', { name: /Selecionar( todas)?$/ }), 'select stack', { optional: true });
-  const traceSelect = (await seat.page.locator('.alpha-inspector').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 120);
   let ok = false;
   if (kind === 'explore' && opt.explore.length) {
     const target = opt.explore.sort((a, b) => hexDist(a.target, unit.hexId) - hexDist(b.target, unit.hexId))[0];
-    ok = await seat.clickHex(target.target, 'explore target') && await militaryTab(seat) && await seat.click(seat.page.getByRole('button', { name: 'Explorar região' }), 'explore region');
+    ok = await seat.click(cloudNode(seat, 'explore'), 'cloud: Explorar') && await seat.clickHex(target.target, 'explore Region');
   } else if (kind === 'settle' && opt.settleBlock === null) {
-    ok = await seat.click(seat.page.getByRole('button', { name: 'Fundar cidade' }), 'found city');
-    if (!ok) { const input = seat.page.getByLabel('Nome da nova cidade'); if (await input.count()) { await input.fill(`Nova ${seat.label.slice(-1)}${g.view.round}`); ok = await seat.click(seat.page.getByRole('button', { name: 'Fundar cidade' }), 'found city'); } }
+    ok = await seat.click(cloudNode(seat, 'found'), 'cloud: Fundar');
+    const input = page.locator('.ctx-card input');
+    if (ok && await input.count()) await input.fill(`Nova ${seat.label.slice(-1)}${g.view.round}`);
+    ok = ok && await seat.click(page.locator('.ctx-go'), 'cloud: Fundar (confirmar)');
   } else if (kind === 'move') {
     const dest = unit.dest;
     if (dest && !opt.moves[dest]) seat.note('move-unreachable', `${unit.kind}: ${dest} not in highlighted moves`);
-    if (dest && opt.moves[dest]) ok = await seat.clickHex(dest, 'move target') && await militaryTab(seat) && await seat.click(seat.page.getByRole('button', { name: 'Reservar movimento' }), 'reserve move');
+    if (dest && opt.moves[dest]) ok = await seat.click(cloudNode(seat, 'move'), 'cloud: Mover') && await seat.clickHex(dest, 'move destination');
   } else if (kind === 'attack') {
-    ok = await seat.clickHex(unit.target, 'attack target') && await militaryTab(seat) && await seat.click(seat.page.getByRole('button', { name: 'Ordenar ataque' }), 'order attack');
+    ok = await seat.click(cloudNode(seat, 'attack'), 'cloud: Atacar') && await seat.clickHex(unit.target, 'attack target');
   }
-  if (!ok) { const panel = (await seat.page.locator('.alpha-inspector').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 260); seat.note('piece-order-failed', `${kind} with ${unit.kind}@${unit.hexId}${unit.dest ? ' -> ' + unit.dest : ''}${unit.target ? ' -> ' + unit.target : ''} | after-select: ${traceSelect} | now: ${panel}`); return false; }
-  return seat.waitState(x => x.actions.reserved > before || x.self.orders.length > 0, 4000);
+  if (!ok) { const plate = (await page.locator('.table-cloud').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 220); seat.note('piece-order-failed', `${kind} with ${unit.kind}@${unit.hexId}${unit.dest ? ' -> ' + unit.dest : ''}${unit.target ? ' -> ' + unit.target : ''} | cloud: ${plate}`); await closeClouds(seat); return false; }
+  const done = await seat.waitState(x => x.actions.reserved > before || x.self.orders.length > 0, 4000);
+  await closeClouds(seat);
+  return done;
 }
 
 /** Decide the next Order for this seat from the screen's own options. */
@@ -400,7 +425,7 @@ async function mapShots(seat, dir) {
     for (const inspector of ['open', 'folded']) {
       const isOpen = await seat.page.locator('.alpha-inspector').isVisible().catch(() => false);
       if (inspector === 'folded' && isOpen) await seat.click(seat.page.getByRole('button', { name: 'Fechar cartão' }), 'fold inspector', { optional: true });
-      if (inspector === 'open' && !isOpen) await seat.click(seat.page.getByRole('button', { name: 'Abrir cartão' }), 'open inspector', { optional: true });
+      if (inspector === 'open' && !isOpen) await seat.click(seat.page.getByRole('button', { name: 'Detalhes', exact: true }), 'open inspector', { optional: true });
       await nap(500);
       const m = await seat.page.evaluate(() => {
         const vw = innerWidth, vh = innerHeight, r = e => e.getBoundingClientRect();

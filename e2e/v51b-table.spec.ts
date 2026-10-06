@@ -9,7 +9,7 @@ import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { readyAll } from '../tests/alpha-rounds.js';
 import { runScriptedMatch } from '../tests/alpha-match-scenario.js';
 import { openArea } from './alpha-fixture.js';
-import { connectAlphaContext, muteTour } from './alpha-fixture.js';
+import { connectAlphaContext, muteTour, cloudNode } from './alpha-fixture.js';
 
 const origin = 'http://127.0.0.1:3107', evidence = 'docs/evidence/v51b-ui';
 const p1 = 'p1' as never;
@@ -61,22 +61,21 @@ test('Mesa with the Faixa, the Tabuleiro da Civilização, the Teia, Herança, c
   await expect(board.locator('.alpha-big-sockets .alpha-socket.is-fifth')).toHaveCount(1);
   await expect(board.getByLabel('Reserva de Marcos')).toBeVisible();
   await expect(board.locator('.alpha-node.is-done')).toHaveCount(4);
-  await expect(board.locator('.alpha-heritage')).toHaveCount(3);
-  await expect(board.locator('.alpha-heritage.is-locked, .alpha-heritage.is-available').first()).toBeVisible();
   await page.screenshot({ path: `${evidence}/02-tabuleiro-1366.png` });
-  // Teia detail of a reachable node.
+  // Teia detail of a reachable node (the Teia is the first view of the Tabuleiro).
   await board.locator('.alpha-node.is-reachable').first().click();
   await expect(board.locator('.alpha-node-detail')).toBeVisible();
-  await board.locator('.alpha-node-detail').scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${evidence}/03-teia-detalhe-1366.png` });
-  // Herança.
-  await board.locator('.alpha-civ-heritage').scrollIntoViewIfNeeded();
+  // Herança has its own view.
+  await board.getByRole('tab', { name: 'Herança' }).click();
+  await expect(board.locator('.alpha-heritage')).toHaveCount(3);
+  await expect(board.locator('.alpha-heritage.is-locked, .alpha-heritage.is-available').first()).toBeVisible();
   await page.screenshot({ path: `${evidence}/04-heranca-1366.png` });
   expect(await noGlobalScroll(page)).toBe(true);
   await page.keyboard.press('Escape');
   await expect(board).toBeHidden();
   // City card (inspector) and the camp on the map.
-  await page.getByRole('button', { name: 'Abrir cartão' }).click().catch(() => undefined);
+  await page.getByRole('button', { name: 'Detalhes', exact: true }).click().catch(() => undefined);
   await page.screenshot({ path: `${evidence}/05-cidade-1366.png` });
   const camp = page.locator('.world-map [data-threat], .world-map .threat-mark, .world-map .alpha-threat').first();
   if (await camp.count()) { await camp.click({ force: true }); }
@@ -136,12 +135,13 @@ test('combat: preview with Δ thresholds and the result card with outcome, losse
     await expect(page.getByRole('heading', { name: i === 0 ? 'Aurélia' : 'Valgard', exact: true })).toBeVisible();
   }
   const a = pages[0]!, b = pages[1]!;
-  await a.locator('svg.world-map g.hex[aria-label$=" 8,0"], svg.world-map g.hex[aria-label$=" 8,0, trabalhado"]').first().click();
-  await a.locator('.alpha-army').filter({ hasText: '8,0' }).getByRole('button', { name: 'Selecionar todas', exact: true }).click();
   await a.getByRole('status', { name: 'Resolvendo a rodada' }).getByRole('button', { name: 'Continuar' }).click();
+  // The army is operated from its own cloud on the map: posture, then Atacar, then the target hex.
+  await a.locator('svg.world-map g.hex[aria-label$=" 8,0"], svg.world-map g.hex[aria-label$=" 8,0, trabalhado"]').first().click();
+  await cloudNode(a, 'posture').click(); await a.locator('.ctx-node', { hasText: 'Manobra' }).click();
+  await cloudNode(a, 'attack').click();
   await a.getByRole('button', { name: 'Planície 9,0', exact: true }).click();
-  await a.getByLabel('Postura do ataque', { exact: false }).selectOption('MANEUVER');
-  await a.getByRole('button', { name: 'Ordenar ataque', exact: true }).click();
+  await a.getByRole('button', { name: 'Detalhes', exact: true }).click();
   const preview = a.locator('.alpha-attack-preview');
   await expect(preview).toBeVisible(); await preview.locator('summary').first().evaluate(el => (el as HTMLElement).click()); await preview.scrollIntoViewIfNeeded();
   await a.screenshot({ path: `${evidence}/09-combate-previa-1366.png` });

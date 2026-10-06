@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { ALPHA_CARDS, ALPHA_ERA_NUMERALS, AlphaEraSchema, CIVILIZATIONS, ORDER_NAMES, AlphaOrderTypeSchema, WORLD_PULSE_CARDS, civilizationKit, stackCategory, stackViewVerdict } from '@aoh/game-domain';
+import { useEffect, useRef, useState } from 'react';
+import { ALPHA_CARDS, ALPHA_ERA_NUMERALS, AlphaEraSchema, CIVILIZATIONS, ORDER_NAMES, AlphaOrderTypeSchema, WORLD_PULSE_CARDS, civilizationKit } from '@aoh/game-domain';
 import { emblemArt, sealArt, seatColor } from './table-art';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import { HexMap } from '../play/hex-map';
@@ -9,13 +9,15 @@ import { alphaLabel as text } from './alpha-copy';
 import { ArmyList, compositionText } from './alpha-army';
 import { CasualtyPriority } from './alpha-casualties';
 import { trackUi } from './telemetry';
+import { useTable } from './alpha-table';
 import { LeaveGame } from './alpha-leave';
 import { AlphaGuide } from './alpha-guide';
 import { AttackPreview, POSTURES, postureText } from './alpha-combat';
 import { AlphaHand } from './alpha-hand';
 import { AlphaTour } from './alpha-tour';
 import { AlphaEraTurn } from './alpha-era-turn';
-import { AlphaCivBoard, ChoiceParchment } from './alpha-civ-board';
+import { AlphaCivBoard, ChoiceParchment, type CivView } from './alpha-civ-board';
+import { StrategicSurface } from './strategic-surface';
 import { AmbitionChooser, AlphaCards, AlphaCity, AlphaDiplomacy, AlphaInstitutions, AlphaReports, AlphaUrban } from './alpha-panels';
 
 export type AlphaSend=(command:Record<string,unknown>)=>Promise<boolean>;
@@ -23,13 +25,13 @@ type Inspector='city'|'territory'|'military';
 /** The Livro (book) opens over the map with the civilization's areas; 'world' means the book is closed and the map leads. */
 const LIVRO=[['council','Conselho'],['civilization','Civilização'],['research','Teia Civilizacional'],['cards','Cartas & Projetos'],['diplomacy','Diplomacia'],['era','Eras & Hegemonia'],['reports','Crônicas']] as const;
 /** Desktop only: the council and the inspector can fold away so the atlas gets the room. The choice is a per-browser convenience. */
-const PANELS_KEY='aoh-alpha-panels';
+const PANELS_KEY='aoh-alpha-panels-v2';
 function loadPanels():{council:boolean;inspector:boolean}{
   // Without a saved choice, narrow desktops (e.g. 1366×768) start with the Council folded so the atlas leads; pieces can be
   // picked on the map itself.
   // On phones the context card starts closed (it would cover half the map); touching the map opens it.
-  const narrow=typeof window!=='undefined'&&window.innerWidth<1400,phone=typeof window!=='undefined'&&window.innerWidth<760;
-  try{const stored=localStorage.getItem(PANELS_KEY);if(stored===null)return {council:!narrow,inspector:!phone};const raw=JSON.parse(stored) as Record<string,unknown>;return {council:raw.council!==false,inspector:raw.inspector!==false};}catch{return {council:!narrow,inspector:!phone};}
+  const narrow=typeof window!=='undefined'&&window.innerWidth<1400;
+  try{const stored=localStorage.getItem(PANELS_KEY);if(stored===null)return {council:!narrow,inspector:false};const raw=JSON.parse(stored) as Record<string,unknown>;return {council:raw.council!==false,inspector:raw.inspector===true};}catch{return {council:!narrow,inspector:false};}
 }
 const PRESENCE_LEVEL:Record<string,string>={CONTACT:'contato',ROOTED:'enraizada',PREDOMINANT:'predominante'};
 const PEOPLE_ACTIONS:Record<string,string>={TRADE:'Comerciar',NEGOTIATE:'Negociar',INFLUENCE:'Influenciar',PROTECT:'Proteger',INTEGRATE:'Integrar',CONQUER:'Conquistar'};
@@ -39,8 +41,9 @@ const INSPECTORS:[Inspector,string][]=[['city','Cidade'],['territory','Territór
 const feedbackUrl=process.env.NEXT_PUBLIC_ALPHA_FEEDBACK_URL||'';
 export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:AlphaRoomView;busy:boolean;send:AlphaSend;theme:string;onTheme:(theme:string)=>void;onLeave:()=>void}){
   const game=room.game!,player=game.view.player,civ=player.civilization,identity=CIVILIZATIONS.find(c=>c.id===game.self.civilization);
+  const hostRef=useRef<HTMLDivElement|null>(null),[catalog,setCatalog]=useState(false),[civView,setCivView]=useState<CivView>('web');
   const [tab,setTab]=useState('world'),[inspector,setInspector]=useState<Inspector>('city'),[selected,setSelected]=useState<string|null>(civ.cities[0]?.hexId??null),[selectedCity,setSelectedCity]=useState(civ.cities[0]?.id??''),[focus,setFocus]=useState<string|null>(civ.cities[0]?.hexId??null);
-  const [units,setUnits]=useState<string[]>([]),[path,setPath]=useState<string[]>([]),[pathMode,setPathMode]=useState(false),[rotation,setRotation]=useState(0),[working,setWorking]=useState(false),[worked,setWorked]=useState<string[]>([]),[name,setName]=useState('Novo Horizonte'),[posture,setPosture]=useState('ASSAULT');
+  const [units,setUnits]=useState<string[]>([]),[working,setWorking]=useState(false),[worked,setWorked]=useState<string[]>([]);
   const [tour,setTour]=useState<'tour'|'tips'|null>(null),[cardFocus,setCardFocus]=useState(false),[cofreOpen,setCofreOpen]=useState(false),[civOpen,setCivOpen]=useState(false),[panels,setPanels]=useState(loadPanels),[dismissedResolution,setDismissedResolutionState]=useState(()=>{try{return Number(sessionStorage.getItem(`aoh-resolution-seen-${room.id}`)??0);}catch{return 0;}}),[finaleClosed,setFinaleClosed]=useState(false),[checkOpen,setCheckOpen]=useState(false),[guideOpen,setGuideOpen]=useState(false),[ambitionsLater,setAmbitionsLaterState]=useState(()=>{try{return sessionStorage.getItem(`aoh-ambitions-later-${room.id}`)==='1';}catch{return false;}});
   /** A round's results are shown once per browser session, not again on every reload. */
   const setDismissedResolution=(round:number)=>{setDismissedResolutionState(round);try{sessionStorage.setItem(`aoh-resolution-seen-${room.id}`,String(round));}catch{/* storage blocked: shown again after reload */}};
@@ -53,7 +56,6 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const city=civ.cities.find(c=>c.id===selectedCity)??civ.cities[0];
   const tile=game.view.visibleTerritory.find(t=>t.id===selected);
   const ownUnits=game.units.filter(u=>u.ownerId===room.selfPlayerId);
-  const chosen=ownUnits.filter(u=>units.includes(u.id));
   // A piece that no longer exists (Pioneiro that founded a city, a casualty) must not stay in the selection: its id would be sent with the next order and the server would refuse the whole order.
   const liveKey=ownUnits.map(u=>u.id).join();
   // Playtest-only human telemetry (the server turns it on): which panel is open, when a decision appears and when it is answered.
@@ -63,27 +65,6 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   useEffect(()=>{if(firstChoice)trackUi(watched,room.id,'decision_shown',firstChoice.slice(0,32));return()=>{if(firstChoice)trackUi(watched,room.id,'decision_done',firstChoice.slice(0,32));};},[watched,room.id,firstChoice]);
   useEffect(()=>{if(game.phase==='ERA_TURN')trackUi(watched,room.id,'era_turn_shown',String(game.view.round));},[watched,room.id,game.phase,game.view.round]);
   useEffect(()=>{setUnits(current=>{const live=current.filter(id=>ownUnits.some(u=>u.id===id));return live.length===current.length?current:live;});},[liveKey]);
-  /** Same arithmetic as the server, computed from the projected stack view before any command is sent. */
-  const moveEnd=path.at(-1)??null,moveBlock=moveEnd?stackViewVerdict(game.stacks,chosen.map(u=>stackCategory(game.rules.units[u.kind]!)),moveEnd):null;
-  /** Order targets come from the server's per-piece options, so every highlighted hex is one the validators accept. */
-  const options=chosen.map(u=>game.unitOptions[u.id]).filter(o=>o!==undefined);
-  const origin=chosen[0]?.hexId??null,sameHex=chosen.every(u=>u.hexId===origin);
-  const orderedIds=new Set(game.self.orders.flatMap(o=>'unitIds' in o?o.unitIds:'unitId' in o?[o.unitId]:[])),ordered=chosen.filter(u=>orderedIds.has(u.id));
-  const targetHexes=chosen.length&&sameHex?[...new Set(options.flatMap(o=>[...Object.keys(o.moves),...(chosen.length===1?o.explore.flatMap(r=>r.hexIds):[])]))]:[];
-  const movePath=selected&&chosen.length>0&&sameHex&&options.length===chosen.length&&options.every(o=>o.moves[selected])?options[0]!.moves[selected]!:null;
-  const groupBlock=movePath?stackViewVerdict(game.stacks,chosen.map(u=>stackCategory(game.rules.units[u.kind]!)),selected!):null;
-  const exploreChoice=chosen.length===1&&selected?options[0]?.explore.find(r=>r.hexIds.includes(selected))??null:null;
-  const settle=chosen.length===1&&chosen[0]!.kind==='PIONEER'&&selected===origin?options[0]?.settleBlock??null:undefined;
-  const foreignCity=game.view.visibleCities.find(c=>c.hexId===selected);
-  const foreignHere=!!selected&&(!!foreignCity||game.units.some(u=>u.hexId===selected&&u.ownerId!==room.selfPlayerId));
-  const fighters=chosen.every(u=>(game.rules.units[u.kind]?.strength??0)>0);
-  const coords=(id:string|null)=>{const [q,r]=(id??'').split(',').map(Number);return {q:q??0,r:r??0};};
-  const adjacent=!!selected&&!!origin&&(()=>{const a=coords(origin),b=coords(selected);return (Math.abs(a.q-b.q)+Math.abs(a.q+a.r-b.q-b.r)+Math.abs(a.r-b.r))/2===1;})();
-  const defenderId=foreignCity?.ownerId??game.units.find(u=>u.hexId===selected&&u.ownerId!==room.selfPlayerId)?.ownerId;
-  const hostile=!!defenderId&&(game.wars.some(pair=>pair.includes(defenderId))||game.self.plannedActions.some(a=>a.type==='DECLARE_WAR'&&a.targetId===defenderId));
-  const defenderName=game.players.find(p=>p.id===defenderId)?.name??'esta civilização';
-  const envoyMission=chosen.length===1&&chosen[0]!.kind==='ENVOY'&&!!foreignCity&&adjacent;
-  const targetName=!selected?'nenhum':foreignCity?`${foreignCity.name} (${game.players.find(p=>p.id===foreignCity.ownerId)?.name??'estrangeira'})`:tile?`${text(tile.terrain)} · ${selected}${defenderId?` · peças de ${defenderName}`:''}`:`Região desconhecida · ${selected}`;
   /** "Movimento · Pioneiro → 4,6": what moves, and where, instead of the bare order type. */
   const orderLabel=(order:typeof game.self.orders[number])=>{
     const ids='unitIds' in order?order.unitIds:'unitId' in order?[order.unitId]:[];
@@ -130,31 +111,39 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
   const EVENT_TAG:Record<string,string>={MOVEMENT:'Movimento',EXPLORATION:'Exploração',FOUNDATION:'Fundação',PRODUCTION:'Produção',CONSTRUCTION:'Obra',RECRUITMENT:'Recrutamento',RESEARCH:'Pesquisa',TRADE:'Comércio',INFLUENCE:'Influência',COMBAT:'Combate',LOSSES:'Perdas',RETREAT:'Recuo',ADVANCE:'Avanço',FAILURE:'Não ocorreu',ROUND_EVENT:'Evento'};
   const bonuses=game.self.temporaryEffects.filter(entry=>entry.round===game.view.round&&(entry.effect.kind==='STRENGTH'||entry.effect.kind==='MOVEMENT'));
   const bonusTotal=(kind:string)=>bonuses.filter(entry=>entry.effect.kind===kind).reduce((total,entry)=>total+('amount' in entry.effect?entry.effect.amount:0),0);
+  /** Resolved plans, on the table: what the player has already decided this round is visible where it will happen. */
+  const planMarks=game.phase==='PLANNING'?[
+    ...game.self.plannedActions.flatMap(action=>action.type==='URBAN_ACTION'?[{hexId:civ.cities.find(c=>c.id===action.cityId)?.hexId??'',label:`✓ ${text(action.action)}`,tone:'plan' as const}]:[]),
+    ...game.self.orders.map(order=>({hexId:order.type==='MOVE'?order.path.at(-1)??'':'target' in order?String(order.target):'',label:order.type==='MOVE'?'✓ Mover':order.type==='EXPLORE'?'✓ Explorar':order.type==='ATTACK'?'✓ Ataque':`✓ ${text(order.type)}`,tone:'plan' as const})),
+  ].filter(mark=>mark.hexId!==''):[];
   const mapMarks=[
+    ...planMarks,
     ...game.cityMarks.filter(mark=>mark.blockaded).map(mark=>({hexId:mark.hexId,label:'Porto bloqueado',tone:'loss' as const})),
     ...(replay?replay.resolution.filter(event=>event.hexId).map(event=>({hexId:event.hexId!,label:EVENT_TAG[event.type]??text(event.type),tone:(event.type==='LOSSES'||event.type==='FAILURE'?'loss':'event') as 'loss'|'event'})):[]),
     ...[...new Set(ownUnits.map(u=>u.hexId))].flatMap(hexId=>{const here=ownUnits.filter(u=>u.hexId===hexId),fights=here.some(u=>(game.rules.units[u.kind]?.strength??0)>0);return [
       ...(fights&&bonusTotal('STRENGTH')?[{hexId,label:`+${bonusTotal('STRENGTH')} Força`,tone:'card' as const}]:[]),
       ...(bonusTotal('MOVEMENT')?[{hexId,label:`+${bonusTotal('MOVEMENT')} mov.`,tone:'card' as const}]:[])];}),
   ];
-  const mapData={view:{...game.view,era:game.self.era,visibleTerritory:[...game.view.visibleTerritory,...known,...unknown]},players:game.players,claimable:chosen.length?targetHexes:inspector==='territory'&&city?(game.claimOptions[city.id]??[]):[],workable:city?game.view.visibleTerritory.filter(t=>t.controllerCityId===city.id).map(t=>t.id):[]};
-  /** The inspector follows what the player just touched, except while a map interaction is in progress. */
-  const follow=(hexId:string|null,pieces:number)=>{
-    if(working||pathMode)return;
-    setInspector(pieces>0?'military':civ.cities.some(c=>c.hexId===hexId)?'city':'territory');
+  const mapData={view:{...game.view,era:game.self.era,visibleTerritory:[...game.view.visibleTerritory,...known,...unknown]},players:game.players,claimable:panels.inspector&&inspector==='territory'&&city?(game.claimOptions[city.id]??[]):[],workable:city?game.view.visibleTerritory.filter(t=>t.controllerCityId===city.id).map(t=>t.id):[]};
+  /** Details follow the touch without opening: the Inspector is "Ver detalhes", never the way to act on a piece. */
+  const follow=(hexId:string|null,pieces:boolean)=>{
+    if(working)return;
+    setInspector(pieces?'military':civ.cities.some(c=>c.hexId===hexId)?'city':'territory');
   };
+  const openDetails=(next:Inspector,wantCatalog=false)=>{setInspector(next);setCatalog(wantCatalog);setPanels(old=>({...old,inspector:true}));};
+  const table=useTable({game,selfId:room.selfPlayerId,locked,send,queue,manage,host:hostRef,describeOrder:orderLabel,hold:tab!=='world'||civOpen,safe:{top:78,right:panels.inspector?400:16,bottom:98,left:16},openDetails,openBook:next=>{setTab(next);}});
+  useEffect(()=>{if(tab!=='world'||civOpen)table.close();},[tab,civOpen]);
   function select(id:string){
+    // While the map is answering a spatial decision (target mode) a click is the answer, not a new selection.
+    if(table.targets){table.select(id);return;}
     setSelected(id);const target=civ.cities.find(c=>c.hexId===id);if(target)setSelectedCity(target.id);
-    // Touching the map brings its card back if it was closed.
-    if(!panels.inspector)setPanels(old=>({...old,inspector:true}));
-    if(pathMode)setPath(old=>[...old,id]);if(working&&(mapData.workable as string[]).includes(id))setWorked(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id]);
-    // A hex holding own pieces (outside a city) opens the military inspector with that stack ready to select.
-    follow(id,units.length>0||(!civ.cities.some(c=>c.hexId===id)&&ownUnits.some(u=>u.hexId===id))?1:0);
+    if(working){if((mapData.workable as string[]).includes(id))setWorked(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id]);return;}
+    follow(id,!civ.cities.some(c=>c.hexId===id)&&ownUnits.some(u=>u.hexId===id));
+    table.select(id);
   }
-  function pick(ids:string[],on:boolean,hexId:string){
-    const next=on?[...new Set([...units,...ids])]:units.filter(id=>!ids.includes(id));
-    setUnits(next);setFocus(hexId);setSelected(hexId);follow(hexId,next.length);
-  }
+  /** A click on the player's own pieces drawn on a hex selects the stack, even when the hex is also a city. */
+  function selectPieces(id:string){setSelected(id);follow(id,true);table.select(id,true);}
+  function pick(_ids:string[],_on:boolean,hexId:string){setTab('world');setCivOpen(false);setSelected(hexId);follow(hexId,true);table.select(hexId,true);}
   const eraNumeral=ALPHA_ERA_NUMERALS[AlphaEraSchema.options.indexOf(game.self.era)]??'';
   const seatOf=(id:string)=>{const index=Math.max(0,game.players.findIndex(p=>p.id===id)),kit=civilizationKit(game.players[index]?.civilization);return {color:seatColor(index),mark:kit?.mark??null};};
   const self=seatOf(room.selfPlayerId),livroAlert=Object.values(tabAlerts).some(Boolean);
@@ -167,7 +156,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       {(over||shortage)&&<span className="aoh-chip alpha-strip-alert">{over?'Sobre-extensão':'Alimento curto'}</span>}
       <div className="alpha-strip-tools">
         <button type="button" className="aoh-btn is-sm" aria-expanded={cofreOpen} onClick={()=>setCofreOpen(!cofreOpen)}>Cofre</button>
-        <button type="button" className="aoh-btn is-sm alpha-livro-button" aria-expanded={tab!=='world'} onClick={()=>setTab(tab==='world'?'council':'world')}>Livro{livroAlert&&<span className="alpha-tab-alert" aria-hidden="true"/>}</button>
+        <button type="button" className="aoh-btn is-sm alpha-livro-button" aria-expanded={tab!=='world'} onClick={()=>{setCivOpen(false);setTab(tab==='world'?'council':'world');}}>Livro{livroAlert&&<span className="alpha-tab-alert" aria-hidden="true"/>}</button>
         <button type="button" className="aoh-btn is-sm is-ghost alpha-guide-button" onClick={()=>setTour('tips')}>Dicas</button><button type="button" className="aoh-btn is-sm is-ghost alpha-guide-button" onClick={()=>setGuideOpen(true)}>Como jogar</button>
         <LeaveGame joinCode={room.joinCode} onLeave={onLeave}/>
         <label className="alpha-theme">Tema <select value={theme} onChange={e=>onTheme(e.target.value)}><option value="SYSTEM">Sistema</option><option value="DARK">Escuro</option><option value="LIGHT">Claro</option></select></label>
@@ -196,7 +185,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       <dl className="alpha-cofre-facts"><div><dt>Administração</dt><dd className={over?'warning':''}>{civ.administrativeLoad} / {civ.administrativeCapacity}{over&&' · sobre-extensão'}</dd></div><div><dt>Ordens</dt><dd>{game.actions.used} / {game.actions.limit} · {game.actions.reserved} planejadas</dd></div><div><dt>Prestígio</dt><dd>{game.self.prestige}</dd></div><div><dt>Governo</dt><dd>{text(civ.government)}</dd></div></dl>
     </section>}
     <div className="alpha-table" data-inspector={panels.inspector?'open':'folded'}>
-      <div className="world-column">{game.worldPulse&&(()=>{const card=WORLD_PULSE_CARDS.find(c=>c.id===game.worldPulse!.id),module=card?.modules[0],RES:Record<string,string>={FOOD:'Alimento',WOOD:'Madeira',STONE:'Pedra',METAL:'Metal',WEALTH:'Riqueza',KNOWLEDGE:'Conhecimento',INFLUENCE:'Influência',CULTURE:'Cultura'};const effect=module?.resource?`${module.amount>0?'+':''}${module.amount} ${RES[module.resource]??module.resource} para todos`:'sem efeito nos recursos';return <small className={`alpha-pulse-chip tone-${game.worldPulse!.type}`} title="Pulso do mundo desta rodada: automático, vale para todas as civilizações">Pulso: {game.worldPulse!.name} · {effect}</small>;})()}<ol className="alpha-table-log" aria-label="Crônica da mesa">{game.events.filter(e=>['REGION_REVEALED','CITY_FOUNDED','ROAD_BUILT','WAR_DECLARED','EXPLORE','MOVE','ATTACK','LEGACY_WORK_COMPLETED','THREAT_ASSAULT'].includes(e.type)).slice(-4).map(e=><li key={e.id}><small>R{e.round}</small> {e.message}</li>)}</ol><HexMap data={mapData} board={game.board} seatStatus={seatStatus} art={{seats:Object.fromEntries(game.players.map((p,i)=>{const kit=civilizationKit(p.civilization);return [p.id,{color:seatColor(i),mark:kit?.mark??null,signature:kit?.signature.item.status==='ACTIVE'?kit.signature.family:null}];})),cityMarks:game.cityMarks,marks:mapMarks,roads:game.roads,routes:game.routes}} units={game.units} peoples={game.independents} threats={game.threats} selected={selected} focus={focus} working={working} worked={worked} onSelect={select}/><AlphaHand game={game} locked={locked} send={send} seatColor={seatColor(Math.max(0,game.players.findIndex(p=>p.id===room.selfPlayerId)))} onFocus={setCardFocus}/></div>
+      <div className="world-column" ref={hostRef}>{game.worldPulse&&(()=>{const card=WORLD_PULSE_CARDS.find(c=>c.id===game.worldPulse!.id),module=card?.modules[0],RES:Record<string,string>={FOOD:'Alimento',WOOD:'Madeira',STONE:'Pedra',METAL:'Metal',WEALTH:'Riqueza',KNOWLEDGE:'Conhecimento',INFLUENCE:'Influência',CULTURE:'Cultura'};const effect=module?.resource?`${module.amount>0?'+':''}${module.amount} ${RES[module.resource]??module.resource} para todos`:'sem efeito nos recursos';return <small className={`alpha-pulse-chip tone-${game.worldPulse!.type}`} title="Pulso do mundo desta rodada: automático, vale para todas as civilizações">Pulso: {game.worldPulse!.name} · {effect}</small>;})()}<ol className="alpha-table-log" aria-label="Crônica da mesa">{game.events.filter(e=>['REGION_REVEALED','CITY_FOUNDED','ROAD_BUILT','WAR_DECLARED','EXPLORE','MOVE','ATTACK','LEGACY_WORK_COMPLETED','THREAT_ASSAULT'].includes(e.type)).slice(-4).map(e=><li key={e.id}><small>R{e.round}</small> {e.message}</li>)}</ol><HexMap data={mapData} board={game.board} seatStatus={seatStatus} art={{seats:Object.fromEntries(game.players.map((p,i)=>{const kit=civilizationKit(p.civilization);return [p.id,{color:seatColor(i),mark:kit?.mark??null,signature:kit?.signature.item.status==='ACTIVE'?kit.signature.family:null}];})),cityMarks:game.cityMarks,marks:mapMarks,roads:game.roads,routes:game.routes}} units={game.units} peoples={game.independents} threats={game.threats} selected={selected} focus={focus} working={working} worked={worked} onSelect={select} targets={table.targets} onBackground={table.background} onSelectPieces={selectPieces}/>{table.element}<AlphaHand game={game} locked={locked} send={send} seatColor={seatColor(Math.max(0,game.players.findIndex(p=>p.id===room.selfPlayerId)))} onFocus={setCardFocus}/></div>
       {panels.inspector?<aside className="alpha-context alpha-inspector aoh-card aoh-glass" aria-label="Cartão do contexto">
         <div className="alpha-context-head"><div className="inspector-tabs" role="group" aria-label="Contexto">{INSPECTORS.map(([key,title])=><button key={key} aria-pressed={inspector===key} onClick={()=>setInspector(key)}>{title}{key==='military'&&game.self.orders.length>0?` · ${game.self.orders.length}`:''}</button>)}</div><button type="button" className="aoh-btn is-sm is-ghost" aria-label="Fechar cartão" onClick={()=>togglePanel('inspector')}>×</button></div>
         <div className="alpha-panel-body">
@@ -209,53 +198,24 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
             <p className="alpha-hint">{mineHere?'Disputa: dois dados de cada lado mais o nível de presença, distritos Culturais (até 3) e a âncora. Quem vence sobe um nível; quem perde desce ou sai.':cultureHere.currentOwnerId===room.selfPlayerId?'Presenças estrangeiras contam para a Hegemonia cultural e política de quem as mantém.':'Para criar presença, leve um Enviado até a cidade ou a um hex vizinho e envie uma missão de influência (em paz).'}</p></section>}
           {raidHere&&<section className="alpha-people-panel is-raid" aria-label={raidHere.kind==='PIRATE'?'Piratas':raidHere.status==='CAMPED'?'Acampamento':'Bando em marcha'}><p className="eyebrow">{raidHere.kind==='PIRATE'?(raidHere.status==='CAMPED'?'ANCORADOURO PIRATA':'PIRATAS'):(raidHere.status==='CAMPED'?'ACAMPAMENTO':'BANDO EM MARCHA')} · AMEAÇA {['I','II','III'][raidHere.level-1]}</p><p>{raidHere.composition.map(entry=>`${game.rules.units[entry.kind]?.name??entry.kind}${entry.count>1?` ×${entry.count}`:''}`).join(', ')}.</p><p>{raidHere.status==='CAMPED'?(raidHere.fresh?'Recém-surgido: ainda não pode partir. Destruído ainda no acampamento, paga recompensa uma única vez. Ataque com a Ordem Expedição.':'Destruído ainda no acampamento, paga recompensa uma única vez; se partir em marcha, derrotá-lo em campo não rende nada. Ataque com a Ordem Expedição.'):'Avança rumo ao alvo, pilha o que encontra e ataca quem estiver no caminho. Derrotá-lo em campo não rende recompensa.'}</p>{raidHere.status==='MARCHING'&&<p className="alpha-threat-target">{raidHere.intent.targetKnown?`Alvo: ${raidHere.intent.targetKind==='CITY'?'cidade':raidHere.intent.targetKind==='PORT'?'porto':'rota'} ${raidHere.intent.targetId} · ${raidHere.intent.distance} hex(es).`:raidHere.intent.state==='IDLE'?'Sem alvo alcançável.':'Alvo além da névoa.'}</p>}</section>}
           <h2>{tile?text(tile.terrain):selected?'Fronteira por explorar':'Selecione o mapa'}</h2><p>{selected}</p>{tile?.yield&&<ResourceDisplay values={tile.yield} compact labels={{materials:'Madeira/Pedra'}}/>}{tile&&<p>{tile.ownerId?`Território de ${game.players.find(p=>p.id===tile.ownerId)?.name}`:'Território livre'} · {tile.improvement?text(tile.improvement):'Sem melhoria'}</p>}
-          {city&&<>{!working&&<><p className="alpha-hint">Hexes destacados podem ser reivindicados por {city.name} (troque a cidade no Conselho).</p>{tile&&!tile.ownerId&&selected&&!(game.claimOptions[city.id]??[]).includes(selected)&&<p className="alpha-warning">Fora do alcance de {city.name}, sem ligação com o território dela ou sem Influência suficiente.</p>}<button disabled={locked||!selected||!(game.claimOptions[city.id]??[]).includes(selected)} onClick={()=>void manage({type:'CLAIM_HEX',cityId:city.id,hexId:selected})}>Reivindicar para {city.name}</button><ResourceDisplay values={game.costs.claim} compact/></>}
-            <button disabled={locked} onClick={()=>{setWorking(!working);setWorked(city.workedHexIds);}}> {working?'Cancelar atribuição':'Escolher territórios trabalhados'}</button>{working&&<div><p className="alpha-hint">Clique nos hexes destacados do território de {city.name}. Cada Produtor trabalha um hex; reivindique hexes para ter mais opções.</p><p>{worked.length} territórios selecionados · {city.workers.producers} Produtores</p><button disabled={locked} onClick={()=>void manage({type:'ASSIGN_WORKED_HEXES',cityId:city.id,hexIds:worked}).then(ok=>{if(ok)setWorking(false);})}>Confirmar trabalho</button></div>}</>}
-          {tile?.ownerId===room.selfPlayerId&&<details><summary>Melhorias e estradas</summary>{Object.entries(game.view.config.territory.improvementCatalog).map(([kind])=><div className="alpha-option" key={kind}><button disabled={locked} onClick={()=>void manage({type:'IMPROVE_HEX',hexId:selected,improvement:kind})}>{text(kind)}</button><ResourceDisplay values={game.costs.improvements[kind]!} compact/></div>)}<button disabled={locked} onClick={()=>void send({type:'BUILD_ROAD',hexId:selected})}>Construir estrada</button><ResourceDisplay values={game.costs.road} compact/></details>}
+          <p className="alpha-hint">Reivindicar, Melhorar e Estrada nascem ao clicar no hex, ao redor dele.</p>
+          {city&&<><button disabled={locked} onClick={()=>{setWorking(!working);setWorked(city.workedHexIds);}}> {working?'Cancelar atribuição':'Escolher territórios trabalhados'}</button>{working&&<div><p className="alpha-hint">Clique nos hexes destacados do território de {city.name}. Cada Produtor trabalha um hex; reivindique hexes para ter mais opções.</p><p>{worked.length} territórios selecionados · {city.workers.producers} Produtores</p><button disabled={locked} onClick={()=>void manage({type:'ASSIGN_WORKED_HEXES',cityId:city.id,hexIds:worked}).then(ok=>{if(ok)setWorking(false);})}>Confirmar trabalho</button></div>}</>}
         </div>}
         {inspector==='city'&&<div className="alpha-inspector-body">{city?<>
-          <AlphaUrban key={city.id} game={game} locked={locked} send={send} cityId={city.id}/>
+          {catalog?<AlphaUrban key={city.id} game={game} locked={locked} send={send} cityId={city.id}/>:<p className="alpha-hint">As ações da cidade nascem ao clicar nela no mapa. <button type="button" onClick={()=>setCatalog(true)}>Ver todas as ações</button></p>}
           <AlphaCity key={`${city.id}-${city.population}-${JSON.stringify(city.workers)}`} game={game} city={city} locked={locked} send={send} manage={manage}/></>:<p className="empty-inspector">Selecione uma cidade no atlas ou no Conselho.</p>}</div>}
         {inspector==='military'&&<div className="alpha-inspector-body">
-          {chosen.length>0?<section className="alpha-order-builder">
-            <div className="section-head"><h3>{chosen.length===1?text(chosen[0]!.kind):`Planejar com ${chosen.length} peça(s)`}</h3><button type="button" onClick={()=>{setUnits([]);follow(selected,0);}}>Limpar seleção</button></div>
-            <p className="alpha-army-summary">{compositionText(chosen)}</p>
-            {ordered.length>0&&<p className="alpha-warning" role="alert">{ordered.length===chosen.length?'Esta seleção já tem ordem nesta rodada.':'Parte da seleção já tem ordem nesta rodada.'} Cada peça recebe uma ordem por rodada; cancele a reservada para trocar.</p>}
-            <p className="alpha-target">Alvo: <b>{selected===origin?'posição atual':targetName}</b></p>
-            {settle!==undefined&&<div className="alpha-order-choice"><h4>Fundar cidade aqui</h4>{settle?<p className="alpha-warning">{settle}</p>:<><label>Nome da nova cidade<input value={name} maxLength={80} onChange={e=>setName(e.target.value)}/></label><button className="alpha-recommended" disabled={locked||!name.trim()} onClick={()=>void send({type:'SETTLE',unitId:units[0],name})}>Fundar cidade</button><ResourceDisplay values={game.costs.founding} compact/></>}</div>}
-            {exploreChoice&&<div className="alpha-order-choice"><h4>Explorar esta região</h4><p>Revela os 7 hexes da região na resolução. A peça não se move.</p><button className="alpha-recommended" disabled={locked||ordered.length>0} onClick={()=>void queue({type:'EXPLORE',unitId:units[0],target:exploreChoice.target,rotation})}>Explorar região</button>
-              <details><summary>Orientação da região</summary><label>Se ninguém explorou a região, você escolhe como ela é girada<select value={rotation} onChange={e=>setRotation(Number(e.target.value))}>{[0,1,2,3,4,5].map(n=><option key={n} value={n}>{n*60}°</option>)}</select></label></details></div>}
-            {movePath&&<div className="alpha-order-choice"><h4>Mover para cá</h4><p>{movePath.length} {movePath.length===1?'passo':'passos'} pelo caminho mais curto conhecido.</p>{groupBlock&&<p className="alpha-warning" role="alert">{groupBlock}</p>}<button className="alpha-recommended" disabled={locked||ordered.length>0||groupBlock!==null} onClick={()=>void queue({type:'MOVE',unitIds:units,path:movePath})}>Reservar movimento</button></div>}
-            {(()=>{
-              // Naval slice (DEC-014): board an adjacent own fleet, or step from it onto the selected land hex.
-              const carried=chosen.length>0&&chosen.every(u=>!!u.carrierId),fleets=chosen.length&&!carried?options.reduce<string[]|null>((common,o)=>common===null?[...o.embark]:common.filter(id=>o.embark.includes(id)),null)??[]:[];
-              const landing=carried&&!!selected&&options.length===chosen.length&&options.every(o=>o.disembark.includes(selected));
-              if(carried)return <div className="alpha-order-choice"><h4>Desembarque</h4><p>{landing?`As peças deixam a frota e ocupam ${selected}. Para tomar um hex ocupado, ordene um ataque anfíbio (−1 de Força).`:'Selecione no mapa um hex de terra vizinho à frota.'}</p><button className="alpha-recommended" disabled={locked||!landing} onClick={()=>void send({type:'DISEMBARK',unitIds:units,hexId:selected})}>Desembarcar · 1 ação</button></div>;
-              const home=chosen.length===1&&!carried&&game.cityMarks.some(mark=>mark.ownerId===room.selfPlayerId&&mark.hexId===chosen[0]!.hexId)&&game.rules.units[chosen[0]!.kind]?.domain==='LAND'&&(game.rules.units[chosen[0]!.kind]?.strength??0)>0;
-              if(home)return <div className="alpha-order-choice"><h4>Desmobilizar</h4><p>A peça volta à cidade como um habitante Disponível (Ordem Expedição). Fora de uma cidade própria, uma peça perdida não volta.</p><button disabled={locked} onClick={()=>void send({type:'DEMOBILIZE',unitId:units[0]})}>Desmobilizar · 1 Ordem</button>{fleets.length>0&&fleets.map(id=><button key={id} disabled={locked} onClick={()=>void send({type:'EMBARK',unitIds:units,fleetId:id})}>Embarcar em {text(game.units.find(u=>u.id===id)?.kind??'FLEET')} · 1 Ordem</button>)}</div>;
-              if(!fleets.length)return null;
-              return <div className="alpha-order-choice"><h4>Embarque</h4><p>As peças sobem na frota e passam a navegar com ela. Infantaria, Guarda, Arqueiros e civis ocupam 1 vaga; Cavalaria e Cerco, 2.</p>{fleets.map(id=><button key={id} disabled={locked} onClick={()=>void send({type:'EMBARK',unitIds:units,fleetId:id})}>Embarcar em {text(game.units.find(u=>u.id===id)?.kind??'FLEET')} ({game.units.find(u=>u.id===id)?.hexId}) · 1 ação</button>)}</div>;
-            })()}
-            {envoyMission&&<div className="alpha-order-choice"><h4>Missão de influência</h4><p>O Enviado estabelece presença cultural da sua civilização em {foreignCity!.name} na resolução. Exige paz; até 3 civilizações podem ter presença numa cidade.</p><button className="alpha-recommended" disabled={locked||ordered.length>0} onClick={()=>void queue({type:'INFLUENCE',unitId:units[0],target:selected})}>Enviar missão</button></div>}
-            {foreignHere&&<div className="alpha-order-choice"><h4>Atacar</h4>{!fighters?<p>Peças civis não participam de ataques.</p>:!adjacent?<p>O alvo precisa estar a 1 hex das peças selecionadas.</p>:!hostile?<p>Você está em paz com {defenderName}. Planeje uma declaração de guerra em Diplomacia; ela é resolvida antes dos conflitos, então o ataque pode ser na mesma rodada. <button type="button" onClick={()=>setTab('diplomacy')}>Abrir Diplomacia</button></p>:<div className="alpha-form-row">
-              <label>Postura do ataque<select value={posture} onChange={e=>setPosture(e.target.value)}>{POSTURES.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
-              <button className="alpha-recommended" disabled={locked||ordered.length>0} onClick={()=>void queue({type:'ATTACK',unitIds:units,target:selected,posture})}>Ordenar ataque</button></div>}</div>}
-            {!movePath&&!exploreChoice&&!foreignHere&&settle===undefined&&<p className="alpha-hint">{!sameHex?'Peças em hexes diferentes: selecione um grupo de cada vez.':selected===origin?'Clique num hex destacado no mapa: destinos alcançáveis nesta rodada e regiões que esta peça pode explorar.':'Fora do alcance nesta rodada. Os hexes destacados no mapa são alcançáveis ou exploráveis.'}</p>}
-            <details><summary>Ordens avançadas · influência, caminho manual</summary>
-              <button disabled={locked||units.length!==1||!selected} onClick={()=>void queue({type:'INFLUENCE',unitId:units[0],target:selected})}>Missão de influência no alvo</button>
-              <button aria-pressed={pathMode} disabled={locked} onClick={()=>{setPathMode(!pathMode);setPath([]);}}>{pathMode?'Sair da seleção de caminho':'Traçar caminho hex a hex'}</button>
-              {pathMode&&<><p>{path.length?path.join(' · '):'Clique em cada hex do caminho, em ordem.'}</p>{moveBlock&&<p className="alpha-warning" role="alert">{moveBlock}</p>}<button disabled={locked||!path.length||moveBlock!==null} onClick={()=>void queue({type:'MOVE',unitIds:units,path}).then(ok=>{if(ok){setPathMode(false);setPath([]);}})}>Reservar movimento</button></>}
-            </details>
-          </section>:ownUnits.some(u=>u.hexId===selected)?<section className="alpha-order-builder"><p className="alpha-hint">Peças suas neste hex: selecione-as para planejar.</p><ArmyList units={ownUnits.filter(u=>u.hexId===selected)} selected={units} onSelect={pick} stacks={game.stacks} rules={game.rules.units} grades={game.grades}/></section>:<p className="alpha-hint">Clique num hex com peças suas, ou selecione-as no Conselho, para planejar movimento, exploração, fundação ou ataque.</p>}
+          <p className="alpha-hint">Para dar ordens, clique na peça no mapa: as ações nascem ao redor dela. Aqui ficam só os detalhes.</p>
+          {ownUnits.some(u=>u.hexId===selected)?<section className="alpha-order-builder"><ArmyList units={ownUnits.filter(u=>u.hexId===selected)} selected={units} onSelect={pick} stacks={game.stacks} rules={game.rules.units} grades={game.grades}/></section>:<p className="alpha-hint">Clique num hex com peças suas.</p>}
           <h3>Ordens reservadas</h3>{game.self.orders.map(o=><div className="alpha-order" key={o.id}><span>{orderLabel(o)}{o.type==='ATTACK'?` · ${postureText(o.posture)}`:''}</span><button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:o.id})}>Cancelar</button>{o.type==='ATTACK'&&game.orderPreviews[o.id]&&<AttackPreview preview={game.orderPreviews[o.id]!}/>}</div>)}{game.self.orders.length===0&&<p>Nenhuma ordem reservada.</p>}
         </div>}
         </div>
-      </aside>:<button type="button" className="aoh-btn is-sm alpha-context-open" onClick={()=>togglePanel('inspector')}>Abrir cartão</button>}
+      </aside>:<button type="button" className="aoh-btn is-sm alpha-context-open" onClick={()=>togglePanel('inspector')}>Detalhes</button>}
     </div>
-    {civOpen&&tab==='world'&&<AlphaCivBoard game={game} selfName={player.name} cityId={city?.id??null} locked={locked} send={send} manage={manage} onClose={()=>setCivOpen(false)}/>}
+    {civOpen&&tab==='world'&&<AlphaCivBoard initialView={civView} game={game} selfName={player.name} cityId={city?.id??null} locked={locked} send={send} manage={manage} onClose={()=>setCivOpen(false)}/>}
     {!civOpen&&game.phase!=='ERA_TURN'&&!replay&&game.self.pendingChoices[0]&&tab==='world'&&<div className="alpha-parchment-pop"><ChoiceParchment choice={game.self.pendingChoices[0]} locked={locked} send={send}/></div>}
-    {tab!=='world'&&<section className="alpha-livro aoh-sheet aoh-glass" role="dialog" aria-label="Livro" onKeyDown={e=>{if(e.key==='Escape')setTab('world');}}>
-      <nav className="alpha-livro-tabs" aria-label="Áreas do Livro">{LIVRO.map(([key,title])=><button key={key} type="button" aria-current={tab===key?'page':undefined} onClick={()=>{if(key==='civilization'){setTab('world');setCivOpen(true);}else setTab(key);}}>{title}{tabAlerts[key]&&<span className="alpha-tab-alert" aria-hidden="true" title={tabAlerts[key]}/>}</button>)}<button type="button" className="aoh-btn is-sm alpha-livro-close" onClick={()=>setTab('world')}>Voltar ao mapa</button></nav>
+    {tab!=='world'&&<StrategicSurface className="alpha-livro" label="Livro" onClose={()=>setTab('world')}>
+      <nav className="alpha-livro-tabs" aria-label="Áreas do Livro">{LIVRO.map(([key,title])=><button key={key} type="button" aria-current={tab===key?'page':undefined} onClick={()=>{if(key==='civilization'||key==='research'){setTab('world');setCivView('web');setCivOpen(true);}else setTab(key);}}>{title}{tabAlerts[key]&&<span className="alpha-tab-alert" aria-hidden="true" title={tabAlerts[key]}/>}</button>)}<button type="button" className="aoh-btn is-sm alpha-livro-close" onClick={()=>setTab('world')}>Voltar ao mapa</button></nav>
       <div className="alpha-tab-body">{tab==='council'?<div className="alpha-council-book">
         <section><div className="section-head"><h3>Cidades</h3><span className="count-pill">{civ.cities.length}</span></div>
           {civ.cities.map(c=><button className={`city-link ${city?.id===c.id?'active':''}`} key={c.id} aria-pressed={city?.id===c.id} onClick={()=>{setSelectedCity(c.id);setSelected(c.hexId);setFocus(c.hexId);setInspector('city');}}><b>{c.id===civ.capitalCityId?'★ ':''}{c.name}</b><small>{c.population} habitantes · Desenvolvimento {c.development}</small></button>)}</section>
@@ -270,7 +230,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave}:{room:
       :tab==='diplomacy'?<AlphaDiplomacy game={game} locked={locked} send={send}/>
       :tab==='reports'?<AlphaReports game={game}/>
       :<AlphaInstitutions game={game} locked={locked} send={send} section={tab==='research'?'research':'era'} cityId={city?.id??null}/>}</div>
-    </section>}
+    </StrategicSurface>}
     <footer className="alpha-round-bar alpha-tray aoh-tray aoh-glass">
       {checkOpen&&!locked&&planningWarnings.length>0&&<div className="alpha-ready-check" role="dialog" aria-label="Antes de confirmar"><h3>Antes de confirmar</h3><ul>{planningWarnings.map(w=><li key={w}>{w}</li>)}</ul><button className="primary" onClick={()=>{setCheckOpen(false);void send({type:'READY'});}}>Confirmar mesmo assim</button><button onClick={()=>setCheckOpen(false)}>Voltar ao planejamento</button></div>}
       <span className="bud">Ordens<b>{game.actions.used} / {game.actions.limit}</b></span>

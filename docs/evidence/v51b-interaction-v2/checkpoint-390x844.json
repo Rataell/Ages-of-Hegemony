@@ -1,0 +1,146 @@
+{
+ "A-city": {
+  "nodes": [
+   "Recrutar3",
+   "Produzir",
+   "Construir1",
+   "Governar",
+   ""
+  ],
+  "plate": "★ Celeiro ÁureoN1 · Estável · Cap. 1",
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "A2-city-build": {
+  "nodes": [
+   "Administrativo",
+   "Comercial",
+   "Fortificação",
+   "Agrário",
+   "Acadêmico",
+   "Ver todas15"
+  ],
+  "plate": " VoltarConstruir★ Celeiro Áureo",
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "B-pioneer": {
+  "nodes": [
+   "Fundar",
+   "Explorar",
+   "Mover",
+   ""
+  ],
+  "plate": "PIONEIROExplora ou funda · civil",
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "E-explore": {
+  "nodes": [],
+  "plate": null,
+  "targets": 7,
+  "chip": "Explorar: escolha a Região destacada↻ 0° Esc",
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "D-move": {
+  "nodes": [],
+  "plate": null,
+  "targets": 10,
+  "chip": "Mover Pioneiro: escolha o destino no mapa Esc",
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "C-army": {
+  "nodes": [
+   "Fundar",
+   "Mover",
+   "Explorar",
+   ""
+  ],
+  "plate": "PIONEIROExplora ou funda · civil",
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "H-details-open": {
+  "nodes": [],
+  "plate": null,
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "G-civ": {
+  "nodes": [],
+  "plate": null,
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "F-teia-focus": {
+  "nodes": [],
+  "plate": null,
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "G2-governo": {
+  "nodes": [],
+  "plate": null,
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ },
+ "G3-livro": {
+  "nodes": [],
+  "plate": null,
+  "targets": 0,
+  "chip": null,
+  "scrollH": 844,
+  "innerH": 844,
+  "scrollW": 390,
+  "innerW": 390,
+  "pageScrolls": false
+ }
+}

@@ -20,6 +20,8 @@ const base = (): AlphaState => {
 const capitalOf = (state: AlphaState, index: number) => state.core.players[index]!.civilization.cities[0]!;
 const land = (state: AlphaState) => state.core.map.filter(tile => !['SEA', 'UNKNOWN', 'MOUNTAINS'].includes(tile.terrain));
 
+/** The Inspector is "Detalhes": closed until asked for. */
+const details = async (page: Page) => { if (!(await page.locator('.alpha-inspector').isVisible().catch(() => false))) await page.getByRole('button', { name: 'Detalhes', exact: true }).click(); };
 async function serve(browser: import('@playwright/test').Browser, state: AlphaState) {
   const repository = new InMemoryAlphaRepository(), sessions = new GuestSessions('v51b-intent-secret-'.repeat(4)), identity = sessions.issue(Date.now()), other = sessions.issue(Date.now());
   const http = new AlphaHttp(new AlphaGameService(repository), sessions, origin, false);
@@ -53,7 +55,7 @@ test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative tar
   near.regions.find(region => region.hexIds.includes(start.id as never))!.revealedBy.push(near.players[0]!.playerId); // the Region was explored: the Bando is on the table
   let page = await serve(browser, near);
   await select(page, start.id);
-  await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo: cidade');
+  await details(page); await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo: cidade');
   await expect(page.locator('.alpha-threat-intent.is-target')).toHaveCount(1);
   await shot(page, '1-bando-alvo-visivel');
 
@@ -66,7 +68,7 @@ test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative tar
   far.regions.find(region => region.hexIds.includes(spot.id as never))!.revealedBy.push(far.players[0]!.playerId);
   page = await serve(browser, far);
   await select(page, spot.id);
-  await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo: cidade');
+  await details(page); await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Alvo: cidade');
   await expect(page.locator('.alpha-threat-intent.is-target')).toHaveCount(1);
   await shot(page, '2-bando-alvo-patria-rival');
 
@@ -77,6 +79,6 @@ test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative tar
   fresh.regions.find(region => region.hexIds.includes(site.id as never))!.revealedBy.push(fresh.players[0]!.playerId);
   page = await serve(browser, fresh);
   await select(page, site.id);
-  await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Recém-surgido');
+  await details(page); await expect(page.locator('.alpha-people-panel.is-raid')).toContainText('Recém-surgido');
   await shot(page, '3-acampamento-recem-surgido');
 });

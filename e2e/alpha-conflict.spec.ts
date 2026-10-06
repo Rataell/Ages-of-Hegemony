@@ -6,7 +6,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { runScriptedMatch } from '../tests/alpha-match-scenario.js';
-import { connectAlphaContext, openArea, toMap, muteTour } from './alpha-fixture.js';
+import { connectAlphaContext, openArea, toMap, muteTour, cloudNode } from './alpha-fixture.js';
 
 test('authoritative battle dice, retreat and Hegemony finish appear in both browser perspectives',async({browser})=>{
   test.setTimeout(90000);
@@ -35,29 +35,28 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
       await expect(page.getByRole('heading',{name:i===0?'Aurélia':'Valgard',exact:true})).toBeVisible();
     }
     const a=pages[0]!,b=pages[1]!;
-    // Ten pieces on one hex collapse into a single stack card; individual pieces stay reachable under 'ver composição'.
-    // Map first: clicking the army's hex opens the context card with that stack.
+    // The previous round's results open first; the atlas is usable once they are dismissed.
+    await a.getByRole('status',{name:'Resolvendo a rodada'}).getByRole('button',{name:'Continuar'}).click();
+    // Ten pieces on one hex collapse into a single stack card (Detalhes); individual pieces stay reachable under 'ver composição'.
     await a.locator('svg.world-map g.hex[aria-label$=" 8,0"], svg.world-map g.hex[aria-label$=" 8,0, trabalhado"]').first().click();
+    await a.getByRole('button',{name:'Detalhes',exact:true}).click();
     await expect(a.locator('.alpha-piece-row').filter({hasText:'8,0'})).toHaveCount(10);
     const stack=a.locator('.alpha-army').filter({hasText:'8,0'});
     await expect(stack).toHaveCount(1);await expect(stack).toContainText('Exército · 10 peças');await expect(stack).toContainText('×');
     // The scripted army starts above the limit; the counter says so and only new arrivals are refused.
     await expect(stack.locator('.alpha-stack-tag')).toContainText('Exército 10/6');
+    // "Selecionar todas" hands the stack to the Table: its cloud opens on the piece.
     await stack.getByRole('button',{name:'Selecionar todas',exact:true}).click();
-    await expect(a.getByRole('heading',{name:'Planejar com 10 peça(s)'})).toBeVisible();
-    // The previous round's results open first; the atlas is usable once they are dismissed.
-    await a.getByRole('status',{name:'Resolvendo a rodada'}).getByRole('button',{name:'Continuar'}).click();
-    await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
-    // Stack limits are explained before any command: ten pieces cannot end a voluntary move on one hex.
-    await a.locator('.alpha-order-builder summary').filter({hasText:'Ordens avançadas'}).click();
-    await a.getByRole('button',{name:'Traçar caminho hex a hex',exact:true}).click();
-    await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
-    await expect(a.getByRole('alert').filter({hasText:'Limite de pilha atingido em 9,0'})).toBeVisible();
-    await expect(a.getByRole('button',{name:'Reservar movimento',exact:true})).toBeDisabled();
-    await a.getByRole('button',{name:'Sair da seleção de caminho',exact:true}).click();
-    await a.getByLabel('Postura do ataque',{exact:false}).selectOption('MANEUVER');
+    await expect(a.locator('.table-cloud .ctx-plate')).toContainText('MILITARES · 10');
+    // Stack limits are explained before any command: ten pieces cannot end a voluntary move on one hex. The MAP is where the destination is chosen.
+    await cloudNode(a,'move').click();
+    await a.locator('svg.world-map g.hex.target-move').first().click();
+    await expect(a.locator('.ctx-chip')).toContainText('Limite de pilha atingido em');
+    await a.keyboard.press('Escape');
+    await cloudNode(a,'posture').click();await a.locator('.ctx-node',{hasText:'Manobra'}).click();
     await openArea(b,'Conselho');await b.getByLabel('Se for atacado, sua civilização adota',{exact:false}).selectOption('HOLD');await toMap(b);
-    await a.getByRole('button',{name:'Ordenar ataque',exact:true}).click();
+    await cloudNode(a,'attack').click();
+    await a.getByRole('button',{name:'Planície 9,0',exact:true}).click();
     await expect(a.locator('.alpha-order')).toContainText('Ataque');
     // The preview explains the static modifiers by origin and reveals neither dice nor the defender's posture.
     const preview=a.locator('.alpha-attack-preview');

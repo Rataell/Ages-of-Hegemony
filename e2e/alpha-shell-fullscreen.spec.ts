@@ -75,17 +75,15 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
     const page = await context.newPage(); page.setDefaultTimeout(15000);
     await page.goto(`/alpha?game=${beforeAttack!.gameId}`);
     await expect.soft(page.getByRole('heading', { name: 'Aurélia', exact: true })).toBeVisible();
-    // Give both side panels their longest realistic content: every piece listed, the army selected, extra orders open.
+    // Give the table its longest realistic content: the results panel dismissed, every piece listed in Detalhes, the army's cloud open and target mode lit.
+    await page.getByRole('status', { name: 'Resolvendo a rodada' }).getByRole('button', { name: 'Continuar' }).click();
     await page.locator('svg.world-map g.hex[aria-label$=" 8,0"], svg.world-map g.hex[aria-label$=" 8,0, trabalhado"]').first().click();
+    await page.getByRole('button', { name: 'Detalhes', exact: true }).click();
     await page.locator('.alpha-army details summary').first().click();
     await page.locator('.alpha-army').filter({ hasText: '8,0' }).getByRole('button', { name: 'Selecionar todas', exact: true }).click();
-    await expect.soft(page.getByRole('heading', { name: 'Planejar com 10 peça(s)' })).toBeVisible();
-    // Target the adjacent enemy so the builder shows its attack block, then open the advanced orders and the manual path.
-    await page.getByRole('status', { name: 'Resolvendo a rodada' }).getByRole('button', { name: 'Continuar' }).click();
-    await page.getByRole('button', { name: 'Planície 9,0', exact: true }).click();
-    await page.locator('.alpha-order-builder details summary').click();
-    await page.getByRole('button', { name: 'Traçar caminho hex a hex', exact: true }).click();
-    await page.getByRole('button', { name: 'Planície 9,0', exact: true }).click();
+    await expect.soft(page.locator('.table-cloud .ctx-plate')).toContainText('MILITARES · 10');
+    await page.locator('.ctx-node[data-node="attack"]').click();
+    await expect.soft(page.locator('.ctx-chip')).toBeVisible();
 
     for (const [width, height] of SIZES) {
       const label = `${width}x${height}`;
@@ -118,6 +116,13 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
       // 4. Every area opens in the Livro over the map, scrolls only its own region and closes back to the map.
       for (const tab of ['Conselho', ...TABS]) {
         await openArea(page, tab);
+        // The Teia is not a page of the Livro: it opens the Tabuleiro (a glass layer with its own pan/zoom) over the Mesa.
+        if (tab === 'Teia Civilizacional') {
+          await expect.soft(page.getByRole('dialog', { name: 'Tabuleiro da Civilização' }), `${label} ${tab}: Tabuleiro open`).toBeVisible();
+          await assertMesa(page, `${label} ${tab}`);
+          await page.keyboard.press('Escape');
+          continue;
+        }
         const area = await assertMesa(page, `${label} ${tab}`);
         expect.soft(area.livro, `${label} ${tab}: Livro open`).not.toBeNull();
         const body = await scroller(page, '.alpha-livro .alpha-tab-body');

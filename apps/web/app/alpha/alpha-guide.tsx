@@ -26,7 +26,7 @@ export function AlphaGuide({ game, onClose }: { game: AlphaPlayerView; onClose: 
       <h3>Cidades</h3>
       <p>Cada cidade faz <b>uma ação</b> por rodada: Produzir, Construir (distrito, edifício ou fortificação), Recrutar, Pesquisar, ou Ânimo/Comércio/Cívica. <b>Sem Produzir, a cidade não produz</b> naquela rodada. A barra do topo mostra os recursos e quanto cabe no armazém: o excedente é descartado.</p>
       <h3>Peças</h3>
-      <p>Selecione peças no Conselho: o mapa destaca para onde podem ir e o que podem explorar. Cada peça recebe uma ordem por rodada.</p>
+      <p>Clique na peça no mapa: as ações nascem ao redor dela. Ao escolher Mover, Explorar ou Atacar, o mapa destaca os destinos legais e você clica no hex. Cada peça recebe uma ordem por rodada.</p>
       <ul>
         <li><b>{units.PIONEER.name}</b> — movimento {units.PIONEER.movement}; explora uma região vizinha e revela seus 7 hexes (e encerra o movimento nessa Ordem), ou funda uma cidade onde está (custo de fundação; longe o bastante de outras cidades) e é consumido. Descobrir e fundar na mesma Ordem não é possível: primeiro descobre, depois coloniza.</li>
         <li><b>Militares</b> — atacam peças ou cidades vizinhas de quem está em guerra com você. Longe das suas cidades e territórios ficam sem suprimento e lutam pior.</li>

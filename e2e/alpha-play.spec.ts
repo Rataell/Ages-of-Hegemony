@@ -5,7 +5,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { hexDistance } from '@aoh/game-engine';
-import { connectAlphaContext, openArea, toMap, muteTour } from './alpha-fixture.js';
+import { connectAlphaContext, openArea, toMap, muteTour, cloudNode, touchPiece, openCatalog } from './alpha-fixture.js';
 
 // Browser integration uses the real HTTP/service/engine code with the explicit test repository.
 // PostgreSQL durability and deployed-network E2E remain separate mandatory release gates.
@@ -57,18 +57,24 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     for(const [width,height] of [[1366,768],[1440,900],[1920,1080]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${actionEvidence}/${width}x${height}-counter.png`});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.setViewportSize({width:1440,height:900});
     await openArea(pa,'Conselho');await expect(pa.locator('.alpha-about')).toContainText(`Versão ${(await repository.find(new URL(pa.url()).searchParams.get('game')!))!.game!.version}`);await toMap(pa);
+    // Habitantes e papéis are details of the city: Detalhes opens them, the map stays the table.
+    await pa.getByRole('button',{name:'Detalhes',exact:true}).click();
     await pa.getByLabel('Produtores',{exact:true}).fill('1');await pa.getByLabel('Artesãos',{exact:true}).fill('1');await pa.getByLabel('Eruditos',{exact:true}).fill('0');
     await pa.getByRole('button',{name:'Aplicar distribuição'}).click();
+    await pa.getByRole('button',{name:'Fechar cartão',exact:true}).click();
     await pa.locator('svg.world-map [role=button]').filter({has:pa.locator('title')}).first().focus();
     const gameId=new URL(pa.url()).searchParams.get('game')!;
     const beforeMap=(await repository.find(gameId))!.game!;
     const capital=beforeMap.core.map.find(tile=>tile.id===beforeMap.core.players[0]!.civilization.cities[0]!.hexId)!;
     const claim=beforeMap.core.map.find(tile=>tile.ownerId===null&&tile.terrain==='PLAINS'&&hexDistance(capital,tile)===1)!;
     await pa.locator(`svg.world-map [role=button][aria-label$=" ${claim.id}"]`).click();
-    await pa.getByRole('button',{name:'Reivindicar para Celeiro Áureo',exact:true}).click();
-    await expect(pa.locator('.alpha-inspector')).toContainText('Território de Ana');
-    await pa.getByText('Melhorias e estradas',{exact:true}).click();await pa.getByRole('button',{name:'Fazenda',exact:true}).click();
-    await expect(pa.locator('.alpha-inspector')).toContainText('Fazenda');
+    // The hex answers where it stands: Reivindicar is a node of its cloud, no side panel.
+    await expect(pa.locator('.alpha-inspector')).toHaveCount(0);
+    await cloudNode(pa,'claim').click();
+    await expect.poll(async()=>(await repository.find(gameId))!.game!.core.map.find(tile=>tile.id===claim.id)!.ownerId).toBe((await repository.find(gameId))!.game!.core.players[0]!.id);
+    await pa.locator(`svg.world-map [role=button][aria-label$=" ${claim.id}"]`).click();
+    await cloudNode(pa,'improve').click();await cloudNode(pa,'FARM').click();await pa.locator('.ctx-go').click();
+    await expect.poll(async()=>(await repository.find(gameId))!.game!.core.map.find(tile=>tile.id===claim.id)!.improvement).toBe('FARM');
     await pa.screenshot({path:`${evidence}/1440-city.png`});
     const raw=(await repository.find(gameId))!;expect(raw.game!.core.players[0]!.civilization.cities[0]!.workers.artisans).toBe(1);
     const privateB=raw.game!.players[1]!.ambitions;
@@ -93,6 +99,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await pa.reload();await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');
     await toMap(pb);
     await phase(pa,'Planejamento');
+    await openCatalog(pa);await openCatalog(pb);
     const urbanA=pa.locator('.alpha-urban'),urbanB=pb.locator('.alpha-urban');
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 2 / 2');
     // PRODUCE is an explicit planned choice, with cost, effect and remaining actions shown before confirmation.
@@ -115,13 +122,14 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
     // The other player deliberately does not produce this round.
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 2 / 2');
-    // A starting Pioneiro leaves the capital: a highlighted reachable hex offers the move with its path already chosen.
-    await openArea(pa,'Conselho');await pa.locator('.alpha-army').first().getByRole('button',{name:/^Pioneiro/}).click();await toMap(pa);
-    await pa.locator('svg.world-map g.hex.eligible:not([aria-label^="Desconhecido"])').first().click();
-    await pa.getByRole('button',{name:'Reservar movimento',exact:true}).click();
-    await expect(pa.locator('.alpha-order')).toContainText(/Movimento · Pioneiro/);
-    await pa.getByRole('button',{name:'Cidade',exact:true}).click();
-    await pa.reload();await expect(pa.locator('.alpha-urban')).toContainText('Ações planejáveis da cidade: 1 / 2');
+    // A starting Pioneiro leaves the capital: touch the piece, choose Mover, the MAP lights up the legal hexes and the click on one is the order.
+    await toMap(pa);
+    await touchPiece(pa,'g.hex:has(.art-city)');
+    await cloudNode(pa,'move').click();
+    await expect(pa.locator('svg.world-map g.hex.target-move').first()).toBeVisible();
+    await pa.locator('svg.world-map g.hex.target-move:not([aria-label^="Desconhecido"])').first().click();
+    await expect(pa.locator('.alpha-order-chip.is-used').filter({hasText:'Expedição'})).toHaveCount(1);
+    await pa.reload();await openCatalog(pa);await expect(pa.locator('.alpha-urban')).toContainText('Ações planejáveis da cidade: 1 / 2');
     await bothConfirm('Confirmar planejamento','2 / 21');
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
     {
@@ -138,11 +146,14 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
     // Valgard's page is still on the old version here: the research recovers on its own and must not show a conflict. Districts need their Web advance (canon §5), so Beto opens the Teia first.
+    // The Teia is a glass layer over the Mesa (Tabuleiro da Civilização): pick the node, research it as the Ordem Avanço, back to the map.
     await openArea(pb,'Teia Civilizacional');
-    const agriculture=pb.locator('.alpha-research-grid article').filter({hasText:'Agricultura'}).first();
-    await expect(agriculture).toContainText('Custo:');
-    await agriculture.getByRole('button',{name:'Pesquisar (ação urbana)'}).click();
-    await toMap(pb);
+    const boardB=pb.getByRole('dialog',{name:'Tabuleiro da Civilização'});
+    await boardB.locator('button.alpha-node').filter({hasText:'Agricultura'}).first().click();
+    await expect(boardB.locator('.alpha-node-detail')).toContainText('Custo:');
+    await boardB.getByRole('button',{name:/Pesquisar · Ordem Avanço/}).click();
+    await expect(pb.locator('.alpha-order-chip.is-used').filter({hasText:'Avanço'})).toHaveCount(1);
+    await pb.keyboard.press('Escape');
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 2');
     {
       const planned=await game();
@@ -159,9 +170,13 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     for(const page of [pa,pb])await page.locator('.alpha-resolution-phase').getByRole('button',{name:'Continuar'}).click();
     // Round 3 - research survives reconnect; Ana's resolved move is public: Beto sees it too (the table is shared; only the Order was private).
     await openArea(pa,'Teia Civilizacional');
-    const node=pa.locator('.alpha-research-grid article').filter({hasText:'Sem pré-requisitos de pesquisa.'}).first();
-    await expect(node).toContainText('Custo:');
-    await node.getByRole('button',{name:'Pesquisar (ação urbana)'}).click();
+    const boardA=pa.getByRole('dialog',{name:'Tabuleiro da Civilização'});
+    await boardA.locator('button.alpha-node.is-reachable').first().click();
+    await expect(boardA.locator('.alpha-node-detail')).toContainText('Custo:');
+    await boardA.getByRole('button',{name:/Pesquisar · Ordem Avanço/}).click();
+    // The command is in flight: the Avanço Order must show before the layer closes (and before any reload).
+    await expect(pa.locator('.alpha-order-chip.is-used').filter({hasText:'Avanço'})).toHaveCount(1);
+    await pa.keyboard.press('Escape');
     expect((await game()).players[0]!.research).toHaveLength(0);
     {
       const beforeMove=await game(),ana=beforeMove.players[0]!.playerId,beto=beforeMove.players[1]!.playerId;
@@ -173,6 +188,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
       expect(queued.ok).toBe(true);
     }
     await Promise.all([pa.reload(),pb.reload()]);await expect(pa.locator('.alpha-action-queue')).toContainText('Ordens planejadas 2 / 5');
+    await openCatalog(pb);
     await confirm(pa,'Confirmar planejamento');await pa.reload();await expect(pa.getByRole('button',{name:'Aguardando outras pessoas',exact:true})).toBeVisible();
     await pb.getByRole('button',{name:/Escolher produzir/}).click();
     await pb.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();

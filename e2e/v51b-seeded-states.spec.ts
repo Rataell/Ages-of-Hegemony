@@ -88,6 +88,7 @@ test('SEEDED: city N6 and N7, and a devastated city with degraded Capacidade', a
   metaD.level = 'METROPOLIS';
   const cityD = capitalOf(degraded); cityD.population = 7; cityD.workers = { producers: 4, artisans: 1, merchants: 1, scholars: 1, soldiers: 0, unassigned: 0 };
   ({ page } = await serve(browser, degraded));
+  await page.getByRole('button', { name: 'Detalhes', exact: true }).click();
   await expect(page.locator('.alpha-city-seal').first()).toContainText(/N6/);
   await shot(page, 'cidade-capacidade-degradada');
 });

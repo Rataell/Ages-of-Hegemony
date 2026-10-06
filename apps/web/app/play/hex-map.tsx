@@ -14,7 +14,7 @@ export type MapArt = {
   roads?: readonly string[];
   routes?: readonly { id: string; path: readonly string[]; suspended: boolean }[];
   /** Results shown on their target: a neutral halo and a short tag (resolution events, card effects on pieces). */
-  marks?: readonly { hexId: string; label: string; tone: 'event' | 'card' | 'loss' }[];
+  marks?: readonly { hexId: string; label: string; tone: 'event' | 'card' | 'loss' | 'plan' }[];
   cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capacity?: number; capital: boolean; fortification: { level: string; state: string }; blockaded?: boolean | null }[];
 };
 const svgFragment = (html: string) => ({ __html: html });
@@ -39,6 +39,12 @@ type Props = {
   /** Status line per seat shown on the table edge ("Planejando…", "✓ Pronto"). */
   seatStatus?: Readonly<Record<string, string>>;
   safe?: SafeInsets;
+  /** Interaction V2 target mode: the hexes a pending decision may land on, by kind (move, explore, attack, claim, mission). The map answers the decision. */
+  targets?: { kind: string; hexIds: readonly string[] } | null;
+  /** A click on the table that hit no hex (closes the contextual cloud). */
+  onBackground?: () => void;
+  /** A click on the player's own pieces drawn on a hex (selects the stack, not the hex). */
+  onSelectPieces?: (hexId: string) => void;
   selected: string | null;
   focus: string | null;
   working: boolean;
@@ -97,6 +103,9 @@ export const HexMap = memo(function HexMap({
   board,
   seatStatus = {},
   safe = DEFAULT_SAFE,
+  targets = null,
+  onBackground,
+  onSelectPieces,
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   // null = fitted to the projected tiles; otherwise an explicit centre and zoom (1 shows the whole fitted frame).
@@ -105,6 +114,7 @@ export const HexMap = memo(function HexMap({
   const [moved, setMoved] = useState(false);
 
   const tiles = data.view.visibleTerritory;
+  const targetSet = useMemo(() => new Set(targets?.hexIds ?? []), [targets]);
   const mesa = board !== undefined;
   const [size, setSize] = useState({ w: 1280, h: 720 });
   useEffect(() => {
@@ -217,7 +227,7 @@ export const HexMap = memo(function HexMap({
 
       <svg
         ref={svgRef}
-        className={`world-map${art ? ' art-mode' : ''}${mesa ? ' has-board' : ''}${zoomed ? ' zoom-near' : ''}`}
+        className={`world-map${art ? ' art-mode' : ''}${mesa ? ' has-board' : ''}${zoomed ? ' zoom-near' : ''}${targetSet.size ? ' has-targets' : ''}`}
         viewBox={camera.viewBox}
         aria-label="Mapa hexagonal interativo"
         onPointerDown={handlePointerDown}
@@ -226,6 +236,7 @@ export const HexMap = memo(function HexMap({
         onPointerLeave={handlePointerEnd}
         onPointerCancel={handlePointerEnd}
         onLostPointerCapture={handlePointerEnd}
+        onClick={e => { if (!moved && onBackground && !(e.target as Element).closest('.hex')) onBackground(); }}
       >
         <defs>
           <pattern id="sea-waves" width="24" height="16" patternUnits="userSpaceOnUse">
@@ -246,7 +257,7 @@ export const HexMap = memo(function HexMap({
         {/* Face-down Regions: ONE board piece each (dark back, light edge, no terrain, no icons). Their hexes only show faint seams when zoomed in. */}
         {mesa && <g className="region-backs" aria-hidden="true">{board!.filter(region => region.closed).map(region => {
           const centres = region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return position(q ?? 0, r ?? 0); });
-          return <g key={region.id} className={`region-back${region.homeOf ? ' is-homeland' : ''}`} style={region.homeOf && art?.seats[region.homeOf] ? { ['--seat' as string]: art.seats[region.homeOf]!.color } : undefined}>
+          return <g key={region.id} className={`region-back${region.homeOf ? ' is-homeland' : ''}${targetSet.size && region.hexIds.some(id => targetSet.has(id)) ? ' is-target' : ''}`} style={region.homeOf && art?.seats[region.homeOf] ? { ['--seat' as string]: art.seats[region.homeOf]!.color } : undefined}>
             {centres.map((c, k) => <polygon key={k} className="region-back-hex" points={points} transform={`translate(${c.x} ${c.y}) scale(1.08)`} />)}
             <path className="region-back-edge" d={regionOutline(centres, 56)} />
           </g>;
@@ -268,6 +279,7 @@ export const HexMap = memo(function HexMap({
             `terrain-${tile.terrain}`,
             `owner-${owner}`,
             isSelected ? 'selected' : '',
+            targetSet.has(tile.id) ? `target target-${targets!.kind}` : '',
             eligible ? 'eligible' : '',
             working && !eligible ? 'unavailable' : '',
             isForeign ? 'foreign' : '',
@@ -282,6 +294,7 @@ export const HexMap = memo(function HexMap({
           return (
             <g
               key={tile.id}
+              data-hex={tile.id}
               transform={`translate(${p.x} ${p.y})`}
               role="button"
               tabIndex={0}
@@ -401,6 +414,7 @@ export const HexMap = memo(function HexMap({
                 </g>
               )}
 
+              {targetSet.has(tile.id) && <polygon className="target-pulse" points={innerPoints} />}
               {/* Claimable frontier indicator */}
               {eligible && !working && (
                 <polygon className="frontier-pulse" points={innerPoints} />
@@ -429,7 +443,7 @@ export const HexMap = memo(function HexMap({
                   const count = lead === 'FLEET' || lead === 'COASTAL_VESSEL' ? mine.filter(u => u.kind === lead).length : military.length || mine.filter(u => u.kind === lead).length, side = military.length ? civil : civil.slice(1);
                   const x = city ? (slot === 0 ? -24 : 24) : owners.length > 1 ? (slot === 0 ? -20 : 20) : 0, y = city ? 22 : 0;
                   const kinds = [...all.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
-                  return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={lead}>
+                  return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={lead} style={own && onSelectPieces ? { cursor: 'pointer' } : undefined} onClick={own && onSelectPieces ? (e => { if (!moved) { e.stopPropagation(); onSelectPieces(tile.id); } }) : undefined}>
                     <title>{own ? 'Suas peças' : `Peças de ${data.players.find(p => p.id === ownerId)?.name ?? 'outra civilização'}`}: {kinds}</title>
                     <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 30 : 38, count, art.seats[ownerId]?.signature === lead) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20, 0, art.seats[ownerId]?.signature === kind)}</g>`).join(''))} />
                     {cargo.length > 0 && <g transform="translate(0 -24)" className="art-cargo"><rect x="-22" y="-8" width="44" height="15" rx="7" /><text y="3">carga {cargo.length}</text></g>}
@@ -476,7 +490,7 @@ export const HexMap = memo(function HexMap({
           const tile = tiles.find(t => t.id === mark.hexId);
           if (!tile) return null;
           const p = position(tile.q, tile.r), same = art.marks!.slice(0, i).filter(m => m.hexId === mark.hexId).length, w = Math.max(44, mark.label.length * 6.4 + 14);
-          return <g key={`${mark.hexId}-${i}`} transform={`translate(${p.x} ${p.y})`} className={`art-mark tone-${mark.tone}`}>
+          return <g key={`${mark.hexId}-${i}`} transform={`translate(${p.x} ${p.y})${mark.tone === 'plan' ? ` scale(${Math.max(1, 0.55 / camera.scale).toFixed(2)})` : ''}`} className={`art-mark tone-${mark.tone}`}>
             {same === 0 && <circle r="47" className="art-mark-halo" />}
             <g transform={`translate(0 ${-44 - same * 17})`}><rect x={-w / 2} y="-8" width={w} height="16" rx="8" className="art-mark-tag" /><text y="4" className="art-mark-text">{mark.label}</text></g>
           </g>;

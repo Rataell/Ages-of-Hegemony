@@ -104,13 +104,17 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     // Mesa: the map is the whole table; the context card floats over it and closes away.
     const stageWidth = async () => (await pa.locator('.map-stage').boundingBox())!.width;
     expect(await stageWidth()).toBeGreaterThan(1440 * 0.95);
+    // The Inspector is "Detalhes": closed until asked for, and the map is the whole table either way.
+    await expect(pa.getByRole('complementary', { name: 'Cartão do contexto' })).toHaveCount(0);
+    await pa.getByRole('button', { name: 'Detalhes', exact: true }).click();
+    await expect(pa.getByRole('complementary', { name: 'Cartão do contexto' })).toBeVisible();
     await pa.getByRole('button', { name: 'Fechar cartão', exact: true }).click();
-    await expect(pa.getByRole('button', { name: 'Abrir cartão', exact: true })).toBeVisible();
+    await expect(pa.getByRole('button', { name: 'Detalhes', exact: true })).toBeVisible();
     await pa.screenshot({ path: `${shots}/1440x900-panels-collapsed.png` });
     await pa.setViewportSize({ width: 1920, height: 1080 }); await pa.waitForTimeout(250);
     await pa.screenshot({ path: `${shots}/1920x1080-panels-collapsed.png` });
     await pa.setViewportSize({ width: 1440, height: 900 });
-    await pa.getByRole('button', { name: 'Abrir cartão', exact: true }).click();
+    await pa.getByRole('button', { name: 'Detalhes', exact: true }).click();
     await expect(pa.getByRole('complementary', { name: 'Cartão do contexto' })).toBeVisible();
 
     // Leaving a running match forgets it in this browser only; the code brings the person back to the same match.

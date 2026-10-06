@@ -42,6 +42,10 @@ O log (`docs/evidence/playtests/<data>-<partida>/events.jsonl`) guarda, sem text
 
 O driver automático continua existindo para regressão (`node scripts/alpha-ui-playtest.mjs --players=2 --contact=forced`, servidor iniciado com o comando acima): ele falha com código 2 se o Contato não ocorrer até a rodada 2.
 
+### Mesa local com vários lugares (você ou o Claude controlando todos)
+
+`npm run alpha:players -- --players=2 --start` abre 2 janelas isoladas, cria a mesa, escolhe as civilizações e inicia; cada janela é um lugar. É a mesma interface do jogo (a nuvem de ações nasce na peça), então serve para jogar contra si mesmo ou para o Claude controlar um dos lugares por cliques. `node scripts/alpha-ux-smoke.mjs` e `node scripts/alpha-ux-checkpoint.mjs` fazem isso sem janela visível e gravam capturas e métricas de scroll em `docs/evidence/v51b-interaction-v2/`.
+
 ## 3. Objetivo da sessão
 
 Jogar até a Era IV ou até alguém declarar Hegemonia, e responder: **o jogo cria decisões ou preenche tempo?**
