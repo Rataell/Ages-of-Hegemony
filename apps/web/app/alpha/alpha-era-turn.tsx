@@ -3,6 +3,7 @@ import { ALPHA_CARDS, ERA_TURN_STEPS } from '@aoh/game-domain';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 import { alphaLabel as text } from './alpha-copy';
 import type { AlphaSend } from './alpha-board';
+import { reformState } from './reform';
 
 /** The Era turn (canon §22): nine steps, the first six already run, one CTA to confirm and move to the next Era. */
 export function AlphaEraTurn({ game, locked, send }: { game: AlphaPlayerView; locked: boolean; send: AlphaSend }) {
@@ -32,6 +33,8 @@ export function GovernmentReform({ game, locked, manage }: { game: AlphaPlayerVi
   const info = game.government;
   if (game.phase !== 'PLANNING' || !info.window) return null;
   const others = info.options.filter(option => option.government !== info.current.government);
+  // No eligible government: no false decision, one informative line.
+  if (reformState(info) === 'none') return <p className="alpha-hint alpha-government-none" role="status">Reforma de governo: nenhuma reforma disponível. A Teia ainda não abriu outro governo. Siga com o planejamento.</p>;
   return <details className="alpha-government" open><summary>Reforma de governo · Ordem Influência{info.planned ? ' · reservada' : ''}</summary>
     {info.planned
       ? <p>Reforma para {text(info.planned)} reservada: acontece no passo 5 da Virada de Era, por {info.cost} Influência.</p>

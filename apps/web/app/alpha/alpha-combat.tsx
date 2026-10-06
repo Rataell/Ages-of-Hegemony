@@ -12,9 +12,12 @@ type Preview = AlphaPlayerView['orderPreviews'][string];
 type Battle = AlphaPlayerView['battles'][number];
 type Modifier = { source: string; amount: number };
 
+/** Why a modifier exists, shown under the line when the reason is not obvious from its name. */
+const WHY: Record<string, string> = { 'Sem suprimento': 'Fora do alcance de suprimento: falta uma cidade própria por perto ou território/estradas ligando as peças a ela.' };
+
 function Breakdown({ label, strength, items, total }: { label: string; strength: number; items: Modifier[]; total: number }) {
   return <div className="alpha-breakdown"><h5>{label}</h5>
-    <ul><li>Unidades e guarnição <b>{strength}</b></li>{items.map((item, i) => <li key={`${item.source}-${i}`}>{item.source} <b>{signed(item.amount)}</b></li>)}</ul>
+    <ul><li>Unidades e guarnição <b>{strength}</b></li>{items.map((item, i) => <li key={`${item.source}-${i}`}>{item.source} <b>{signed(item.amount)}</b>{WHY[item.source] ? <small className="alpha-why" title={WHY[item.source]}> — {WHY[item.source]}</small> : null}</li>)}</ul>
     <p>Total <b>{total}</b></p></div>;
 }
 

@@ -27,6 +27,8 @@ export const HegemonyMetricSchema = z.enum(['strength','victories','foreignPrese
 export type HegemonyMetric = z.infer<typeof HegemonyMetricSchema>;
 export type HegemonyPath = z.infer<typeof HegemonyPathSchema>;
 export const HegemonyDeclarationSchema = z.strictObject({path:HegemonyPathSchema,declaredRound:P,qualifiedSince:P.nullable()});
+/** Canonical Alpha default (2026-10, playtest decision): two starting Pioneiros. Configurable per game for scenarios and tests only. */
+export const STARTING_PIONEERS_DEFAULT = 2;
 export const AlphaRulesSchema = z.strictObject({
   preset: AlphaPresetSchema, roundLimit: P, baseCommandPoints: P,
   /** Rounds in each of the seven Eras (canon §1: 5 by default, 3–7 configurable). Matches saved before V5.1a read 5. */
@@ -35,7 +37,7 @@ export const AlphaRulesSchema = z.strictObject({
   actionsPerRound: z.preprocess(value => typeof value === 'number' ? Math.min(6, Math.max(3, value)) : value, z.number().int().min(3).max(6).optional()),
   hegemonyHoldRounds: P, handLimit: P, advisorLimit: P, unitLimit: P,
   /** Pioneiros each civilization starts with (canon change 2026-10-05: one civil piece replaces Explorador + Pioneiro). Older saves read 2. */
-  startingPioneers: z.number().int().min(1).max(3).default(2),
+  startingPioneers: z.number().int().min(1).max(3).default(STARTING_PIONEERS_DEFAULT),
   integrationCost:ResourcePoolSchema,occupationStabilityPenalty:N,
   hegemonyRequirements:z.record(HegemonyPathSchema,z.array(z.strictObject({metric:HegemonyMetricSchema,minimum:P})).min(3)),
   cardsPerRound:P,eventEvery:P,roadCost:ResourcePoolSchema,advisorCost:ResourcePoolSchema,treatyDuration:P,routeIncome:N,foreignRouteIncome:N,
@@ -54,7 +56,7 @@ export type AlphaRules = z.infer<typeof AlphaRulesSchema>;
 export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED', actionsPerRound = 5): AlphaRules {
   const roundsPerEra = { QUICK: 3, STANDARD: 5, EPIC: 7 }[preset];
   return AlphaRulesSchema.parse({ preset, roundLimit: AlphaEraSchema.options.length * roundsPerEra, roundsPerEra, baseCommandPoints: 4, actionsPerRound,
-    hegemonyHoldRounds: 2, startingPioneers: 2, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
+    hegemonyHoldRounds: 2, startingPioneers: STARTING_PIONEERS_DEFAULT, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
     integrationCost:{food:0,materials:0,wealth:0,knowledge:0,influence:3},occupationStabilityPenalty:15,
     hegemonyRequirements:{
       MILITARY:[{metric:'strength',minimum:12},{metric:'victories',minimum:2},{metric:'foreignPresence',minimum:2}],

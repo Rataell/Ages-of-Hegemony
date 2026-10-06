@@ -7,6 +7,7 @@ import { EconomyTable, PopulationManager } from '../play/inspectors';
 import { alphaLabel as text } from './alpha-copy';
 import { BattleReport } from './alpha-combat';
 import type { AlphaSend } from './alpha-board';
+import { reformState } from './reform';
 type Panel={game:AlphaPlayerView;locked:boolean;send:AlphaSend};
 /** A production effect is shown as what it credits in the seven resources (legacy "materials" become Madeira and Pedra). */
 function Effect({effect}:{effect:AlphaEffect|null}){if(!effect)return null;const gains=effect.kind==='PRODUCTION'?Object.entries(alphaGainOf(effect.resource,effect.amount)).filter(([,n])=>n>0).map(([key,n])=>`+${n} ${text(key)}`).join(', '):`+${effect.amount} ${text(effect.kind)}`;return <p className="alpha-effect">{gains}</p>;}
@@ -29,7 +30,7 @@ export function AlphaCity({game,city,locked,send,manage}:Panel&{city:CityState;m
     <details><summary>Distritos · {city.districts.length} / {meta?.slots??'?'} vagas</summary><p>{city.districts.length?city.districts.map(d=>text(d.type)).join(' · '):'Nenhum distrito construído.'} Novos distritos são construídos pela ação Construir; cada um ocupa uma vaga e exige o avanço da Teia que o abre.</p></details>
     <details><summary>Edifícios</summary><p>{city.buildings.length?city.buildings.map(b=>text(b.type)).join(' · '):'Nenhum edifício construído.'} Novos edifícios são construídos pela ação Construir.</p></details>
     <details><summary>Economia da cidade</summary><EconomyTable production={details.production} labels={{materials:'Madeira/Pedra'}} help="Madeira/Pedra: a produção de construção é somada e dividida ao Produzir, metade em Madeira (arredondada para cima) e metade em Pedra."/></details>
-    {game.phase==='PLANNING'&&game.government.window&&<p className="alpha-hint">Reforma de governo: abra o Tabuleiro da Civilização (selo da civilização) → Governo.</p>}
+    {game.phase==='PLANNING'&&reformState(game.government)!=='closed'&&reformState(game.government)!=='none'&&<p className="alpha-hint">Reforma de governo: abra o Tabuleiro da Civilização (selo da civilização) → Governo.</p>}
   </section>;
 }
 

@@ -133,6 +133,19 @@ describe('COMMAND by class (signatures)', () => {
     expect(entry(open.battle.attackBreakdown, /^Brecha/)).toBeUndefined();
   });
 
+  it('SIEGE: a DECISIVE win without a Comando face leaves the wall INTACT (Brecha only opens Integridade on Comando), and replays identically', () => {
+    const options = { city: true, attackers: ['INFANTRY', 'INFANTRY', 'INFANTRY', 'SIEGE', 'SIEGE'] as const, defenders: ['GUARD'] as const, fort: { level: 'STONE_WALL', state: 'INTACT' } };
+    const faceFor = { a1: 'IMPACT', a2: 'IMPACT', a3: 'IMPACT', a4: 'IMPACT', a5: 'IMPACT', d1: 'EMPTY' } as const;
+    const { battle, state } = fight({ ...options, attackers: [...options.attackers], defenders: [...options.defenders] }, faceFor);
+    expect(battle.outcome).toBe('DECISIVE');
+    expect(battle.attackBreakdown.filter(m => /^Brecha/.test(m.source)).reduce((n, m) => n + m.amount, 0)).toBe(4);
+    expect(battle.fortification).toMatchObject({ before: { state: 'INTACT' }, after: { state: 'INTACT' } });
+    expect(entry(battle.defenseBreakdown, 'Brecha aberta pelo cerco')).toBeUndefined();
+    expect(state.cities.find(c => c.cityId === 'c2')!.fortification.state).toBe('INTACT');
+    const again = fight({ ...options, attackers: [...options.attackers], defenders: [...options.defenders] }, faceFor);
+    expect(again.battle).toEqual(battle);
+  });
+
   it('FLEET: Abordagem blocks the defender port after a victory, and only when attacking', () => {
     const { state, order } = arena({ attackers: ['FLEET', 'FLEET', 'FLEET', 'FLEET'], defenders: ['FLEET'], terrain: 'COAST', seed: 11 });
     state.core.map.find(t => t.id === '4,0')!.terrain = 'COAST'; state.core.map.find(t => t.id === '3,0')!.terrain = 'COAST';
