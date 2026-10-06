@@ -1,0 +1,183 @@
+{
+ "persona": "mixed",
+ "rounds": 35,
+ "rows": [
+  {
+   "players": 2,
+   "matches": 10,
+   "matchesWithWar": 2,
+   "warsDeclared": 2,
+   "firstWarRound": 15.5,
+   "firstContactRound": 6,
+   "matchesWithPvp": 0,
+   "pvpBattles": 0,
+   "firstPvpRound": null,
+   "avgAttackerPieces": null,
+   "avgDefenderPieces": null,
+   "attackerWins": 0,
+   "ties": 0,
+   "decisive": 0,
+   "withSupplyPenalty": 0,
+   "pieceLosses": 0,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "matches": 10,
+   "matchesWithWar": 7,
+   "warsDeclared": 7,
+   "firstWarRound": 18,
+   "firstContactRound": 10.7,
+   "matchesWithPvp": 1,
+   "pvpBattles": 1,
+   "firstPvpRound": 20,
+   "avgAttackerPieces": 1,
+   "avgDefenderPieces": 0,
+   "attackerWins": 1,
+   "ties": 0,
+   "decisive": 0,
+   "withSupplyPenalty": 0,
+   "pieceLosses": 0,
+   "citiesCaptured": 1
+  },
+  {
+   "players": 6,
+   "matches": 10,
+   "matchesWithWar": 10,
+   "warsDeclared": 15,
+   "firstWarRound": 17,
+   "firstContactRound": 5.1,
+   "matchesWithPvp": 3,
+   "pvpBattles": 3,
+   "firstPvpRound": 29.3,
+   "avgAttackerPieces": 2,
+   "avgDefenderPieces": 0,
+   "attackerWins": 3,
+   "ties": 0,
+   "decisive": 1,
+   "withSupplyPenalty": 0,
+   "pieceLosses": 0,
+   "citiesCaptured": 3
+  }
+ ],
+ "battles": [
+  {
+   "players": 4,
+   "seed": 10,
+   "round": 20,
+   "attacker": "p4",
+   "defender": "p1",
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "MANEUVER",
+   "comp": {
+    "attack": {
+     "?": 1
+    },
+    "defense": {}
+   },
+   "delta": 4,
+   "outcome": "VICTORY",
+   "winner": "p4",
+   "losses": 0,
+   "retreat": null,
+   "noSupplyAttacker": false,
+   "noSupplyDefender": false,
+   "fortification": "NONE/INTACT→INTACT",
+   "breakdown": {
+    "attack": [
+     "Postura Assalto vence Manobra+1",
+     "Dados: manobra+1"
+    ],
+    "defense": []
+   }
+  },
+  {
+   "players": 6,
+   "seed": 2,
+   "round": 25,
+   "attacker": "p6",
+   "defender": "p1",
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "comp": {
+    "attack": {
+     "?": 2
+    },
+    "defense": {}
+   },
+   "delta": 2,
+   "outcome": "VICTORY",
+   "winner": "p6",
+   "losses": 0,
+   "retreat": null,
+   "noSupplyAttacker": false,
+   "noSupplyDefender": false,
+   "fortification": "PALISADE/INTACT→INTACT",
+   "breakdown": {
+    "attack": [],
+    "defense": [
+     "Postura Manter vence Assalto+1",
+     "Fortificação+1"
+    ]
+   }
+  },
+  {
+   "players": 6,
+   "seed": 3,
+   "round": 32,
+   "attacker": "p4",
+   "defender": "p3",
+   "attackerPosture": "HOLD",
+   "defenderPosture": "HOLD",
+   "comp": {
+    "attack": {
+     "INFANTRY": 1
+    },
+    "defense": {}
+   },
+   "delta": 2,
+   "outcome": "VICTORY",
+   "winner": "p4",
+   "losses": 0,
+   "retreat": null,
+   "noSupplyAttacker": false,
+   "noSupplyDefender": false,
+   "fortification": "NONE/INTACT→INTACT",
+   "breakdown": {
+    "attack": [],
+    "defense": []
+   }
+  },
+  {
+   "players": 6,
+   "seed": 7,
+   "round": 31,
+   "attacker": "p6",
+   "defender": "p5",
+   "attackerPosture": "HOLD",
+   "defenderPosture": "HOLD",
+   "comp": {
+    "attack": {
+     "?": 1,
+     "INFANTRY": 2
+    },
+    "defense": {}
+   },
+   "delta": 8,
+   "outcome": "DECISIVE",
+   "winner": "p6",
+   "losses": 0,
+   "retreat": null,
+   "noSupplyAttacker": false,
+   "noSupplyDefender": false,
+   "fortification": "NONE/INTACT→INTACT",
+   "breakdown": {
+    "attack": [
+     "Dados: impactos+1",
+     "Dados: manobra+1"
+    ],
+    "defense": []
+   }
+  }
+ ]
+}

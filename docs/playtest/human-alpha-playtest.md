@@ -28,15 +28,19 @@ Sem `--start` você cria a mesa e escolhe as civilizações à mão. Com amigos:
 Na criação, **Duração** define o tamanho: `QUICK` = 21 rodadas (7 Eras × 3, ~45–60 min), `STANDARD` = 35 rodadas (7 × 5, o jogo de verdade).
 Primeira vez: use `QUICK` com 2 lugares.
 
-### Forçar o contato entre jogadores (V51B-12)
+### Sessão humana com contato forçado (V51B-12)
 
-Nas partidas naturais os bots e o driver quase nunca se encontram (capitais a 6–8 hexes). Para sessões que precisam de diplomacia, guerra e combate entre jogadores, o driver de UI (só cliques) tem um modo de contato forçado: todos os lugares mandam o Explorador para o outro lado do mapa e o guerreiro marcha sobre a cidade estrangeira mais próxima.
+Comando único (servidor local com contato forçado + log de playtest; ninguém joga por você):
 
 ```sh
-node scripts/alpha-ui-playtest.mjs --players=2 --preset=QUICK --contact=forced --personas=warrior,builder --out=docs/evidence/v51b-d1-d3/ui-contact-2p
+npm run playtest:human
 ```
 
-À mão, faça o mesmo: Expedição → mover o Explorador rumo ao lado oposto até ver a cidade rival, proponha um tratado, depois declare guerra e ataque.
+Abra `http://127.0.0.1:3001/alpha` em duas janelas (uma por pessoa), crie uma sala de 2 lugares, escolham civilização, Pronto, iniciar. Com `ALPHA_FORCE_CONTACT=1` (ligado por esse comando, nunca em produção) dois Pioneiros, um de cada lado, começam frente a frente entre as duas Pátrias mais próximas: o Contato nasce da regra normal de proximidade (≤ 1 hex), já na rodada 1, e o Diário da Mesa avisa "Cenário de teste: contato forçado". Use-o só para chegar cedo a diplomacia, guerra e combate; não use a sessão para julgar distância natural.
+
+O log (`docs/evidence/playtests/<data>-<partida>/events.jsonl`) guarda, sem texto livre nem nomes: abertura e confirmação do Planejamento (`planning_open`, `ready` com `planningMs`), cada comando (Ordens planejadas, canceladas, propostas diplomáticas, prioridade de baixas), contato, tratado, guerra, combate, Virada de Era, e momentos de tela (`ui`: painel aberto, decisão mostrada/respondida, Virada exibida) com o tempo desde a abertura da rodada. Resumo: `node scripts/alpha-playtest-summary.mjs <pasta>`.
+
+O driver automático continua existindo para regressão (`node scripts/alpha-ui-playtest.mjs --players=2 --contact=forced`, servidor iniciado com o comando acima): ele falha com código 2 se o Contato não ocorrer até a rodada 2.
 
 ## 3. Objetivo da sessão
 

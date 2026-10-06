@@ -13,7 +13,7 @@ export function CasualtyPriority({ defaults, saved, units, locked, send }: { def
   const fielded = new Set((scope ? combat.filter(unit => unit.hexId === scope) : combat).map(unit => unit.kind));
   const list = effectiveCasualtyList(defaults, saved, scope, fielded);
   const custom = scope ? saved.byHex[scope] !== undefined : saved.order.length > 0;
-  const apply = (order: string[]) => void send({ type: 'SET_CASUALTY_PRIORITY', order, hexId: scope });
+  const apply = (order: string[]) => void send({type:'SET_CASUALTY_PRIORITY',order,hexId:scope});
   const move = (index: number, by: number) => { const next = [...list]; const other = index + by; if (other < 0 || other >= next.length) return; [next[index], next[other]] = [next[other]!, next[index]!]; apply(next); };
   return <section className="alpha-casualties" aria-label="Prioridade de baixas"><h3>Prioridade de baixas</h3>
     <label>Vale para<select value={scope ?? ''} onChange={e => setScope(e.target.value || null)}><option value="">Todas as pilhas</option>{hexes.map(hex => <option key={hex} value={hex}>Pilha em {hex}</option>)}</select></label>

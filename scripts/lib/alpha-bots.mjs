@@ -47,6 +47,8 @@ function send(box, id, command) {
   if (result.ok && command.type === 'QUEUE_ORDER') { const k = command.order?.type ?? '?'; (ctx.counters.orders ??= {})[k] = (ctx.counters.orders[k] ?? 0) + 1; }
   if (!result.ok) { ctx.counters.rejected++; const key = `${command.type}:${result.error.code}`; ctx.counters.rejectedReasons[key] = (ctx.counters.rejectedReasons[key] ?? 0) + 1; ctx.lastError = result.error.message; if (process.env.BOT_TRACE) console.error('REJ', box.state.core.round, id, command.type, command.action ?? command.command?.type ?? command.order?.type ?? '', '=>', result.error.message); return false; }
   if (process.env.BOT_TRACE === 'ok') console.error('OK', box.state.core.round, id, command.type, command.action ?? command.command?.type ?? command.order?.type ?? '', command.unit ?? command.build?.district ?? command.build?.building ?? command.advancementId ?? '');
+  { const before = me(box.state, id).resources.food, after = me(result.value, id).resources.food;
+    if (after < before) (ctx.foodSpend ??= []).push({ round: box.state.core.round, seat: id, what: `${command.type}${command.action ? `:${command.action}` : ''}${command.unit ? `:${command.unit}` : ''}${command.build ? `:${command.build.building ?? command.build.district ?? command.build.kind}` : ''}`, food: before - after }); }
   box.state = result.value;
   if (command.type === 'URBAN_ACTION' && command.cityId) { const k = `${box.state.core.round}:${command.cityId}`; ctx.activations.set(k, (ctx.activations.get(k) ?? 0) + 1); }
   return true;
@@ -56,6 +58,51 @@ const owner = (state, id) => state.core.players.find(p => p.id === id);
 const tileOf = (state, hex) => state.core.map.find(t => t.id === hex);
 const nextOrderId = (box, id) => `bot-${id}-${box.state.core.round}-${++box.ctx.orderSeq}`;
 const failedKey = (box, id) => { const set = box.ctx.failed.get(`${id}:${box.state.core.round}`) ?? new Set(); box.ctx.failed.set(`${id}:${box.state.core.round}`, set); return set; };
+
+/**
+ * V51B-16 food projection, the same numbers a player reads on the city card (Se todas as suas cidades Produzirem…). Replays the maintenance
+ * order of the engine: city sustenance, then the automatic Crescer (biggest city first, 3 Alimento each), then piece upkeep. An action is
+ * described by what it spends now (`spendFood`), the land pieces it adds (`addLand`) and the inhabitants it removes from the cities (`addPop`).
+ *   FOOD_NOW, FOOD_INCOME_NEXT, POP_MAINTENANCE, MILITARY_MAINTENANCE, RESERVE_AFTER_ACTION (= endStock) and the next round's structural gap.
+ */
+export function foodProjection(state, id, { spendFood = 0, addLand = 0, addPop = 0 } = {}) {
+  const forecast = E.growthForecast(state, id), seat = me(state, id);
+  // Planned Orders pay and act at resolution, so what is already queued this round counts too (food costs and new land pieces).
+  const planned = seat.plannedActions.filter(a => a.type === 'URBAN_ACTION');
+  if (planned.length) {
+    const view = E.urbanOptions(state, id);
+    for (const a of planned) {
+      const row = (view.cities[a.cityId] ?? []).find(o => o.action === a.action && (o.unit ?? null) === (a.unit ?? null) && (!a.build || JSON.stringify(o.build) === JSON.stringify(a.build)));
+      spendFood += row?.cost?.food ?? 0;
+      if (a.action === 'RECRUIT' && ['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE'].includes(a.unit)) addLand += a.count ?? 1;
+    }
+  }
+  const sustenance = forecast.cities.reduce((n, c) => n + c.eats, 0) + Math.ceil(addPop / 2);
+  const land = state.units.filter(u => u.ownerId === id && state.rules.units[u.kind].domain === 'LAND' && state.rules.units[u.kind].strength > 0).length;
+  const kitExtra = Math.max(0, forecast.foodEaten - sustenance - Math.ceil(land / 2));
+  const military = Math.ceil((land + addLand) / 2) + kitExtra;
+  let stock = seat.resources.food - spendFood + forecast.foodProduced;
+  const famine = stock < sustenance;
+  stock -= sustenance;
+  let grown = 0;
+  if (!famine) for (const c of forecast.cities) if (!c.capped && stock >= c.growCost) { stock -= c.growCost; grown++; }
+  const unitShortage = stock < military;
+  stock -= military;
+  const nextSustenance = forecast.cities.reduce((n, c) => n + Math.ceil((c.population + (!c.capped && !famine ? 1 : 0)) / 2), 0);
+  // Crescer is automatic, so each city will fill its level's ceiling: that is the sustenance the income must cover in the long run.
+  // Without PRODUCE the income is zero: the same maintenance replay with no production tells when a city's activation must go to Produzir.
+  let dry = seat.resources.food - spendFood - sustenance;
+  if (dry >= 0) for (const c of forecast.cities) if (!c.capped && dry >= c.growCost) dry -= c.growCost;
+  const dryEnd = dry - military;
+  // The smallest set of cities (richest food first) whose Produzir keeps the maintenance paid with a reserve: only those activations are mandatory.
+  const replay = income => { let st = seat.resources.food - spendFood + income - sustenance; if (st >= 0) for (const c of forecast.cities) if (!c.capped && st >= c.growCost) st -= c.growCost; return st - military; };
+  const byFood = [...forecast.cities].sort((a, b) => b.producedFood - a.producedFood || a.cityId.localeCompare(b.cityId));
+  const mustProduce = new Set();
+  let gained = 0;
+  for (const c of byFood) { if (replay(gained) >= 1) break; mustProduce.add(c.cityId); gained += c.producedFood; }
+  const ceilingSustenance = forecast.cities.reduce((n, c) => n + Math.ceil(Math.max(c.population, c.ceiling) / 2), 0);
+  return { mustProduce, dryEnd, ceilingGap: ceilingSustenance + military - forecast.foodProduced, foodNow: seat.resources.food, income: forecast.foodProduced, sustenance, military, endStock: stock, famine, unitShortage, grown, nextGap: nextSustenance + military - forecast.foodProduced };
+}
 
 /** What the civilization is short of: the next Elevar of each city and a working floor per resource, minus the stock. */
 function deficits(state, id) {
@@ -156,6 +203,11 @@ export function candidates(box, id, persona) {
   const w = persona.weights;
   const comp = ctx.skill !== 'naive', hard = ctx.skill === 'hardcore';
   const threatsSeen = E.threatView(state, id) ?? [], alerts = E.threatAlerts(state, id) ?? [];
+  // Austerity (V51B-16): hunger or unpaid pieces last round, or a city near revolt (Ânimo ≤ 2, and ≤ 1 stops production), freezes expansion and recruiting
+  // until the economy has been clean for a round. Ânimo is the real bottleneck: every unpaid round costs 1 in every city.
+  const lastFood = (ctx.foodLog ?? []).filter(e => e.seat === id).at(-1);
+  const baseFood = comp ? foodProjection(state, id) : null;
+  const austere = comp && ((lastFood?.prevFamine ?? 0) > 0 || (lastFood?.prevUnitShortage ?? 0) > 0 || (lastFood?.minMood ?? 5) <= 1);
   const myUnits = state.units.filter(u => u.ownerId === id);
   const army = myUnits.filter(u => ['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE'].includes(u.kind));
   const enemies = state.wars.filter(pair => pair.includes(id)).map(pair => pair.find(x => x !== id));
@@ -193,7 +245,10 @@ export function candidates(box, id, persona) {
     const founderRole = pioneers.length === 1 || idx === 0;
     const waited = (ctx.siteWait ??= new Map()).get(unit.id) ?? 0;
     // Found on the spot: a legal site that keeps a gap of 3 (2 once the piece has waited long).
-    const canPay = p.resources.food >= 9 && p.resources.wealth >= 2 && p.resources.wood + p.resources.stone >= 3;
+    const foundProj = foodProjection(state, id, { spendFood: 5 });
+    const admin = E.administration(state, id), withinAdmin = admin.load + 1 <= admin.capacity;
+    const canPay = !austere && withinAdmin && p.resources.wealth >= 2 && p.resources.wood + p.resources.stone >= 3 && !foundProj.famine && !foundProj.unitShortage && foundProj.endStock >= (eraIndex === 0 ? 2 : 1) && foundProj.nextGap <= 1 && foundProj.ceilingGap <= 0;
+    if (wantFound && founderRole && uo.settleBlock === null && hereNear >= 3 && !canPay) { const why = austere ? 'austerity' : !withinAdmin ? 'administration' : p.resources.wealth < 2 ? 'wealth' : p.resources.wood + p.resources.stone < 3 ? 'materials' : foundProj.famine || foundProj.unitShortage ? 'unpaid' : foundProj.endStock < (eraIndex === 0 ? 2 : 1) ? 'food-reserve' : foundProj.ceilingGap > 0 ? 'ceiling' : 'next-gap'; const diag = (ctx.diag ??= {}); diag[`found-blocked:${why}`] = (diag[`found-blocked:${why}`] ?? 0) + 1; }
     if (wantFound && founderRole && canPay && uo.settleBlock === null && hereNear >= (waited >= 3 ? 2 : 3) && safeHex(unit.hexId)) { add(96, `settle:${unit.id}`, { type: 'SETTLE', unitId: unit.id, name: `Colônia ${id}-${round}-${nCities + 1}` }); return; }
     // Walk to the best known site (needs a Cidade-sized gap and unowned good land), then found it next round.
     let walk = null;
@@ -239,10 +294,10 @@ export function candidates(box, id, persona) {
     const nearThreat = threatsSeen.some(t => dist(tileOf(state, city.hexId), tileOf(state, t.hexId)) <= 6) || alerts.some(a => a.cityId === city.id);
     const needDef = hard ? (index === 0 ? Math.min(4, Math.max(0, eraIndex - 1)) : Math.min(2, (nearThreat ? 1 : 0) + (eraIndex >= 3 ? 1 : 0))) : comp ? Math.min(4, (nearThreat || enemies.length ? 2 : eraIndex >= 1 ? 2 : 1) + (nearThreat && eraIndex >= 2 ? 1 : 0)) : 0;
     const foodLow = p.resources.food < 8 + nCities, miss = comp ? deficits(state, id) : null;
-    if (pick('PRODUCE').length) add(comp ? (foodLow ? 112 : 98) - index : (index === 0 ? 86 : 78), `produce:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
+    if (pick('PRODUCE').length) add(comp ? (baseFood && baseFood.mustProduce.has(city.id) ? 200 : foodLow && !baseFood ? 112 : 98) - index : (index === 0 ? 86 : 78), `produce:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
     if (pick('ELEVATE').length) add((comp ? 140 : 90) * w.elevate, `elevate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'ELEVATE' });
     const governNow = comp ? mood <= 3 : (mood <= 1 || (mood <= 2 && round % 3 === 0));
-    if (governNow) if (pick('PROMOTE_MOOD').length) add(comp ? (mood <= 1 ? 100 : mood <= 2 ? 93 : 71) : (mood === 0 ? 95 : 70), `govern:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PROMOTE_MOOD' });
+    if (governNow) if (pick('PROMOTE_MOOD').length) add(comp ? (mood <= 1 ? 121 : mood <= 2 ? 108 : 71) : (mood === 0 ? 95 : 70), `govern:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PROMOTE_MOOD' });
     if (meta.status === 'OCCUPIED') if (pick('CIVIC_ACTION').length) add(80, `integrate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'CIVIC_ACTION' });
     // Districts and buildings by persona priority; competent play puts food, storage and learning first.
     for (const opt of pick('BUILD', x => x.build.kind === 'DISTRICT')) { const rank = persona.districts.indexOf(opt.build.district); if (rank >= 0) add((72 - rank * 4 + (comp && opt.build.district === 'AGRARIAN' ? (foodLow ? 24 : 10) : comp && opt.build.district === 'INDUSTRIAL' ? Math.min(26, miss.stone * 5) : comp && opt.build.district === 'COMMERCIAL' ? Math.min(24, miss.wealth * 4) : comp && opt.build.district === 'ACADEMIC' ? Math.min(20, miss.knowledge * 3) : 0)) * w.build * saving, `district:${city.id}:${opt.build.district}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build }); }
@@ -257,11 +312,11 @@ export function candidates(box, id, persona) {
     const alert = alerts.some(a => a.cityId === city.id);
     const want = persona.army + (enemies.length ? 2 : 0) + eraIndex + (alert ? 3 : 0) + (threatsSeen.length ? 2 : 0);
     const kindsAll = ['CAVALRY', 'SIEGE', 'RANGED', 'GUARD', 'INFANTRY'].filter(k => pick('RECRUIT', x => x.unit === k).length);
-    const smallCity = comp && city.population < (hard ? 10 : 12) && !(eraIndex >= 1 && city.population >= 5);
+    const smallCity = comp && (round < 6 ? city.population < (hard ? 10 : 12) : city.population < 3);
     // V51B-16: every competent civilization keeps a minimum army (garrison first, then a field stack) even while its cities are small.
-    const minArmy = (round < 4 ? 1 : eraIndex < 2 ? 2 : eraIndex < 4 ? 3 + nCities : 4 + 2 * nCities) + (enemies.length && eraIndex >= 1 ? 2 : 0);
+    const minArmy = (round < 4 ? 1 : eraIndex < 2 ? 2 : eraIndex < 4 ? 3 + nCities : 4 + 2 * nCities) + (enemies.length ? 4 : 0);
     const famine = state.events.some(e => e.round === round - 1 && /SHORTAGE/.test(e.type));
-    if (comp && army.length < minArmy && city.population >= 5 && !(round < 4) && !famine && p.resources.food >= 7 + Math.ceil(army.length / 2)) {
+    if (comp && army.length < minArmy && city.population >= 3 && !(round < 4) && !famine && p.resources.food >= 7 + Math.ceil(army.length / 2)) {
       const kind = here < 1 ? (kindsAll.includes('GUARD') ? 'GUARD' : kindsAll.includes('INFANTRY') ? 'INFANTRY' : null) : (kindsAll.includes('INFANTRY') && army.filter(u => u.kind === 'INFANTRY').length < 3 ? 'INFANTRY' : kindsAll.includes('RANGED') ? 'RANGED' : kindsAll.includes('INFANTRY') ? 'INFANTRY' : kindsAll[0] ?? null);
       if (kind) add(90, `armymin:${city.id}:${kind}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: kind });
     }
@@ -311,10 +366,10 @@ export function candidates(box, id, persona) {
     const power = units => units.reduce((n, u) => n + state.rules.units[u.kind].strength, 0);
     const compPower = t => t.composition.reduce((n, c) => n + state.rules.units[c.kind].strength * c.count, 0);
     const cityHexes = new Set(cities.map(c => c.hexId));
-    const keepAt = hex => cityHexes.has(hex) ? (hard ? (hex === cities[0].hexId ? 2 : 1) : Math.min(4, (threatsSeen.length || enemies.length) ? 2 : eraIndex >= 1 ? 2 : 1)) : 0;
+    const keepAt = hex => cityHexes.has(hex) ? (enemies.length ? 1 : hard ? (hex === cities[0].hexId ? 2 : 1) : Math.min(4, (threatsSeen.length || enemies.length) ? 2 : eraIndex >= 1 ? 2 : 1)) : 0;
     const strikeTargets = [];
     for (const t of threatsSeen) if (t.kind === 'CAMP') strikeTargets.push({ hex: t.hexId, kind: 'threat', power: compPower(t), camped: t.status === 'CAMPED' });
-    for (const enemy of enemies) for (const c of owner(state, enemy)?.civilization.cities ?? []) strikeTargets.push({ hex: c.hexId, kind: 'enemy', power: power(state.units.filter(u => u.hexId === c.hexId && u.ownerId === enemy && state.rules.units[u.kind].strength > 0)) + 2 });
+    for (const enemy of enemies) for (const c of owner(state, enemy)?.civilization.cities ?? []) strikeTargets.push({ hex: c.hexId, kind: 'enemy', power: power(state.units.filter(u => u.hexId === c.hexId && u.ownerId === enemy && state.rules.units[u.kind].strength > 0)) + 1 });
     const stacks = new Map();
     for (const u of army) if (!u.carrierId) { const g = stacks.get(u.hexId) ?? []; g.push(u); stacks.set(u.hexId, g); }
     for (const [hex, units] of stacks) {
@@ -323,13 +378,16 @@ export function candidates(box, id, persona) {
       const usable = sorted.slice(keep).filter(u => unitOpts[u.id]?.moves !== undefined);
       if (!usable.length) continue;
       const here = tileOf(state, hex);
-      const reachable = strikeTargets.map(t => ({ ...t, d: dist(here, tileOf(state, t.hex)) })).filter(t => t.d <= (t.kind === 'threat' ? 8 : 9) && (t.kind === 'threat' ? (t.camped || t.d <= 4) : (persona.war <= round || hard))).sort((a, b) => a.d - b.d)[0];
+      // Targets in reach, each with the force it asks for. A target the stack can answer wins over a nearer one it cannot; an enemy city beats a camp at equal footing.
+      const requiredFor = t => (t.kind === 'threat' ? Math.max(4, Math.ceil(t.power * (hard ? 1.35 : 1.6))) : Math.max(2, Math.ceil(t.power * 1.5)));
+      const inReach = strikeTargets.map(t => ({ ...t, d: dist(here, tileOf(state, t.hex)) })).filter(t => t.d <= (t.kind === 'threat' ? 8 : 9) && (t.kind === 'threat' ? (t.camped || t.d <= 4) : (persona.war <= round || hard)));
+      const reachable = inReach.sort((a, b) => Number(power(usable) < requiredFor(a)) - Number(power(usable) < requiredFor(b)) || Number(a.kind !== 'enemy') - Number(b.kind !== 'enemy') || a.d - b.d)[0];
       if (!reachable) continue;
-      const required = reachable.kind === 'threat' ? Math.max(4, Math.ceil(reachable.power * (hard ? 1.35 : 1.6))) : Math.max(5, Math.ceil(reachable.power * 1.5));
+      const required = requiredFor(reachable);
       if (reachable.d === 1) {
         const order = { id: nextOrderId(box, id), type: 'ATTACK', unitIds: usable.map(u => u.id).slice(0, 12), target: reachable.hex, posture: persona.posture };
         let preview = null; try { preview = E.combatPreview(state, id, order); } catch { /* ignore */ }
-        if (preview?.ok) { const diff = preview.defender?.visible ? preview.attacker.total - preview.defender.total : 2; if (diff >= (hard ? 1 : 2)) add(reachable.kind === 'threat' ? 91 : 83, `attack:${hex}:${reachable.hex}`, { type: 'QUEUE_ORDER', order }); }
+        if (preview?.ok) { const diff = preview.defender?.visible ? preview.attacker.total - (preview.defender.strength + preview.defender.breakdown.reduce((n, m) => n + m.amount, 0)) : 2; if (diff >= (hard ? 1 : 2)) add(reachable.kind === 'threat' ? 91 : 83, `attack:${hex}:${reachable.hex}`, { type: 'QUEUE_ORDER', order }); }
       } else if (power(usable) >= required) {
         const first = unitOpts[usable[0].id];
         const step = Object.keys(first.moves).filter(h => usable.every(u => unitOpts[u.id]?.moves[h])).map(h => ({ h, d: dist(tileOf(state, h), tileOf(state, reachable.hex)) })).filter(x => x.d < reachable.d).sort((a, b) => a.d - b.d || a.h.localeCompare(b.h))[0];
@@ -350,7 +408,7 @@ export function candidates(box, id, persona) {
     if (near.d === 1) {
       const order = { id: nextOrderId(box, id), type: 'ATTACK', unitIds: usable.map(u => u.id).slice(0, 12), target: near.hex, posture: persona.posture };
       let preview = null; try { preview = E.combatPreview(state, id, order); } catch { /* ignore */ }
-      if (preview?.ok) { const ratio = preview.defender?.visible ? preview.attacker.total - preview.defender.total : 1; if (ratio >= (near.threat ? 0 : 1) || usable.length >= 6) add((near.threat ? 70 : persona === PERSONAS.warrior ? 82 : 62), `attack:${hex}:${near.hex}`, { type: 'QUEUE_ORDER', order }); }
+      if (preview?.ok) { const ratio = preview.defender?.visible ? preview.attacker.total - (preview.defender.strength + preview.defender.breakdown.reduce((n, m) => n + m.amount, 0)) : 1; if (ratio >= (near.threat ? 0 : 1) || usable.length >= 6) add((near.threat ? 70 : persona === PERSONAS.warrior ? 82 : 62), `attack:${hex}:${near.hex}`, { type: 'QUEUE_ORDER', order }); }
     } else if ((persona === PERSONAS.warrior || enemies.length) && usable.length >= 3) {
       const reach = Object.keys(unitOpts[usable[0].id].moves).map(h => ({ h, d: dist(tileOf(state, h), tileOf(state, near.hex)) })).filter(x => x.d < near.d).sort((a, b) => a.d - b.d || a.h.localeCompare(b.h))[0];
       if (reach) add(persona === PERSONAS.warrior ? 66 : 40, `march:${hex}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: usable.map(u => u.id).filter(uid => unitOpts[uid]?.moves[reach.h]).slice(0, 12), path: unitOpts[usable[0].id].moves[reach.h] } });
@@ -370,12 +428,14 @@ export function candidates(box, id, persona) {
     }
   }
   // Independent peoples (Influência).
-  for (const people of E.independentPeopleView(state, id) ?? []) { const act = (people.actions ?? []).find(a => !a.blocked); if (act) add(42, `people:${people.id}:${act.action}`, { type: 'INDEPENDENT_ACTION', peopleId: people.id, action: act.action }); }
+  // Relief (V51B-16): when the projection says this round's maintenance cannot be paid (famine, or pieces unpaid after the automatic Crescer),
+  // an immediate Troca with an independent people is the first answer. Unpaid pieces cost Ânimo in every city and Ânimo ≤ 1 stops production.
+  const relief = baseFood !== null && (baseFood.famine || baseFood.unitShortage);
+  for (const people of E.independentPeopleView(state, id) ?? []) { const trade = (people.actions ?? []).find(a => a.action === 'TRADE' && !a.blocked); if (relief && trade) { add(125, `people:${people.id}:TRADE`, { type: 'INDEPENDENT_ACTION', peopleId: people.id, action: 'TRADE' }); continue; } const act = (people.actions ?? []).find(a => !a.blocked); if (act) add(42, `people:${people.id}:${act.action}`, { type: 'INDEPENDENT_ACTION', peopleId: people.id, action: act.action }); }
   // Obras de Legado: advance an own Obra, or start the first one a city can afford (one step per Legado Order).
   if (eraIndex >= 3) for (const work of E.legacyWorkView(state, id)) { const city = work.cities.find(entry => entry.blocker === null); if (city && (!work.progress || work.progress.ownerId === id)) { add(50, `work:${work.id}`, { type: 'ADVANCE_LEGACY_WORK', workId: work.id, cityId: city.cityId }); break; } }
   if (comp) {
     // Never eat the seed corn: a Recrutar that would leave Alimento below what the cities and pieces eat this round waits (unless a Bando is at the gate).
-    const sustain = cities.reduce((n, c) => n + Math.ceil(c.population / 2), 0) + Math.ceil(army.length / 2);
     const foodCostOf = command => { const row = (view.cities[command.cityId] ?? []).find(o => o.action === command.action && (o.unit ?? null) === (command.unit ?? null) && (!command.build || JSON.stringify(o.build) === JSON.stringify(command.build))); return row?.cost?.food ?? 0; };
     // Saving for Elevar: when a city lacks only resources, spending that would eat into them waits (defence against a Bando at the gate excepted).
     const saveFor = {};
@@ -383,14 +443,23 @@ export function candidates(box, id, persona) {
     const foundReserve = pioneers.length && nCities < Math.min(7, wantCities + 1) && round >= 2 ? { food: 6, wood: 3, stone: 0, wealth: 2 } : null;
     for (const city of cities) { const row = (view.cities[city.id] ?? []).find(o => o.action === 'ELEVATE'); if (row && /Recursos/.test(row.blocked ?? '')) for (const [k, v] of Object.entries(row.cost)) if (v > 0) saveFor[k] = Math.max(saveFor[k] ?? 0, v); }
     const costOf = command => (view.cities[command.cityId] ?? []).find(o => o.action === command.action && (o.unit ?? null) === (command.unit ?? null) && (!command.build || JSON.stringify(o.build) === JSON.stringify(command.build)))?.cost ?? {};
+    const reserveMin = eraIndex === 0 ? 2 : 1;
     return out.filter(c => {
-      if (c.command.type !== 'URBAN_ACTION' || !['RECRUIT', 'BUILD'].includes(c.command.action)) return true;
+      if (c.command.type !== 'URBAN_ACTION' || !['RECRUIT', 'BUILD', 'ELEVATE'].includes(c.command.action)) return true;
+      const military = c.command.action === 'RECRUIT' && ['INFANTRY', 'GUARD', 'RANGED', 'CAVALRY', 'SIEGE'].includes(c.command.unit);
+      const pj = foodProjection(state, id, { spendFood: foodCostOf(c.command), addLand: military ? 1 : 0 });
       const urgent = (c.key.startsWith('defend') || c.key.startsWith('fort')) && (alerts.length > 0 || threatsSeen.some(t => t.status === 'MARCHING'));
-      if (urgent) return true;
+      if (urgent) return !pj.famine && !pj.unitShortage && (!military || pj.ceilingGap <= 1);
+      if (austere && !(military && enemies.length) && (military || c.command.action === 'BUILD' && !(c.command.build?.district === 'AGRARIAN' || ['GRANARY', 'TEMPLE', 'MARKET'].includes(c.command.build?.building)))) return false;
+      // Never spend into a predictable deficit: no famine, no unpaid pieces, a reserve left after the action, and an army that the income can keep.
+      if (pj.famine || pj.unitShortage) return false;
+      if (c.command.action !== 'ELEVATE' && pj.endStock < reserveMin) return false;
+      // Elevar raises the ceiling and Crescer is automatic: only when the income already covers the grown population with a margin.
+      if (c.command.action === 'ELEVATE' && pj.ceilingGap > 2) return false;
+      // At war the army is the point: the sustainability margin loosens (never the famine / unpaid-pieces checks above).
+      if (military && (enemies.length ? pj.ceilingGap > 3 : (pj.nextGap > 0 || pj.ceilingGap > 0))) return false;
       const foundingReserve = foundReserve && !(c.command.action === 'RECRUIT' && c.command.unit === 'PIONEER') ? foundReserve : null;
       if (foundingReserve) { const cost = costOf(c.command); if (Object.entries(foundingReserve).some(([k, need]) => (cost[k] ?? 0) > 0 && p.resources[k] - cost[k] < need)) return false; }
-      if (c.key.startsWith('armymin')) return p.resources.food - foodCostOf(c.command) >= 2;
-      if (p.resources.food - foodCostOf(c.command) + nCities * 2 < sustain + 1) return false;
       const cost = costOf(c.command);
       return !Object.entries(saveFor).some(([k, need]) => (cost[k] ?? 0) > 0 && p.resources[k] - cost[k] < need);
     }).sort((a, b) => b.score - a.score);
@@ -440,6 +509,21 @@ function readyEveryone(box) {
   for (const s of box.ctx.seats) { if (box.state.core.status !== 'ACTIVE') return; const p = me(box.state, s.id); if (!p.ready) send(box, s.id, { type: 'READY' }); }
 }
 
+/**
+ * Per seat and round (V51B-16): FOOD_NOW, income, population and piece maintenance at the start of planning, plus what the previous round did
+ * (famine, unpaid pieces). With `ctx.foodSpend` (every command that cost Alimento) this answers which actions led to hunger.
+ */
+function recordFood(box) {
+  const { state, ctx } = box, round = state.core.round;
+  ctx.foodLog ??= [];
+  for (const seat of ctx.seats) {
+    const pj = foodProjection(state, seat.id), owner = state.core.players.find(o => o.id === seat.id);
+    const last = state.events.filter(e => e.round === round - 1 && e.audience?.includes(seat.id));
+    ctx.foodLog.push({ round, seat: seat.id, foodNow: pj.foodNow, income: pj.income, sustenance: pj.sustenance, military: pj.military, endStock: pj.endStock, cities: owner.civilization.cities.length, pop: owner.civilization.cities.reduce((n, c) => n + c.population, 0),
+      pieces: state.units.filter(u => u.ownerId === seat.id).length, adminLoad: E.administration(state, seat.id).load, adminCap: E.administration(state, seat.id).capacity, minMood: Math.min(...state.cities.filter(c => c.currentOwnerId === seat.id).map(c => c.mood)), prevFamine: last.filter(e => e.type === 'FOOD_SHORTAGE').length, prevUnitShortage: last.some(e => e.type === 'UPKEEP_SHORTAGE') ? 1 : 0 });
+  }
+}
+
 /** Flags a built level the population no longer supports (a devastated city) at any time of the match. */
 function scanDevastation(box) { for (const meta of box.state.cities) { const c = box.state.core.players.flatMap(o => o.civilization.cities).find(x => x.id === meta.cityId); if (c && D.effectiveLevel(meta.level, c.population) !== meta.level) box.ctx.flags.devastatedCity = true; } }
 
@@ -470,6 +554,7 @@ export function playMatch(options = {}) {
     try {
       if (phase === 'PLANNING') {
         options.scenario?.(box, 'round-start');
+        recordFood(box);
         scanDevastation(box);
         const order = [...box.state.initiative];
         for (const id of order) botPlan(box, id);

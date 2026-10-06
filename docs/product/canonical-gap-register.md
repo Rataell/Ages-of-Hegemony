@@ -153,3 +153,18 @@ Evidência e causas: `docs/evidence/v51b-investigation/` (tabelas, variantes e G
 | V51B-14 (novo) | ABERTO, P2: os requisitos de Hegemonia do motor são os da V5.1a, não os do §23 (Comunidade de Descoberta, Memória do Mundo, Estrada das Comunidades etc.). Registrado, sem mudança: exige decisão de escopo. |
 | V51B-15 (novo) | ABERTO, P3: os 29 edifícios do cânone não existem (7 no motor, GR-23); o pré-requisito de uma Obra usa o distrito correspondente (I-43). |
 | V51B-16 (novo) | ABERTO, P1, classe C: sem exército nenhum assento contra-ataca; o assento mais próximo dos Acampamentos de abertura é devastado por Bandos (17–20 assaltos decisivos, N1 pop 2). Mobilizar exige habitante Disponível; um exército de 6 come 6 Alimento por rodada. D-1 está testada no motor mas não é exercitável pelos bots. Ver `docs/evidence/v51b-d1-d3/D1-REPORT.md`. — 2026-10: Pioneiro explora/funda, exército mínimo e alvo de ataque corrigidos; economia de fome ainda impede batalha PvP espontânea (ver docs/evidence/v51b-pioneers/REPORT.md). |
+
+### Playtest readiness (2026-10-06)
+
+| ID | Estado |
+|---|---|
+| Pioneiros iniciais | FECHADO: padrão canônico = 2 (`STARTING_PIONEERS_DEFAULT`); `startingPioneers` só para cenários/testes. Com 1: 37–50% dos assentos ficam sem Pioneiro após fundar, 2ª exploração atrasa, reposição custa rodadas; com 2: sem expansão explosiva, 1ª cidade extra não acelerou, cidades limitadas pela economia. Sem tuning até o playtest humano contradizer. |
+| V51B-01 | FECHADO (alternativa C): `SET_CASUALTY_PRIORITY`, lista por civilização e por pilha, padrão = regra do motor, lida na resolução. |
+| V51B-16 | PARCIAL: bots chegam à Era V em 100% dos assentos, fome 5% (Eras I–II) e 13,5% (III–IV), mas 36% a partir da Era V; PvP orgânico existe (46 batalhas com guerreiros / 4 com personas mistas em 30 partidas cada, quase só captura de cidade sem guarnição). Bug do bot (NaN do preview) corrigido. Não balancear comida com base nos bots. |
+| V51B-17 (novo) | ABERTO, P2, classe C (design, só observação): o Crescer automático acontece ANTES da manutenção das peças (`maintainCivilizations`); excedente de 3 Alimento vira população e as peças ficam sem pagar (−1 Ânimo em todas as cidades) e Ânimo ≤ 1 zera a produção. Não alterado; validar com humanos se a ordem é percebida/justa. |
+| V51B-18 (novo) | ABERTO, P3: Depósito (`improvement:DEPOT`, Logística) é liberado pela Teia mas não tem efeito no motor; suprimento = raio da cidade + território/estrada. |
+| Cerco × Muralha | FECHADO como comportamento correto: a Integridade só abre quando um Cerco rola a face Comando (40 batalhas medidas: 11 com Comando, 11 mudanças, 0 sem Comando). |
+| Suprimento no combate | FECHADO: 6 testes de motor (atacante, defensor, território/estrada, perda após movimento, replay, projeção) + explicação na UI. |
+| `--contact=forced` | FECHADO: cenário explícito (`forceContactSetup`), Contato pela regra real na rodada 1 (2/4/6 × 10 seeds testados). |
+| Virada sem governo elegível | FECHADO: linha informativa em vez de decisão falsa (`reformState`). |
+
