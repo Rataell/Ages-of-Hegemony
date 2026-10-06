@@ -1,6 +1,11 @@
 'use client';
+import { useState } from 'react';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 import { alphaLabel as text } from './alpha-copy';
+import { DiceRoll } from './audio/dice-roll';
+
+/** A battle's dice animate once per browser session, and always settle on the server's faces. */
+const animated = new Set<string>();
 
 export const POSTURES = [['ASSAULT', 'Assalto'], ['HOLD', 'Manter'], ['MANEUVER', 'Manobra']] as const;
 const FACE: Record<string, string> = { EMPTY: 'Vazio', IMPACT: 'Impacto', GUARD: 'Guarda', MANEUVER: 'Manobra', COMMAND: 'Comando' };
@@ -52,12 +57,13 @@ export function BattleReport({ battle, players }: { battle: Battle; players: Alp
     { key: 'ataque', title: 'Ataque', id: battle.attackerId, posture: battle.attackerPosture, strength: battle.attackStrength, items: battle.attackBreakdown, total: battle.attackTotal, rolls: battle.attackerTactical },
     { key: 'defesa', title: 'Defesa', id: battle.defenderId, posture: battle.defenderPosture, strength: battle.defenseStrength, items: battle.defenseBreakdown, total: battle.defenseTotal, rolls: battle.defenderTactical },
   ];
+  const [freshBattle] = useState(() => { const fresh = !animated.has(battle.id); animated.add(battle.id); return fresh; });
   return <article className="alpha-battle alpha-card">
     <h3>Conflito em {battle.hexId} · Rodada {battle.round}</h3>
     {battle.outcome && <p className="alpha-battle-delta" role="status">Δ {(battle.delta ?? 0) > 0 ? '+' : ''}{battle.delta} · {OUTCOME[battle.outcome]}</p>}
     <div className="alpha-form-row">{sides.map(side => <section key={side.key}>
       <h4>{side.title} · {name(side.id)} · {postureText(side.posture)}</h4>
-      <div className="alpha-dice" aria-label={`Faces ${side.key==='ataque'?'do ataque':'da defesa'} ${side.rolls.map(r => FACE[r.face]).join(' e ') || 'nenhuma'}`}>{side.rolls.map(roll => <span key={roll.unitId} title={`${roll.unitId} · Grau ${['I', 'II', 'III'][(roll.grade ?? 1) - 1]}: ${roll.effect}`}>{FACE[roll.face]}{(roll.grade ?? 1) > 1 && <sup className="alpha-grade"> {['I', 'II', 'III'][(roll.grade ?? 1) - 1]}</sup>}</span>)}</div>
+      <DiceRoll rolls={side.rolls} animate={freshBattle} ariaLabel={`Faces ${side.key==='ataque'?'do ataque':'da defesa'} ${side.rolls.map(r => FACE[r.face]).join(' e ') || 'nenhuma'}`} />
       <ul className="alpha-roll-notes">{side.rolls.filter(r => r.effect).map(roll => <li key={roll.unitId}>{roll.unitId}: {roll.effect}</li>)}</ul>
       <Breakdown label="Modificadores por origem" strength={side.strength} items={side.items} total={side.total} />
       <p>Força {side.strength} + modificadores {side.items.reduce((n, m) => n + m.amount, 0)} = <b>{side.total}</b></p>
