@@ -5,8 +5,7 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "preDeployCommand": "npx prisma migrate deploy",
-    "startCommand": "npm run start -w @aoh/web",
+    "startCommand": "npx prisma migrate deploy && npm run start -w @aoh/web",
     "healthcheckPath": "/api/alpha/health",
     "healthcheckTimeout": 60,
     "restartPolicyType": "ON_FAILURE",
