@@ -536,7 +536,9 @@ export const HexMap = memo(function HexMap({
           const dx = at.x - centre.x, dy = at.y - centre.y;
           // Project the direction onto the safe rectangle: the plate sits where that ray leaves it.
           const halfW = (size.w - safe.left - safe.right) / 2, halfH = (size.h - safe.top - safe.bottom) / 2, k = Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH) || 1;
-          const left = safe.left + halfW + (dx / k) * 1.0, top = safe.top + halfH + (dy / k) * 1.0;
+          const rawLeft = safe.left + halfW + (dx / k) * 1.0, rawTop = safe.top + halfH + (dy / k) * 1.0;
+          // A plate is ~180 px wide and centred on its point: keep it fully on the table even for a Pátria on the far left/right.
+          const left = Math.min(Math.max(rawLeft, 100), Math.max(100, size.w - 100)), top = Math.min(Math.max(rawTop, 18), Math.max(18, size.h - 18));
           const who = data.players.find(player => player.id === region.homeOf), seat = art?.seats[region.homeOf!];
           const mine = region.homeOf === data.view.player.id;
           return <li key={region.id} className={`seat-plate${mine ? ' is-mine' : ''}`} style={{ left, top, ['--seat' as string]: seat?.color ?? '#9aa4a2' }}>

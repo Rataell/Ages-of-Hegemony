@@ -22,6 +22,9 @@ RELANCE (desenhado na Mesa: selos, marcas de plano `✓ Produzir`, halos) → SE
 ## Dominância (só ordena, não esconde)
 Cidade: Revolta → GOVERNAR; fome → PRODUZIR; padrão PRODUZIR; ELEVAR aparece como oportunidade; com ação já planejada, TROCAR AÇÃO. Pioneiro: ao lado de Região fechada → EXPLORAR; senão FUNDAR se legal; senão MOVER. Pilha: ATACAR se há alvo hostil adjacente, senão MOVER.
 
+## Aplicado aos demais elementos físicos da Mesa
+Povo independente (ações com custo e confirmação; dominante pela atitude) · Ameaça (estado/intenção na placa; Atacar a partir da pilha adjacente) · Cidade estrangeira ou peças estrangeiras (Atacar com guerra, "Em paz" leva a Diplomacia, Missão com Enviado, Disputar presença) · Trabalho da cidade (Trabalhar vira modo no mapa, Confirmar envia). Continuam em superfícies: Teia, Governo, Ressonância, Heranças, Líder, Obras, Livro.
+
 ## Regras de comportamento
 Clicar fora fecha · Esc volta um nível ou fecha · outra peça troca o contexto · executar a ação recolhe a nuvem e o resultado aparece no mapa (marca `✓` no hex) · o Inspector virou **Detalhes** (fechado por padrão; só informação e o catálogo "Ver todas as ações"); Mover/Produzir/Atacar/Explorar/Fundar não existem mais lá.
 

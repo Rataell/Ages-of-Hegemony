@@ -168,3 +168,9 @@ Evidência e causas: `docs/evidence/v51b-investigation/` (tabelas, variantes e G
 | `--contact=forced` | FECHADO: cenário explícito (`forceContactSetup`), Contato pela regra real na rodada 1 (2/4/6 × 10 seeds testados). |
 | Virada sem governo elegível | FECHADO: linha informativa em vez de decisão falsa (`reformState`). |
 
+### Pátrias iniciais por distância (2026-10-06)
+
+| ID | Estado |
+|---|---|
+| Distribuição das Pátrias | FECHADO: as Regiões Pátria dos assentos MAXIMIZAM a menor distância (grafo de Regiões) entre qualquer par; desempates: distância total, depois equilíbrio da divisão do tabuleiro (parcela por Pátria mais próxima), depois a seed. Elegíveis: Regiões com ≥ 5 vizinhas, exceto o centro. Sem distância fixa por nº de jogadores. Mesma seed + tamanho = mesma posição; a seed muda quais Regiões. Resultado (Regiões / hexes entre capitais): 2p 4 / 10–12, 3p 4 / 10, 4p 3 / 7–12, 6p 2. Contato inalterado. `chooseHomelands` em `alpha-topology.ts`; teste de otimalidade por força bruta (`tests/alpha-home-distribution.test.ts`). |
+

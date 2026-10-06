@@ -18,16 +18,13 @@ export const FLOWER: readonly (readonly [number, number])[] = [[0, 0], [1, 0], [
 export interface BoardCell { id: string; i: number; j: number; center: AxialCoordinates; hexes: AxialCoordinates[]; neighbors: string[] }
 export interface BoardLayout {
   cells: BoardCell[];
-  /** Six home slots, active seats first (seat k uses slot k); the remaining slots are dormant homelands. */
+  /** Six home slots, active seats first (seat k uses slot k); the remaining slots are dormant homelands. Active seats maximise their separation on the Region graph. */
   homeSlots: string[];
 }
 const centerOf = (i: number, j: number): AxialCoordinates => ({ q: 2 * i - j, r: i + 3 * j });
 const pixel = ({ q, r }: AxialCoordinates) => ({ x: Math.sqrt(3) * (q + r / 2), y: 1.5 * r });
 const cellKey = (i: number, j: number) => `${i}_${j}`;
-/** Which of the six angular home positions (0°, 60° … 300°) the active seats occupy, per table size. */
-const ACTIVE_ANGLES: Record<number, readonly number[]> = { 2: [0, 1], 3: [0, 2, 4], 4: [1, 2, 4, 5], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 5] };
-
-export function layoutBoard(playerCount: number): BoardLayout {
+export function layoutBoard(playerCount: number, seed = 0): BoardLayout {
   const candidates: { i: number; j: number; d: number }[] = [];
   for (let i = -4; i <= 4; i++) for (let j = -4; j <= 4; j++) { const p = pixel(centerOf(i, j)); candidates.push({ i, j, d: Math.hypot(p.x, p.y) }); }
   const chosen = candidates.sort((a, b) => a.d - b.d || a.i - b.i || a.j - b.j).slice(0, REGION_COUNT).sort((a, b) => a.i - b.i || a.j - b.j);
@@ -37,14 +34,67 @@ export function layoutBoard(playerCount: number): BoardLayout {
     const center = centerOf(i, j);
     return { id: ids.get(cellKey(i, j))!, i, j, center, hexes: FLOWER.map(([dq, dr]) => ({ q: center.q + dq, r: center.r + dr })), neighbors: CELL_STEP.map(([di, dj]) => ids.get(cellKey(i + di, j + dj))).filter((id): id is string => id !== undefined) };
   });
-  // Homelands sit on the first shell beyond the centre ring (the six diagonal cells, all at the same distance from the middle): opposite homes
-  // are 10 hexes apart, neighbouring ones 5, and wilderness surrounds every seat. Slot k is the cell at angle k·60° from the first of them.
-  const radius = (cell: BoardCell) => Math.hypot(pixel(cell.center).x, pixel(cell.center).y);
-  const ranked = [...cells].sort((a, b) => radius(a) - radius(b) || (a.id < b.id ? -1 : 1));
-  const angleOf = (cell: BoardCell) => { const p = pixel(cell.center); return ((Math.atan2(p.y, p.x) * 180) / Math.PI + 360) % 360; };
-  const shell = ranked.slice(7, 13).sort((a, b) => angleOf(a) - angleOf(b) || (a.id < b.id ? -1 : 1));
-  const byAngle = shell.map(cell => cell.id);
-  const active = ACTIVE_ANGLES[Math.max(2, Math.min(6, playerCount))]!;
-  const order = [...active, ...byAngle.map((_, k) => k).filter(k => !active.includes(k))];
-  return { cells, homeSlots: order.map(k => byAngle[k]!) };
+  const homeSlots = chooseHomelands(cells, playerCount, seed);
+  return { cells, homeSlots };
+}
+
+/** Graph distance (in Regions) from one cell to every other, over the real adjacency of the footprint. */
+export function regionDistances(cells: readonly BoardCell[], from: string): Map<string, number> {
+  const adjacency = new Map(cells.map(cell => [cell.id, cell.neighbors]));
+  const dist = new Map<string, number>([[from, 0]]), queue = [from];
+  for (const id of queue) for (const next of adjacency.get(id) ?? []) if (!dist.has(next)) { dist.set(next, dist.get(id)! + 1); queue.push(next); }
+  return dist;
+}
+const hashOf = (text: string) => { let h = 2166136261; for (let k = 0; k < text.length; k++) { h ^= text.charCodeAt(k); h = Math.imul(h, 16777619); } return h >>> 0; };
+const combinations = <T,>(items: readonly T[], size: number): T[][] => {
+  const out: T[][] = [], pick: T[] = [];
+  const walk = (start: number) => { if (pick.length === size) { out.push([...pick]); return; } for (let k = start; k <= items.length - (size - pick.length); k++) { pick.push(items[k]!); walk(k + 1); pick.pop(); } };
+  walk(0);
+  return out;
+};
+
+/**
+ * Where the Pátrias go (canon 2026-10): the seats' homeland Regions MAXIMISE the smallest Region-graph distance between any two of them;
+ * then the total pairwise distance; then the fairness of the split (each seat's share of the board by nearest Pátria, the most even wins),
+ * and last the seed picks among what is still tied. Eligible Regions are those with room to grow (at least five neighbours) and not the
+ * middle of the table. No fixed distance anywhere: it is whatever the footprint allows.
+ * The six slots: the first `count` are the active seats (in a seed-rotated angular order); the rest are dormant homelands, spread greedily.
+ */
+const tiesCache = new Map<number, string[][]>();
+export function chooseHomelands(cells: readonly BoardCell[], playerCount: number, seed: number): string[] {
+  const count = Math.max(2, Math.min(HOME_SLOTS, playerCount));
+  const distance = new Map(cells.map(cell => [cell.id, regionDistances(cells, cell.id)]));
+  const d = (a: string, b: string) => distance.get(a)!.get(b)!;
+  const centre = [...cells].sort((a, b) => Math.hypot(pixel(a.center).x, pixel(a.center).y) - Math.hypot(pixel(b.center).x, pixel(b.center).y) || (a.id < b.id ? -1 : 1))[0]!;
+  const eligible = cells.filter(cell => cell.neighbors.length >= 5 && cell.id !== centre.id).map(cell => cell.id).sort();
+  const scoreOf = (set: readonly string[]) => {
+    let min = Infinity, total = 0;
+    for (let a = 0; a < set.length; a++) for (let b = a + 1; b < set.length; b++) { const x = d(set[a]!, set[b]!); min = Math.min(min, x); total += x; }
+    // Share of the board by nearest Pátria (ties split): the fairest split has the smallest gap between the biggest and smallest share.
+    const share = new Map(set.map(id => [id, 0]));
+    for (const cell of cells) { const near = Math.min(...set.map(id => d(id, cell.id))), tied = set.filter(id => d(id, cell.id) === near); for (const id of tied) share.set(id, share.get(id)! + 1 / tied.length); }
+    const shares = [...share.values()];
+    return [min, total, -(Math.max(...shares) - Math.min(...shares))] as const;
+  };
+  // The footprint is fixed, so the optimal layouts per table size are computed once; the seed only picks among them.
+  let best: readonly [number, number, number] | null = null, ties: string[][] = tiesCache.get(count) ?? [];
+  if (!ties.length) for (const set of combinations(eligible, count)) {
+    const score = scoreOf(set);
+    const cmp = best === null ? 1 : score[0] - best[0] || score[1] - best[1] || score[2] - best[2] || 0;
+    if (cmp > 0) { best = score; ties = [set]; } else if (cmp === 0) ties.push(set);
+  }
+  tiesCache.set(count, ties);
+  const chosen = ties[hashOf(`${seed}:${count}`) % ties.length]!;
+  // Seats in angular order around the table, rotated by the seed so seat 1 is not always on the same side.
+  const angle = (id: string) => { const cell = cells.find(c => c.id === id)!, p = pixel(cell.center); return Math.atan2(p.y, p.x); };
+  const ring = [...chosen].sort((a, b) => angle(a) - angle(b));
+  const turn = hashOf(`${seed}:turn`) % ring.length;
+  const active = [...ring.slice(turn), ...ring.slice(0, turn)];
+  // Dormant homelands: each next one as far as possible from everything already placed.
+  const placed = [...active], rest = eligible.filter(id => !placed.includes(id));
+  while (placed.length < HOME_SLOTS && rest.length) {
+    rest.sort((a, b) => Math.min(...placed.map(id => d(id, b))) - Math.min(...placed.map(id => d(id, a))) || (a < b ? -1 : 1));
+    placed.push(rest.shift()!);
+  }
+  return placed;
 }

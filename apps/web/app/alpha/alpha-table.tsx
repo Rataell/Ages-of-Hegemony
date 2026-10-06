@@ -18,7 +18,7 @@ type Order = Game['self']['orders'][number];
 type UrbanOption = Game['urban']['research'][number];
 type Unit = Game['units'][number];
 type Tab = 'city' | 'territory' | 'military';
-type Ctx = { hexId: string; kind: 'city' | 'units' | 'hex'; cityId?: string; group?: string | null };
+type Ctx = { hexId: string; kind: 'city' | 'units' | 'hex' | 'people' | 'threat' | 'foreign'; cityId?: string; group?: string | null };
 type Step = { id: string; param?: string | undefined };
 type Mode = { kind: 'move' | 'explore' | 'attack' | 'mission' | 'disembark'; ids: string[]; origin: string; hexes: string[]; label: string };
 type Group = { key: string; kind: 'pioneer' | 'envoy' | 'army' | 'fleet'; label: string; ids: string[] };
@@ -46,7 +46,7 @@ export interface TableApi {
 
 export function useTable(a: {
   game: Game; selfId: string; locked: boolean; send: AlphaSend; queue: (order: Record<string, unknown>) => Promise<boolean>; manage: (command: Record<string, unknown>) => Promise<boolean>;
-  host: RefObject<HTMLElement | null>; describeOrder: (order: Order) => string; safe?: Safe; openDetails: (tab: Tab, catalog?: boolean) => void; openBook: (tab: string) => void; hold: boolean;
+  host: RefObject<HTMLElement | null>; describeOrder: (order: Order) => string; safe?: Safe; startWork: (cityId: string) => void; work: { cityName: string; origin: string; count: number; limit: number; onConfirm: () => void; onCancel: () => void } | null; openDetails: (tab: Tab, catalog?: boolean) => void; openBook: (tab: string) => void; hold: boolean;
 }): TableApi {
   const { game, selfId, locked, send, queue, manage, host } = a;
   const [ctx, setCtx] = useState<Ctx | null>(null), [steps, setSteps] = useState<Step[]>([]), [mode, setMode] = useState<Mode | null>(null);
@@ -84,7 +84,9 @@ export function useTable(a: {
       return true;
     }
     const myCity = civ.cities.find(c => c.hexId === hexId), groups = groupsAt(hexId);
-    const next: Ctx = fromPieces && groups.length ? { hexId, kind: 'units', group: groups[0]!.key } : myCity ? { hexId, kind: 'city', cityId: myCity.id } : groups.length ? { hexId, kind: 'units', group: groups[0]!.key } : { hexId, kind: 'hex' };
+    const people = game.independents.find(p => p.hexId === hexId && p.integratedBy === null), threat = game.threats.find(r => r.hexId === hexId);
+    const foreign = game.view.visibleCities.some(c => c.hexId === hexId && c.ownerId !== selfId) || game.units.some(u => u.hexId === hexId && u.ownerId !== selfId && !u.carrierId);
+    const next: Ctx = fromPieces && groups.length ? { hexId, kind: 'units', group: groups[0]!.key } : myCity ? { hexId, kind: 'city', cityId: myCity.id } : groups.length ? { hexId, kind: 'units', group: groups[0]!.key } : threat ? { hexId, kind: 'threat' } : foreign ? { hexId, kind: 'foreign' } : people ? { hexId, kind: 'people' } : { hexId, kind: 'hex' };
     if (ctx && ctx.hexId === hexId && ctx.kind === next.kind && !fromPieces) { close(); return false; }
     setCtx(next); setSteps([{ id: 'root' }]); setFlash(null);
     return false;
@@ -187,6 +189,7 @@ export function useTable(a: {
     if (step.id === 'more') {
       const rootIds = new Set(rootNodes().map(n => n.id));
       const extra: (CloudNode | null)[] = [rootIds.has('ELEVATE') ? null : direct('ELEVATE', 'Elevar', 'elevate'), rootIds.has('PROMOTE_MOOD') ? null : direct('PROMOTE_MOOD', 'Governar', 'govern'), direct('SUPPORT_TRADE', 'Comércio', 'trade'), direct('CIVIC_ACTION', 'Ação cívica', 'civic'), direct('MOVE_CAPITAL', 'Mover capital', 'found'),
+        { id: 'work', label: 'Trabalhar', icon: 'produce', hint: 'Escolher os hexes que esta cidade trabalha', disabled: gate, onSelect: () => { close(); a.startWork(city.id); } },
         { id: 'research', label: 'Pesquisar', icon: 'research', hint: 'A Teia Civilizacional (Ordem Avanço)', onSelect: () => { close(); a.openBook('research'); } },
         groupsAt(city.hexId).length ? { id: 'pieces', label: 'Peças aqui', icon: 'recruit', onSelect: () => { setCtx({ hexId: city.hexId, kind: 'units', group: groupsAt(city.hexId)[0]!.key }); setSteps([{ id: 'root' }]); } } : null,
         { id: 'details', label: 'Ver detalhes', icon: 'details', onSelect: () => { showDetails('city'); } }];
@@ -276,8 +279,82 @@ export function useTable(a: {
     if (step.id === 'confirm-improve') { const kind = step.param!; return { id: `confirm-improve:${kind}`, title: text(kind), subtitle: c.hexId, nodes: [], card: <div className="ctx-card">{costChips(game.costs.improvements[kind])}<button type="button" className="ctx-go" disabled={gate !== null} onClick={() => void manage({ type:'IMPROVE_HEX', hexId: c.hexId, improvement: kind }).then(finish)}>Confirmar</button></div> }; }
     if (step.id === 'confirm-road') return { id: 'confirm-road', title: 'Estrada', subtitle: c.hexId, nodes: [], card: <div className="ctx-card">{costChips(game.costs.road)}<button type="button" className="ctx-go" disabled={gate !== null} onClick={() => void send({ type:'BUILD_ROAD', hexId: c.hexId }).then(finish)}>Construir</button></div> };
     const claim: CloudNode | null = claimCity ? { id: 'claim', label: 'Reivindicar', icon: 'claim', tone: 'dominant', badge: claimCity.name.split(' ')[0], hint: `Para ${claimCity.name}`, disabled: gate, onSelect: () => void manage({ type:'CLAIM_HEX', cityId: claimCity.id, hexId: c.hexId }).then(finish) } : null;
-    const nodes: CloudNode[] = [claim, mine ? { id: 'improve', label: 'Melhorar', icon: 'improve', tone: claim ? 'alt' : 'dominant', disabled: gate, onSelect: () => push('improve') } : null, mine ? { id: 'road', label: 'Estrada', icon: 'road', disabled: gate, onSelect: () => push('confirm-road') } : null, detailsNode].filter((n): n is CloudNode => n !== null);
+    const workCity = civ.cities.find(city => tile?.controllerCityId === city.id);
+    const work: CloudNode | null = workCity && tile!.id !== workCity.hexId ? { id: 'work', label: 'Trabalhar', icon: 'produce', hint: `Escolher os hexes trabalhados por ${workCity.name}`, disabled: gate, onSelect: () => { close(); a.startWork(workCity.id); } } : null;
+    const nodes: CloudNode[] = [claim, mine ? { id: 'improve', label: 'Melhorar', icon: 'improve', tone: claim ? 'alt' : 'dominant', disabled: gate, onSelect: () => push('improve') } : null, work, mine ? { id: 'road', label: 'Estrada', icon: 'road', disabled: gate, onSelect: () => push('confirm-road') } : null, detailsNode].filter((n): n is CloudNode => n !== null);
     return { id: 'root', title, subtitle, nodes: nodes.length > 1 ? [...nodes.slice(0, -1), { ...nodes.at(-1)!, id: 'more', label: '', icon: 'more', tone: 'quiet', hint: 'Ver detalhes' }] : nodes, note: flash };
+  };
+
+  // ---------- the rest of what stands on the Mesa: independent peoples, threats, foreign cities and pieces ----------
+  /** Own fighting stacks one hex from a target, free of orders: where an attack on it can start. */
+  const adjacentStacks = (target: string) => [...new Set(ownUnits.map(u => u.hexId))].filter(h => distance(h, target) === 1).flatMap(hexId => {
+    const fighters = ownUnits.filter(u => u.hexId === hexId && (rules[u.kind]?.strength ?? 0) > 0 && !orderedIds.has(u.id));
+    return fighters.length ? [{ hexId, ids: fighters.map(u => u.id), label: `Militares · ${fighters.length}` }] : [];
+  });
+  const attackOn = (target: string, needsWar: boolean): CloudNode => {
+    const stacks = adjacentStacks(target), who = hostileTo(target);
+    const reason = gate ?? (stacks.length ? null : 'Nenhuma peça militar sua a 1 hex do alvo.');
+    return { id: 'attack', label: 'Atacar', icon: 'attack', tone: reason ? 'alt' : 'dominant', badge: postureText(posture), disabled: reason,
+      onSelect: () => { if (reason) { setFlash(reason); return; } if (needsWar && !who.hostile) { setSteps(old => [...old, { id: 'peace', param: who.name }]); return; }
+        if (stacks.length === 1) void queue({ type:'ATTACK', unitIds: stacks[0]!.ids, target, posture }).then(finish); else push('attack-from', target); } };
+  };
+  const sharedStep = (step: Step, title: string): CloudLevel | null => {
+    if (step.id === 'peace') return { id: 'peace', title: 'Em paz', subtitle: step.param, nodes: [{ id: 'diplomacy', label: 'Abrir Diplomacia', icon: 'people', tone: 'dominant', onSelect: () => { close(); a.openBook('diplomacy'); } }], note: 'Declare guerra em Diplomacia; a declaração é resolvida antes dos conflitos, então o ataque pode ser na mesma rodada.' };
+    if (step.id === 'attack-from') return { id: 'attack-from', title: 'Atacar com…', subtitle: title, nodes: adjacentStacks(step.param!).map(stack => ({ id: `from:${stack.hexId}`, label: stack.label, icon: 'attack' as const, badge: stack.hexId, onSelect: () => void queue({ type:'ATTACK', unitIds: stack.ids, target: step.param, posture }).then(finish) })), note: `Postura: ${postureText(posture)}` };
+    return null;
+  };
+  const PEOPLE_NAME: Record<string, string> = { TRADE: 'Comerciar', NEGOTIATE: 'Negociar', INFLUENCE: 'Influenciar', PROTECT: 'Proteger', INTEGRATE: 'Integrar', CONQUER: 'Conquistar' };
+  const PEOPLE_ICON: Record<string, CloudNode['icon']> = { TRADE: 'trade', NEGOTIATE: 'people', INFLUENCE: 'people', PROTECT: 'posture', INTEGRATE: 'civic', CONQUER: 'attack' };
+  const peopleLevel = (c: Ctx, step: Step): CloudLevel => {
+    const people = game.independents.find(p => p.hexId === c.hexId && p.integratedBy === null);
+    if (!people) return { id: 'gone', title: 'Povo', nodes: [] };
+    const title = text(people.type), subtitle = `${text(people.attitude)} · sua influência ${people.yourInfluence}`;
+    const reason = (o: (typeof people.actions)[number]) => gate ?? o.blocked;
+    if (step.id === 'confirm') {
+      const o = people.actions.find(x => x.action === step.param);
+      if (!o) return { id: 'confirm:none', title, nodes: [] };
+      const why = reason(o);
+      return { id: `confirm:${o.action}`, title: PEOPLE_NAME[o.action] ?? o.action, subtitle: title, nodes: [], note: why, card: <div className="ctx-card">{costChips(o.cost)}<p>{o.effect}</p><p>Usa 1 ação principal e vale na hora.</p>
+        <button type="button" className="ctx-go" disabled={why !== null} onClick={() => void send({ type:'INDEPENDENT_ACTION', peopleId: people.id, action: o.action }).then(finish)}>Confirmar</button></div> };
+    }
+    const order = ['TRADE', 'NEGOTIATE', 'INFLUENCE', 'PROTECT', 'INTEGRATE', 'CONQUER'];
+    const all = order.map(action => people.actions.find(o => o.action === action)).filter((o): o is NonNullable<typeof o> => o !== undefined);
+    const nodes: CloudNode[] = all.map(o => ({ id: o.action, label: PEOPLE_NAME[o.action] ?? o.action, icon: PEOPLE_ICON[o.action] ?? 'people', disabled: reason(o), hint: o.effect, onSelect: () => push('confirm', o.action) }));
+    // Friendly peoples trade, wary ones are negotiated with, the rest are worked on by influence: the dominant node follows the attitude.
+    const lead = people.attitude === 'FRIENDLY' ? 'TRADE' : people.attitude === 'HOSTILE' ? 'NEGOTIATE' : 'INFLUENCE';
+    const first = nodes.find(n => n.id === lead && !n.disabled) ?? nodes.find(n => !n.disabled);
+    if (first) first.tone = 'dominant';
+    const shown = [first, ...nodes.filter(n => n !== first && !n.disabled)].filter((n): n is CloudNode => !!n).slice(0, 3);
+    const rest = nodes.filter(n => !shown.includes(n));
+    if (step.id === 'more') return { id: 'more', title: 'Mais ações', subtitle: title, nodes: [...rest, { id: 'details', label: 'Ver detalhes', icon: 'details', onSelect: () => showDetails('territory') }], note: flash };
+    return { id: 'root', title, subtitle, nodes: [...shown, more()], note: flash ?? (people.protectorId ? `Protegido por ${game.players.find(p => p.id === people.protectorId)?.name ?? 'outra civilização'}.` : null) };
+  };
+  const threatLevel = (c: Ctx, step: Step): CloudLevel => {
+    const t = game.threats.find(r => r.hexId === c.hexId);
+    if (!t) return { id: 'gone', title: 'Ameaça', nodes: [] };
+    const camped = t.status === 'CAMPED', title = t.kind === 'PIRATE' ? (camped ? 'Ancoradouro pirata' : 'Piratas') : camped ? 'Acampamento' : 'Bando em marcha';
+    const subtitle = `Ameaça ${['I', 'II', 'III'][t.level - 1]} · ${t.composition.map(e => `${game.rules.units[e.kind]?.name ?? e.kind}${e.count > 1 ? ` ×${e.count}` : ''}`).join(', ')}`;
+    const note = camped ? (t.fresh ? 'Recém-surgido: ainda não pode partir. Destruído no acampamento, paga recompensa uma única vez.' : 'Destruído no acampamento, paga recompensa uma única vez; se partir, derrotá-lo em campo não rende nada.')
+      : t.intent.targetKnown ? `Alvo: ${t.intent.targetKind === 'CITY' ? 'cidade' : t.intent.targetKind === 'PORT' ? 'porto' : 'rota'} ${t.intent.targetId} · ${t.intent.distance} hex(es).` : t.intent.state === 'IDLE' ? 'Sem alvo alcançável.' : 'Alvo além da névoa.';
+    const shared = sharedStep(step, title);
+    if (shared) return shared;
+    return { id: 'root', title, subtitle, nodes: [attackOn(c.hexId, false), { id: 'more', label: '', icon: 'more', tone: 'quiet', hint: 'Ver detalhes', onSelect: () => showDetails('territory') }], note: flash ?? note };
+  };
+  const foreignLevel = (c: Ctx, step: Step): CloudLevel => {
+    const city = game.view.visibleCities.find(x => x.hexId === c.hexId && x.ownerId !== selfId);
+    const ownerId = city?.ownerId ?? game.units.find(u => u.hexId === c.hexId && u.ownerId !== selfId)?.ownerId;
+    const who = hostileTo(c.hexId), title = city ? city.name : `Peças de ${who.name}`, subtitle = `${game.players.find(p => p.id === ownerId)?.name ?? 'Outra civilização'} · ${who.hostile ? 'em guerra' : 'em paz'}`;
+    const shared = sharedStep(step, title);
+    if (shared) return shared;
+    const culture = city ? game.culture.find(entry => entry.cityId === city.id) : undefined, myCulture = game.self.civilization;
+    const mineHere = !!culture && culture.currentOwnerId !== selfId && culture.foreignPresence.some(p => p.civilizationId === myCulture);
+    if (step.id === 'contest' && culture) return { id: 'contest', title: 'Disputar presença', subtitle: title, nodes: culture.foreignPresence.filter(p => p.civilizationId !== myCulture).map(p => ({ id: p.civilizationId, label: text(p.civilizationId), icon: 'people' as const, disabled: gate, onSelect: () => void send({ type:'CONTEST_PRESENCE', cityId: culture.cityId, defenderCivilizationId: p.civilizationId }).then(finish) })), note: 'Disputa: dois dados de cada lado mais o nível de presença. Usa 1 ação principal.' };
+    const envoys = ownUnits.filter(u => u.kind === 'ENVOY' && distance(u.hexId, c.hexId) <= 1 && !orderedIds.has(u.id));
+    const mission: CloudNode | null = city ? { id: 'mission', label: 'Missão', icon: 'people', disabled: gate ?? (envoys.length ? null : 'Leve um Enviado a 1 hex da cidade.'), hint: 'Presença cultural na resolução; exige paz.', onSelect: () => void queue({ type:'INFLUENCE', unitId: envoys[0]!.id, target: c.hexId }).then(finish) } : null;
+    const attack = attackOn(c.hexId, true);
+    const nodes: CloudNode[] = [attack, mission, mineHere ? { id: 'contest', label: 'Disputar', icon: 'people', disabled: gate, onSelect: () => push('contest') } : null, { id: 'diplomacy', label: 'Diplomacia', icon: 'people', onSelect: () => { close(); a.openBook('diplomacy'); } }].filter((n): n is CloudNode => n !== null);
+    if (who.hostile && !attack.disabled) attack.tone = 'dominant'; else { attack.tone = 'alt'; const next = nodes.find(n => n.id !== 'attack' && !n.disabled); if (next) next.tone = 'dominant'; }
+    return { id: 'root', title, subtitle, nodes: [...nodes, { id: 'more', label: '', icon: 'more', tone: 'quiet', hint: 'Ver detalhes', onSelect: () => showDetails(city ? 'city' : 'territory') }], note: flash };
   };
 
   const level = (): CloudLevel | null => {
@@ -286,11 +363,17 @@ export function useTable(a: {
     if (ctx.kind === 'city' && civ.cities.some(x => x.id === ctx.cityId)) return cityLevel(ctx, step);
     if (ctx.kind === 'units') return unitLevel(ctx, step);
     if (ctx.kind === 'hex') return hexLevel(ctx, step);
+    if (ctx.kind === 'people') return peopleLevel(ctx, step);
+    if (ctx.kind === 'threat') return threatLevel(ctx, step);
+    if (ctx.kind === 'foreign') return foreignLevel(ctx, step);
     return null;
   };
 
   const current = mode ? null : level();
-  const element = a.hold ? null : mode
+  const element = a.hold ? null : a.work
+    ? <TargetChip host={host} hexId={a.work.origin} {...(a.safe ? { safe: a.safe } : {})} text={`Trabalho de ${a.work.cityName}: clique nos hexes destacados · ${a.work.count} / ${a.work.limit}`} tone="claim" onCancel={a.work.onCancel}>
+      <button type="button" className="ctx-go" onClick={a.work.onConfirm}>Confirmar</button></TargetChip>
+    : mode
     ? <TargetChip host={host} hexId={mode.origin} {...(a.safe ? { safe: a.safe } : {})} text={flash ?? mode.label} tone={mode.kind === 'attack' ? 'attack' : 'move'} onCancel={() => { setMode(null); setFlash(null); }}>
       {mode.kind === 'explore' && <button type="button" onClick={() => setRotation(r => (r + 1) % 6)} title="Orientação da Região, se ninguém a explorou ainda">↻ {rotation * 60}°</button>}</TargetChip>
     : ctx && current ? <TableContextCloud host={host} hexId={ctx.hexId} level={current} {...(a.safe ? { safe: a.safe } : {})} canBack={steps.length > 1} onBack={back} onClose={close} /> : null;

@@ -1,0 +1,75 @@
+2p seed 1: region-28 region-4 | min 4 total 4
+   Regiões 0 4   | capitais (hexes) 0 12
+   Regiões 4 0   | capitais (hexes) 12 0
+2p seed 2: region-4 region-27 | min 4 total 4
+   Regiões 0 4   | capitais (hexes) 0 10
+   Regiões 4 0   | capitais (hexes) 10 0
+2p seed 3: region-28 region-14 | min 4 total 4
+   Regiões 0 4   | capitais (hexes) 0 10
+   Regiões 4 0   | capitais (hexes) 10 0
+3p seed 1: region-28 region-6 region-14 | min 4 total 12
+   Regiões 0 4 4   | capitais (hexes) 0 10 10
+   Regiões 4 0 4   | capitais (hexes) 10 0 10
+   Regiões 4 4 0   | capitais (hexes) 10 10 0
+3p seed 2: region-14 region-28 region-6 | min 4 total 12
+   Regiões 0 4 4   | capitais (hexes) 0 10 10
+   Regiões 4 0 4   | capitais (hexes) 10 0 10
+   Regiões 4 4 0   | capitais (hexes) 10 10 0
+3p seed 3: region-28 region-6 region-14 | min 4 total 12
+   Regiões 0 4 4   | capitais (hexes) 0 10 10
+   Regiões 4 0 4   | capitais (hexes) 10 0 10
+   Regiões 4 4 0   | capitais (hexes) 10 10 0
+4p seed 1: region-27 region-18 region-5 region-14 | min 3 total 20
+   Regiões 0 3 4 3   | capitais (hexes) 0 7 10 8
+   Regiões 3 0 3 4   | capitais (hexes) 7 0 8 12
+   Regiões 4 3 0 3   | capitais (hexes) 10 8 0 7
+   Regiões 3 4 3 0   | capitais (hexes) 8 12 7 0
+4p seed 2: region-18 region-5 region-14 region-27 | min 3 total 20
+   Regiões 0 3 4 3   | capitais (hexes) 0 8 12 7
+   Regiões 3 0 3 4   | capitais (hexes) 8 0 7 10
+   Regiões 4 3 0 3   | capitais (hexes) 12 7 0 8
+   Regiões 3 4 3 0   | capitais (hexes) 7 10 8 0
+4p seed 3: region-5 region-14 region-27 region-18 | min 3 total 20
+   Regiões 0 3 4 3   | capitais (hexes) 0 7 10 8
+   Regiões 3 0 3 4   | capitais (hexes) 7 0 8 12
+   Regiões 4 3 0 3   | capitais (hexes) 10 8 0 7
+   Regiões 3 4 3 0   | capitais (hexes) 8 12 7 0
+5p seed 1: region-18 region-6 region-4 region-20 region-27 | min 2 total 32
+   Regiões 0 2 4 4 3   | capitais (hexes) 0 6 10 11 7
+   Regiões 2 0 2 4 4   | capitais (hexes) 6 0 6 10 11
+   Regiões 4 2 0 3 4   | capitais (hexes) 10 6 0 8 10
+   Regiões 4 4 3 0 2   | capitais (hexes) 11 10 8 0 5
+   Regiões 3 4 4 2 0   | capitais (hexes) 7 11 10 5 0
+5p seed 2: region-14 region-27 region-23 region-6 region-4 | min 2 total 32
+   Regiões 0 3 4 4 2   | capitais (hexes) 0 8 10 10 6
+   Regiões 3 0 2 4 4   | capitais (hexes) 8 0 5 11 10
+   Regiões 4 2 0 3 4   | capitais (hexes) 10 5 0 7 11
+   Regiões 4 4 3 0 2   | capitais (hexes) 10 11 7 0 6
+   Regiões 2 4 4 2 0   | capitais (hexes) 6 10 11 6 0
+5p seed 3: region-9 region-20 region-28 region-18 region-6 | min 2 total 32
+   Regiões 0 2 4 4 3   | capitais (hexes) 0 5 11 10 8
+   Regiões 2 0 3 4 4   | capitais (hexes) 5 0 7 11 10
+   Regiões 4 3 0 2 4   | capitais (hexes) 11 7 0 6 10
+   Regiões 4 4 2 0 2   | capitais (hexes) 10 11 6 0 6
+   Regiões 3 4 4 2 0   | capitais (hexes) 8 10 10 6 0
+6p seed 1: region-14 region-21 region-28 region-18 region-6 region-4 | min 2 total 45
+   Regiões 0 2 4 4 4 2   | capitais (hexes) 0 5 10 12 10 6
+   Regiões 2 0 2 3 3 3   | capitais (hexes) 5 0 5 8 9 7
+   Regiões 4 2 0 2 4 4   | capitais (hexes) 10 5 0 6 10 12
+   Regiões 4 3 2 0 2 4   | capitais (hexes) 12 8 6 0 6 10
+   Regiões 4 3 4 2 0 2   | capitais (hexes) 10 9 10 6 0 6
+   Regiões 2 3 4 4 2 0   | capitais (hexes) 6 7 12 10 6 0
+6p seed 2: region-4 region-14 region-21 region-28 region-18 region-6 | min 2 total 45
+   Regiões 0 2 3 4 4 2   | capitais (hexes) 0 6 7 12 10 6
+   Regiões 2 0 2 4 4 4   | capitais (hexes) 6 0 5 10 12 10
+   Regiões 3 2 0 2 3 3   | capitais (hexes) 7 5 0 5 8 9
+   Regiões 4 4 2 0 2 4   | capitais (hexes) 12 10 5 0 6 10
+   Regiões 4 4 3 2 0 2   | capitais (hexes) 10 12 8 6 0 6
+   Regiões 2 4 3 4 2 0   | capitais (hexes) 6 10 9 10 6 0
+6p seed 3: region-14 region-21 region-28 region-18 region-6 region-4 | min 2 total 45
+   Regiões 0 2 4 4 4 2   | capitais (hexes) 0 5 10 12 10 6
+   Regiões 2 0 2 3 3 3   | capitais (hexes) 5 0 5 8 9 7
+   Regiões 4 2 0 2 4 4   | capitais (hexes) 10 5 0 6 10 12
+   Regiões 4 3 2 0 2 4   | capitais (hexes) 12 8 6 0 6 10
+   Regiões 4 3 4 2 0 2   | capitais (hexes) 10 9 10 6 0 6
+   Regiões 2 3 4 4 2 0   | capitais (hexes) 6 7 12 10 6 0

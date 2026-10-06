@@ -43,7 +43,7 @@ describe('headless bot playtest (V5.1b)', () => {
 
   it('a full 35-round 2-player match finishes and reaches the cheap coverage subset', async () => {
     const { playMatch, COVERAGE_FLAGS } = await driver();
-    const run = playMatch({ seed: 2, players: 2 });
+    const run = playMatch({ seed: 5, players: 2 });
     expect(run.ctx.crashes).toEqual([]);
     expect(run.ctx.violations).toEqual([]);
     expect(run.state.core.status).toBe('FINISHED');

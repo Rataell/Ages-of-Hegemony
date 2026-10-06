@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { AlphaStateSchema, type AlphaState } from '@aoh/game-domain';
-import { beginAlphaPlanning, createAlphaGame, hexNeighbors } from '@aoh/game-engine';
+import { beginAlphaPlanning, createAlphaGame, hexNeighbors, spawnThreat } from '@aoh/game-engine';
 import { AlphaHttp } from '../apps/server/src/alpha-http.js';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
@@ -213,4 +213,85 @@ test('narrow viewport: the cloud stays on the piece, no sidebar comes back, noth
   expect(box.height).toBeGreaterThanOrEqual(40);
   await shot(page, 'B2-pioneer-cloud-390');
   expect(await noGlobalScroll(page)).toBe(true);
+});
+
+// ---- the rest of the Mesa: threats, independent peoples, foreign cities, the work of a city ----
+const hexOf = (page: Page, id: string) => page.locator(`svg.world-map g.hex[aria-label$=" ${id}"], svg.world-map g.hex[aria-label$=" ${id}, trabalhado"]`).first();
+const withArmy = (state: AlphaState, at: string) => state.units.push(...['INFANTRY', 'INFANTRY', 'GUARD'].map((kind, i) => ({ id: `v2-army-${at.replace(/[^0-9a-z]/gi, "n")}-${i}`, ownerId: p1, kind: kind as never, hexId: at as never, recruitedRound: 1 })));
+
+test('threat: the Acampamento shows its state and is attacked from the adjacent stack, no side panel', async ({ browser }) => {
+  const state = base();
+  const cap = capital(state), camp = neighbour(state, cap.hexId);
+  const band = spawnThreat(state, 'CAMP')!; band.hexId = camp.id as never; band.homeHexId = camp.id as never; band.level = 2; band.status = 'CAMPED'; band.fresh = true;
+  band.composition = [{ kind: 'INFANTRY', count: 3 }, { kind: 'RANGED', count: 1 }];
+  withArmy(state, cap.hexId);
+  const { page, repository, room } = await serve(browser, state);
+  await hexOf(page, camp.id).click({ force: true });
+  await expect(page.locator('.table-cloud .ctx-plate')).toContainText('Acampamento');
+  await expect(page.locator('.table-cloud .ctx-note')).toContainText('Recém-surgido');
+  await expect(page.locator('.alpha-inspector')).toHaveCount(0);
+  await shot(page, 'I-threat-cloud');
+  await cloudNode(page, 'attack').click();
+  await expect(page.locator('.table-cloud')).toHaveCount(0);
+  await expect.poll(async () => (await repository.find(room.id))!.game!.players[0]!.orders.some(o => o.type === 'ATTACK')).toBe(true);
+  await expect(page.locator('.art-mark.tone-plan')).toContainText('Ataque');
+});
+
+test('independent people: its actions are nodes with a confirmation card, the dominant one follows the attitude', async ({ browser }) => {
+  const state = base();
+  const spot = neighbour(state, capital(state).hexId);
+  const people = state.independents[0]!; people.hexId = spot.id as never; people.attitude = 'FRIENDLY';
+  const { page } = await serve(browser, state);
+  await hexOf(page, spot.id).click({ force: true });
+  const plate = page.locator('.table-cloud .ctx-plate');
+  await expect(plate).toContainText('Amistoso');
+  await expect(page.locator('.ctx-node.tone-dominant')).toHaveAttribute('data-node', 'TRADE');
+  await cloudNode(page, 'TRADE').click();
+  await expect(page.locator('.ctx-card .ctx-go')).toBeVisible();
+  await shot(page, 'J-people-confirm');
+  await page.keyboard.press('Escape');
+  await cloudNode(page, 'more').click();
+  await expect(page.locator('.ctx-node[data-node="details"]')).toBeVisible();
+  await expect(page.locator('.alpha-inspector')).toHaveCount(0);
+});
+
+test('foreign city: Atacar needs a stack beside it, at peace the cloud leads to Diplomacia; at war the order is one click', async ({ browser }) => {
+  const peace = base();
+  const rival = peace.core.players[1]!.civilization.cities[0]!, edge = neighbour(peace, rival.hexId);
+  withArmy(peace, edge.id);
+  const first = await serve(browser, peace);
+  let page = first.page;
+  await hexOf(page, rival.hexId).click({ force: true });
+  await expect(page.locator('.table-cloud .ctx-plate')).toContainText('em paz');
+  await shot(page, 'K-foreign-city-peace');
+  await cloudNode(page, 'attack').click();
+  await expect(page.locator('.table-cloud .ctx-plate')).toContainText('Em paz');
+  await expect(cloudNode(page, 'diplomacy')).toBeVisible();
+  const war = base();
+  const rival2 = war.core.players[1]!.civilization.cities[0]!, edge2 = neighbour(war, rival2.hexId);
+  withArmy(war, edge2.id); war.wars = [['p1' as never, 'p2' as never]];
+  const second = await serve(browser, war);
+  const { repository, room } = second;
+  page = second.page;
+  await hexOf(page, rival2.hexId).click({ force: true });
+  await expect(page.locator('.ctx-node.tone-dominant')).toHaveAttribute('data-node', 'attack');
+  await cloudNode(page, 'attack').click();
+  await expect.poll(async () => (await repository.find(room.id))!.game!.players[0]!.orders.some(o => o.type === 'ATTACK')).toBe(true);
+});
+
+test('work of a city: Trabalhar turns the map into the chooser, Confirmar sends the hexes', async ({ browser }) => {
+  const state = base();
+  const cap = capital(state), meta = state.core.players[0]!.civilization.cities[0]!;
+  const owned = [neighbour(state, cap.hexId, 0), neighbour(state, cap.hexId, 1)];
+  for (const tile of owned) { tile.ownerId = p1; tile.controllerCityId = cap.id as never; }
+  void meta;
+  const { page, repository, room } = await serve(browser, state);
+  await hexOf(page, owned[0]!.id).click({ force: true });
+  await cloudNode(page, 'work').click();
+  await expect(page.locator('.ctx-chip')).toContainText('Trabalho de');
+  await shot(page, 'L-work-mode');
+  await hexOf(page, owned[1]!.id).click({ force: true });
+  await page.locator('.ctx-chip .ctx-go').click();
+  await expect(page.locator('.ctx-chip')).toHaveCount(0);
+  await expect.poll(async () => (await repository.find(room.id))!.game!.core.players[0]!.civilization.cities[0]!.workedHexIds.length).toBeGreaterThan(0);
 });

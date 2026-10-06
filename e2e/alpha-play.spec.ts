@@ -199,7 +199,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await phase(pa,'4 / 21');await phase(pb,'4 / 21');
     expect((await game()).players[0]!.research).toHaveLength(1);
     const replayA=pa.locator('.alpha-resolution-phase'),replayB=pb.locator('.alpha-resolution-phase');
-    await expect(replayA).toContainText('Mobilidade');await expect(replayA).toContainText(/Ana: Pioneiro.* moveu-se para \d+,\d+\./);
+    await expect(replayA).toContainText('Mobilidade');await expect(replayA).toContainText(/Ana: Pioneiro.* moveu-se para -?\d+,-?\d+\./);
     await expect(replayB).toContainText('moveu-se');
     await pa.screenshot({path:`${actionEvidence}/1440x900-resolution-ana.png`});await pb.screenshot({path:`${actionEvidence}/1440x900-resolution-beto.png`});
     await replayA.getByRole('button',{name:'Continuar'}).click();await replayB.getByRole('button',{name:'Continuar'}).click();

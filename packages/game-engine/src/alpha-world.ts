@@ -18,7 +18,7 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   for(let i=frontier.length-1;i>0;i--){const j=alphaRandomInteger(random,i+1);[frontier[i],frontier[j]]=[frontier[j]!,frontier[i]!];}
   // The footprint is generated first as a contiguous lattice of seven-hex Regions (domain alpha-topology): every hex of the board belongs
   // to exactly one Region and nothing inside the outer edge is empty. Six homeland Regions always exist; active seats take their slots first.
-  const board=layoutBoard(input.players.length);
+  const board=layoutBoard(input.players.length,input.seed);
   const slotOf=new Map(board.homeSlots.map((id,slot)=>[id,slot]));
   const regions:AlphaState['regions']=[];const map:{id:string;q:number;r:number;terrain:TerrainType;features:string[]}[]=[];let index=0;
   for(const cell of board.cells){
