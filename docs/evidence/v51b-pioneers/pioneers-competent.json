@@ -1,0 +1,7284 @@
+{
+ "rows": [
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "matches": 10,
+   "crashes": 0,
+   "battles": 108,
+   "seats": 20,
+   "firstRegion": 5,
+   "firstRegionReached": "17/20",
+   "secondRegion": 5.36,
+   "secondRegionReached": "11/20",
+   "firstCity": 8.27,
+   "firstCityReached": "11/20",
+   "secondCity": 11,
+   "secondCityReached": "1/20",
+   "firstContact": 5.8,
+   "firstContactReached": "10/20",
+   "firstRecruitedPioneer": 5.57,
+   "recruitedReached": "7/20",
+   "pioneersByEra": [
+    0.95,
+    0.65,
+    0.6,
+    0.6
+   ],
+   "exploredAtEra": [
+    1.15,
+    1.85,
+    2.15,
+    2.35
+   ],
+   "citiesEraII": 1.5,
+   "citiesEraIII": 1.55,
+   "expeditionOrdersPerSeat": 3,
+   "moveOrdersPerSeat": 11.15,
+   "orphaned": 10,
+   "stoppedExploring": 8,
+   "armyEraIII": 2.2
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "matches": 10,
+   "crashes": 0,
+   "battles": 108,
+   "seats": 20,
+   "firstRegion": 3.21,
+   "firstRegionReached": "19/20",
+   "secondRegion": 4.61,
+   "secondRegionReached": "18/20",
+   "firstCity": 9.38,
+   "firstCityReached": "8/20",
+   "secondCity": 16,
+   "secondCityReached": "1/20",
+   "firstContact": 5,
+   "firstContactReached": "12/20",
+   "firstRecruitedPioneer": 1,
+   "recruitedReached": "3/20",
+   "pioneersByEra": [
+    1.85,
+    1.7,
+    1.5,
+    1.45
+   ],
+   "exploredAtEra": [
+    2.45,
+    4.35,
+    5.8,
+    6.8
+   ],
+   "citiesEraII": 1.25,
+   "citiesEraIII": 1.4,
+   "expeditionOrdersPerSeat": 9.7,
+   "moveOrdersPerSeat": 23.5,
+   "orphaned": 2,
+   "stoppedExploring": 6,
+   "armyEraIII": 1.95
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "matches": 10,
+   "crashes": 0,
+   "battles": 156,
+   "seats": 40,
+   "firstRegion": 2.92,
+   "firstRegionReached": "40/40",
+   "secondRegion": 6.13,
+   "secondRegionReached": "24/40",
+   "firstCity": 7.31,
+   "firstCityReached": "26/40",
+   "secondCity": 13,
+   "secondCityReached": "1/40",
+   "firstContact": 9.17,
+   "firstContactReached": "12/40",
+   "firstRecruitedPioneer": 5.25,
+   "recruitedReached": "16/40",
+   "pioneersByEra": [
+    0.93,
+    0.6,
+    0.5,
+    0.53
+   ],
+   "exploredAtEra": [
+    1.6,
+    2.13,
+    2.35,
+    2.48
+   ],
+   "citiesEraII": 1.6,
+   "citiesEraIII": 1.68,
+   "expeditionOrdersPerSeat": 2.67,
+   "moveOrdersPerSeat": 10.55,
+   "orphaned": 19,
+   "stoppedExploring": 19,
+   "armyEraIII": 2.52
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "matches": 10,
+   "crashes": 0,
+   "battles": 175,
+   "seats": 40,
+   "firstRegion": 2.85,
+   "firstRegionReached": "40/40",
+   "secondRegion": 3.95,
+   "secondRegionReached": "40/40",
+   "firstCity": 9.84,
+   "firstCityReached": "19/40",
+   "secondCity": 8.25,
+   "secondCityReached": "4/40",
+   "firstContact": 13.27,
+   "firstContactReached": "26/40",
+   "firstRecruitedPioneer": 5.56,
+   "recruitedReached": "9/40",
+   "pioneersByEra": [
+    1.77,
+    1.45,
+    1.32,
+    1.27
+   ],
+   "exploredAtEra": [
+    3.13,
+    4.55,
+    5.2,
+    5.5
+   ],
+   "citiesEraII": 1.38,
+   "citiesEraIII": 1.5,
+   "expeditionOrdersPerSeat": 7.17,
+   "moveOrdersPerSeat": 22.7,
+   "orphaned": 7,
+   "stoppedExploring": 9,
+   "armyEraIII": 1.75
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "matches": 10,
+   "crashes": 0,
+   "battles": 157,
+   "seats": 60,
+   "firstRegion": 3.32,
+   "firstRegionReached": "53/60",
+   "secondRegion": 6.38,
+   "secondRegionReached": "37/60",
+   "firstCity": 8,
+   "firstCityReached": "33/60",
+   "secondCity": 13,
+   "secondCityReached": "1/60",
+   "firstContact": 8.59,
+   "firstContactReached": "29/60",
+   "firstRecruitedPioneer": 6.52,
+   "recruitedReached": "25/60",
+   "pioneersByEra": [
+    0.98,
+    0.68,
+    0.62,
+    0.65
+   ],
+   "exploredAtEra": [
+    1.5,
+    2.13,
+    2.3,
+    2.37
+   ],
+   "citiesEraII": 1.5,
+   "citiesEraIII": 1.53,
+   "expeditionOrdersPerSeat": 2.9,
+   "moveOrdersPerSeat": 12.12,
+   "orphaned": 22,
+   "stoppedExploring": 20,
+   "armyEraIII": 2.63
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "matches": 10,
+   "crashes": 0,
+   "battles": 211,
+   "seats": 60,
+   "firstRegion": 3.15,
+   "firstRegionReached": "60/60",
+   "secondRegion": 4.75,
+   "secondRegionReached": "56/60",
+   "firstCity": 8.52,
+   "firstCityReached": "27/60",
+   "secondCity": 11,
+   "secondCityReached": "1/60",
+   "firstContact": 7.28,
+   "firstContactReached": "53/60",
+   "firstRecruitedPioneer": 1.91,
+   "recruitedReached": "11/60",
+   "pioneersByEra": [
+    1.95,
+    1.63,
+    1.57,
+    1.53
+   ],
+   "exploredAtEra": [
+    2.67,
+    3.53,
+    3.82,
+    3.9
+   ],
+   "citiesEraII": 1.38,
+   "citiesEraIII": 1.45,
+   "expeditionOrdersPerSeat": 5.8,
+   "moveOrdersPerSeat": 25.83,
+   "orphaned": 4,
+   "stoppedExploring": 14,
+   "armyEraIII": 2.03
+  }
+ ],
+ "runs": [
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 1,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": 12,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    }
+   ],
+   "orders": {
+    "MOVE": 11,
+    "EXPLORE": 4
+   },
+   "battles": 11,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 2,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 13,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      8,
+      11
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 37,
+    "EXPLORE": 14,
+    "TRADE": 4
+   },
+   "battles": 14,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 3,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 18,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      4,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 8,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 31,
+    "EXPLORE": 10
+   },
+   "battles": 10,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 4,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 8,
+     "secondRegion": null,
+     "firstCity": 6,
+     "secondCity": 11,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 3,
+     "citiesEraIII": 3,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 5
+    }
+   ],
+   "orders": {
+    "MOVE": 9,
+    "EXPLORE": 4
+   },
+   "battles": 12,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 5,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 7,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 22,
+    "EXPLORE": 3
+   },
+   "battles": 7,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 6,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 7,
+     "secondRegion": 10,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      0,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 17,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 5
+    }
+   ],
+   "orders": {
+    "MOVE": 22,
+    "EXPLORE": 7
+   },
+   "battles": 9,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 7,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 5,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 9,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 21,
+    "EXPLORE": 5
+   },
+   "battles": 17,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 8,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 21,
+    "EXPLORE": 4,
+    "TRADE": 4
+   },
+   "battles": 7,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 9,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 10,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      0,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 33,
+    "EXPLORE": 5
+   },
+   "battles": 11,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 1,
+   "seed": 10,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 10,
+     "secondRegion": null,
+     "firstCity": 4,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 8,
+     "pioneersByEra": [
+      0,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      0,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 16,
+    "EXPLORE": 4
+   },
+   "battles": 10,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 1,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      2,
+      5,
+      8,
+      10
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      8,
+      11
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 53,
+    "EXPLORE": 25
+   },
+   "battles": 7,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 2,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": 7,
+     "secondCity": 16,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 3,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      8,
+      10
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 49,
+    "EXPLORE": 22
+   },
+   "battles": 14,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 3,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 2,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      8,
+      10
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 5,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 55,
+    "EXPLORE": 26,
+    "TRADE": 3
+   },
+   "battles": 11,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 4,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 9,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 6
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 17,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 1
+    }
+   ],
+   "orders": {
+    "MOVE": 38,
+    "EXPLORE": 11
+   },
+   "battles": 3,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 5,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 15,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      5,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      9,
+      10
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 48,
+    "EXPLORE": 21
+   },
+   "battles": 10,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 6,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 6,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      2,
+      6,
+      8,
+      10
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 6,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      9
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 56,
+    "EXPLORE": 24
+   },
+   "battles": 12,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 7,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": null,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 7
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 24,
+    "EXPLORE": 13
+   },
+   "battles": 15,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 8,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 12,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 5
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      9,
+      11
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 39,
+    "EXPLORE": 18
+   },
+   "battles": 10,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 9,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 6,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      2,
+      5,
+      7,
+      9
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 6,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      5,
+      5
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 63,
+    "EXPLORE": 17,
+    "TRADE": 3
+   },
+   "battles": 16,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 2,
+   "startingPioneers": 2,
+   "seed": 10,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 4,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      5,
+      7,
+      10,
+      12
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 45,
+    "EXPLORE": 17
+   },
+   "battles": 10,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 1,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 7,
+     "firstCity": 5,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 5,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 11,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      10
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 11,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 83,
+    "EXPLORE": 15,
+    "TRADE": 6
+   },
+   "battles": 22,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 2,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 8
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      9
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 9,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 10,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      3,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 57,
+    "EXPLORE": 16,
+    "TRADE": 9
+   },
+   "battles": 8,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 3,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      8,
+      8
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 17,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 63,
+    "EXPLORE": 15,
+    "TRADE": 10
+   },
+   "battles": 14,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 4,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 12,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 16,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 5
+    }
+   ],
+   "orders": {
+    "MOVE": 25,
+    "EXPLORE": 7
+   },
+   "battles": 22,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 5,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 11,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 6,
+     "secondCity": 13,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 3,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 1
+    }
+   ],
+   "orders": {
+    "MOVE": 36,
+    "EXPLORE": 7
+   },
+   "battles": 9,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 6,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 7,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 28,
+    "EXPLORE": 7,
+    "TRADE": 6
+   },
+   "battles": 13,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 7,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 10,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 8,
+     "pioneersByEra": [
+      0,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 28,
+    "EXPLORE": 8
+   },
+   "battles": 16,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 8,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      5,
+      5,
+      5,
+      5
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 54,
+    "EXPLORE": 14
+   },
+   "battles": 27,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 9,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 2,
+     "secondRegion": null,
+     "firstCity": 4,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 5
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 14,
+     "firstCity": 5,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 12,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 5
+    }
+   ],
+   "orders": {
+    "MOVE": 21,
+    "EXPLORE": 7
+   },
+   "battles": 7,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 1,
+   "seed": 10,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 11,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 10,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 5
+    }
+   ],
+   "orders": {
+    "MOVE": 27,
+    "EXPLORE": 11
+   },
+   "battles": 18,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 1,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 15,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      7,
+      9
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 6,
+     "secondCity": 10,
+     "firstContact": null,
+     "firstRecruitedPioneer": 17,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 3,
+     "citiesEraIII": 3,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p3",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 19,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      5,
+      8,
+      8,
+      8
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 15,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    }
+   ],
+   "orders": {
+    "MOVE": 102,
+    "EXPLORE": 32
+   },
+   "battles": 26,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 2,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 15,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": 4,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      4,
+      6,
+      6,
+      6
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 12,
+     "secondCity": null,
+     "firstContact": 17,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 110,
+    "EXPLORE": 29,
+    "TRADE": 4
+   },
+   "battles": 11,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 3,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      4,
+      7,
+      8,
+      13
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 17,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 68,
+    "EXPLORE": 32
+   },
+   "battles": 12,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 4,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 18,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 13,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      8
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 13,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 20,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 99,
+    "EXPLORE": 25
+   },
+   "battles": 21,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 5,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 18,
+     "secondCity": null,
+     "firstContact": 15,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 15,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 6,
+     "secondCity": 7,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 3,
+     "citiesEraIII": 3,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 13,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    }
+   ],
+   "orders": {
+    "MOVE": 86,
+    "EXPLORE": 29
+   },
+   "battles": 10,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 6,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      8
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 13,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      5,
+      5
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 17,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    }
+   ],
+   "orders": {
+    "MOVE": 111,
+    "EXPLORE": 30,
+    "TRADE": 2
+   },
+   "battles": 7,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 7,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 13,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 17,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 10,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 11,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      5
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 97,
+    "EXPLORE": 25,
+    "TRADE": 4
+   },
+   "battles": 17,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 8,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 13,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 13,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 2,
+     "secondRegion": 2,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 19,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      6,
+      8,
+      8,
+      8
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 116,
+    "EXPLORE": 36,
+    "TRADE": 3
+   },
+   "battles": 32,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 9,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p3",
+     "firstRegion": 2,
+     "secondRegion": 2,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      5,
+      7,
+      7,
+      7
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": 5,
+     "secondCity": 7,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 3,
+     "citiesEraIII": 3,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 47,
+    "EXPLORE": 18
+   },
+   "battles": 16,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 4,
+   "startingPioneers": 2,
+   "seed": 10,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      5,
+      5
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 20,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      5,
+      6,
+      6,
+      6
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 6,
+     "secondCity": 9,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 3,
+     "citiesEraIII": 3,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      7,
+      8
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 72,
+    "EXPLORE": 31
+   },
+   "battles": 23,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 1,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 10,
+     "secondRegion": 11,
+     "firstCity": 17,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": 8,
+     "secondCity": 13,
+     "firstContact": null,
+     "firstRecruitedPioneer": 8,
+     "pioneersByEra": [
+      1,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 3,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 20,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 18,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 73,
+    "EXPLORE": 18
+   },
+   "battles": 19,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 2,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 12,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 16,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      7,
+      8,
+      8
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": 16,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 6
+    }
+   ],
+   "orders": {
+    "MOVE": 90,
+    "EXPLORE": 19
+   },
+   "battles": 17,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 3,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 9,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 17,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 69,
+    "EXPLORE": 12
+   },
+   "battles": 17,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 4,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 8,
+     "secondRegion": 10,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      0,
+      2,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": 15,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 8,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 13,
+     "firstCity": 11,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 11,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 9,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 76,
+    "EXPLORE": 16,
+    "TRADE": 2
+   },
+   "battles": 19,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 5,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 11,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 11,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 10,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 69,
+    "EXPLORE": 10
+   },
+   "battles": 4,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 6,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 8,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 7,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 9,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p6",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      5,
+      5,
+      5,
+      5
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    }
+   ],
+   "orders": {
+    "MOVE": 67,
+    "EXPLORE": 14,
+    "TRADE": 6
+   },
+   "battles": 13,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 7,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 6
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 5,
+     "firstCity": 10,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 5
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p5",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      5,
+      6,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": 9,
+     "pioneersByEra": [
+      0,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 5
+    }
+   ],
+   "orders": {
+    "MOVE": 46,
+    "EXPLORE": 16
+   },
+   "battles": 22,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 8,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 7,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 11,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 11,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 10,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 6
+    }
+   ],
+   "orders": {
+    "MOVE": 52,
+    "EXPLORE": 18
+   },
+   "battles": 17,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 9,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      6,
+      8,
+      10,
+      12
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 4,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 15,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 20,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 103,
+    "EXPLORE": 19,
+    "TRADE": 4
+   },
+   "battles": 16,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 1,
+   "seed": 10,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": null,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 15,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      5,
+      7,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 7,
+     "firstCity": 5,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 5,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 5
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 10,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": 18,
+     "pioneersByEra": [
+      1,
+      0,
+      0,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      4
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 17,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      6,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 82,
+    "EXPLORE": 32
+   },
+   "battles": 13,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 1,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 9,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      4,
+      4
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      5,
+      6,
+      8,
+      9
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p5",
+     "firstRegion": 4,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 11,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 9,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": 11,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 152,
+    "EXPLORE": 32,
+    "TRADE": 4
+   },
+   "battles": 27,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 2,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 5,
+     "secondRegion": 7,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 10,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      5,
+      6,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      5,
+      5
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 13,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 167,
+    "EXPLORE": 33,
+    "TRADE": 7
+   },
+   "battles": 30,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 3,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 2,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      5,
+      5
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 12,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 11,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 6
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 19,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      5,
+      5
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    }
+   ],
+   "orders": {
+    "MOVE": 164,
+    "EXPLORE": 36,
+    "TRADE": 9
+   },
+   "battles": 15,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 4,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 14,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 6,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 6,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": 7,
+     "secondCity": 11,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 3,
+     "citiesEraIII": 3,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 4
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    }
+   ],
+   "orders": {
+    "MOVE": 148,
+    "EXPLORE": 31,
+    "TRADE": 3
+   },
+   "battles": 15,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 5,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 14,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      4,
+      5,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      2,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 13,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      5
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 5
+    }
+   ],
+   "orders": {
+    "MOVE": 140,
+    "EXPLORE": 32,
+    "TRADE": 3
+   },
+   "battles": 14,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 6,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 9,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 5
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 16,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p6",
+     "firstRegion": 2,
+     "secondRegion": 2,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      6,
+      7,
+      7,
+      7
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    }
+   ],
+   "orders": {
+    "MOVE": 184,
+    "EXPLORE": 34,
+    "TRADE": 6
+   },
+   "battles": 6,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 7,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 9,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 11,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 7,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      1,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p5",
+     "firstRegion": 2,
+     "secondRegion": 2,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      6,
+      8,
+      9,
+      9
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 9,
+     "firstCity": 4,
+     "secondCity": null,
+     "firstContact": 8,
+     "firstRecruitedPioneer": 6,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": false,
+     "armyEraIII": 4
+    }
+   ],
+   "orders": {
+    "MOVE": 157,
+    "EXPLORE": 36
+   },
+   "battles": 28,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 8,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": null,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 10,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      5,
+      7,
+      8,
+      8
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p5",
+     "firstRegion": 6,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 1
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 14,
+     "secondCity": null,
+     "firstContact": 10,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      5,
+      6,
+      6
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 155,
+    "EXPLORE": 40,
+    "TRADE": 3
+   },
+   "battles": 29,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 9,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p2",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      2,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p3",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": 4,
+     "secondCity": null,
+     "firstContact": 7,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      5,
+      6,
+      9,
+      10
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": 6,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 5
+    },
+    {
+     "id": "p5",
+     "firstRegion": 4,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p6",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 5,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    }
+   ],
+   "orders": {
+    "MOVE": 139,
+    "EXPLORE": 35,
+    "TRADE": 2
+   },
+   "battles": 14,
+   "citiesCaptured": 0
+  },
+  {
+   "players": 6,
+   "startingPioneers": 2,
+   "seed": 10,
+   "perPlayer": [
+    {
+     "id": "p1",
+     "firstRegion": 7,
+     "secondRegion": null,
+     "firstCity": 7,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      0,
+      0,
+      0
+     ],
+     "exploredAtEra": [
+      0,
+      1,
+      1,
+      1
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": true,
+     "stoppedExploring": true,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p2",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": 4,
+     "secondCity": null,
+     "firstContact": 4,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      5,
+      6,
+      6,
+      6
+     ],
+     "citiesEraII": 2,
+     "citiesEraIII": 2,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 2
+    },
+    {
+     "id": "p3",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 15,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      1,
+      1,
+      1,
+      1
+     ],
+     "exploredAtEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p4",
+     "firstRegion": 3,
+     "secondRegion": 6,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 15,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      2,
+      3,
+      3,
+      3
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 3
+    },
+    {
+     "id": "p5",
+     "firstRegion": 3,
+     "secondRegion": 4,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": null,
+     "firstRecruitedPioneer": null,
+     "pioneersByEra": [
+      2,
+      2,
+      2,
+      2
+     ],
+     "exploredAtEra": [
+      3,
+      4,
+      4,
+      4
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    },
+    {
+     "id": "p6",
+     "firstRegion": 2,
+     "secondRegion": 3,
+     "firstCity": null,
+     "secondCity": null,
+     "firstContact": 11,
+     "firstRecruitedPioneer": 1,
+     "pioneersByEra": [
+      3,
+      3,
+      3,
+      3
+     ],
+     "exploredAtEra": [
+      4,
+      6,
+      7,
+      7
+     ],
+     "citiesEraII": 1,
+     "citiesEraIII": 1,
+     "orphaned": false,
+     "stoppedExploring": false,
+     "armyEraIII": 0
+    }
+   ],
+   "orders": {
+    "MOVE": 144,
+    "EXPLORE": 39,
+    "TRADE": 5
+   },
+   "battles": 33,
+   "citiesCaptured": 0
+  }
+ ]
+}

@@ -1,0 +1,62 @@
+{
+ "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)": {
+  "n": 9,
+  "battles": 9,
+  "attackerWins": 5,
+  "captured": 1,
+  "outcomes": {
+   "VICTORY": 4,
+   "TIE": 4,
+   "DECISIVE": 1
+  },
+  "avgLosses": 1.56
+ },
+ "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)": {
+  "n": 9,
+  "battles": 9,
+  "attackerWins": 5,
+  "captured": 1,
+  "outcomes": {
+   "VICTORY": 4,
+   "TIE": 4,
+   "DECISIVE": 1
+  },
+  "avgLosses": 1.56
+ },
+ "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha": {
+  "n": 9,
+  "battles": 9,
+  "attackerWins": 6,
+  "captured": 4,
+  "outcomes": {
+   "DECISIVE": 4,
+   "VICTORY": 2,
+   "TIE": 3
+  },
+  "avgLosses": 1.78
+ },
+ "sem Cerco: Infantaria contra Muralha (Brecha ausente)": {
+  "n": 9,
+  "battles": 9,
+  "attackerWins": 7,
+  "captured": 3,
+  "outcomes": {
+   "VICTORY": 4,
+   "DECISIVE": 3,
+   "TIE": 2
+  },
+  "avgLosses": 1.56
+ },
+ "captura: cidade sem guarnição": {
+  "n": 9,
+  "battles": 9,
+  "attackerWins": 8,
+  "captured": 8,
+  "outcomes": {
+   "DECISIVE": 6,
+   "VICTORY": 2,
+   "TIE": 1
+  },
+  "avgLosses": 0.44
+ }
+}

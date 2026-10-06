@@ -11,7 +11,7 @@ import { alphaGainLegacy } from './alpha-resources.js';
 import { applyDiscovery, generateDiscoveries } from './alpha-discoveries.js';
 import { spawnThreat, threatIntent } from './alpha-threats.js';
 
-export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;actionsPerRound?:number;revealMap?:boolean}):AlphaState {
+export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;actionsPerRound?:number;revealMap?:boolean;startingPioneers?:number}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
   const random:Pick<AlphaState,'privateRng'>={privateRng:{algorithm:'hmac-sha256-counter-v1',seed:input.privateSeed?combineAlphaSeed(input.seed,input.privateSeed):deterministicAlphaSeed(input.seed,input.gameId),counter:0}};
   const frontier=REGION_TEMPLATES.filter(r=>r.kind==='FRONTIER');
@@ -69,7 +69,7 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
     initialCities:input.players.map((p,i)=>({id:`capital-${i+1}`,ownerId:p.id,name:(CIVILIZATIONS.find(civ=>civ.id===p.civilization)??CIVILIZATIONS[i]!).capital,hexId:capitalSites[i]!,workers:{producers:1,artisans:0,merchants:0,scholars:1,soldiers:0,unassigned:0}}))});
   if(!created.ok)throw new Error(created.error.message);
   const migrated=migrateSnapshotV3ToV4(created.value);if(!migrated.ok)throw new Error(migrated.error.message);
-  const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED',input.actionsPerRound??5);state.rules.revealMap=input.revealMap??false;state.rulesVersion='v5.1b';liftLegacyCityCaps(state);state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
+  const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED',input.actionsPerRound??5);state.rules.revealMap=input.revealMap??false;if(input.startingPioneers!==undefined)state.rules.startingPioneers=input.startingPioneers;state.rulesVersion='v5.1b';liftLegacyCityCaps(state);state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
   // Every civilization starts with `startingPioneers` Pioneiros: one can scout while another founds, so first contact does not wait on recruitment.
   state.players.forEach((p,i)=>{p.civilization=input.players[i]!.civilization??CIVILIZATIONS[i]!.id;p.leader=leaderStateFor(p.civilization);const center=state.core.players[i]!.civilization.cities[0]!.hexId;for(let k=0;k<state.rules.startingPioneers;k++)state.units.push({id:`pioneer-${i+1}-${k+1}`,ownerId:p.playerId,kind:'PIONEER',hexId:center,recruitedRound:1});const city=state.cities.find(city=>city.currentOwnerId===p.playerId)!;city.nativeIdentity=p.civilization;});
   const occupied=new Set(state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)));

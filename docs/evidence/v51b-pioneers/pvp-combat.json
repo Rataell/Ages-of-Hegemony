@@ -1,0 +1,35 @@
+{
+ "rows": [
+  {
+   "players": 2,
+   "matches": 4,
+   "matchesWithPvp": 0,
+   "pvpBattles": 0,
+   "firstPvpRound": null,
+   "wars": 4,
+   "captures": 0,
+   "modifiers": {}
+  },
+  {
+   "players": 4,
+   "matches": 4,
+   "matchesWithPvp": 0,
+   "pvpBattles": 0,
+   "firstPvpRound": null,
+   "wars": 7,
+   "captures": 0,
+   "modifiers": {}
+  },
+  {
+   "players": 6,
+   "matches": 4,
+   "matchesWithPvp": 0,
+   "pvpBattles": 0,
+   "firstPvpRound": null,
+   "wars": 15,
+   "captures": 0,
+   "modifiers": {}
+  }
+ ],
+ "samples": []
+}

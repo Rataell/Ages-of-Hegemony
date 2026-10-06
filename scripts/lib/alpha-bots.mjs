@@ -23,10 +23,10 @@ const ERAS = D.AlphaEraSchema.options;
 const dist = (a, b) => E.hexDistance(a, b);
 
 export const SKILLS = ['naive', 'competent', 'hardcore'];
-export function createBotMatch({ seed = 1, players = 2, personas, rounds = 35, preset = 'STANDARD', worldPreset = 'MIXED', skill = 'competent', playtestLog = null } = {}) {
+export function createBotMatch({ seed = 1, players = 2, personas, rounds = 35, preset = 'STANDARD', worldPreset = 'MIXED', skill = 'competent', playtestLog = null, startingPioneers } = {}) {
   const civs = D.CIVILIZATIONS.map(c => c.id);
   const seats = Array.from({ length: players }, (_, i) => ({ id: `p${i + 1}`, name: `Bot ${i + 1}`, civilization: civs[(i + seed) % civs.length], persona: (personas?.[i] ?? PERSONA_ORDER[(i + seed) % PERSONA_ORDER.length]) }));
-  let state = E.createAlphaGame({ gameId: `bots-${seed}-${players}`, seed, preset, worldPreset, players: seats.map(({ id, name, civilization }) => ({ id, name, civilization })) });
+  let state = E.createAlphaGame({ gameId: `bots-${seed}-${players}`, seed, preset, worldPreset, startingPioneers, players: seats.map(({ id, name, civilization }) => ({ id, name, civilization })) });
   state = E.beginAlphaPlanning(state);
   // Optional local playtest log (same recorder as the dev server): pass playtestLog: <directory>. Reads states only.
   const recorder = playtestLog ? new PlaytestRecorder(new FileSink(playtestLog)) : null;
@@ -44,6 +44,7 @@ function send(box, id, command) {
   ctx.recorder?.observe(box.state, id, { ...command, expectedVersion: box.state.version }, result);
   ctx.counters.commands++;
   ctx.counters.byType[command.type] = (ctx.counters.byType[command.type] ?? 0) + 1;
+  if (result.ok && command.type === 'QUEUE_ORDER') { const k = command.order?.type ?? '?'; (ctx.counters.orders ??= {})[k] = (ctx.counters.orders[k] ?? 0) + 1; }
   if (!result.ok) { ctx.counters.rejected++; const key = `${command.type}:${result.error.code}`; ctx.counters.rejectedReasons[key] = (ctx.counters.rejectedReasons[key] ?? 0) + 1; ctx.lastError = result.error.message; if (process.env.BOT_TRACE) console.error('REJ', box.state.core.round, id, command.type, command.action ?? command.command?.type ?? command.order?.type ?? '', '=>', result.error.message); return false; }
   if (process.env.BOT_TRACE === 'ok') console.error('OK', box.state.core.round, id, command.type, command.action ?? command.command?.type ?? command.order?.type ?? '', command.unit ?? command.build?.district ?? command.build?.building ?? command.advancementId ?? '');
   box.state = result.value;
@@ -83,7 +84,7 @@ function assignPopulation(box, id, persona) {
     const free = pop - soldiers;
     if (free <= 0) continue;
     const foodRich = me(state, id).resources.food >= 11;
-    const producers = Math.max(1, Math.ceil(free * (foodRich ? 0.3 : 0.5))), rest = free - producers;
+    const producers = Math.max(1, Math.ceil(free * (foodRich ? 0.3 : me(state, id).resources.food < 5 ? 0.7 : 0.5))), rest = free - producers;
     const stock = me(state, id).resources;
     const woodShort = stock.wood < 6 || (stock.stone < 3 && stock.wood < 9);
     const miss = box.ctx.skill === 'naive' ? null : deficits(state, id);
@@ -168,36 +169,61 @@ export function candidates(box, id, persona) {
   if (p.era === 'ASCENSION' && !p.hegemony) {
     for (const entry of E.hegemonyProgress(state, id)) if (entry.requirements.every(r => r.met)) add(99, `heg:${entry.path}`, { type: 'DECLARE_HEGEMONY', path: entry.path });
   }
-  // Pioneers: found cities.
+  // Pioneers (V51B-16): the one civil piece explores OR founds per Order. Roles: with two, the first founds and the second explores; with one,
+  // it founds as soon as a legal site is in reach and explores toward the nearest closed Region until then. Pieces keep clear of visible threats.
   const wantCities = persona.settle + (eraIndex >= 3 ? 1 : 0);
-  for (const unit of myUnits.filter(u => u.kind === 'PIONEER')) {
+  const pioneers = myUnits.filter(u => u.kind === 'PIONEER').sort((a, b) => a.id.localeCompare(b.id));
+  const cityTiles = state.core.players.flatMap(pl => pl.civilization.cities).map(c => tileOf(state, c.hexId));
+  const ownCityTiles = cities.map(c => tileOf(state, c.hexId));
+  const dangers = threatsSeen.map(t => tileOf(state, t.hexId)).filter(Boolean);
+  const safeHex = hex => !dangers.some(d => dist(tileOf(state, hex), d) <= 2);
+  const closedRegions = state.regions.filter(r => r.revealedBy.length === 0);
+  const nearestClosed = tile => closedRegions.map(r => ({ r, d: Math.min(...r.hexIds.map(h => dist(tile, tileOf(state, h)))) })).sort((a, b) => a.d - b.d || a.r.id.localeCompare(b.r.id))[0];
+  const goodTerrain = ['PLAINS', 'FOREST', 'COAST', 'HILLS'];
+  const siteScore = (tile, minGap) => {
+    const near = Math.min(...cityTiles.map(c => dist(c, tile)));
+    if (tile.ownerId !== null || !goodTerrain.includes(tile.terrain) || near < minGap) return null;
+    return (near === 3 ? 4 : near === 4 ? 3 : 1) + (tile.terrain === 'PLAINS' ? 2 : tile.terrain === 'COAST' ? 1 : 0) - Math.min(...ownCityTiles.map(c => dist(c, tile))) * 0.1;
+  };
+  pioneers.forEach((unit, idx) => {
     const uo = unitOpts[unit.id];
-    if (!uo) continue;
-    if (uo.settleBlock === null && nCities < 7) add(96, `settle:${unit.id}`, { type: 'SETTLE', unitId: unit.id, name: `Colônia ${id}-${round}-${nCities + 1}` });
-    else if (nCities < wantCities + 1) {
-      const sites = Object.keys(uo.moves).map(hex => ({ hex, tile: tileOf(state, hex) })).filter(({ tile }) => tile && ['PLAINS', 'FOREST', 'COAST', 'HILLS'].includes(tile.terrain) && tile.ownerId === null)
-        .map(s => ({ ...s, near: Math.min(...state.core.players.flatMap(pl => pl.civilization.cities).map(c => dist(tileOf(state, c.hexId), s.tile))) }))
-        .filter(s => s.near >= 3).sort((a, b) => a.near - b.near || a.hex.localeCompare(b.hex));
-      const far = Object.keys(uo.moves).map(hex => ({ hex, tile: tileOf(state, hex) })).filter(({ tile }) => tile && tile.ownerId === null && !['SEA', 'MOUNTAINS'].includes(tile.terrain)).map(s => ({ ...s, near: Math.min(...cities.map(c => dist(tileOf(state, c.hexId), s.tile))) })).sort((a, b) => b.near - a.near || a.hex.localeCompare(b.hex));
-      const site = sites[0] ?? far[0];
-      if (site) add(90, `pioneer:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[site.hex] } });
+    if (!uo) return;
+    const here = tileOf(state, unit.hexId), hereNear = Math.min(...cityTiles.map(c => dist(c, here)));
+    const wantFound = nCities < Math.min(7, wantCities + 1);
+    const founderRole = pioneers.length === 1 || idx === 0;
+    const waited = (ctx.siteWait ??= new Map()).get(unit.id) ?? 0;
+    // Found on the spot: a legal site that keeps a gap of 3 (2 once the piece has waited long).
+    const canPay = p.resources.food >= 9 && p.resources.wealth >= 2 && p.resources.wood + p.resources.stone >= 3;
+    if (wantFound && founderRole && canPay && uo.settleBlock === null && hereNear >= (waited >= 3 ? 2 : 3) && safeHex(unit.hexId)) { add(96, `settle:${unit.id}`, { type: 'SETTLE', unitId: unit.id, name: `Colônia ${id}-${round}-${nCities + 1}` }); return; }
+    // Walk to the best known site (needs a Cidade-sized gap and unowned good land), then found it next round.
+    let walk = null;
+    if (wantFound && founderRole) {
+      const sites = Object.keys(uo.moves).map(hex => ({ hex, score: siteScore(tileOf(state, hex), 3), safe: safeHex(hex) })).filter(x => x.score !== null && x.safe).sort((a, b) => b.score - a.score || a.hex.localeCompare(b.hex));
+      if (sites[0]) walk = { hex: sites[0].hex, score: 92, key: 'site' };
     }
-  }
-  // Explorers.
-  for (const unit of myUnits.filter(u => u.kind === 'PIONEER')) {
-    const uo = unitOpts[unit.id];
-    if (!uo) continue;
-    if (uo.explore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } });
-    else {
-      // D-1 measurement: competent players sweep the ring 3–5 hexes from their cities, where a new Acampamento can stand, so a fresh camp can be found and struck inside its window.
-      const sweep = comp ? Object.keys(uo.moves).map(hex => ({ hex, tile: tileOf(state, hex) })).filter(s => s.tile && !['SEA', 'MOUNTAINS', 'UNKNOWN'].includes(s.tile.terrain) && s.tile.ownerId === null)
-        .map(s => ({ ...s, near: Math.min(...cities.map(c => dist(tileOf(state, c.hexId), s.tile))), seen: ctx.swept?.get(`${id}:${s.hex}`) ?? 0 })).filter(s => s.near >= 3 && s.near <= 5)
-        .sort((a, b) => a.seen - b.seen || a.hex.localeCompare(b.hex))[0] : null;
-      if (sweep) { (ctx.swept ??= new Map()).set(`${id}:${sweep.hex}`, round); add(46 * (persona.explore ?? 1), `sweep:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[sweep.hex] } }); continue; }
-      const frontier = Object.keys(uo.moves).map(hex => ({ hex, tile: tileOf(state, hex) })).filter(s => s.tile).sort((a, b) => dist(tileOf(state, o.civilization.cities[0].hexId), b.tile) - dist(tileOf(state, o.civilization.cities[0].hexId), a.tile) || a.hex.localeCompare(b.hex))[0];
-      if (frontier) add(38 * (persona.explore ?? 1), `scout:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[frontier.hex] } });
+    // Explore: a closed Region within reach; otherwise walk toward the nearest closed Region (edge of the Pátria first). Single Pioneiros do it only without a site.
+    const explorer = !wantFound || !founderRole || !walk;
+    if (explorer && (persona.explore ?? 1) > 0 && comp) {
+      if (uo.explore.length) { add(95 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } }); return; }
+      const goal = nearestClosed(here);
+      if (goal) {
+        const goalTiles = goal.r.hexIds.map(h => tileOf(state, h));
+        const step = Object.keys(uo.moves).filter(safeHex).map(hex => ({ hex, d: Math.min(...goalTiles.map(g => dist(tileOf(state, hex), g))) })).filter(x => x.d < goal.d).sort((a, b) => a.d - b.d || a.hex.localeCompare(b.hex))[0];
+        if (step) { add(94, `scout:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[step.hex] } }); return; }
+      }
+    } else if (!comp && uo.explore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } });
+    if (walk) { ctx.siteWait.set(unit.id, waited + 1); add(walk.score, `pioneer:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[walk.hex] } }); return; }
+    if (comp) {
+      // D-1 measurement: with nothing left to open, competent players sweep the ring 3–5 hexes from their cities so a fresh Acampamento is seen.
+      const sweep = Object.keys(uo.moves).map(hex => ({ hex, tile: tileOf(state, hex) })).filter(s => s.tile && !['SEA', 'MOUNTAINS', 'UNKNOWN'].includes(s.tile.terrain) && s.tile.ownerId === null && safeHex(s.hex))
+        .map(s => ({ ...s, near: Math.min(...ownCityTiles.map(c => dist(c, s.tile))), seen: ctx.swept?.get(`${id}:${s.hex}`) ?? 0 })).filter(s => s.near >= 3 && s.near <= 5)
+        .sort((a, b) => a.seen - b.seen || a.hex.localeCompare(b.hex))[0];
+      if (sweep) { (ctx.swept ??= new Map()).set(`${id}:${sweep.hex}`, round); add(46 * (persona.explore ?? 1), `sweep:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[sweep.hex] } }); }
+    } else if (nCities < wantCities + 1) {
+      const far = Object.keys(uo.moves).map(hex => ({ hex, tile: tileOf(state, hex) })).filter(({ tile }) => tile && tile.ownerId === null && !['SEA', 'MOUNTAINS'].includes(tile.terrain)).map(s => ({ ...s, near: Math.min(...ownCityTiles.map(c => dist(c, s.tile))) })).sort((a, b) => b.near - a.near || a.hex.localeCompare(b.hex))[0];
+      if (far) add(60, `scout:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[far.hex] } });
     }
-  }
+  });
   // Cities.
   const reformCost = E.governmentOptions(state, id).cost, reserveInfluence = comp && eraIndex >= 1 && (round % state.rules.roundsPerEra === state.rules.roundsPerEra - 1 || E.isReformRound(state));
   cities.forEach((city, index) => {
@@ -231,7 +257,14 @@ export function candidates(box, id, persona) {
     const alert = alerts.some(a => a.cityId === city.id);
     const want = persona.army + (enemies.length ? 2 : 0) + eraIndex + (alert ? 3 : 0) + (threatsSeen.length ? 2 : 0);
     const kindsAll = ['CAVALRY', 'SIEGE', 'RANGED', 'GUARD', 'INFANTRY'].filter(k => pick('RECRUIT', x => x.unit === k).length);
-    const smallCity = comp && city.population < (hard ? 10 : 12);
+    const smallCity = comp && city.population < (hard ? 10 : 12) && !(eraIndex >= 1 && city.population >= 5);
+    // V51B-16: every competent civilization keeps a minimum army (garrison first, then a field stack) even while its cities are small.
+    const minArmy = (round < 4 ? 1 : eraIndex < 2 ? 2 : eraIndex < 4 ? 3 + nCities : 4 + 2 * nCities) + (enemies.length && eraIndex >= 1 ? 2 : 0);
+    const famine = state.events.some(e => e.round === round - 1 && /SHORTAGE/.test(e.type));
+    if (comp && army.length < minArmy && city.population >= 5 && !(round < 4) && !famine && p.resources.food >= 7 + Math.ceil(army.length / 2)) {
+      const kind = here < 1 ? (kindsAll.includes('GUARD') ? 'GUARD' : kindsAll.includes('INFANTRY') ? 'INFANTRY' : null) : (kindsAll.includes('INFANTRY') && army.filter(u => u.kind === 'INFANTRY').length < 3 ? 'INFANTRY' : kindsAll.includes('RANGED') ? 'RANGED' : kindsAll.includes('INFANTRY') ? 'INFANTRY' : kindsAll[0] ?? null);
+      if (kind) add(90, `armymin:${city.id}:${kind}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: kind });
+    }
     if (comp && here < needDef && !smallCity) {
       const kind = kindsAll.includes('GUARD') ? 'GUARD' : kindsAll.includes('INFANTRY') ? 'INFANTRY' : null;
       if (kind) add(alert || nearThreat || round >= 8 || eraIndex >= 1 ? 131 : 84, `defend:${city.id}:${kind}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: kind });
@@ -281,7 +314,7 @@ export function candidates(box, id, persona) {
     const keepAt = hex => cityHexes.has(hex) ? (hard ? (hex === cities[0].hexId ? 2 : 1) : Math.min(4, (threatsSeen.length || enemies.length) ? 2 : eraIndex >= 1 ? 2 : 1)) : 0;
     const strikeTargets = [];
     for (const t of threatsSeen) if (t.kind === 'CAMP') strikeTargets.push({ hex: t.hexId, kind: 'threat', power: compPower(t), camped: t.status === 'CAMPED' });
-    for (const enemy of enemies) for (const c of owner(state, enemy)?.civilization.cities ?? []) strikeTargets.push({ hex: c.hexId, kind: 'enemy', power: 10 });
+    for (const enemy of enemies) for (const c of owner(state, enemy)?.civilization.cities ?? []) strikeTargets.push({ hex: c.hexId, kind: 'enemy', power: power(state.units.filter(u => u.hexId === c.hexId && u.ownerId === enemy && state.rules.units[u.kind].strength > 0)) + 2 });
     const stacks = new Map();
     for (const u of army) if (!u.carrierId) { const g = stacks.get(u.hexId) ?? []; g.push(u); stacks.set(u.hexId, g); }
     for (const [hex, units] of stacks) {
@@ -292,7 +325,7 @@ export function candidates(box, id, persona) {
       const here = tileOf(state, hex);
       const reachable = strikeTargets.map(t => ({ ...t, d: dist(here, tileOf(state, t.hex)) })).filter(t => t.d <= (t.kind === 'threat' ? 8 : 9) && (t.kind === 'threat' ? (t.camped || t.d <= 4) : (persona.war <= round || hard))).sort((a, b) => a.d - b.d)[0];
       if (!reachable) continue;
-      const required = reachable.kind === 'threat' ? Math.max(4, Math.ceil(reachable.power * (hard ? 1.35 : 1.6))) : 14;
+      const required = reachable.kind === 'threat' ? Math.max(4, Math.ceil(reachable.power * (hard ? 1.35 : 1.6))) : Math.max(5, Math.ceil(reachable.power * 1.5));
       if (reachable.d === 1) {
         const order = { id: nextOrderId(box, id), type: 'ATTACK', unitIds: usable.map(u => u.id).slice(0, 12), target: reachable.hex, posture: persona.posture };
         let preview = null; try { preview = E.combatPreview(state, id, order); } catch { /* ignore */ }
@@ -346,12 +379,17 @@ export function candidates(box, id, persona) {
     const foodCostOf = command => { const row = (view.cities[command.cityId] ?? []).find(o => o.action === command.action && (o.unit ?? null) === (command.unit ?? null) && (!command.build || JSON.stringify(o.build) === JSON.stringify(command.build))); return row?.cost?.food ?? 0; };
     // Saving for Elevar: when a city lacks only resources, spending that would eat into them waits (defence against a Bando at the gate excepted).
     const saveFor = {};
+    // A Pioneiro standing ready to found keeps the founding cost (Alimento 5, Materiais 3, Riqueza 2) out of reach of other spending.
+    const foundReserve = pioneers.length && nCities < Math.min(7, wantCities + 1) && round >= 2 ? { food: 6, wood: 3, stone: 0, wealth: 2 } : null;
     for (const city of cities) { const row = (view.cities[city.id] ?? []).find(o => o.action === 'ELEVATE'); if (row && /Recursos/.test(row.blocked ?? '')) for (const [k, v] of Object.entries(row.cost)) if (v > 0) saveFor[k] = Math.max(saveFor[k] ?? 0, v); }
     const costOf = command => (view.cities[command.cityId] ?? []).find(o => o.action === command.action && (o.unit ?? null) === (command.unit ?? null) && (!command.build || JSON.stringify(o.build) === JSON.stringify(command.build)))?.cost ?? {};
     return out.filter(c => {
       if (c.command.type !== 'URBAN_ACTION' || !['RECRUIT', 'BUILD'].includes(c.command.action)) return true;
       const urgent = (c.key.startsWith('defend') || c.key.startsWith('fort')) && (alerts.length > 0 || threatsSeen.some(t => t.status === 'MARCHING'));
       if (urgent) return true;
+      const foundingReserve = foundReserve && !(c.command.action === 'RECRUIT' && c.command.unit === 'PIONEER') ? foundReserve : null;
+      if (foundingReserve) { const cost = costOf(c.command); if (Object.entries(foundingReserve).some(([k, need]) => (cost[k] ?? 0) > 0 && p.resources[k] - cost[k] < need)) return false; }
+      if (c.key.startsWith('armymin')) return p.resources.food - foodCostOf(c.command) >= 2;
       if (p.resources.food - foodCostOf(c.command) + nCities * 2 < sustain + 1) return false;
       const cost = costOf(c.command);
       return !Object.entries(saveFor).some(([k, need]) => (cost[k] ?? 0) > 0 && p.resources[k] - cost[k] < need);

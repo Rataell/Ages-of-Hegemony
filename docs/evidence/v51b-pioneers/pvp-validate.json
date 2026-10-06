@@ -1,0 +1,1545 @@
+[
+ {
+  "players": 2,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 3,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+2",
+    "Dados: manobra+1"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Dados: manobra+1"
+   ],
+   "losses": [
+    "pv-d-GUARD-8"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 2,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 4,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+4",
+    "Salva (Arqueiros I)+1"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+2",
+    "Fortificação+1"
+   ],
+   "losses": [
+    "pv-d-GUARD-8"
+   ],
+   "retreat": null,
+   "wall": "PALISADE/INTACT→PALISADE/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 2,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 2,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+4",
+    "Dados: manobra+3",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1"
+   ],
+   "losses": [
+    "pv-d-GUARD-8"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 2,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": 2,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+1",
+    "Flanco (Cavalaria I)+1"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1",
+    "Dados: impactos+2",
+    "Dados: manobra+1"
+   ],
+   "losses": [
+    "pv-d-INFANTRY-5"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 2,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": 1,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Dados: impactos+1",
+    "Salva (Arqueiros I)+1"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1",
+    "Dados: impactos+4"
+   ],
+   "losses": [
+    "pv-a-RANGED-3",
+    "pv-d-INFANTRY-5"
+   ],
+   "retreat": "-3,5",
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 2,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": 4,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+2",
+    "Dados: manobra+4",
+    "Guardas inimigas anularam 2 impacto(s)-2"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1",
+    "Dados: manobra+1"
+   ],
+   "losses": [
+    "pv-d-INFANTRY-5"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 2,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 8,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+4",
+    "Dados: manobra+1"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: manobra+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-7",
+    "pv-d-RANGED-8"
+   ],
+   "retreat": "-3,4",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 1,
+   "tacticalA": 6,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 2,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 6,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+6"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Dados: manobra+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-7",
+    "pv-d-RANGED-8"
+   ],
+   "retreat": "-3,4",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 1,
+   "tacticalA": 6,
+   "tacticalD": 4
+  }
+ },
+ {
+  "players": 2,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 3,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+4",
+    "Dados: manobra+3",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+2",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-7"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 6,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 2,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 4,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+2",
+    "Dados: manobra+1"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-6"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 2,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 5,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-6",
+    "pv-d-INFANTRY-7"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 1,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 2,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 3,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+4",
+    "Dados: manobra+3",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-6"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 2,
+  "case": "captura: cidade sem guarnição",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 7,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+2"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1"
+   ],
+   "losses": [],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 3,
+   "tacticalD": 0
+  }
+ },
+ {
+  "players": 2,
+  "case": "captura: cidade sem guarnição",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 3,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+2"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1"
+   ],
+   "losses": [
+    "unit-p2-128-8"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 3,
+   "tacticalD": 1
+  }
+ },
+ {
+  "players": 2,
+  "case": "captura: cidade sem guarnição",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 8,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+4",
+    "Dados: manobra+1"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1"
+   ],
+   "losses": [],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 3,
+   "tacticalD": 0
+  }
+ },
+ {
+  "players": 4,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 1,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Dados: impactos+4",
+    "Salva (Arqueiros I)+1",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Fortificação+1"
+   ],
+   "losses": [
+    "pv-a-GUARD-3",
+    "pv-d-GUARD-8"
+   ],
+   "retreat": "-4,1",
+   "wall": "PALISADE/INTACT→PALISADE/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": -1,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+4",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1"
+   ],
+   "losses": [
+    "pv-a-GUARD-3",
+    "pv-d-GUARD-8"
+   ],
+   "retreat": "-4,1",
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 4,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+6"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-8"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": 4,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+2",
+    "Flanco (Cavalaria I)+1"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1",
+    "Dados: impactos+2"
+   ],
+   "losses": [
+    "pv-d-INFANTRY-5"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": -1,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+2",
+    "Guardas inimigas anularam 2 impacto(s)-2"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1",
+    "Dados: impactos+2"
+   ],
+   "losses": [
+    "pv-a-RANGED-3",
+    "pv-d-INFANTRY-5"
+   ],
+   "retreat": "-4,1",
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": 1,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+3",
+    "Guardas inimigas anularam 1 impacto(s)-1"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1",
+    "Dados: impactos+2"
+   ],
+   "losses": [
+    "pv-a-RANGED-3",
+    "pv-d-INFANTRY-5"
+   ],
+   "retreat": "-5,0",
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 4,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+4",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Fortificação+2",
+    "Brecha aberta pelo cerco-1"
+   ],
+   "losses": [
+    "pv-d-GUARD-7"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/DAMAGED",
+   "captured": 0,
+   "tacticalA": 6,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 0,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+4",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Salva (Arqueiros I)+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-a-INFANTRY-1",
+    "pv-d-GUARD-7"
+   ],
+   "retreat": "-4,1",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 6,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 8,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+8"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+2",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-7",
+    "pv-d-RANGED-8"
+   ],
+   "retreat": "-4,0",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 1,
+   "tacticalA": 6,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 4,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 2,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+4",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-6"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 4,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 0,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+4",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-a-INFANTRY-1",
+    "pv-d-GUARD-6"
+   ],
+   "retreat": "-4,1",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 4,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 5,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+6"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-6",
+    "pv-d-INFANTRY-7"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 1,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 4,
+  "case": "captura: cidade sem guarnição",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 6,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+2"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1",
+    "Fortificação+1"
+   ],
+   "losses": [],
+   "retreat": null,
+   "wall": "PALISADE/INTACT→PALISADE/INTACT",
+   "captured": 1,
+   "tacticalA": 3,
+   "tacticalD": 0
+  }
+ },
+ {
+  "players": 4,
+  "case": "captura: cidade sem guarnição",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 5,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+2"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1"
+   ],
+   "losses": [],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 3,
+   "tacticalD": 0
+  }
+ },
+ {
+  "players": 4,
+  "case": "captura: cidade sem guarnição",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 7,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+4"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1"
+   ],
+   "losses": [],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 3,
+   "tacticalD": 0
+  }
+ },
+ {
+  "players": 6,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 7,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+2",
+    "Dados: manobra+1",
+    "Salva (Arqueiros I)+1",
+    "Salva (Arqueiros I)+1"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1"
+   ],
+   "losses": [
+    "pv-d-GUARD-8",
+    "pv-d-INFANTRY-6"
+   ],
+   "retreat": "-3,4",
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 6,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 0,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+6",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: manobra+1",
+    "Fortificação+1"
+   ],
+   "losses": [
+    "pv-a-GUARD-3",
+    "pv-d-GUARD-8"
+   ],
+   "retreat": "-3,5",
+   "wall": "PALISADE/INTACT→PALISADE/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 6,
+  "case": "campo: Infantaria+Guarda+Arqueiros vs Infantaria+Guarda (Assalto×Manter)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 0,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+4",
+    "Dados: manobra+1",
+    "Salva (Arqueiros I)+1",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Fortificação+1"
+   ],
+   "losses": [
+    "pv-a-GUARD-3",
+    "pv-d-GUARD-8"
+   ],
+   "retreat": "-4,4",
+   "wall": "PALISADE/INTACT→PALISADE/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 6,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": 7,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+1",
+    "Dados: manobra+2",
+    "Salva (Arqueiros I)+1"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1"
+   ],
+   "losses": [
+    "pv-d-INFANTRY-5",
+    "pv-d-INFANTRY-6"
+   ],
+   "retreat": "-3,4",
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 6,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": 0,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+2",
+    "Guardas inimigas anularam 2 impacto(s)-2"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1",
+    "Dados: manobra+1"
+   ],
+   "losses": [
+    "pv-a-RANGED-3",
+    "pv-d-INFANTRY-5"
+   ],
+   "retreat": "-3,5",
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 6,
+  "case": "manobra: Cavalaria+Arqueiros vs Infantaria (Manobra×Assalto)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "MANEUVER",
+   "defenderPosture": "ASSAULT",
+   "delta": 2,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+2",
+    "Dados: manobra+2",
+    "Guardas inimigas anularam 1 impacto(s)-1"
+   ],
+   "defense": [
+    "Postura Assalto vence Manobra+1",
+    "Dados: impactos+2"
+   ],
+   "losses": [
+    "pv-d-INFANTRY-5"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 4,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 6,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 7,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+2",
+    "Dados: manobra+1"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Salva (Arqueiros I)+1",
+    "Salva (Arqueiros I)+1",
+    "Fortificação+2",
+    "Brecha aberta pelo cerco-2"
+   ],
+   "losses": [
+    "pv-d-GUARD-7",
+    "pv-d-RANGED-8"
+   ],
+   "retreat": "-3,4",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/BREACHED",
+   "captured": 1,
+   "tacticalA": 6,
+   "tacticalD": 3
+  }
+ },
+ {
+  "players": 6,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 1,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+6",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: manobra+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-a-INFANTRY-1",
+    "pv-d-GUARD-7"
+   ],
+   "retreat": "-3,5",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 6,
+   "tacticalD": 4
+  }
+ },
+ {
+  "players": 6,
+  "case": "cerco: Infantaria+Cerco vs Arqueiros+Guarda atrás de Muralha",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": -1,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Brecha (Engenho de cerco I)+2",
+    "Brecha (Engenho de cerco I)+2",
+    "Dados: impactos+6",
+    "Dados: manobra+1",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Dados: manobra+1",
+    "Salva (Arqueiros I)+1",
+    "Fortificação+2",
+    "Brecha aberta pelo cerco-1"
+   ],
+   "losses": [
+    "pv-a-INFANTRY-1",
+    "pv-d-GUARD-7"
+   ],
+   "retreat": "-4,4",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/DAMAGED",
+   "captured": 0,
+   "tacticalA": 6,
+   "tacticalD": 5
+  }
+ },
+ {
+  "players": 6,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 5,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+2",
+    "Dados: manobra+1"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-6",
+    "pv-d-INFANTRY-7"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 1,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 6,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 2,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+6",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-d-GUARD-6"
+   ],
+   "retreat": null,
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 6,
+  "case": "sem Cerco: Infantaria contra Muralha (Brecha ausente)",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 0,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+4",
+    "Dados: manobra+1",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Muro (Guarda I)+1",
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1",
+    "Fortificação+2"
+   ],
+   "losses": [
+    "pv-a-INFANTRY-1",
+    "pv-d-GUARD-6"
+   ],
+   "retreat": "-4,4",
+   "wall": "STONE_WALL/INTACT→STONE_WALL/INTACT",
+   "captured": 0,
+   "tacticalA": 5,
+   "tacticalD": 2
+  }
+ },
+ {
+  "players": 6,
+  "case": "captura: cidade sem guarnição",
+  "seed": 1,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 8,
+   "outcome": "DECISIVE",
+   "winner": "p1",
+   "attack": [
+    "Dados: impactos+2",
+    "Dados: manobra+1"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1"
+   ],
+   "losses": [],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 3,
+   "tacticalD": 0
+  }
+ },
+ {
+  "players": 6,
+  "case": "captura: cidade sem guarnição",
+  "seed": 2,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 3,
+   "outcome": "VICTORY",
+   "winner": "p1",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+6",
+    "Guardas inimigas anularam 2 impacto(s)-4"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1"
+   ],
+   "losses": [
+    "unit-p2-379-14"
+   ],
+   "retreat": null,
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 1,
+   "tacticalA": 3,
+   "tacticalD": 1
+  }
+ },
+ {
+  "players": 6,
+  "case": "captura: cidade sem guarnição",
+  "seed": 3,
+  "injected": {
+   "ok": true,
+   "error": null
+  },
+  "battle": {
+   "attackerPosture": "ASSAULT",
+   "defenderPosture": "HOLD",
+   "delta": 1,
+   "outcome": "TIE",
+   "winner": "p2",
+   "attack": [
+    "Sem suprimento-2",
+    "Dados: impactos+2",
+    "Dados: manobra+1"
+   ],
+   "defense": [
+    "Postura Manter vence Assalto+1",
+    "Dados: impactos+1"
+   ],
+   "losses": [
+    "pv-a-INFANTRY-1",
+    "unit-p2-375-16"
+   ],
+   "retreat": "-4,4",
+   "wall": "NONE/INTACT→NONE/INTACT",
+   "captured": 0,
+   "tacticalA": 3,
+   "tacticalD": 2
+  }
+ }
+]
