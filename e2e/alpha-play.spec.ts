@@ -23,6 +23,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
   const evidence='docs/evidence/playable-alpha-v1',actionEvidence='docs/evidence/alpha-round-action-economy';await Promise.all([mkdir(evidence,{recursive:true}),mkdir(actionEvidence,{recursive:true})]);
   try{
     await pa.goto('/alpha');await pa.getByLabel('Seu nome',{exact:true}).fill('Ana');await pa.getByRole('combobox',{name:'Tema',exact:true}).selectOption('DARK');await pa.screenshot({path:`${evidence}/1440-home.png`,caret:'initial'});
+    await pa.getByText('Opções da mesa',{exact:true}).click();
     await expect(pa.getByLabel('Ordens por rodada')).toHaveValue('5');
     for(const [width,height] of [[1366,768],[1440,900],[1920,1080]] as const){await pa.setViewportSize({width,height});await pa.screenshot({path:`${actionEvidence}/${width}x${height}-create.png`,caret:'initial'});expect(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     await pa.setViewportSize({width:1440,height:900});

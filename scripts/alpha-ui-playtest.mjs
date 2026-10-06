@@ -594,7 +594,7 @@ const [host, ...guests] = seats;
 for (const seat of seats) { await seat.page.goto(`${BASE}/alpha`); await seat.page.getByLabel('Seu nome', { exact: true }).fill(seat.label); }
 await host.page.getByLabel('Lugares', { exact: false }).selectOption(String(N)).catch(() => {});
 await host.page.getByLabel('Duração').selectOption(PRESET).catch(() => {});
-const reveal = arg.has('reveal'); if (reveal) await host.page.getByLabel(/Mapa revelado/).check();
+const reveal = arg.has('reveal'); if (reveal) { await host.page.getByText('Opções da mesa', { exact: true }).click(); await host.page.getByLabel(/Mapa revelado/).check(); }
 await host.page.getByRole('button', { name: 'Criar partida', exact: true }).click();
 await host.page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
 const code = (await host.page.locator('.alpha-lobby-heading code').innerText()).trim();

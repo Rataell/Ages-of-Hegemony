@@ -275,3 +275,40 @@ button.alpha-socket:disabled { cursor: default; opacity: 1; }
 .alpha-page .alpha-era-track { overflow: visible; } .alpha-page .alpha-era-track li { min-width: 0; }
 .alpha-frame .alpha-panel, .alpha-livro .alpha-panel { max-width: none; margin: 0; padding: 0; }
 .alpha-livro .alpha-panel .alpha-line { font-size: 13px; margin: 0; }
+
+/* ===== Entry screen: the same glass-on-table language as the Mesa ===== */
+.alpha-shell:not(.alpha-game) { background: radial-gradient(ellipse at 50% 30%, var(--surface-elevated), var(--map-ground) 72%); min-height: 100dvh; }
+.alpha-shell:not(.alpha-game)::before { content: ''; position: fixed; inset: 0; pointer-events: none; opacity: .18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='180' viewBox='0 0 104 180'%3E%3Cg fill='none' stroke='%23889' stroke-width='1.2'%3E%3Cpath d='M52 2l45 26v52l-45 26-45-26V28z'/%3E%3Cpath d='M0 92l7 4M104 92l-7 4M52 106v52l45 26M52 158l-45 26'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 104px 180px; mask-image: radial-gradient(ellipse at 50% 40%, #000 0%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 0%, transparent 70%); }
+.alpha-shell:not(.alpha-game) > * { position: relative; }
+.alpha-entry { max-width: 560px; margin: 0 auto; padding: 5vh 16px 40px; display: flex; flex-direction: column; align-items: stretch; gap: 22px; grid-template-columns: none; }
+.alpha-entry-hero { text-align: center; display: grid; justify-items: center; gap: 6px; }
+.alpha-entry-mark { width: 54px; height: 62px; color: var(--mark, #d8b46a); margin-bottom: 4px; }
+.alpha-entry-hero .aoh-eyebrow { margin: 0; letter-spacing: .22em; font-size: 11px; color: var(--text-muted); }
+.alpha-entry-hero h1 { margin: 2px 0 0; font: 600 clamp(30px, 6vw, 44px)/1.08 var(--font-display, var(--serif)); letter-spacing: .06em; text-transform: uppercase; color: var(--text-primary); }
+.alpha-entry-tagline { margin: 4px 0 0; max-width: 420px; font-size: 14.5px; color: var(--text-secondary); }
+.alpha-entry-card { padding: 22px; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--border) 65%, transparent); box-shadow: 0 14px 40px rgb(0 0 0 / .38); display: grid; gap: 16px; }
+.alpha-entry-card label { display: grid; gap: 5px; font-size: 12.5px; color: var(--text-secondary); }
+.alpha-entry-card input, .alpha-entry-card select { width: 100%; box-sizing: border-box; min-height: 40px; padding: 8px 12px; border-radius: 10px; }
+.alpha-entry-card h2 { margin: 0; font: 600 14px var(--font-display, var(--serif)); letter-spacing: .12em; text-transform: uppercase; color: var(--text-primary); }
+.alpha-entry-who { display: grid; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); }
+.alpha-entry-create, .alpha-entry-join { display: grid; gap: 12px; border: 0; margin: 0; padding: 0; }
+.alpha-entry-card .alpha-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.alpha-advanced { border: 1px solid var(--border-subtle); border-radius: 10px; padding: 0; }
+.alpha-advanced > summary { cursor: pointer; padding: 9px 12px; font-size: 12.5px; color: var(--text-secondary); list-style: none; }
+.alpha-advanced > summary::before { content: '▸ '; } .alpha-advanced[open] > summary::before { content: '▾ '; }
+.alpha-advanced-body { display: grid; gap: 12px; padding: 4px 12px 12px; }
+.alpha-entry-card button.primary { min-height: 44px; border-radius: 999px; font-weight: 600; letter-spacing: .02em; }
+.alpha-entry-card button.primary:disabled { opacity: .55; }
+.alpha-entry-or { display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .14em; }
+.alpha-entry-or::before, .alpha-entry-or::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+.alpha-entry-join-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+.alpha-entry-join-row button { min-height: 40px; padding: 0 18px; border-radius: 999px; }
+.alpha-entry .alpha-test-notice { margin: 0; text-align: center; font-size: 12px; color: var(--text-muted); }
+.alpha-entry .alpha-resume { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--border-accent, var(--mark)); border-radius: 12px; }
+.alpha-entry .alpha-resume p { margin: 0; font-size: 13px; }
+@media (max-width: 520px) { .alpha-entry-card { padding: 16px; } .alpha-entry-card .alpha-form-row, .alpha-entry-join-row { grid-template-columns: 1fr; } }
+.alpha-entry-card details.alpha-advanced { margin: 0; padding: 0; }
+.alpha-entry-card details.alpha-advanced > summary { padding: 10px 14px; }
+.alpha-entry-card .alpha-form-row { margin: 0; }

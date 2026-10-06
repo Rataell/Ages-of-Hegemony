@@ -21,6 +21,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
   try {
     // Creation: only schema-valid deadlines, and the world preset travels with the create request.
     await pa.goto('/alpha'); await pa.getByLabel('Seu nome', { exact: true }).fill('Ana');
+    await pa.getByText('Opções da mesa', { exact: true }).click(); // advanced table options are folded away
     const options = async (label: string) => pa.getByLabel(label, { exact: false }).first().locator('option').allTextContents();
     expect(await options('Prazo por fase')).toEqual(['Sem prazo', '3 minutos', '5 minutos', '8 minutos', '1 hora', '4 horas', '8 horas']);
     expect(await options('Mundo')).toEqual(['Continental', 'Arquipélago', 'Mar Interior', 'Misto']);

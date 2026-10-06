@@ -1,3 +1,4 @@
+/* global setTimeout */
 // Live bots check: node scripts/alpha-live-bots.mjs plan  → restart the service →  node scripts/alpha-live-bots.mjs verify
 // plan: 1 human + 2 bots start, the human plays round 1, then the table is SUSPENDED in round 2 and must not move.
 // verify (after restart): still SUSPENDED, same 2 bot seats (no duplicate, no replacement), resume → the bots plan and confirm and the round advances.

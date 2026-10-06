@@ -19,7 +19,7 @@ const open = async label => {
 const A = await open('A'), B = await open('B');
 for (const p of [A, B]) { await p.page.goto(`${BASE}/alpha`); await p.page.getByLabel('Seu nome', { exact: true }).fill(`Jogador ${p.label}`); }
 await A.page.getByLabel('Duração').selectOption('STANDARD');
-await A.page.getByLabel(/Mapa revelado/).check();
+await A.page.getByText('Opções da mesa', { exact: true }).click(); await A.page.getByLabel(/Mapa revelado/).check();
 await A.page.getByRole('button', { name: 'Criar partida', exact: true }).click();
 await A.page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
 const code = (await A.page.locator('.alpha-lobby-heading code').innerText()).trim();
