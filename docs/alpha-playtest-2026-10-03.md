@@ -1,5 +1,8 @@
 # Playtest e correções — Alpha v0.1 (2026-10-03)
 
+> **CONTACT/PVP METRICS PRE-HOME-MAXIMIN** — contato, 1º combate, frequência de PvP e capturas deste relatório foram medidos com capitais a ~5 hexes (antes da distribuição maximin das Pátrias). Dados mantidos como histórico; NÃO usar para avaliar o mapa atual. Economia sem guerra segue válida como evidência histórica. Próximo dado: playtest humano real.
+
+
 - Branch: `feature/aoh-playable-alpha-v1`. Base: `a4bdc4e` (`feat(alpha): advance playable systems`).
 - Máquina: macOS, Node 26.10, npm (lockfile `package-lock.json`).
 - Escopo: jogar como usuário real em 2, 4 e 6 lugares, corrigir o que impede uma partida de ponta a ponta e medir o alcance de contato.

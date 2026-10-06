@@ -61,6 +61,9 @@ Tente de propósito: fundar uma segunda cidade, pesquisar, **encontrar o outro j
 - Contato: em que rodada encontrou o outro jogador? Teve motivo para conversar ou lutar?
 - Ressonância e Tabuleiro: você entendeu o que os 5 encaixes e a Repercussão fazem?
 - Quanto tempo uma rodada levou (planejar → resolver)? Quando ficou longa demais?
+- Mesa e legibilidade: a Mesa pareceu um lugar? Você percebeu o outro jogador (placa, Pátria)? As nuvens contextuais ficaram claras? O mapa continuou legível quando começou a encher? Diplomacia e primeiro combate: o que faltou saber?
+
+**Regra da sessão: não balancear durante o jogo. Registrar primeiro; ajustar só depois, com a bateria completa.**
 
 ## 5. Perguntas depois da partida (2 minutos)
 

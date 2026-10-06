@@ -1,5 +1,8 @@
 # Playtest readiness slice — relatório
 
+> **CONTACT/PVP METRICS PRE-HOME-MAXIMIN** — contato, 1º combate, frequência de PvP e capturas deste relatório foram medidos com capitais a ~5 hexes (antes da distribuição maximin das Pátrias). Dados mantidos como histórico; NÃO usar para avaliar o mapa atual. Economia sem guerra segue válida como evidência histórica. Próximo dado: playtest humano real.
+
+
 Nada de regra econômica, distância de Pátria, Δ de combate, nº de Ordens ou duração de Era foi alterado. Tudo local; sem push, merge ou deploy.
 
 ## 1. Pioneiros iniciais = 2 (congelado)

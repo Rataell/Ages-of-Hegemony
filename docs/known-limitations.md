@@ -35,3 +35,5 @@ O mapa usa SVG e 210 hexes nos cenários alpha atuais. Ainda faltam medições r
 O teste de partida completa começa com cinco cidades e reservas ampliadas para compor sistemas em poucas rodadas. Ele não é IA, não mede duração real e não substitui playtests a partir do lobby padrão. As durações QUICK/STANDARD/EPIC são hipóteses; os limites efetivos são 9/15/20 rodadas.
 
 Verificação pública de colisão do nome ainda pendente. Formal trademark clearance remains a pre-commercial-release task.
+
+> Métricas de contato/PvP/capturas dos relatórios de bots anteriores são **PRE-HOME-MAXIMIN** (capitais a ~5 hexes); não valem para o mapa atual. O dado válido virá do playtest humano real.

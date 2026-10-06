@@ -1,5 +1,8 @@
 ## A/C. Threat timeline (baseline, competent bots)
 
+> **CONTACT/PVP METRICS PRE-HOME-MAXIMIN** — contato, 1º combate, frequência de PvP e capturas deste relatório foram medidos com capitais a ~5 hexes (antes da distribuição maximin das Pátrias). Dados mantidos como histórico; NÃO usar para avaliar o mapa atual. Economia sem guerra segue válida como evidência histórica. Próximo dado: playtest humano real.
+
+
 | players | seed | threat | created | nearest city (hexes) | path len at 1st sight | launched (round) | gone (round) | first world assault | camped window (rounds) |
 |---|---|---|---|---|---|---|---|---|---|
 | 2 | 1 | camp-r1-e1-n1 | 1 | 5 | 5 | 6 | - | 11 | 5 |

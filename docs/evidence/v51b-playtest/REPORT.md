@@ -1,5 +1,8 @@
 # V5.1b — headless bot playtest (naive × competent × hardcore)
 
+> **CONTACT/PVP METRICS PRE-HOME-MAXIMIN** — contato, 1º combate, frequência de PvP e capturas deste relatório foram medidos com capitais a ~5 hexes (antes da distribuição maximin das Pátrias). Dados mantidos como histórico; NÃO usar para avaliar o mapa atual. Economia sem guerra segue válida como evidência histórica. Próximo dado: playtest humano real.
+
+
 Skill levels: **naive** (the first-pass bots: no defenders, no saving, research only as a leftover), **competent** (food-first economy, garrisons and walls near threats, proactive Governar, saving for Elevar, research every other round, Heritage first, camp strikes with a real stack, reform in the last round of an Era) and **hardcore** (competent plus one more defender per city from Era III, a second research line, a card every round, attacks at lower margin). Each cell is the mean over seeds 1/2/3. All matches run 35 rounds through `applyAlphaCommand` only. Bots are proxies for a table, not a human: figures say what the rules do under that play.
 
 ## Health

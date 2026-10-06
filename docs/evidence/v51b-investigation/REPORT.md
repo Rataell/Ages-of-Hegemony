@@ -1,5 +1,8 @@
 # Investigação V5.1b — suspeitas de balanço e contato (2026-10-05)
 
+> **CONTACT/PVP METRICS PRE-HOME-MAXIMIN** — contato, 1º combate, frequência de PvP e capturas deste relatório foram medidos com capitais a ~5 hexes (antes da distribuição maximin das Pátrias). Dados mantidos como histórico; NÃO usar para avaliar o mapa atual. Economia sem guerra segue válida como evidência histórica. Próximo dado: playtest humano real.
+
+
 Nenhuma regra ou número foi alterado: nenhum bug provado contra o cânone. Dados em `TABLES.md`, `variants/`, `scout/`, `GRAUS-SITUACIONAL.md`; scripts `scripts/alpha-investigate-v51b.mjs`, `scripts/alpha-grade-situational.mjs`.
 Causa: (1) bug · (2) cânone ambíguo · (3) emergente.
 
