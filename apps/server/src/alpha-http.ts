@@ -64,7 +64,8 @@ export class AlphaHttp {
   }
   private accessOk(given:string|undefined):boolean{
     const required=process.env.ALPHA_ACCESS_CODE;if(!required)return true;
-    const a=Buffer.from(given??''),b=Buffer.from(required);return a.length===b.length&&timingSafeEqual(a,b);
+    // Pasted codes often carry a trailing space or the wrong case: both are forgiven.
+    const a=Buffer.from((given??'').trim().toUpperCase()),b=Buffer.from(required.trim().toUpperCase());return a.length===b.length&&timingSafeEqual(a,b);
   }
   async handle(request:Request,now=Date.now()):Promise<Response>{
     const respond=(body:unknown,status=200,cookie?:string)=>{
