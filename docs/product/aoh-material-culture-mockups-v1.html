@@ -1,0 +1,476 @@
+<title>Material Culture & Civilizations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Source+Sans+3:wght@400;600&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+/* Surveyor's folio for the page; every miniature and card sits on a fixed dark board because the Mesa is dark. */
+:root{
+  --bg:#ebeeed; --panel:#f6f8f7; --ink:#16262b; --muted:#506268; --line:#bccac9; --brass:#7d6130; --ok:#2f7a4f; --bad:#a63d2f;
+  --board:#0f181c; --board-line:#24353d;
+  --disp:'Cinzel',Georgia,serif; --serif:'Cormorant Garamond',Georgia,serif; --body:'Source Sans 3',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1519; --panel:#131f25; --ink:#e6eceb; --muted:#97aeb4; --line:#27404a; --brass:#c9a867; --ok:#6fbf8a; --bad:#e08a78; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1519; --panel:#131f25; --ink:#e6eceb; --muted:#97aeb4; --line:#27404a; --brass:#c9a867; --ok:#6fbf8a; --bad:#e08a78; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--body);margin:0;padding-inline:max(16px,4vw);padding-block:32px 72px}
+main{max-width:1240px;margin:0 auto;display:grid;gap:48px}
+h1,h2,h3{font-family:var(--disp);font-weight:700;letter-spacing:.05em;text-wrap:balance;margin:0}
+h1{font-size:clamp(26px,4.2vw,40px);text-transform:uppercase;line-height:1.1}
+h2{font-size:20px;text-transform:uppercase;letter-spacing:.09em}
+h3{font-size:14px;text-transform:uppercase;letter-spacing:.1em}
+p{margin:0;max-width:74ch}
+.eyebrow{font:600 11px var(--body);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;color:var(--muted)}
+header,section{display:grid;gap:16px}
+.status{display:inline-flex;border:1px solid var(--brass);color:var(--brass);padding:3px 10px;border-radius:999px;font:600 12px var(--body);width:max-content}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.card b{font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.card small,.note{color:var(--muted);font-size:14px}
+.tag{display:inline-block;font:700 11px var(--body);letter-spacing:.12em;padding:1px 8px;border-radius:999px;border:1px solid currentColor}
+.tag.a{color:var(--ok)} .tag.b{color:var(--brass)} .tag.c{color:var(--bad)}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,370px),1fr));gap:16px;align-items:start}
+.cult{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px;min-width:0}
+.cult h3{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.cult h3 span{font:500 12px var(--body);letter-spacing:.04em;text-transform:none;color:var(--muted)}
+.view{display:grid;gap:5px;min-width:0}
+.view .cap{font:600 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.board{background:var(--board);border:1px solid var(--board-line);border-radius:10px;overflow:auto;max-width:100%}
+.board svg{display:block;margin:0 auto}
+.board.fluid svg{width:100%;height:auto}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.matrix{display:grid;grid-template-columns:90px repeat(3,minmax(0,1fr));gap:8px;align-items:center}
+.matrix .h{font:700 11px var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.matrix .c{background:var(--board);border:1px solid var(--board-line);border-radius:8px;display:flex;gap:8px;justify-content:center;align-items:flex-end;padding:6px;overflow:auto}
+.strip{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.strip .it{background:var(--board);border:1px solid var(--board-line);border-radius:8px;display:grid;justify-items:center;padding:6px 8px;color:#cfdadd;font-size:12px;gap:2px;text-align:center}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--panel);font:700 11px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tw{overflow-x:auto}
+.verdict{border-left:3px solid var(--brass);padding:4px 12px;font-size:14.5px;color:var(--muted)}
+.verdict b{color:var(--ink)}
+.chips{display:flex;gap:3px}.chips i{width:16px;height:16px;border-radius:3px;display:block;border:1px solid #0005}
+/* ---- cards ---- */
+.deck{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.tc{width:300px;background:linear-gradient(#1c262b,#151d21);border:1px solid #46555a;border-radius:14px;color:#e4e3d8;display:grid;grid-template-rows:auto auto 1fr;position:relative;box-shadow:inset 0 0 0 5px #151d21,inset 0 0 0 6px #b8914d55;overflow:hidden}
+.tc .art{margin:10px 10px 0;border-radius:8px;overflow:hidden;background:#0e1519;border:1px solid #2c3b41;position:relative}
+.tc .art svg{display:block;width:100%;height:auto}
+.tc .id{padding:10px 18px 0;display:grid;gap:1px}
+.tc .nm{font:700 20px var(--serif);letter-spacing:.02em;line-height:1.1}
+.tc .tt{font:500 italic 15px var(--serif);color:#c9b98a}
+.tc .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.tc .meta .tag{font-size:10px;color:#b7c1c1}
+.tc .fx{padding:8px 18px 16px;display:grid;gap:7px;font-size:13px;color:#d6d8cf}
+.tc .fx b{display:block;font:700 10px var(--body);letter-spacing:.14em;text-transform:uppercase;color:#b8914d}
+.tc .fx .pw{border-top:1px solid #b8914d55;padding-top:7px}
+.tc .band{height:14px;margin:0 18px 12px;opacity:.9}
+.tc .em{position:absolute;top:16px;right:16px;width:34px;height:34px;opacity:.95}
+.tc .steps{display:flex;gap:6px}.tc .steps i{flex:1;height:5px;border-radius:3px;background:#b8914d}
+code{font:500 .9em ui-monospace,Menlo,monospace}
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">Ages of Hegemony · proposta, nada implementado</div>
+  <h1>Material Culture & Civilizations</h1>
+  <p class="lede">A cidade V2.1 continua a mesma: escultórica, de pedra, madeira e bronze. Agora ela ganha <b>cultura material</b>: a arquitetura muda por civilização, a regra não. A cor do jogador segue sendo <b>posse</b>; a identidade da civilização é <b>outra camada</b>.</p>
+  <span class="status">Concept V1 · aguardando aprovação</span>
+  <div class="cards" id="scope"></div>
+</header>
+
+<section>
+  <h2>A · Mesma cidade N5, três civilizações</h2>
+  <p class="note">Mesmos slots, mesma massa, mesma altura, mesmo contorno, mesma regra. Muda material, telhado, pedra, ornamento, coração cívico e estandarte. O jogador é uma cor; a civilização, outra coisa.</p>
+  <div class="three" id="mA"></div>
+  <div class="verdict" id="mAv"></div>
+</section>
+
+<section>
+  <h2>B · Cidade costeira e Porto, três culturas</h2>
+  <p class="note">Gramática universal do Porto: <b>cidade → cais atravessa a aresta → água adjacente</b>. A forma varia: mole de pedra, píer de madeira, embarcadouro de pedra encaixada.</p>
+  <div class="three" id="mB"></div>
+</section>
+
+<section>
+  <h2>N3 · N5 · N7 em três culturas</h2>
+  <p class="note">Mesma progressão de massa, densidade, altura e contorno. A cultura só troca a pele. Cada célula: Focar e Mesa 1:1.</p>
+  <div class="matrix" id="matrix"></div>
+</section>
+
+<section>
+  <h2>Cor do jogador × identidade da civilização</h2>
+  <p class="note">A mesma civilização (Leontia) com três jogadores diferentes. A arquitetura não muda; o aro e o estandarte, sim.</p>
+  <div class="strip" id="pc"></div>
+</section>
+
+<section>
+  <h2>C · Cartas de Líder</h2>
+  <p class="note">Retrato <b>pictórico histórico + gravura premium + luz suave</b>, sem aparência de fotografia, anime, personagem de videogame ou fantasia. Retratos aqui são <b>placeholders de linguagem</b> (silhueta com luz e hachura), não arte final. Passiva e Poder são os <b>textos reais atuais</b> do chassi. Cada Líder traz a marca do tipo: Histórico, Semi-lendário, Lendário ou Mitológico.</p>
+  <div class="deck" id="leaders"></div>
+</section>
+
+<section>
+  <h2>D · Cartas de Civilização</h2>
+  <p class="note">Hierarquia: <b>arte → nome → identidade → efeito</b>. A arte é a cidade N5 na pele da cultura. Os efeitos são os do chassi atual, sem alteração.</p>
+  <div class="deck" id="civs"></div>
+</section>
+
+<section>
+  <h2>E · Obras de Legado: peça + carta</h2>
+  <p class="note">Mesmo sistema atual. A silhueta da Obra é a mesma na peça e na carta, vestida com o material de quem a constrói. Custos, requisito e efeito vêm do catálogo real.</p>
+  <div class="deck" id="obras"></div>
+</section>
+
+<section>
+  <h2>Herança (conceito)</h2>
+  <div class="deck" id="her"></div>
+</section>
+
+<section>
+  <h2>Cultura material das 18 civilizações</h2>
+  <div class="tw"><table id="sw"></table></div>
+</section>
+</main>
+
+<script>
+const SQ3=Math.sqrt(3);
+const rnd=seed=>{let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}};
+const n2=v=>Math.round(v*100)/100;
+const P=pts=>pts.map(p=>n2(p[0])+','+n2(p[1])).join(' ');
+const hexPts=R=>[0,1,2,3,4,5].map(i=>{const a=(60*i-90)*Math.PI/180;return[R*Math.cos(a),R*Math.sin(a)]});
+const dirXY=(k,d)=>{const a=k*Math.PI/3;return[d*Math.cos(a),d*Math.sin(a)]};
+let ACC='#5b9bc4',BANNER='PENNANT';
+const T={PLAINS:'#5d7350',FOREST:'#394f3e',HILLS:'#766f50',MOUNTAINS:'#60656b',COAST:'#a59c7a',SEA:'#264f68'};
+const DC={AGRARIAN:'#8a9a54',COMMERCIAL:'#b8964a',ACADEMIC:'#6f8cb0',ADMINISTRATIVE:'#8a7aa8',MILITARY:'#a85a50',INDUSTRIAL:'#80838a',CULTURAL:'#a8648e',MARITIME:'#4f9aa4'};
+const DN={AGRARIAN:'Agrário',COMMERCIAL:'Comercial',ACADEMIC:'Acadêmico',ADMINISTRATIVE:'Administrativo',MILITARY:'Militar',INDUSTRIAL:'Industrial',CULTURAL:'Cultural',MARITIME:'Marítimo'};
+const K={wA:'#cdc3ac',wB:'#bdb299',wC:'#ddd5c2',stone:'#b3ab99',stoneD:'#867f70',slate:'#5d646e',tile:'#8e7b66',tileD:'#6d5e4d',thatch:'#a99468',timber:'#6f573b',gold:'#b8914d',white:'#e4ddcc',blue:'#6f8f9a',glow:'#c9a15a',dark:'#241f1a',green:'#6f8658',teal:'#4f8f98'};
+const K0={...K};
+const OL='stroke="#0b0b0bcc" stroke-width=".7" vector-effect="non-scaling-stroke" stroke-linejoin="round"';
+let UID=0;
+
+/* ---------- local-unit parts (origin = ground centre, y up is negative) ---------- */
+const box=(x,w,h,c,y0=0)=>`<rect x="${x-w/2}" y="${-h-y0}" width="${w}" height="${h}" fill="${c}" ${OL}/>`;
+const gable=(x,w,hb,rh,c)=>`<polygon points="${P([[x-w/2-.8,-hb],[x,-hb-rh],[x+w/2+.8,-hb]])}" fill="${c}" ${OL}/>`;
+const pent=(x,w,hb,rh,c)=>`<polygon points="${P([[x-w/2-.6,-hb],[x-w/2+1,-hb-rh],[x+w/2-1,-hb-rh],[x+w/2+.6,-hb]])}" fill="${c}" ${OL}/>`;
+const dome=(x,r,hb,c)=>`<path d="M${x-r},${-hb} A${r},${r*1.05} 0 0 1 ${x+r},${-hb} Z" fill="${c}" ${OL}/>`;
+const cone=(x,w,hb,rh,c)=>gable(x,w-1.6,hb,rh,c);
+const cols=(x,w,h,n,c=K.white)=>Array.from({length:n},(_,i)=>`<rect x="${x-w/2+(w-1.1)*i/Math.max(1,n-1)}" y="${-h}" width="1.1" height="${h}" fill="${c}" ${OL}/>`).join('');
+const wins=(x,w,y,n,h=1.8,c=K.glow)=>Array.from({length:n},(_,i)=>`<rect x="${x-w/2+(w-1)*(i+.5)/n-.5}" y="${-y-h}" width="1" height="${h}" fill="${c}"/>`).join('');
+const arches=(x,w,h,n)=>Array.from({length:n},(_,i)=>{const cx=x-w/2+w*(i+.5)/n;return `<path d="M${cx-1.1},0 V${-h+1} A1.1,1.1 0 0 1 ${cx+1.1},${-h+1} V0 Z" fill="${K.dark}"/>`}).join('');
+const awn=(x,w,h,n,a,b)=>Array.from({length:n},(_,i)=>{const x0=x-w/2+w*i/n,x1=x0+w/n;return `<polygon points="${P([[x0,-h],[x1,-h],[x1+.5,-h+2.6],[x0-.5,-h+2.6]])}" fill="${i%2?b:a}" ${OL}/>`}).join('');
+const chim=(x,hb,h,c=K.stoneD)=>`<rect x="${x-.9}" y="${-hb-h}" width="1.8" height="${h}" fill="${c}" ${OL}/>`;
+const smoke=(x,y,k=1)=>`<g fill="#cfcac0" opacity=".38"><circle cx="${x}" cy="${-y-1.2*k}" r="${.9*k}"/><circle cx="${x+.7*k}" cy="${-y-3*k}" r="${1.2*k}"/></g>`;
+const flag=(x,hb,h,c)=>{if(c!==ACC)return '';const y=-hb-h;const pole=`<line x1="${x}" y1="${-hb}" x2="${x}" y2="${y}" stroke="#2a2118" stroke-width=".8"/>`;
+  const shp={PENNANT:[[x,y],[x+3.2,y+1],[x,y+2.2]],STRAIGHT:[[x,y],[x+3.6,y],[x+3.6,y+2.6],[x,y+2.6]],SWALLOWTAIL:[[x,y],[x+3.8,y],[x+2.6,y+1.4],[x+3.8,y+2.8],[x,y+2.8]],GONFALON:[[x,y],[x+2.6,y],[x+2.6,y+4.2],[x+1.3,y+3.2],[x,y+4.2]],SHIELD:[[x,y],[x+3,y],[x+3,y+2],[x+1.5,y+3.4],[x,y+2]],ROUNDED:[[x,y],[x+3.2,y],[x+3.4,y+1.4],[x+3.2,y+2.8],[x,y+2.8]]}[BANNER]||[[x,y],[x+3,y+1],[x,y+2]];
+  return pole+`<polygon points="${P(shp)}" fill="${ACC}" stroke="#0009" stroke-width=".4"/>`};
+const wheel=(x,r)=>`<circle cx="${x}" cy="${-r}" r="${r}" fill="none" stroke="${K.timber}" stroke-width="1.2"/><path d="M${x-r},${-r} H${x+r} M${x},${-2*r} V0" stroke="${K.timber}" stroke-width=".8"/>`;
+const yard=(x,w,c)=>`<polygon points="${P([[x-w/2,-.2],[x-w*.3,-w*.2],[x+w*.35,-w*.22],[x+w/2,.1],[x+w*.3,w*.16],[x-w*.4,w*.15]])}" fill="${c}" opacity=".0"/>`;
+const stairs=(x,w,n,c=K.stone)=>Array.from({length:n},(_,i)=>`<rect x="${x-w/2-i*.6}" y="${-(i+1)*1}" width="${w+i*1.2}" height="1" fill="${c}" ${OL}/>`).join('').split('').join('');
+
+/* ---------- 29 buildings (catalog DISTRICT_CATALOG) ---------- */
+const BLD={
+ GRANARY:   ()=>box(0,13,5,K.wB)+gable(0,13,5,5.2,K.thatch)+`<rect x="-2" y="-3.4" width="4" height="3.4" fill="${K.dark}"/><circle cx="4.6" cy="-1" r="1.1" fill="${K.thatch}"/><circle cx="6.2" cy="-1" r="1.1" fill="${K.wC}"/>`,
+ MILL:      ()=>box(-1,7,6,K.wA)+gable(-1,7,6,4,K.tile)+wheel(5.2,3.4)+`<rect x="2.4" y="-1" width="6" height="1" fill="#6f8f9c"/>`,
+ IRRIGATION:()=>arches(0,15,4.5,4)+box(0,15,4.5,K.stone)+arches(0,15,4.5,4)+`<rect x="-7.5" y="-5.6" width="15" height="1.1" fill="#6f8f9c"/>`,
+ WAREHOUSE: ()=>box(0,15,5,K.stoneD)+pent(0,15,5,2,K.slate)+`<rect x="-5.5" y="-3.4" width="3" height="3.4" fill="${K.dark}"/><rect x="-1.5" y="-3.4" width="3" height="3.4" fill="${K.dark}"/><rect x="2.5" y="-3.4" width="3" height="3.4" fill="${K.dark}"/>`,
+ MARKET:    ()=>`<rect x="-7.5" y="-1" width="15" height="1" fill="${K.stone}" ${OL}/>`+cols(-5,0.1,6,1,K.timber)+cols(5,0.1,6,1,K.timber)+awn(0,14,7,5,'#b59a63','#d9cfb6')+`<rect x="-3" y="-2.2" width="2.4" height="1.2" fill="${K.timber}"/><circle cx="3" cy="-1.6" r="1.2" fill="#8f5a4e"/>`,
+ TREASURY:  ()=>box(0,10,5.5,K.stone)+gable(0,10,5.5,2.4,K.white)+cols(0,7,5.5,3,K.white)+`<rect x="-1.4" y="-8.6" width="2.8" height="1.2" fill="${K.gold}" ${OL}/>`,
+ BANK:      ()=>box(0,12,6,K.wC)+dome(0,3,6,K.gold)+cols(0,10,6,4)+`<rect x="-6" y="-1" width="12" height="1" fill="${K.stone}"/>`,
+ SCRIBES_HOUSE:()=>box(-1.5,8,5,K.wA)+gable(-1.5,8,5,5.2,K.tileD)+box(4.2,3,9,K.wB)+cone(4.2,3,9,3,K.slate)+wins(4.2,3,5,1,2),
+ LIBRARY:   ()=>box(0,14,5.5,K.wC)+gable(0,14,5.5,2.2,K.slate)+arches(0,12,3.6,5)+wins(0,12,4.2,5,1.4),
+ ACADEMY:   ()=>box(0,13,5,K.wC)+cols(0,11,5,5)+gable(0,13,5,2.2,K.white)+dome(0,4.2,7.2,K.blue)+`<rect x="-.5" y="-14.6" width="1" height="2.4" fill="${K.gold}"/>`,
+ OBSERVATORY:()=>box(0,8,8,K.wC)+dome(0,4,8,K.blue)+`<path d="M-.6,-12 L1,-12.3 L1.1,-8 L-.5,-8 Z" fill="${K.dark}"/><line x1="0" y1="-12" x2="5" y2="-15.2" stroke="${K.stone}" stroke-width="1.2"/>`,
+ LABORATORY:()=>box(0,10,5,K.wA)+pent(0,10,5,2,K.tile)+chim(3.4,5,5.5)+smoke(3.4,10.4,.9)+`<path d="M-3,-5 q0,-3 2,-3 q2,0 2,3 Z" fill="#86a89a" ${OL}/>`,
+ ARCHIVE:   ()=>box(0,8,10,K.wB)+pent(0,8,10,1.6,K.stoneD)+wins(0,6.4,2,4,1.2,K.gold)+wins(0,6.4,5,4,1.2,K.gold)+wins(0,6.4,8,4,1.2,K.gold),
+ COURT:     ()=>stairs(0,12,2)+box(0,12,5,K.stone,2)+gable(0,12,5,3,K.white).replace(/y="-/g,'y="-')+cols(0,10,5,4),
+ CHANCELLERY:()=>box(0,12,5,K.wA)+pent(0,12,5,1.6,K.slate)+box(-5.4,3,8,K.wB)+box(5.4,3,8,K.wB)+flag(0,6.6,5,'#76708a'),
+ CIVIC_SQUARE:()=>`<polygon points="${P([[-8,-.5],[-3,-3.6],[5,-3.6],[8.5,-.4],[2,1.6],[-5,1.6]])}" fill="${K.wC}" ${OL}/><rect x="-.7" y="-8" width="1.4" height="7.4" fill="${K.stone}" ${OL}/>`+flag(0,8,4,'#76708a'),
+ BARRACKS:  ()=>box(0,14,4,K.wB)+`<rect x="-3.5" y="-3.2" width="7" height="3.2" fill="#3a2f27"/>`+box(-6.6,3.4,8,K.stoneD)+box(6.6,3.4,8,K.stoneD)+cone(-6.6,3.4,8,2.4,K.tileD)+cone(6.6,3.4,8,2.4,K.tileD)+flag(-6.6,10.4,3.2,'#8f5a4e')+flag(6.6,10.4,3.2,'#8f5a4e'),
+ ARSENAL:   ()=>box(0,15,4,K.stoneD)+pent(0,15,4,2.4,K.dark)+Array.from({length:6},(_,i)=>`<line x1="${-5.5+i*2.2}" y1="0" x2="${-5.5+i*2.2}" y2="-8.2" stroke="${K.stone}" stroke-width=".7"/>`).join(''),
+ TRAINING_GROUND:()=>`<polygon points="${P([[-8,0],[-5,-3.2],[5,-3.2],[8,0]])}" fill="#b49a6a" ${OL}/>`+`<line x1="-3" y1="-1" x2="-3" y2="-6" stroke="${K.timber}" stroke-width="1.2"/><circle cx="-3" cy="-6.6" r="1.2" fill="${K.wB}"/><line x1="3" y1="-1" x2="3" y2="-6" stroke="${K.timber}" stroke-width="1.2"/><circle cx="3" cy="-6.6" r="1.2" fill="${K.wB}"/>`,
+ WORKSHOP:  ()=>box(0,11,5,K.wB)+gable(0,11,5,3.2,K.tileD)+box(6.6,4,3.4,K.timber)+chim(-3,5,6)+smoke(-3,11,1),
+ FOUNDRY:   ()=>box(0,11,5.5,K.stoneD)+pent(0,11,5.5,1.6,K.slate)+`<rect x="-2" y="-3.6" width="4" height="3.6" fill="${K.glow}"/>`+chim(-4,5.5,9,K.stone)+chim(4,5.5,6,K.stone)+smoke(-4,14.5,1.3),
+ THEATER:   ()=>`<path d="M-8,0 A8,6 0 0 1 8,0 Z" fill="${K.stone}" ${OL}/><path d="M-5.6,0 A5.6,4.2 0 0 1 5.6,0 Z" fill="${K.wC}" opacity=".9"/><path d="M-3,0 A3,2.2 0 0 1 3,0 Z" fill="#8e6a80"/>`+box(0,5,4,K.wB,0).replace('<rect','<rect opacity=".0"'),
+ CULTURAL_CENTER:()=>box(0,12,4.5,K.wC)+dome(0,3.6,4.5,'#8e6a80')+flag(5.6,4.5,5,'#8e6a80')+flag(-5.6,4.5,5,'#b8914d'),
+ SANCTUARY: ()=>box(0,8,6,K.wC)+gable(0,8,6,6,K.white)+`<rect x="-.5" y="-16" width="1" height="4.4" fill="${K.gold}"/><rect x="-1.4" y="-14.4" width="2.8" height=".9" fill="${K.gold}"/>`+`<rect x="-1.2" y="-3.6" width="2.4" height="3.6" fill="${K.glow}"/>`,
+ TEMPLE:    ()=>stairs(0,13,2)+box(0,12,5,K.white,2)+cols(0,10,5,5).replace(/y="-/g,'y="-')+gable(0,12,7,3.2,K.gold),
+ TRADITION_HOUSE:()=>box(0,14,4.5,K.wB)+`<polygon points="${P([[-8,-4.5],[-6,-9],[0,-7.6],[6,-9],[8,-4.5]])}" fill="${K.tileD}" ${OL}/>`+`<rect x="9" y="-10" width="1.3" height="10" fill="${K.timber}" ${OL}/><circle cx="9.6" cy="-9" r="1.2" fill="#8e6a80"/><circle cx="9.6" cy="-6" r="1.1" fill="${K.gold}"/>`,
+ PORT:      ()=>`<rect x="-9" y="-1.2" width="18" height="2.2" fill="#9b7a4b" ${OL}/>`+box(-5,5,4,K.wB)+gable(-5,5,4,3,K.tile)+`<line x1="1" y1="-1" x2="1" y2="-9" stroke="${K.timber}" stroke-width="1.2"/><line x1="1" y1="-9" x2="6.4" y2="-6.6" stroke="${K.timber}" stroke-width="1"/>`,
+ SHIPYARD:  ()=>box(-5,6,4,K.wB)+gable(-5,6,4,3,K.tileD)+`<path d="M0,-1 Q4,2 10,-1 L9,-3.6 L1,-3.6 Z" fill="${K.timber}" ${OL}/>`+Array.from({length:4},(_,i)=>`<line x1="${2+i*2}" y1="-3.6" x2="${2+i*2}" y2="-8" stroke="${K.timber}" stroke-width=".8"/>`).join(''),
+ LIGHTHOUSE:()=>`<polygon points="${P([[-3,0],[3,0],[2,-13],[-2,-13]])}" fill="${K.white}" ${OL}/><polygon points="${P([[-2.6,-4],[2.6,-4],[2.3,-7],[-2.3,-7]])}" fill="#8f5a4e"/><rect x="-2.4" y="-15.6" width="4.8" height="2.6" fill="${K.glow}" ${OL}/>`+cone(0,6,15.6,2.6,K.slate),
+};
+const BLD_D={AGRARIAN:['GRANARY','MILL','IRRIGATION'],COMMERCIAL:['MARKET','TREASURY','BANK'],ACADEMIC:['LIBRARY','ACADEMY','OBSERVATORY','ARCHIVE','LABORATORY','SCRIBES_HOUSE'],ADMINISTRATIVE:['CHANCELLERY','COURT','CIVIC_SQUARE'],MILITARY:['BARRACKS','ARSENAL','TRAINING_GROUND'],INDUSTRIAL:['WORKSHOP','FOUNDRY','WAREHOUSE'],CULTURAL:['TEMPLE','THEATER','CULTURAL_CENTER','SANCTUARY','TRADITION_HOUSE'],MARITIME:['PORT','SHIPYARD','LIGHTHOUSE']};
+const BN={GRANARY:'Celeiro',MILL:'Moinho',IRRIGATION:'Irrigação',WAREHOUSE:'Armazém',MARKET:'Mercado',TREASURY:'Tesouraria',BANK:'Banco',SCRIBES_HOUSE:'Casa dos Escribas',LIBRARY:'Biblioteca',ACADEMY:'Academia',OBSERVATORY:'Observatório',LABORATORY:'Laboratório',ARCHIVE:'Arquivo',COURT:'Tribunal',CHANCELLERY:'Chancelaria',BARRACKS:'Quartel',ARSENAL:'Arsenal',TRAINING_GROUND:'Campo de Treino',WORKSHOP:'Oficina',FOUNDRY:'Fundição',CIVIC_SQUARE:'Praça Cívica',THEATER:'Teatro',CULTURAL_CENTER:'Centro Cultural',SANCTUARY:'Santuário',TEMPLE:'Templo',TRADITION_HOUSE:'Casa da Tradição',PORT:'Porto',SHIPYARD:'Estaleiro',LIGHTHOUSE:'Farol'};
+
+/* ---------- 12 Obras de Legado (tall single pieces) ---------- */
+const OBRA={
+ 'archive-of-horizons':{n:'Arquivo dos Horizontes',h:30,f:()=>box(0,15,5,K.stoneD)+box(0,11,7,K.wC,5)+box(0,8,7,K.wA,12)+box(0,5.6,6,K.wC,19)+wins(0,9,6,4,1.4,K.gold)+wins(0,6.4,13,3,1.4,K.gold)+cone(0,6,25,5,K.blue)},
+ 'house-of-accord':{n:'Casa dos Acordos',h:15,f:()=>`<path d="M-11,0 A11,8.5 0 0 1 11,0 Z" fill="${K.wC}" ${OL}/><path d="M-7.6,0 A7.6,5.8 0 0 1 7.6,0 Z" fill="${K.wA}"/><path d="M-4,0 A4,3 0 0 1 4,0 Z" fill="#76708a"/>`+cols(0,18,3,6)+`<line x1="0" y1="-8.5" x2="0" y2="-15" stroke="${K.timber}" stroke-width="1"/><polygon points="${P([[0,-15],[5,-13.6],[0,-12]])}" fill="#76708a"/>`},
+ 'tidal-exchange':{n:'Entreposto das Marés',h:20,f:()=>box(0,17,3,K.timber,5)+cols(-6,0.1,5,1,K.timber)+cols(6,0.1,5,1,K.timber)+box(0,13,6,K.wB,8)+gable(0,13,14,4.4,K.tile)+arches(0,10,5,3)+`<rect x="9.4" y="-18" width="1.2" height="14" fill="${K.stone}"/><rect x="8.2" y="-15" width="3.6" height=".8" fill="#6f8f9c"/><rect x="8.2" y="-11" width="3.6" height=".8" fill="#6f8f9c"/>`},
+ 'monument-of-voices':{n:'Monumento das Vozes',h:22,f:()=>[[-7,12],[-3.4,18],[0,22],[3.6,16],[7,10]].map(([x,h])=>`<polygon points="${P([[x-1.8,0],[x+1.8,0],[x+1.2,-h],[x-1.2,-h]])}" fill="${K.stone}" ${OL}/><line x1="${x}" y1="-3" x2="${x}" y2="${-h+3}" stroke="#8e6a80" stroke-width=".8"/>`).join('')},
+ 'watch-citadel':{n:'Cidadela da Vigília',h:26,f:()=>box(0,13,10,K.stoneD)+[-7,7].map(x=>box(x,4.2,15,K.stone)+cone(x,4.2,15,3,K.slate)).join('')+box(0,7,5,K.stone,10)+`<rect x="-2" y="-18" width="4" height="2" fill="${K.dark}"/><path d="M-1.6,-18 q1.6,-4 3.2,0 Z" fill="${K.glow}"/>`+flag(0,15,5,'#8f5a4e')+arches(0,9,5,2)},
+ 'road-of-communities':{n:'Estrada das Comunidades',h:17,f:()=>`<path d="M-11,0 V-9 A11,9 0 0 1 11,-9 V0 H7 V-9 A7,7 0 0 0 -7,-9 V0 Z" fill="${K.stone}" ${OL}/>`+box(0,4,5,K.stoneD,12)+`<rect x="-.4" y="-17" width=".8" height="3.4" fill="${K.timber}"/><polygon points="${P([[.4,-17],[4.6,-16],[.4,-14.8]])}" fill="${K.gold}"/>`},
+ 'sky-instrument':{n:'Instrumento do Firmamento',h:27,f:()=>box(0,9,4,K.stoneD)+box(0,3,14,K.wC,4)+`<ellipse cx="0" cy="-22" rx="10" ry="3.4" fill="none" stroke="${K.gold}" stroke-width="1.3"/><ellipse cx="0" cy="-22" rx="3.4" ry="10" fill="none" stroke="${K.gold}" stroke-width="1.3"/><circle cx="0" cy="-22" r="2" fill="${K.blue}" ${OL}/>`},
+ 'inquiry-campus':{n:'Pátio da Investigação',h:15,f:()=>`<polygon points="${P([[-11,0],[11,0],[8,-5],[-8,-5]])}" fill="${K.wC}" ${OL}/>`+cols(-9,0.1,8,1)+cols(9,0.1,8,1)+box(-8,5,9,K.wA)+box(8,5,9,K.wA)+gable(-8,5,9,2.4,K.slate)+gable(8,5,9,2.4,K.slate)+box(0,6,5,K.wC)+dome(0,3.2,5,K.blue)+wins(-8,4,4,2,1.4)},
+ 'world-council':{n:'Conselho dos Horizontes',h:24,f:()=>`<ellipse cx="0" cy="-1" rx="12" ry="3.4" fill="${K.stone}" ${OL}/>`+[-9,-4.5,4.5,9].map(x=>box(x,2,6,K.white,1)+`<polygon points="${P([[x-1.4,-7],[x+1.4,-7],[x,-9]])}" fill="#76708a"/>`).join('')+`<rect x="-.8" y="-22" width="1.6" height="21" fill="${K.stone}" ${OL}/><polygon points="${P([[.8,-22],[7,-20],[.8,-17.6]])}" fill="#76708a"/><circle cx="0" cy="-23" r="1.5" fill="${K.gold}"/>`},
+ 'common-mint':{n:'Casa da Medida Comum',h:22,f:()=>box(0,13,7,K.wC)+gable(0,13,7,3,K.slate)+`<circle cx="0" cy="-16" r="5.6" fill="${K.gold}" ${OL}/><circle cx="0" cy="-16" r="3.6" fill="none" stroke="#a8842a" stroke-width=".8"/><line x1="-7" y1="-10" x2="7" y2="-10" stroke="${K.stone}" stroke-width="1"/>`+cols(0,9,7,4)},
+ 'terraced-reserves':{n:'Reservas dos Terraços',h:22,f:()=>box(0,22,4,'#7b8a56')+box(0,17,4,'#8a9a5c',4)+box(0,12,4,'#94a063',8)+box(0,7,4,K.wB,12)+cone(0,8,16,4,K.thatch)+`<path d="M-9,-4 V0 M-5,-8 V-4 M5,-8 V-4 M9,-4 V0" stroke="#5b6b45" stroke-width=".8"/>`},
+ 'shared-foundry':{n:'Fundição Compartilhada',h:26,f:()=>box(-7,7,9,K.stoneD)+box(7,7,9,K.stoneD)+chim(-7,9,13,K.stone)+chim(7,9,9,K.stone)+box(0,7,3,K.stone,6)+`<rect x="-8.4" y="-6" width="3.2" height="3.6" fill="${K.glow}"/><rect x="5.2" y="-6" width="3.2" height="3.6" fill="${K.glow}"/>`+smoke(-7,22,1.4)+smoke(7,18,1.1)},
+};
+
+
+
+/* ---------- skins: the cultural layer. Same geometry, other materials. ---------- */
+const croof=(x,w,hb,c)=>{const ov=2.6;return `<polygon points="${P([[x-w/2-ov,-hb-2.4],[x-w/2,-hb+.6],[x+w/2,-hb+.6],[x+w/2+ov,-hb-2.4],[x+w/2-1,-hb-4.4],[x+w/2-3,-hb-5.8],[x-w/2+3,-hb-5.8],[x-w/2+1,-hb-4.4]])}" fill="${c}" ${OL}/>`};
+const trap=(x,wb,wt,h,c,y0=0)=>`<polygon points="${P([[x-wb/2,-y0],[x+wb/2,-y0],[x+wt/2,-y0-h],[x-wt/2,-y0-h]])}" fill="${c}" ${OL}/>`;
+const SKINS={
+ valgard:{name:'Leontia',tones:[['#efe9d6','#d3cab0','#b4aa90'],['#e6dfca','#c9bfa3','#a99f85'],['#f5f0e0','#dcd3ba','#bcb299']],roof:'lowgable',plinthTop:'#c2b99f',plinthSide:'#8a826c',street:'#d8d0b8',orn:['#4f7f8a','1.5 2.5'],wall:['#cfc6ac','#a89f86'],cap:'cone',banner:'SHIELD',port:{deck:'#cdc5ae',post:'#a89f86',style:'mole'},
+  K:{wA:'#e6dfca',wB:'#d6cdb4',wC:'#f1ebd9',stone:'#dcd5c0',stoneD:'#b0a88f',slate:'#8a9396',tile:'#b9825e',tileD:'#965f42',thatch:'#c9b48a',timber:'#7a5e3c',blue:'#7a98a2'}},
+ kor:{name:'Yuhan',tones:[['#c0aa90','#8d7560','#6b5846'],['#b29d84','#816b57','#63503f'],['#cbb69c','#977f69','#75604d']],roof:'curved',plinthTop:'#8f8470',plinthSide:'#4e4639',street:'#a99c84',orn:['#8e4a3c','4 2'],wall:['#6f6c65','#55524c'],cap:'curved',banner:'SHIELD',port:{deck:'#6a4a35',post:'#8e4a3c',style:'pier'},
+  K:{wA:'#a99682',wB:'#8c7a68',wC:'#b9a892',stone:'#8f8b82',stoneD:'#6a665e',slate:'#4a4f54',tile:'#5a5f63',tileD:'#3d4145',thatch:'#7a6a52',timber:'#5a3a2a',blue:'#4f7a73'}},
+ dravik:{name:'Tawanta',tones:[['#bdb8a6','#8f8a78','#6f6b5a'],['#b0ab99','#827d6c','#64604f'],['#c6c1af','#9a9583','#78745f']],roof:'thatch',terrace:true,plinthTop:'#9a9582',plinthSide:'#625e4e',street:'#bdb6a0',orn:null,wall:['#8f8a78','#6f6b5a'],cap:'none',banner:'GONFALON',port:{deck:'#8f8a78',post:'#6f6b5a',style:'jetty'},
+  K:{wA:'#b7b2a2',wB:'#9d9886',wC:'#cbc6b5',stone:'#a9a493',stoneD:'#7d7967',slate:'#5b5f60',tile:'#a58a5a',tileD:'#7f6a45',thatch:'#b79c62',timber:'#6c5238',blue:'#5f8f8a'}},
+ base:{name:'Neutro',tones:[['#d8cfba','#aaa08c','#8c8472'],['#c9c1ae','#9d9482','#7f7867'],['#e1dac8','#b3a995','#948c7a']],roof:'flat',plinthTop:'#a69d89',plinthSide:'#5d574b',street:'#c4baa5',orn:null,wall:['#a79f8d','#8a8373'],cap:'cone',banner:'PENNANT',port:{deck:'#9a7d52',post:'#3a2a18',style:'pier'},K:{}}
+};
+function useSkin(id){const sk=SKINS[id]||SKINS.base;Object.assign(K,K0,sk.K);BANNER=sk.banner;return sk}
+
+/* ---------- city ---------- */
+const SLOTS=[1,1,2,3,4,5,6],RR=[.46,.52,.60,.67,.72,.76,.79],BLOCKS=[4,7,11,16,22,28,36];
+const AN=[[-.32,.14],[.30,.22],[-.10,-.36],[.42,-.20],[-.50,-.18],[.04,.50]];
+const LAND=['LIGHTHOUSE','FOUNDRY','ACADEMY','OBSERVATORY','TEMPLE','BARRACKS','BANK','MARKET','CHANCELLERY','GRANARY'];
+function blobPts(rr,seed,k=1,n=24){const r=rnd(seed),a1=r()*6,a2=r()*6;return Array.from({length:n},(_,i)=>{const a=i/n*Math.PI*2;const rad=rr*k*(1+.07*Math.sin(3*a+a1)+.05*Math.sin(5*a+a2));return[Math.cos(a)*rad,Math.sin(a)*rad*.94]})}
+
+function roofOver(sk,w,h,d){
+  if(sk.roof==='lowgable')return `<polygon points="${P([[-w/2-.6,-h],[0,-h-w*.2],[w/2+.6,-h]])}" fill="${K.tile}" stroke="#0009" stroke-width=".5" vector-effect="non-scaling-stroke"/>`;
+  if(sk.roof==='thatch')return `<polygon points="${P([[-w/2-.8,-h],[0,-h-w*.34],[w/2+.8,-h]])}" fill="${K.thatch}" stroke="#0009" stroke-width=".5" vector-effect="non-scaling-stroke"/>`;
+  if(sk.roof==='curved'){const ov=w*.2;return `<polygon points="${P([[-w/2-ov,-h-ov*.9],[-w/2,-h+ov*.25],[w/2,-h+ov*.25],[w/2+ov,-h-ov*.9],[w/2-ov*.3,-h-ov*1.6],[-w/2+ov*.3,-h-ov*1.6]])}" fill="${K.tile}" stroke="#0009" stroke-width=".5" vector-effect="non-scaling-stroke"/>`}
+  return '';
+}
+function massSk(sk,x,y,w,h,tone,d){const k=d*.6,T0=sk.tones[tone%3];
+  return `<g transform="translate(${n2(x)},${n2(y)})"><rect x="${n2(-w/2)}" y="${n2(-h)}" width="${n2(w)}" height="${n2(h)}" fill="${T0[1]}"/><polygon points="${P([[w/2,-h],[w/2+k,-h-d],[w/2+k,-d],[w/2,0]])}" fill="${T0[2]}"/><polygon points="${P([[-w/2,-h],[w/2,-h],[w/2+k,-h-d],[-w/2+k,-h-d]])}" fill="${T0[0]}"/>${roofOver(sk,w,h,d)}</g>`}
+
+function yardSvg(d,x,y,R,lod,w){
+  const base={AGRARIAN:'#8d9873',COMMERCIAL:'#cdc3ab',ACADEMIC:'#cac4b4',ADMINISTRATIVE:'#cfc8b6',MILITARY:'#8a8271',INDUSTRIAL:'#767060',CULTURAL:'#d2cbba',MARITIME:'#8a6f4b'}[d];
+  const pl=[[-w*.5,-w*.16],[-w*.2,-w*.32],[w*.3,-w*.3],[w*.5,-w*.02],[w*.3,w*.24],[-w*.38,w*.26]].map(p=>[x+p[0],y+p[1]]);
+  let g=`<polygon points="${P(pl)}" fill="${base}" opacity=".9" stroke="#00000030" stroke-width=".6" vector-effect="non-scaling-stroke"/>`;
+  g+=`<circle cx="${n2(x+w*.42)}" cy="${n2(y-w*.2)}" r="${n2(Math.max(1.3,R*.021))}" fill="${DC[d]}" stroke="#000a" stroke-width=".6" vector-effect="non-scaling-stroke"/>`;
+  return g}
+
+function civicFor(id,L){
+  const A=ACC;
+  if(id==='valgard'){ // pale stone, peristyle, acropolis
+    if(L<=2)return box(0,6,3.4,K.wB)+gable(0,6,3.4,2,K.tile)+flag(5,0,10,A);
+    if(L===3)return box(0,10,4,K.wC)+cols(0,10,4,5)+gable(0,10,4,2.2,K.tile)+flag(7,0,11,A);
+    if(L===4)return stairs(0,13,2)+box(0,11,5,K.wC,2)+cols(0,10,5,5)+gable(0,11,7,2.8,K.tile)+flag(8,0,13,A);
+    if(L===5)return stairs(0,15,2)+box(0,12,5,K.wC,2)+cols(0,11,5,6)+gable(0,12,7,3,K.tile)+box(9,5,4,K.wC)+dome(9,2.8,4,K.stoneD)+flag(0,10,6,A);
+    if(L===6)return box(0,20,3,K.stone)+stairs(0,14,2)+box(0,13,5,K.wC,5)+cols(0,12,5,6)+gable(0,13,10,3.2,K.tile)+flag(0,13.2,6,A);
+    return box(0,26,3,K.stone)+box(0,22,3,K.stoneD,3)+box(0,14,6,K.wC,6)+cols(0,13,6,7)+gable(0,14,12,3.6,K.gold)+box(-10,4,9,K.wB,3)+box(10,4,9,K.wB,3)+gable(-10,4,12,2,K.tile)+gable(10,4,12,2,K.tile)+flag(0,15.6,6,A)}
+  if(id==='kor'){ // dark timber, curved roofs, platforms
+    if(L<=2)return box(0,7,3.4,K.wB)+croof(0,7,3.4,K.tile)+flag(6,0,11,A);
+    if(L===3)return box(0,9,4,K.wB)+croof(0,9,4,K.tile)+box(6,3,6,K.timber)+flag(8,0,12,A);
+    if(L===4)return box(0,10,4,K.wB)+croof(0,10,4,K.tile)+box(0,6,4,K.wB,8.4)+croof(0,6,12.4,K.tileD)+flag(7,0,14,A);
+    if(L===5)return box(0,10,3,K.wB)+croof(0,10,3,K.tile)+box(0,7,3,K.wB,6.4)+croof(0,7,9.4,K.tile)+box(0,4,3,K.wB,13)+croof(0,4,16,K.tileD)+flag(7,0,16,A);
+    if(L===6)return stairs(0,18,2)+box(0,14,5,K.wB,2)+croof(0,14,7,K.tile)+box(0,8,4,K.wB,9)+croof(0,8,13,K.tileD)+flag(0,13,7,A);
+    return box(0,28,3,K.stoneD)+box(0,24,3,K.stone,3)+box(0,16,6,K.wB,6)+croof(0,16,12,K.tile)+box(0,9,5,K.wB,14)+croof(0,9,19,K.tileD)+box(-11,5,6,K.wB,3)+croof(-11,5,9,K.tile)+box(11,5,6,K.wB,3)+croof(11,5,9,K.tile)+flag(0,25,6,A)}
+  // dravik: fitted stone, terraces, trapezoid doors
+  if(L<=2)return box(0,6,3.2,K.wB)+gable(0,6,3.2,2.4,K.thatch)+flag(5,0,10,A);
+  if(L===3)return trap(0,12,9,2.4,K.wB)+trap(0,8,6,2.4,K.wA,2.4)+flag(5,4.8,8,A);
+  if(L===4)return trap(0,14,11,2.4,K.wB)+trap(0,10,8,2.4,K.wA,2.4)+box(0,6,4,K.wC,4.8)+gable(0,6,8.8,3,K.thatch)+flag(6,4.8,8,A);
+  if(L===5)return trap(0,18,15,2.4,K.wB)+trap(0,14,11,2.4,K.wA,2.4)+trap(0,10,8,2.4,K.wB,4.8)+box(0,6,4,K.wC,7.2)+gable(0,6,11.2,3,K.thatch)+flag(0,14,7,A);
+  if(L===6)return trap(0,24,21,2.4,K.wB)+trap(0,19,16,2.4,K.wA,2.4)+trap(0,14,11,2.4,K.wB,4.8)+box(0,8,5,K.wC,7.2)+gable(0,8,12.2,3.4,K.thatch)+flag(0,15.6,7,A);
+  return trap(0,30,27,2.8,K.wB)+trap(0,25,22,2.8,K.wA,2.8)+trap(0,20,17,2.8,K.wB,5.6)+trap(0,15,12,2.8,K.wA,8.4)+box(0,9,5,K.wC,11.2)+gable(0,9,16.2,3.6,K.thatch)+box(-12,5,7,K.wB,3)+gable(-12,5,10,2.4,K.thatch)+box(12,5,7,K.wB,3)+gable(12,5,10,2.4,K.thatch)+flag(0,19.8,7,A)}
+
+function fortification(sk,level,pts,R,items,skipDir){
+  const hw=Math.max(R*[0,.035,.055,.075,.09,.1][level],level===1?R*.04:2.4),col=level>=4?sk.wall[1]:sk.wall[0];
+  const n=pts.length;
+  const skip=i=>{if(skipDir==null)return false;const a=pts[i],ang=Math.atan2(a[1]/.94,a[0]);const t=skipDir*Math.PI/3,dlt=Math.abs(Math.atan2(Math.sin(ang-t),Math.cos(ang-t)));return dlt<.5};
+  for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n],my=(a[1]+b[1])/2;
+    if(level>=3&&i===6&&!skip(i))continue;if(skip(i))continue;
+    if(level===1){const len=Math.hypot(b[0]-a[0],b[1]-a[1]),m=Math.max(2,Math.round(len/(R*.04)));let s='';for(let j=0;j<m;j++){const t=j/m,x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t;s+=`<line x1="${n2(x)}" y1="${n2(y)}" x2="${n2(x)}" y2="${n2(y-hw)}" stroke="#5e4630" stroke-width="${n2(Math.max(1,R*.016))}" stroke-linecap="round"/>`}items.push({y:my,s})}
+    else items.push({y:my,s:`<polygon points="${P([a,b,[b[0],b[1]-hw],[a[0],a[1]-hw]])}" fill="${col}" stroke="#0b0b0bb0" stroke-width=".6" vector-effect="non-scaling-stroke"/><line x1="${n2(a[0])}" y1="${n2(a[1]-hw)}" x2="${n2(b[0])}" y2="${n2(b[1]-hw)}" stroke="#ddd5c0" stroke-width="${n2(Math.max(.9,R*.014))}" ${sk.terrace?`stroke-dasharray="${n2(R*.05)} ${n2(R*.05)}"`:''} vector-effect="non-scaling-stroke"/>`});
+  }
+  const tw=(x,y)=>{const u=R/60,hh=Math.max(11,R*.17/u);let cap=`<polygon points="${P([[-4.4,-hh],[4.4,-hh],[0,-hh-3.4]])}" fill="${sk.cap==='curved'?K.tile:K.slate}" ${OL}/>`;if(sk.cap==='curved')cap=croof(0,7,hh,K.tile);if(sk.cap==='none')cap='';
+    return {y:y+1,s:`<g transform="translate(${n2(x)},${n2(y)}) scale(${n2(u*1.1)})"><rect x="-3.4" y="${-hh}" width="6.8" height="${hh}" fill="${sk.wall[1]}" ${OL}/><rect x="-3.4" y="${-hh}" width="2.4" height="${hh}" fill="${sk.wall[0]}"/>${cap}</g>`}};
+  if(level>=3){const pos=level===3?[0,5,12,18]:level===4?[0,4,8,12,16,20]:[0,5,9,12,16,21];pos.forEach(i=>{if(skip(i%n))return;const p=pts[i%n];items.push(tw(p[0],p[1]))})}
+  if(level>=3&&!skip(6)){const a=pts[6],b=pts[7],gx=(a[0]+b[0])/2,gy=(a[1]+b[1])/2;items.push({y:gy+.5,s:`<g transform="translate(${n2(gx)},${n2(gy)}) scale(${n2(R/60)})"><rect x="-4" y="-7" width="8" height="7" fill="${sk.wall[1]}" ${OL}/><path d="M-2,0 V-3 A2,2 0 0 1 2,-3 V0 Z" fill="${K.dark}"/></g>`})}
+  if(level===5)items.push({y:-2,s:`<g transform="translate(0,${n2(-R*.02)}) scale(${n2(R/60*1.1)})"><rect x="-5.5" y="-10" width="11" height="10" fill="${sk.wall[1]}" ${OL}/></g>`});
+}
+
+function shipFor(style,u){
+  if(style==='mole')return `<g transform="scale(${n2(u)})"><path d="M-12,-1 Q0,4 12,-1 L10,-3.4 L-10,-3.4 Z" fill="${K.timber}" ${OL}/><rect x="10" y="-3" width="3.4" height="1.4" fill="${K.gold}"/><rect x="-1" y="-11" width="1" height="8" fill="#2c2218"/><polygon points="${P([[-.4,-11],[5,-8],[-.4,-5]])}" fill="#d8cfb8" ${OL}/><path d="M-9,-2 l-2,3 M-5,-2 l-2,3 M-1,-2 l-2,3 M3,-2 l-2,3 M7,-2 l-2,3" stroke="#3a2a18" stroke-width=".7"/></g>`;
+  if(style==='pier')return `<g transform="scale(${n2(u)})"><path d="M-9,-1.4 Q0,3.6 9,-1.4 L8,-3.4 L-8,-3.4 Z" fill="#4a3322" ${OL}/><rect x="-.5" y="-14" width="1" height="11" fill="#2c2218"/><polygon points="${P([[.5,-14],[8,-12],[8,-4.6],[.5,-4.6]])}" fill="#b89a66" ${OL}/>${[-12,-9.6,-7.2,-4.8].map(y=>`<line x1=".5" y1="${y}" x2="8" y2="${y+.4}" stroke="#6f5a38" stroke-width=".5"/>`).join('')}</g>`;
+  return `<g transform="scale(${n2(u)})"><path d="M-8,-1 Q-9,-4 -6,-5.4 Q0,-1.6 6,-5.4 Q9,-4 8,-1 Q0,2 -8,-1 Z" fill="#c9b878" ${OL}/><path d="M-12,-2 Q-13,-5 -10,-6.4 Q-6,-3 -2,-6.4 Q0,-5 -1,-2 Q-6,0 -12,-2 Z" fill="#bba96c" ${OL} transform="translate(2,4)"/></g>`;
+}
+function port(sk,R,k,rr,items,lod){
+  const [dx,dy]=dirXY(k,1),nx=-dy,ny=dx,hp=hexPts(R),va=hp[(k+1)%6],vb=hp[(k+2)%6],pt=sk.port;
+  const inw=R*.06,ux=-dx*inw,uy=-dy*inw;
+  let g=`<polygon points="${P([va,vb,[vb[0]+ux,vb[1]+uy],[va[0]+ux,va[1]+uy]])}" fill="${pt.post}" stroke="#0b0b0bb0" stroke-width=".6" vector-effect="non-scaling-stroke"/><line x1="${n2(va[0])}" y1="${n2(va[1])}" x2="${n2(vb[0])}" y2="${n2(vb[1])}" stroke="#d3cab4" stroke-width="${n2(Math.max(.9,R*.014))}"/>`;
+  const r0=rr*.74,r1=R*(pt.style==='mole'?1.55:1.62),w=Math.max(R*(pt.style==='mole'?.1:pt.style==='jetty'?.085:.07),1.5);
+  const A=[dx*r0+nx*w,dy*r0+ny*w],B=[dx*r1+nx*w,dy*r1+ny*w],C=[dx*r1-nx*w,dy*r1-ny*w],D=[dx*r0-nx*w,dy*r0-ny*w];
+  g+=`<polygon points="${P([A,B,C,D])}" fill="${pt.deck}" stroke="#0b0b0bcc" stroke-width=".7" vector-effect="non-scaling-stroke"/>`;
+  if(lod>=1){const planks=Math.round((r1-r0)/(R*(pt.style==='pier'?.07:.1)));for(let i=1;i<planks;i++){const t=r0+(r1-r0)*i/planks;g+=`<line x1="${n2(dx*t+nx*w)}" y1="${n2(dy*t+ny*w)}" x2="${n2(dx*t-nx*w)}" y2="${n2(dy*t-ny*w)}" stroke="#0004" stroke-width=".6" vector-effect="non-scaling-stroke"/>`}}
+  const ex=dx*R*.866,ey=dy*R*.866;[1,-1].forEach(sg=>{g+=`<circle cx="${n2(ex+sg*nx*w*1.25)}" cy="${n2(ey+sg*ny*w*1.25)}" r="${n2(Math.max(1.3,R*.02))}" fill="${K.gold}" stroke="#000a" stroke-width=".6" vector-effect="non-scaling-stroke"/>`});
+  items.push({y:dy*r0-1,s:g});
+  const u=R/60;
+  if(lod>=1){const sx=dx*R*1.28+nx*R*.19,sy=dy*R*1.28+ny*R*.19;items.push({y:sy+1,s:`<g transform="translate(${n2(sx)},${n2(sy)})">${shipFor(pt.style,u)}</g>`});
+    if(pt.style==='jetty')items.push({y:sy+3,s:`<g transform="translate(${n2(dx*R*1.0-nx*R*.2)},${n2(dy*R*1.0-ny*R*.2)})">${shipFor('jetty',u*.8)}</g>`})}
+}
+
+function obra(id,step){const o=OBRA[id],k=step===1?.5:1;let s=`<g transform="scale(1,${k})">${o.f()}</g>`;
+  if(step===1){const h=o.h*k+3;s+=`<g stroke="${K.timber}" stroke-width=".9" fill="none"><path d="M-8,0 V${-h} M8,0 V${-h} M-8,${-h*.33} H8 M-8,${-h*.66} H8 M-8,0 L8,${-h*.33} M8,0 L-8,${-h*.33} M-8,${-h*.33} L8,${-h*.66}"/></g>`}
+  if(step===3)s+=`<g transform="translate(0,${-o.h})"><polygon points="${P([[-2.4,0],[0,-3.4],[2.4,0]])}" fill="${K.gold}" ${OL}/><circle cx="0" cy="-4.6" r="1.1" fill="#e6cf95"/></g>`;
+  return s}
+
+function city(R,o){
+  const sk=useSkin(o.skin),L=o.L,rr=R*RR[L-1],seed=o.seed||7,r=rnd(seed*13+L),s=R/60,lod=R<40?0:R<80?1:2;
+  if(o.acc)ACC=o.acc;
+  const items=[],pts=blobPts(rr,seed);let g='';const ds=o.districts||[];
+  let anchors=AN.slice(0,SLOTS[L-1]).map(a=>[a[0]*rr,a[1]*rr*.92]);let portIdx=-1;
+  if(o.port!=null){const [pdx,pdy]=dirXY(o.port,1),wp=[pdx*rr*.55,pdy*rr*.55];let best=1e9;anchors.forEach((a,i)=>{const d=Math.hypot(a[0]-wp[0],a[1]-wp[1]);if(d<best){best=d;portIdx=i}});anchors[portIdx]=wp}
+  const free=anchors.map((_,i)=>i).filter(i=>i!==portIdx);
+  const asg=ds.map(d=>d.d==='MARITIME'&&portIdx>=0?portIdx:free.shift());const usedIdx=new Set(asg);
+  const th=R*.045;
+  g+=`<polygon points="${P(pts.map(p=>[p[0]*1.03,p[1]*1.03+th]))}" fill="${sk.plinthSide}"/>`;
+  g+=`<polygon points="${P(pts)}" fill="${sk.plinthTop}" stroke="${ACC}" stroke-width="${n2(Math.max(1.1,R*.022))}" stroke-linejoin="round"/>`;
+  if(sk.terrace)g+=`<polygon points="${P(pts.map(p=>[p[0]*.9,p[1]*.9-th*.5]))}" fill="none" stroke="#00000040" stroke-width="${n2(Math.max(.8,R*.012))}"/><polygon points="${P(pts.map(p=>[p[0]*.9,p[1]*.9-th*.5]))}" fill="none" stroke="#ffffff30" stroke-width=".6" transform="translate(0,${n2(-R*.012)})"/>`;
+  if(sk.orn)g+=`<polygon points="${P(pts.map(p=>[p[0]*.94,p[1]*.94]))}" fill="none" stroke="${sk.orn[0]}" stroke-width="${n2(Math.max(.9,R*.013))}" stroke-dasharray="${sk.orn[1].split(' ').map(v=>n2(v*Math.max(.5,R*.03))).join(' ')}" opacity=".85"/>`;
+  const sw=Math.max(.8,R*.022);
+  g+=`<g fill="none" stroke="${sk.street}" stroke-width="${n2(sw)}" stroke-linecap="round" opacity=".85"><path d="M${n2(-rr*.88)},${n2(-rr*.1)} Q0,${n2(rr*.22)} ${n2(rr*.88)},${n2(rr*.05)}"/><path d="M${n2(-rr*.1)},${n2(-rr*.86)} Q${n2(rr*.2)},0 0,${n2(rr*.84)}"/>${L>=6?`<path d="M${n2(-rr*.7)},${n2(-rr*.55)} L${n2(rr*.7)},${n2(rr*.55)}" stroke-width="${n2(sw*1.6)}"/>`:''}</g>`;
+  const usedPts=[];
+  ds.forEach((d,i)=>{const [ax,ay]=anchors[asg[i]];usedPts.push([ax,ay]);const bl=(d.b||[]).filter(b=>b!=='PORT');const yw=R*(.3+.03*Math.min(3,bl.length));g+=yardSvg(d.d,ax,ay,R,lod,yw);
+    if(lod>=1){let j=0;bl.forEach(id=>{if(id==='LIGHTHOUSE'&&o.port!=null)return;const ox=(j===0?0:(j%2?1:-1)*Math.ceil(j/2)*yw*.3),oy=yw*(.1+(j>2?-.16:0));j++;items.push({y:ay+oy,s:`<g transform="translate(${n2(ax+ox)},${n2(ay+oy)}) scale(${n2(s*1.4*(bl.length>3?.8:1))})">${BLD[id]()}</g>`})})}});
+  const hasLH=ds.some(d=>(d.b||[]).includes('LIGHTHOUSE'));
+  if(hasLH&&o.port!=null){const hp=hexPts(R),v=hp[(o.port+1)%6];const lx=v[0]*.74,ly=v[1]*.74+R*.05;items.push({y:ly,s:`<g transform="translate(${n2(lx)},${n2(ly)}) scale(${n2(s*(lod===0?2.0:1.5))})">${BLD.LIGHTHOUSE()}</g>`})}
+  if(lod===0){const all=ds.flatMap((d,i)=>(d.b||[]).map(b=>({b,i})));const pick=LAND.find(p=>all.some(a=>a.b===p&&!(p==='LIGHTHOUSE'&&o.port!=null)));if(pick){const a=all.find(x=>x.b===pick),[ax,ay]=anchors[asg[a.i]];items.push({y:ay,s:`<g transform="translate(${n2(ax)},${n2(ay)}) scale(${n2(s*1.7)})">${BLD[pick]()}</g>`})}}
+  anchors.forEach((a,i)=>{if(usedIdx.has(i))return;const[ax,ay]=a;g+=`<polygon points="${P([[-.11*R,0],[-.04*R,-.07*R],[.08*R,-.06*R],[.12*R,.02*R],[.02*R,.07*R],[-.08*R,.06*R]].map(p=>[ax+p[0],ay+p[1]]))}" fill="#948b76" opacity=".8"/>`;if(lod>=1)items.push({y:ay,s:`<g transform="translate(${n2(ax)},${n2(ay)}) scale(${n2(s)})"><circle cx="-4" cy="-2" r="2" fill="#6a7d57"/><circle cx="1" cy="-3" r="2.3" fill="#5c7049"/></g>`})});
+  const cnt=BLOCKS[L-1],h0=R*[.034,.04,.05,.062,.078,.095,.11][L-1];let placed=[],tries=0;
+  while(placed.length<cnt&&tries<900){tries++;const ang=r()*6.283,rad=Math.sqrt(r())*rr*.84,x=Math.cos(ang)*rad,y=Math.sin(ang)*rad*.9;
+    if(usedPts.some(u=>Math.hypot(u[0]-x,u[1]-y)<R*.2))continue;if(L>=3&&Math.hypot(x,y)<R*.1)continue;if(placed.some(p=>Math.hypot(p[0]-x,p[1]-y)<R*.11))continue;placed.push([x,y,Math.hypot(x,y)/rr])}
+  placed.forEach(([x,y,t],i)=>{const w=R*(.095+.035*r()),h=h0*(1+1.1*(1-t))*(.8+.5*r());items.push({y,s:massSk(sk,x,y,w,h,i,w*.42)})});
+  if(L>=3)g+=`<ellipse cx="0" cy="${n2(rr*.02)}" rx="${n2(R*.12)}" ry="${n2(R*.07)}" fill="${sk.street}" stroke="#00000030" stroke-width=".6" vector-effect="non-scaling-stroke"/>`;
+  const civ=civicFor(o.skin==='base'||!o.skin?'valgard':o.skin,L);
+  items.push({y:L===7?-rr*.28:rr*.02,s:L===7?`<g transform="translate(0,${n2(-rr*.28)}) scale(${n2(s*1.2)})">${civ}</g>`:`<g transform="translate(0,${n2(rr*.02)}) scale(${n2(s*1.1)})">${civ}</g>`});
+  if(o.fort)fortification(sk,o.fort,blobPts(rr,seed,1.08),R,items,o.port);
+  if(o.port!=null)port(sk,R,o.port,rr,items,lod);
+  if(o.obra){const ox=R*.5,oy=-R*.84;items.push({y:oy+2,s:`<g transform="translate(${n2(ox)},${n2(oy)}) scale(${n2(s*1.1)})">${obra(o.obra,o.obraStep||3)}</g>`})}
+  items.sort((a,b)=>a.y-b.y);
+  return g+items.map(i=>i.s).join('');
+}
+
+function terrainHex(R,t,seed){
+  const id='h'+(++UID),r=rnd(seed),sc=Math.min(1,R/60),cnt=b=>Math.max(2,Math.round(b*Math.max(.3,sc)));
+  let s=`<clipPath id="${id}"><polygon points="${P(hexPts(R))}"/></clipPath><g clip-path="url(#${id})"><rect x="${-R}" y="${-R}" width="${2*R}" height="${2*R}" fill="${T[t]}"/>`;
+  const rp=()=>[(r()*2-1)*R*.78,(r()*2-1)*R*.8],lw=Math.max(.6,R*.011);
+  if(t==='PLAINS')for(let i=0;i<cnt(8);i++){const[x,y]=rp();s+=`<path d="M${n2(x)},${n2(y)} l${n2(-R*.025)},${n2(-R*.045)} M${n2(x)},${n2(y)} l${n2(R*.02)},${n2(-R*.05)}" stroke="#7a9266" stroke-width="${lw}" fill="none" stroke-linecap="round"/>`}
+  if(t==='FOREST')for(let i=0;i<cnt(10);i++){const[x,y]=rp(),a=R*.09;s+=`<polygon points="${P([[x,y-a*1.9],[x-a*.8,y],[x+a*.8,y]])}" fill="#2b4033"/><polygon points="${P([[x,y-a*1.9],[x-a*.8,y],[x,y]])}" fill="#35503e"/>`}
+  if(t==='HILLS')for(let i=0;i<cnt(4);i++){const[x,y]=rp(),a=R*.2;s+=`<path d="M${n2(x-a)},${n2(y)} Q${n2(x)},${n2(y-a*.85)} ${n2(x+a)},${n2(y)} Z" fill="#877f5c" stroke="#5a5439" stroke-width="${lw}"/>`}
+  if(t==='SEA')for(let i=0;i<cnt(6);i++){const[x,y]=rp(),a=R*.07;s+=`<path d="M${n2(x-a*2)},${n2(y)} q${n2(a)},${n2(-a)} ${n2(a*2)},0 q${n2(a)},${n2(a)} ${n2(a*2)},0" stroke="#5f8ea6" stroke-width="${lw}" fill="none"/>`}
+  if(t==='COAST')s+=`<path d="M${n2(-R*.7)},${n2(R*.5)} q${n2(R*.2)},${n2(-R*.1)} ${n2(R*.4)},0 t${n2(R*.4)},0" stroke="#dfe9ea" stroke-width="${lw}" fill="none" opacity=".7"/>`;
+  return s+`</g><polygon points="${P(hexPts(R))}" fill="none" stroke="#0a1115" stroke-width="${Math.max(.7,R*.012)}"/>`}
+
+function scene(R,S,o={}){
+  const w=SQ3*R*3+R*.6,h=R*5+R*.5,cw=o.cw||w,ch=o.ch||h,cx=cw/2,cy=ch/2+(o.cw?0:R*.1);let g='';
+  if(o.context){const rs=R*1.5,cs=SQ3*R;for(let q=-9;q<=9;q++)for(let rr=-7;rr<=7;rr++){const x=cx+cs*(q+rr/2),y=cy+rs*rr;if(x<-R||x>cw+R||y<-R||y>ch+R)continue;g+=`<polygon points="${P(hexPts(R).map(p=>[p[0]+x,p[1]+y]))}" fill="none" stroke="#1c2b33" stroke-width="1"/>`}}
+  const order=[4,5,3,'c',0,2,1],seed=S.seed||3,pos=k=>k==='c'?[0,0]:dirXY(k,SQ3*R);
+  order.forEach(k=>{const t=k==='c'?S.c:S.n[k];if(!t)return;const[x,y]=pos(k);g+=`<g transform="translate(${n2(cx+x)},${n2(cy+y)})">${terrainHex(R,t,seed*31+(k==='c'?9:k))}</g>`});
+  g+=`<g transform="translate(${n2(cx)},${n2(cy)})">${city(R,S.city)}</g>`;
+  const vb=o.crop?`${n2(cx-SQ3*R*.85)} ${n2(cy-R*1.45)} ${n2(SQ3*R*1.95)} ${n2(R*2.5)}`:`0 0 ${n2(cw)} ${n2(ch)}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n2(cw)}" height="${n2(ch)}" viewBox="${vb}">${g}</svg>`}
+function single(R,c,o={}){const w=Math.ceil(SQ3*R)+8,h=Math.ceil(2*R)+Math.ceil(R*(o.tall?.9:.45))+6;const cx=w/2,cy=h-R-4;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><g transform="translate(${cx},${cy})">${terrainHex(R,o.t||'PLAINS',o.seed||5)}${city(R,c)}</g></svg>`}
+
+/* ---------- scenes ---------- */
+const CIV3=[{sk:'valgard',name:'Leontia',tag:'matriz helênica',acc:'#5b9bc4',pl:'Jogador azul'},{sk:'kor',name:'Yuhan',tag:'matriz da China antiga',acc:'#c46a58',pl:'Jogador vermelho'},{sk:'dravik',name:'Tawanta',tag:'matriz andina',acc:'#d1a64a',pl:'Jogador âmbar'}];
+const N5={L:5,districts:[{d:'MILITARY',b:['BARRACKS']},{d:'COMMERCIAL',b:['MARKET']},{d:'CULTURAL',b:['TEMPLE']},{d:'ACADEMIC',b:['ACADEMY']}],fort:3,seed:4};
+const N3={L:3,districts:[{d:'AGRARIAN',b:['GRANARY']},{d:'ACADEMIC',b:['ACADEMY']}],seed:9};
+const N7={L:7,districts:[{d:'MARITIME',b:['PORT','SHIPYARD','LIGHTHOUSE']},{d:'ACADEMIC',b:['ACADEMY','OBSERVATORY']},{d:'COMMERCIAL',b:['BANK','MARKET']},{d:'CULTURAL',b:['TEMPLE','THEATER']},{d:'ADMINISTRATIVE',b:['CHANCELLERY']},{d:'MILITARY',b:['BARRACKS']}],fort:3,port:0,obra:'archive-of-horizons',obraStep:3,seed:6};
+const N4C={L:4,districts:[{d:'MARITIME',b:['PORT','SHIPYARD','LIGHTHOUSE']},{d:'COMMERCIAL',b:['MARKET']},{d:'AGRARIAN',b:['GRANARY']}],port:0,seed:11};
+const INL={0:'PLAINS',1:'PLAINS',2:'FOREST',3:'PLAINS',4:'HILLS',5:'PLAINS'},COA={0:'SEA',1:'COAST',2:'PLAINS',3:'FOREST',4:'PLAINS',5:'SEA'};
+function culturalBlock(c,city,nb,plateTxt){const S={seed:6,c:'PLAINS',n:nb,city:{...city,skin:c.sk,acc:c.acc}};
+  const close=scene(100,S,{crop:1}),near=scene(58,S),real=scene(24,S,{context:true,cw:340,ch:190});
+  return `<article class="cult"><h3>${c.name}<span>${c.tag} · ${c.pl}</span></h3><div class="view"><div class="cap">Close-up</div><div class="board fluid">${close}</div></div><div class="view"><div class="cap">Focar · hex ≈ 100 px</div><div class="board">${near}</div></div><div class="view"><div class="cap">Mesa · hex ≈ 42 px · 1:1 · ${plateTxt}</div><div class="board">${real}</div></div></article>`}
+document.getElementById('mA').innerHTML=CIV3.map(c=>culturalBlock(c,N5,INL,'N5 · Fortaleza')).join('');
+document.getElementById('mAv').innerHTML='<b>Leitura na Mesa.</b> A 42 px o que separa as três é a <b>tonalidade da massa</b> (pedra clara, madeira escura, pedra cinza encaixada), o <b>aro do jogador</b> e a cor do telhado do coração cívico. Isso é suficiente para dizer “outra cultura” sem trocar a leitura de N5, de Fortaleza e de posse. Telhados curvos e terraços só aparecem no Focar.';
+document.getElementById('mB').innerHTML=CIV3.map(c=>culturalBlock(c,N4C,COA,'N4 costeira')).join('');
+(function(){const el=document.getElementById('matrix');let h='<div></div>'+CIV3.map(c=>`<div class="h">${c.name}</div>`).join('');
+  [['N3',N3,INL],['N5',N5,INL],['N7',N7,COA]].forEach(([lv,city,nb])=>{h+=`<div class="h">${lv}</div>`+CIV3.map(c=>{const S={seed:6,c:'PLAINS',n:nb,city:{...city,skin:c.sk,acc:c.acc}};return `<div class="c">${scene(58,S)}${scene(24,S,{context:false})}</div>`}).join('')});el.innerHTML=h})();
+(function(){const el=document.getElementById('pc');[['Azul','#5b9bc4'],['Vermelho','#c46a58'],['Âmbar','#d1a64a'],['Verde','#78a86a']].forEach(([n,c])=>el.insertAdjacentHTML('beforeend',`<div class="it">${single(58,{...N5,skin:'valgard',acc:c})}${single(24,{...N5,skin:'valgard',acc:c})}<span>Leontia · jogador ${n}</span></div>`))})();
+
+/* ---------- portraits (language placeholders: engraved bust with soft key light) ---------- */
+function portrait(kind,tint){
+  const id='p'+(++UID);
+  const head='M46,134 L35,98 C26,84 25,64 29,46 C34,22 56,12 74,19 C90,25 95,41 93,53 L96,56 L92,61 C96,65 98,69 96,72 L92,74 C94,77 96,81 92,84 C92,92 88,98 80,103 C76,106 72,108 68,110 L66,134 Z';
+  let hat='',body='',extra='';
+  if(kind==='valgard'){
+    body=`<path d="M-8,152 C2,132 22,122 46,119 L76,120 C98,123 114,134 128,152 Z" fill="#6f322b"/><path d="M26,152 C30,130 46,121 60,121 C76,121 90,130 96,152 Z" fill="#8e6a2f"/><path d="M34,128 C50,138 74,138 90,128" stroke="#d1b160" stroke-width="1.2" fill="none"/><path d="M60,121 L60,152" stroke="#6a4f20" stroke-width="1"/>`;
+    hat=`<path d="M25,60 C22,24 52,6 76,14 C94,22 96,42 92,52 C80,46 58,44 40,52 Z" fill="#9b7430"/><path d="M25,60 C24,76 30,92 38,96 L40,66 Z" fill="#7d5c25"/><path d="M52,10 C48,-6 74,-8 88,6 C80,2 66,2 56,12 Z" fill="#6e2f2a"/><path d="M30,48 C46,36 70,34 90,44" stroke="#d6b66a" stroke-width="1" fill="none" opacity=".7"/>`}
+  if(kind==='kor'){
+    body=`<path d="M-8,152 C2,132 22,122 46,119 L76,120 C98,123 114,134 128,152 Z" fill="#26292a"/><path d="M46,121 L62,152 M76,121 L62,152" stroke="#8a4a3e" stroke-width="4"/><path d="M30,134 C46,140 76,140 94,132" stroke="#b8914d" stroke-width="1.2" fill="none"/>`;
+    hat=`<path d="M26,34 L96,26 L98,34 L28,42 Z" fill="#232122"/><path d="M42,26 L84,22 L86,12 L46,16 Z" fill="#35302f"/>${[34,44,54,64,74,84].map(x=>`<path d="M${x},40 L${x+1},60" stroke="#c9b27a" stroke-width=".8"/><circle cx="${x+1}" cy="61" r="1.3" fill="#d6c58e"/>`).join('')}`;
+    extra=`<path d="M66,98 C72,112 78,122 72,134 C64,128 60,114 62,100 Z" fill="#2a2420"/>`}
+  if(kind==='dravik'){
+    body=`<path d="M-8,152 C2,132 22,122 46,119 L76,120 C98,123 114,134 128,152 Z" fill="#6f3f33"/><rect x="26" y="134" width="70" height="10" fill="#d9cfae"/>${Array.from({length:9},(_,i)=>`<rect x="${27+i*7.6}" y="${i%2?134:139}" width="5" height="5" fill="#2b2420"/>`).join('')}`;
+    hat=`<path d="M27,52 C26,28 50,14 74,20 C88,25 94,38 93,50 C80,44 52,42 27,52 Z" fill="#2b2420"/><path d="M26,50 C48,40 82,42 94,48 L94,56 C82,50 50,48 26,57 Z" fill="#a8452f"/><rect x="58" y="22" width="2.4" height="14" fill="#d8c9a0"/>`;
+    extra=`<circle cx="44" cy="76" r="7" fill="#b8914d" stroke="#6b4e1f" stroke-width="1"/><circle cx="44" cy="76" r="3" fill="#e0c987"/>`}
+  const hatch=Array.from({length:14},(_,i)=>`<line x1="${i*9-10}" y1="150" x2="${i*9+40}" y2="0" stroke="#000" stroke-width=".5" opacity=".1"/>`).join('');
+  return `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g${id}" cx=".74" cy=".4" r=".75"><stop offset="0" stop-color="#e0b88f"/><stop offset=".55" stop-color="#a97b54"/><stop offset="1" stop-color="#47301f"/></radialGradient><linearGradient id="b${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${tint[0]}"/><stop offset="1" stop-color="#0d1417"/></linearGradient><linearGradient id="n${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0000"/><stop offset="1" stop-color="#2a1a10aa"/></linearGradient><clipPath id="c${id}"><path d="${head}"/></clipPath><radialGradient id="v${id}" cx=".5" cy=".42" r=".78"><stop offset=".5" stop-color="#0000"/><stop offset="1" stop-color="#000c"/></radialGradient></defs>
+  <rect width="120" height="150" fill="url(#b${id})"/><circle cx="82" cy="52" r="40" fill="${tint[1]}" opacity=".22"/>${body}
+  <g transform="translate(13,26) scale(.76)"><path d="${head}" fill="url(#g${id})"/><g clip-path="url(#c${id})">${hatch}<rect x="30" y="96" width="50" height="40" fill="url(#n${id})"/></g>
+  <path d="M82,56 C84,54 88,54 90,56" stroke="#2a1a10" stroke-width="1.4" fill="none"/><path d="M80,50 C84,47 90,47 92,50" stroke="#3a2418" stroke-width="1.2" fill="none"/>${extra}${hat}</g>
+  <rect width="120" height="150" fill="url(#v${id})"/></svg>`}
+
+const LDR={
+ valgard:{civ:'Leontia',name:'Leônidas I',type:'H',title:'Senhor das Passagens',tint:['#3a4a52','#9ab0b8'],sub:'Rei de Esparta; Termópilas, 480 a.C. A tradição o heroiciza.',passive:['Refúgios abastecidos','Suas peças ficam abastecidas 1 hex mais longe das cidades.'],power:['Muralha Viva','Uma vez por Era, suas peças ganham +2 de Força nos conflitos desta rodada.']},
+ kor:{civ:'Yuhan',name:'Yu, o Grande',type:'S',title:'Mestre da Transformação',tint:['#4a3a36','#c98a74'],sub:'Fundador tradicional da dinastia Xia; doma as inundações. Semi-lendário.',passive:['Depósito de ferragens','Suas oficinas guardam mais Metal.'],power:['Rotina de Manutenção','Uma vez por Era, a coesão local de todas as suas cidades sobe 15.']},
+ dravik:{civ:'Tawanta',name:'Pachacútec',type:'H',title:'Arquiteto das Obras',tint:['#3f4a40','#bfb48a'],sub:'Governante inca do séc. XV; a tradição dinástica amplia sua figura.',passive:['Redes de abastecimento','Suas peças ficam abastecidas 1 hex mais longe das cidades.'],power:['Obra Defensiva','Uma vez por Era, suas peças ganham +2 de Força nos conflitos desta rodada.']}};
+const LT={H:'Histórico',S:'Semi-lendário',L:'Lendário',M:'Mitológico'};
+/* patterns: one band per culture */
+function band(kind,color='#b8914d'){const w=264,h=14;let p='';
+  if(kind==='valgard')p=Array.from({length:22},(_,i)=>`<path d="M${i*12+1},12 v-9 h8 v7 h-4 v-3" stroke="${color}" stroke-width="1" fill="none"/>`).join('');
+  if(kind==='kor')p=Array.from({length:18},(_,i)=>`<path d="M${i*14.7+2},12 v-9 h10 v7 h-6 v-4" stroke="${color}" stroke-width="1" fill="none"/>`).join('');
+  if(kind==='dravik')p=Array.from({length:22},(_,i)=>`<rect x="${i*12}" y="${i%2?1:7}" width="6" height="6" fill="${color}" opacity=".8"/>`).join('');
+  return `<svg class="band" viewBox="0 0 264 14" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${p}</svg>`}
+function leaderCard(k){const l=LDR[k];return `<div class="tc"><div class="art">${portrait(k,l.tint)}</div><div class="id"><div class="nm">${l.name}</div><div class="tt">${l.title}</div><div class="meta"><span class="tag">${LT[l.type]}</span><span class="tag">${l.civ}</span></div></div><div class="fx"><div class="note" style="color:#9fb1b5;font-size:12px">${l.sub}</div><div><b>Passiva · ${l.passive[0]}</b>${l.passive[1]}</div><div class="pw"><b>Poder 1× por Era · ${l.power[0]}</b>${l.power[1]}</div></div>${band(k)}</div>`}
+document.getElementById('leaders').innerHTML=['valgard','kor','dravik'].map(leaderCard).join('');
+
+/* emblems (bronze glyphs) */
+const EM={
+ passo:`<g fill="none" stroke="#b8914d" stroke-width="2.2" stroke-linecap="round"><path d="M6,28 L6,12 Q6,4 17,4 Q28,4 28,12 L28,28"/><path d="M12,28 L12,15 Q12,10 17,10 Q22,10 22,15 L22,28"/></g>`,
+ bigorna:`<g fill="#b8914d"><path d="M4,10 H30 L26,17 H21 L22,23 H26 V28 H8 V23 H12 L13,17 H8 Z"/></g>`,
+ arcos:`<g fill="none" stroke="#b8914d" stroke-width="2.2"><path d="M3,28 V18 Q3,9 10,9 Q17,9 17,18 V28"/><path d="M17,28 V18 Q17,9 24,9 Q31,9 31,18 V28"/><path d="M2,28 H32"/></g>`};
+const CC={valgard:{sk:'valgard',civ:'valgard'},kor:{sk:'kor'},dravik:{sk:'dravik'}};
+const CIVD={
+ valgard:{name:'Leontia',matriz:'Mundo helênico (póleis) · séc. VIII–IV a.C.',id:'Pedra clara, pátios e peristilos, telhados baixos de terracota. Uma tradição heroica: o passo guardado, o escudo redondo.',aff:'Territorial',trait:'+1 alcance de suprimento para peças em território próprio.',lim:'Enviados custam +1 Influência.',sig:'Falange de Escudos: suas Guardas dão +1 na defesa de uma cidade fortificada.',her:['Passos Guardados','Refúgios de Montanha','Muralha Viva'],emb:'passo'},
+ kor:{name:'Yuhan',matriz:'China antiga (Xia–Zhou) · tradição do séc. XXI–III a.C.',id:'Taipa e madeira escura laqueada, telhados de beirais curvos. A tradição de Yu: dominar as águas com obra coletiva.',aff:'Territorial',trait:'Pedreiras trabalhadas em Colinas rendem +1 Pedra quando a cidade Produz.',lim:'Frotas têm −1 movimento.',sig:'Engenheiros de Cerco: seus Cercos abrem +1 Brecha contra fortificações de pedra ou melhores.',her:['Mutirão de Oficinas','Forja Profunda','Têmpera de Kor'],emb:'bigorna'},
+ dravik:{name:'Tawanta',matriz:'Andes (Tawantinsuyu) · séc. XV–XVI d.C.',id:'Alvenaria de pedra encaixada, terraços e portas trapezoidais. A origem lendária de Manco Cápac e Mama Ocllo.',aff:'Territorial',trait:'Estradas e melhorias custam 1 Madeira/Pedra a menos.',lim:'Rotas comerciais rendem −1 Riqueza.',sig:'Canal de Terraços: a cidade precisa de 1 Alimento a menos para crescer.',her:['Jornada de Construção','Aquedutos','Redes de Abastecimento'],emb:'arcos'}};
+function civCard(k){const c=CIVD[k],sk=CIV3.find(x=>x.sk===k);
+  const art=`<svg viewBox="0 0 280 170" xmlns="http://www.w3.org/2000/svg"><rect width="280" height="170" fill="#0e1519"/><g transform="translate(140,86)">${terrainHex(76,'PLAINS',5)}${city(76,{...N5,skin:k,acc:sk.acc,fort:0})}</g></svg>`;
+  return `<div class="tc"><div class="art">${art}</div><svg class="em" viewBox="0 0 34 34">${EM[c.emb]}</svg><div class="id"><div class="nm">${c.name}</div><div class="tt">${c.matriz}</div><div class="meta"><span class="tag">${c.aff}</span><span class="tag">Civilização</span></div></div><div class="fx"><div>${c.id}</div><div class="pw"><b>Trait</b>${c.trait}</div><div><b>Limitation</b>${c.lim}</div><div><b>Assinatura</b>${c.sig}</div><div><b>Heranças</b>${c.her.join(' · ')}</div></div>${band(k)}</div>`}
+document.getElementById('civs').innerHTML=['valgard','kor','dravik'].map(civCard).join('');
+
+/* Obras: piece + card */
+const OB=[
+ {id:'monument-of-voices',sk:'valgard',path:'Cultural',req:'Distrito Cultural',cost:'Pedra 6 · Madeira 2 · Cultura 4',fx:'+1 Influência por manutenção.',who:'Construída por Leontia'},
+ {id:'shared-foundry',sk:'kor',path:'Econômico',req:'Distrito Industrial',cost:'Pedra 5 · Metal 4 · Madeira 3',fx:'+1 Materiais ao Produzir nesta cidade.',who:'Construída por Yuhan'},
+ {id:'terraced-reserves',sk:'dravik',path:'Territorial',req:'Distrito Agrário',cost:'Madeira 4 · Pedra 5 · Alimento 3',fx:'+1 Alimento ao Produzir nesta cidade.',who:'Construída por Tawanta'}];
+document.getElementById('obras').innerHTML=OB.map(o=>{useSkin(o.sk);const sc=OBRA[o.id],piece=obra(o.id,3);
+  const small=`<svg width="80" height="${Math.round(sc.h*1.6+30)}" viewBox="-17 ${-sc.h-9} 34 ${sc.h+13}"><g>${piece}</g></svg>`;
+  const art=`<svg viewBox="-24 -44 48 52" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ob${o.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34444a"/><stop offset="1" stop-color="#10181b"/></linearGradient></defs><rect x="-24" y="-44" width="48" height="52" fill="url(#ob${o.id})"/><ellipse cx="0" cy="3" rx="19" ry="3.4" fill="#8f8a78"/><g>${piece}</g></svg>`;
+  return `<div style="display:grid;gap:8px;justify-items:center"><div class="strip"><div class="it">${small}<span>Peça · Focar</span></div></div><div class="tc"><div class="art">${art}</div><div class="id"><div class="nm">${sc.n}</div><div class="tt">${o.who}</div><div class="meta"><span class="tag">Obra de Legado</span><span class="tag">${o.path}</span></div></div><div class="fx"><div><b>Requisito</b>${o.req}</div><div><b>Custo (3 passos)</b>${o.cost}</div><div class="pw"><b>Efeito permanente · +4 Prestígio</b>${o.fx}</div><div class="steps"><i></i><i></i><i></i></div></div>${band(o.sk)}</div></div>`}).join('');
+useSkin('base');
+/* Mesa-size Obra pins */
+(function(){const el=document.getElementById('obras');})();
+/* Heritage concept */
+document.getElementById('her').innerHTML=`<div class="tc"><div class="art"><svg viewBox="0 0 280 150" xmlns="http://www.w3.org/2000/svg"><rect width="280" height="150" fill="#0e1519"/><g transform="translate(140,88)">${terrainHex(48,'PLAINS',7)}${city(48,{L:3,districts:[{d:'MILITARY',b:['BARRACKS']},{d:'ACADEMIC',b:['ACADEMY']}],skin:'valgard',acc:'#5b9bc4',fort:2,seed:9})}</g></svg></div><div class="id"><div class="nm">Muralha Viva</div><div class="tt">Herança de Leontia · 3/3</div><div class="meta"><span class="tag">Herança</span><span class="tag">Era dos Poderes</span></div></div><div class="fx"><div class="pw"><b>Efeito</b>Cidades sitiadas não perdem Ânimo; reparo custa 0.</div><div><b>Requisito</b>Avanço Defesa em Profundidade</div></div>${band('valgard')}</div>`;
+
+/* 18-civ swatches */
+const ALL=[{"pilot": true, "id": "aurelia", "name": "Nokor", "matriz": "Sudeste Asiático khmer", "periodo": "séc. IX–XIII d.C.", "arq": "Templos-montanha escalonados, galerias de torres em botão de lótus, reservatórios (baray), casas sobre palafitas.", "mat": "Arenito rosado, laterita, madeira escura, bronze.", "simbolo": "Espiga de arroz (emblema atual) + cabeça de naga nos beirais.", "padrao": "Faixas de lótus sobre ondas do reservatório.", "palette": ["#b28b6a", "#6e4a3a", "#7b8a5a", "#b8914d"]}, {"pilot": true, "id": "valgard", "name": "Leontia", "matriz": "Mundo helênico (póleis)", "periodo": "séc. VIII–IV a.C.", "arq": "Mármore claro, peristilos e pátios, telhados baixos de terracota, ágora, muralhas ciclópicas.", "mat": "Mármore, calcário, terracota, bronze.", "simbolo": "Passo (emblema atual) + escudo redondo de bronze.", "padrao": "Friso de meandro.", "palette": ["#e4ddc8", "#b9825e", "#7f8a8f", "#b8914d"]}, {"pilot": true, "id": "meridia", "name": "Uruvane", "matriz": "Mesopotâmia (cidades-rio)", "periodo": "c. 3500–500 a.C.", "arq": "Tijolo cru e cozido, zigurates, muralhas maciças, pátios internos, canais.", "mat": "Tijolo de barro, betume, cerâmica vidrada azul, cobre.", "simbolo": "Ondas (emblema atual) + cunha.", "padrao": "Friso de tijolo em relevo.", "palette": ["#b98f62", "#8a6a4a", "#2f6f8f", "#c9a54e"]}, {"pilot": true, "id": "thalos", "name": "Moanara", "matriz": "Oceania polinésia", "periodo": "expansão polinésia, séc. I–XIV d.C.", "arq": "Casas longas de madeira e palha, plataformas cerimoniais de coral e basalto, canoas duplas.", "mat": "Madeira, fibra, coral, basalto, concha.", "simbolo": "Farol (emblema atual) como fogo-baliza.", "padrao": "Geometria de tecido de casca (kapa).", "palette": ["#2f6f7f", "#c9b389", "#6b4e3a", "#e0d6bd"]}, {"pilot": true, "id": "saren", "name": "Sahelor", "matriz": "África Ocidental sudanesa (mandê)", "periodo": "séc. XIII–XIV d.C.", "arq": "Edifícios de terra crua com vigas salientes, pátios, praças de assembleia, muralhas de adobe.", "mat": "Adobe, vigas de madeira, estuque de terra, ouro.", "simbolo": "Três vozes (emblema atual).", "padrao": "Faixas de lama tingida (bogolan).", "palette": ["#b5835a", "#6f4a32", "#d4b98a", "#2f5a4a"]}, {"pilot": true, "id": "kor", "name": "Yuhan", "matriz": "China antiga (Xia–Zhou)", "periodo": "tradição do séc. XXI a.C. ao séc. III a.C.", "arq": "Taipa (terra batida), madeira escura laqueada, telhados de beirais curvos, muralhas, fundições de bronze.", "mat": "Taipa, madeira laqueada, telha cinza, bronze.", "simbolo": "Bigorna (emblema atual) + caldeirão de bronze.", "padrao": "Meandro de raios (leiwen).", "palette": ["#6e5a48", "#8e4a3c", "#3f4448", "#b8914d"]}, {"pilot": true, "id": "orinth", "name": "Bharani", "matriz": "Subcontinente indiano (Índia clássica)", "periodo": "séc. V–VI d.C.", "arq": "Poços escalonados, mandapas, templos de pedra com torre, observatórios de pedra.", "mat": "Arenito, madeira, estuque, cobre.", "simbolo": "Olho (emblema atual) como mirante.", "padrao": "Treliça geométrica (jali).", "palette": ["#c28a5a", "#9a6a4a", "#3d5f7a", "#b8914d"]}, {"pilot": true, "id": "nymara", "name": "Eirelon", "matriz": "Mundo celta atlântico", "periodo": "séc. VI a.C.–V d.C.", "arq": "Casas redondas de madeira e palha, fortes de colina, círculos de pedra, bosques consagrados.", "mat": "Carvalho, palha, turfa, pedra, bronze.", "simbolo": "Folha (emblema atual) + nó.", "padrao": "Entrelaçado e espirais.", "palette": ["#5f7a4f", "#7a5a3a", "#9a9a8a", "#b8914d"]}, {"pilot": true, "id": "veyra", "name": "Sogdar", "matriz": "Sogdiana (Ásia Central, Rota da Seda)", "periodo": "séc. IV–VIII d.C.", "arq": "Casas-fortaleza de adobe, caravançarais, salões com murais, torres de guarda.", "mat": "Adobe, madeira, estuque pintado, lápis-lazúli.", "simbolo": "Encruzilhada (emblema atual).", "padrao": "Medalhões de pérolas.", "palette": ["#a77c52", "#3f6f8f", "#8a3f3a", "#d8c9a0"]}, {"pilot": true, "id": "solenne", "name": "Parsar", "matriz": "Irã aquemênida", "periodo": "séc. VI–IV a.C.", "arq": "Terraços palaciais de pedra, salas hipostilas com capitéis de touro e leão, relevos de delegações.", "mat": "Calcário cinza, tijolo vidrado azul, cedro, ouro.", "simbolo": "Sol (emblema atual) como luz.", "padrao": "Friso de rosetas e procissão de povos.", "palette": ["#b7ad98", "#2f5f8f", "#c9a54e", "#8a5a4a"]}, {"pilot": true, "id": "dravik", "name": "Tawanta", "matriz": "Andes (Tawantinsuyu e antecessores)", "periodo": "séc. XV–XVI d.C. (raízes anteriores)", "arq": "Alvenaria de pedra encaixada sem argamassa, portas trapezoidais, terraços agrícolas, depósitos, estradas.", "mat": "Granito e andesito, palha ichu, adobe.", "simbolo": "Arcos (emblema atual) como trapézio e canal.", "padrao": "Tocapu (quadros xadrez).", "palette": ["#a9a493", "#7d7967", "#b79c62", "#a54a3a"]}, {"pilot": true, "id": "elyra", "name": "Yaxkin", "matriz": "Mesoamérica (maia clássica)", "periodo": "séc. III–IX d.C.", "arq": "Pirâmides escalonadas de calcário estucado, observatórios, praças, abóbadas em falso arco.", "mat": "Calcário, estuque, jade, madeira.", "simbolo": "Chama (emblema atual) como marca de tempo.", "padrao": "Glifos e entrelaçados.", "palette": ["#cfc6a8", "#4f7a5a", "#b4532f", "#b8914d"]}, {"pilot": false, "id": "kaedor", "name": "Sabaar", "matriz": "Arábia do Sul (Sabeia) e Rota do Incenso", "periodo": "séc. X a.C.–VI d.C.", "arq": "Torres de pedra e tijolo, templos de pilares monolíticos, cisternas, barragem de Marib.", "mat": "Calcário, alabastro, tijolo cru, incenso.", "simbolo": "Moeda (emblema atual) como balança.", "padrao": "Friso de íbex e escrita monumental.", "palette": ["#c6a577", "#7a5a3a", "#d9c9a0", "#3f5f6a"]}, {"pilot": false, "id": "lumaris", "name": "Seorin", "matriz": "Coreia (Silla e Goryeo)", "periodo": "séc. VII–XIII d.C.", "arq": "Observatório de pedra, templos de madeira com beirais, arquivos, tumbas em túmulo.", "mat": "Granito, madeira, telha cinza, papel.", "simbolo": "Prisma (emblema atual).", "padrao": "Nuvens e fios de beiral.", "palette": ["#7f8a8a", "#a74a3c", "#dcd5c4", "#2f4f4a"]}, {"pilot": false, "id": "targan", "name": "Qaghar", "matriz": "Estepe eurasiana", "periodo": "séc. III a.C.–XIII d.C.", "arq": "Tendas-palácio de feltro, carros, fortes de madeira, túmulos em kurgan.", "mat": "Feltro, couro, madeira, ferro, ouro.", "simbolo": "Presa (emblema atual) como estandarte de cauda de cavalo.", "padrao": "Estilo animal estepário.", "palette": ["#8a6a4a", "#c8b99a", "#5a4a3a", "#b8914d"]}, {"pilot": false, "id": "iskara", "name": "Khemara", "matriz": "Egito antigo (vale do Nilo)", "periodo": "c. 3000–300 a.C.", "arq": "Pilonos, obeliscos, colunatas papiriformes, mastabas e pirâmides, templos funerários.", "mat": "Calcário, arenito, tijolo cru, ouro, lápis-lazúli.", "simbolo": "Espiral (emblema atual) como ciclo.", "padrao": "Friso de papiro e lótus.", "palette": ["#e0d5b8", "#3f8f9a", "#c9a54e", "#7a4a3a"]}, {"pilot": false, "id": "veloria", "name": "Kilwara", "matriz": "Costa suaíli do Índico", "periodo": "séc. IX–XVI d.C.", "arq": "Casas de pedra de coral com nichos, portas entalhadas, mesquitas e cais de coral.", "mat": "Coral talhado, cal, madeira de mangue, velas de dhow.", "simbolo": "Elos (emblema atual).", "padrao": "Entalhe de portas e ondas.", "palette": ["#d8cdb4", "#2f7f8a", "#8a5a3a", "#b8914d"]}, {"pilot": false, "id": "norvak", "name": "Fjorvik", "matriz": "Escandinávia (era dos vikings)", "periodo": "séc. VIII–XI d.C.", "arq": "Salões longos de madeira com telhado de turfa, estaleiros de drakkar, pedras rúnicas.", "mat": "Carvalho e pinho escuro, turfa, ferro, pedra.", "simbolo": "Floco (emblema atual) como nó de gelo.", "padrao": "Entrelaçado de animais.", "palette": ["#4a3a2c", "#7a8a8f", "#c9d2d4", "#8a3f3a"]}];
+document.getElementById('sw').innerHTML='<tr><th>Civ (id técnico)</th><th>Nome proposto</th><th>Matriz · período</th><th>Paleta</th><th>Arquitetura · materiais</th><th>Símbolo · padrão</th></tr>'+ALL.map(c=>`<tr><th scope="row">${c.pilot?'Piloto':'Expansão'} · ${c.id}</th><td><b>${c.name}</b></td><td>${c.matriz}<br><span class="note">${c.periodo}</span></td><td><div class="chips">${c.palette.map(x=>`<i style="background:${x}"></i>`).join('')}</div></td><td>${c.arq}<br><span class="note">${c.mat}</span></td><td>${c.simbolo}<br><span class="note">${c.padrao}</span></td></tr>`).join('');
+document.getElementById('scope').innerHTML=[
+ ['<span class="tag a">A · só visual</span>','Pele cultural da cidade, retratos, cartas, nomes e arte das civilizações, Obras como peça e ilustração.'],
+ ['<span class="tag b">B · representa regra existente</span>','Porto desenhado onde a cidade já é porto (isPort); fortificação, níveis, Obras e Heranças mostradas como o motor as tem.'],
+ ['<span class="tag c">C · muda regra</span>','Nada aprovado. O único candidato é o Porto (aresta de água real; Marítimo × PORT). Território, Estradas e raio ficam <b>suspensos</b> para auditoria própria.']
+].map(([t,d])=>`<div class="card">${t}<small>${d}</small></div>`).join('');
+</script>
