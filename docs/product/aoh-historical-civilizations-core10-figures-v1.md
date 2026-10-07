@@ -129,13 +129,13 @@ No setup: a civilização mostra **três Figuras**; uma vem marcada como **recom
 | Figura | Classe | Arquétipo | Passiva | Poder 1× por Era | Estilo |
 |---|---|---|---|---|---|
 | **Odisseu** | LENDÁRIO | Explorador-Estrategista | Naus de Ítaca (Limite de Madeira +6) | Rota do Retorno (+1 movimento da rodada) | Mobilidade, exploração, retirada, navegação. |
-| **Alexandre III da Macedônia** | HISTÓRICO | Conquistador-Comandante | Cidades de Alexandre (Ação cívica integra +10 em cidades ocupadas) | Campanha Relâmpago (+1 ponto de comando da rodada) | Ofensiva, comando, expansão. |
-| **Leônidas I** ★ | HISTÓRICO | Comandante-Defensor | Refúgios abastecidos (Suprimento +1 hex) | Muralha Viva (+2 Força nos conflitos da rodada) | Defesa, território, resistência. |
+| **Alexandre Magno** ★ | HISTÓRICO | Conquistador-Comandante | Cidades de Alexandre (Ação cívica integra +10 em cidades ocupadas) | Campanha Relâmpago (+1 ponto de comando da rodada) | Ofensiva, comando, expansão. |
+| **Agamenon** | LENDÁRIO | Rei-Comandante | Ouro de Micenas (Limite de Riqueza +6) | Assembleia dos Reis (+1 ponto de comando da rodada) | Coalizão, comando, Riqueza guardada. |
 
 **Retratos (direção):**
 - Odisseu: Perfil, barba curta, pilos (gorro cônico), remo na mão, mar à noite; luz de estrelas e lamparina; ~45 anos.
-- Alexandre III da Macedônia: Três-quartos, cabelo em anástole (franja erguida), diadema, couraça; plano largo de campo de batalha; luz de aurora.
-- Leônidas I: Frontal justo, elmo coríntio erguido, borda de escudo; desfiladeiro ao crepúsculo; luz fria e brasa; ~40 anos.
+- Alexandre Magno: Três-quartos, cabelo em anástole (franja erguida), diadema, couraça; plano largo de campo de batalha; luz de aurora.
+- Agamenon: Frontal-perfil, barba grisalha, diadema e cetro, portão de Micenas ao fundo; luz de tocha; ~50 anos.
 
 ### 2. Egípcios
 - **Recorte:** Egito faraônico: do Reino Antigo ao Novo. **Período:** c. 2700 – 1070 a.C..
@@ -421,8 +421,8 @@ Auditoria **interna**, para evitar erros grosseiros; não é conteúdo do jogo.
 | Figura | Classe | Fonte / tradição | Histórico | Tradição | Lendário | Risco de anacronismo |
 |---|---|---|---|---|---|---|
 | Odisseu | LENDÁRIO | Odisseia e Ilíada: tradição oral fixada por escrito entre os séc. VIII e VII a.C. | O mundo micênico e a região de Ítaca são reais; não há evidência de uma pessoa. | O retorno de dez anos e a astúcia (o Cavalo de Troia é narrado na Odisseia). | Ciclope, Circe, sereias, Cila e Caríbdis, descida ao Hades. | Armadura de hoplita (séc. VII a.C. em diante) em figura da Idade do Bronze; trirreme. Usar pilos, escudo grande e barco de remo simples. É o Odisseu da Odisseia. |
-| Alexandre III da Macedônia | HISTÓRICO | Arriano, Plutarco, Diodoro e Quinto Cúrcio (séc. I a.C. – II d.C.), a partir de testemunhas perdidas. | Campanhas (Granico, Isso, Gaugamela), fundação de cidades, morte em Babilônia (323 a.C.). | O nó górdio e a visita a Siwa (filho de Amon) são anedotas e propaganda. | Romance de Alexandre (viagens fantásticas). | Macedônio não é "grego clássico"; imperialismo e massacres (Tebas, Tiro). Evitar o "grande homem" sem crítica. |
-| Leônidas I | HISTÓRICO | Heródoto (livro VII, c. 430 a.C.). | Rei agíada de Esparta; Termópilas em 480 a.C.; morte em combate. | Os "300" (cerca de 300 espartanos entre milhares de aliados); epitáfio atribuído a Simônides. | Frases célebres ("Molon labe" é de Plutarco, séc. I d.C.). | Cultura pop ("300"), hilotas, capa vermelha de cinema. Retrato sóbrio. |
+| Alexandre Magno | HISTÓRICO | Arriano, Plutarco, Diodoro e Quinto Cúrcio (séc. I a.C. – II d.C.), a partir de testemunhas perdidas. | Campanhas (Granico, Isso, Gaugamela), fundação de cidades, morte em Babilônia (323 a.C.). | O nó górdio e a visita a Siwa (filho de Amon) são anedotas e propaganda. | Romance de Alexandre (viagens fantásticas). | Macedônio não é "grego clássico"; imperialismo e massacres (Tebas, Tiro). Evitar o "grande homem" sem crítica. |
+| Agamenon | LENDÁRIO | Ilíada (tradição oral fixada por escrito entre os séc. VIII e VII a.C.); ciclo épico. | Micenas é um centro real da Idade do Bronze (c. 1600–1100 a.C.); não há evidência da pessoa. | Líder da coalizão dos aqueus em Troia; o juramento de Tíndaro une os reis. | Sacrifício de Ifigênia, assassinato por Clitemnestra. | A "Máscara de Agamenon" é anterior à Guerra de Troia tradicional e não é dele; usar figurino micênico, não hoplita. |
 
 **Egípcios**
 
