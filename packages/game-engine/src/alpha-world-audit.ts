@@ -51,7 +51,8 @@ export function auditWorld(state: AlphaState): WorldAudit {
     const distances = regionDistances(state, home.id);
     const metal = [...metalRegions].map(id => distances.get(id)).filter((d): d is number => d !== undefined);
     const body = landBodies.find(b => b.ids.has(capital))!;
-    const waterEdge = home.hexIds.some(id => tiles.get(id)!.terrain === 'COAST' || neighbours(id).some(n => isNavigableTerrain(tiles.get(n)!.terrain) && !home.hexIds.includes(n as never)) || neighbours(id).some(n => tiles.get(n)!.terrain === 'SEA'));
+    // The Pátria can reach water when its land mass touches navigable water anywhere (a city there can take the Porto).
+    const waterEdge = [...body.ids].some(id => tiles.get(id)!.terrain === 'COAST' || neighbours(id).some(n => tiles.get(n)!.terrain === 'SEA'));
     const others = state.core.players.filter((_, i) => i !== slot).map(p => p.civilization.cities[0]!.hexId as string);
     return { playerId: player.playerId as string, metalRegionDistance: metal.length ? Math.min(...metal) : null, landReach: body.size, waterEdge, landLinked: others.some(id => body.ids.has(id)) };
   });

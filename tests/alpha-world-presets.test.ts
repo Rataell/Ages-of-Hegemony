@@ -21,13 +21,32 @@ describe('world presets: structural guarantees (size × preset × 2/4/6 players)
       if (preset === 'INLAND_SEA') expect(audit.largestSea, `seed ${seed}`).toBeGreaterThanOrEqual(12);
     }
   });
-  it('presets are distinct on the same table: sea share ranks CONTINENTAL < MISTO < MAR INTERIOR < ARQUIPÉLAGO', () => {
-    const share = Object.fromEntries(PRESETS.map(preset => [preset, SEEDS.reduce((sum, seed) => sum + auditWorld(make(preset, 'STANDARD', 4, seed)).seaShare, 0) / SEEDS.length]));
-    expect(share.CONTINENTAL!).toBeLessThan(0.02);
-    expect(share.MIXED!).toBeGreaterThan(share.CONTINENTAL!);
-    expect(share.INLAND_SEA!).toBeGreaterThan(share.MIXED!);
-    expect(share.ARCHIPELAGO!).toBeGreaterThan(0.25);
-    expect(share.ARCHIPELAGO!).toBeGreaterThan(share.INLAND_SEA!);
+  const mean = (preset: MapPreset, pick: (a: ReturnType<typeof auditWorld>) => number, size: MapSize = 'STANDARD', count = 4) => SEEDS.reduce((sum, seed) => sum + pick(auditWorld(make(preset, size, count, seed))), 0) / SEEDS.length;
+  const landShare = (a: ReturnType<typeof auditWorld>) => a.landComponents[0]! / a.landComponents.reduce((x, y) => x + y, 0);
+  it('presets are distinct on the same table, each by its own structure', () => {
+    // CONTINENTAL: one great land mass inside a real ocean border.
+    expect(mean('CONTINENTAL', landShare)).toBeGreaterThan(0.95);
+    expect(mean('CONTINENTAL', a => a.largestSea)).toBeGreaterThanOrEqual(8);
+    // MISTO: one land mass with only the small bays and lakes of the templates.
+    expect(mean('MIXED', landShare)).toBeGreaterThan(0.95);
+    expect(mean('MIXED', a => a.largestSea)).toBeLessThan(6);
+    // MAR INTERIOR: a real connected central sea.
+    expect(mean('INLAND_SEA', a => a.largestSea)).toBeGreaterThanOrEqual(14);
+    // ARQUIPÉLAGO: several islands, no dominant mainland, lots of water.
+    expect(mean('ARCHIPELAGO', landShare)).toBeLessThan(0.8);
+    expect(mean('ARCHIPELAGO', a => a.landComponents.length)).toBeGreaterThanOrEqual(3);
+    expect(mean('ARCHIPELAGO', a => a.seaShare)).toBeGreaterThan(0.18);
+    expect(mean('MIXED', a => a.seaShare)).toBeLessThan(0.1);
+  });
+  it('CONTINENTAL keeps a functional coast: ocean along the rim, no coast hex inland without water', () => {
+    for (const seed of SEEDS) {
+      const state = make('CONTINENTAL', 'STANDARD', 4, seed), shape = worldShape('CONTINENTAL', seed, state.regions, 4), tiles = new Map(state.core.map.map(t => [t.id as string, t]));
+      const owner = new Map(state.regions.flatMap(r => r.hexIds.map(id => [id as string, r.id] as const)));
+      for (const t of state.core.map) if (t.terrain === 'SEA' && !shape.active.has(owner.get(t.id)!)) expect(shape.rim.has(t.id) || shape.nearRim.has(t.id), `${seed} ${t.id}`).toBe(true);
+      const coast = state.core.map.filter(t => t.terrain === 'COAST' && !shape.active.has(owner.get(t.id)!));
+      const wet = coast.filter(t => t.terrain === 'COAST' && [...shape.rim].some(id => tiles.get(id)!.terrain === 'SEA' && Math.abs(tiles.get(id)!.q - t.q) <= 2 && Math.abs(tiles.get(id)!.r - t.r) <= 2));
+      expect(wet.length).toBe(coast.length);
+    }
   });
   it('ARQUIPÉLAGO has no artificial land corridor: Pátrias are often apart by land, yet every one reaches the water', () => {
     const linked = SEEDS.map(seed => auditWorld(make('ARCHIPELAGO', 'WIDE', 2, seed)).patrias.every(p => p.landLinked));
@@ -42,7 +61,9 @@ describe('world presets: structural guarantees (size × preset × 2/4/6 players)
         for (let rotation = 0; rotation < 6; rotation++) {
           const tiles = rotatedRegionTiles(state, region, rotation);
           expect(tiles.filter(t => t.features.includes('METAL')).length, `${preset} ${region.id} r${rotation}`).toBe(hasDeposit ? 1 : 0);
-          if (preset === 'CONTINENTAL') expect(tiles.some(t => t.terrain === 'SEA' || t.terrain === 'COAST')).toBe(false);
+          
+          if (preset === 'CONTINENTAL') tiles.forEach((t, i) => { if (t.terrain === 'SEA') expect(shape.rim.has(region.hexIds[i]!) || shape.nearRim.has(region.hexIds[i]!), `${region.id} r${rotation}`).toBe(true); });
+          if (preset === 'ARCHIPELAGO') region.hexIds.forEach((id, i) => { if (shape.straits.has(id) && !tiles[i]!.features.includes('METAL')) expect(tiles[i]!.terrain).toBe('SEA'); });
           if (preset === 'INLAND_SEA') region.hexIds.forEach((id, i) => { if (shape.inlandSea.has(id) && !tiles[i]!.features.includes('METAL')) expect(tiles[i]!.terrain).toBe('SEA'); });
         }
       }

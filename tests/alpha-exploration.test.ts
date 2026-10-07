@@ -78,4 +78,24 @@ describe('exploration: who explores and how a Region is entered', () => {
     }
     expect(seen).toBeGreaterThan(0);
   });
+  it('two explorers of the same Region in one round do not corrupt it, and its Discovery resolves once', () => {
+    for (const seed of [2, 5, 9, 13, 21, 34, 55]) {
+      const state = world(seed), a = state.units.find(u => u.ownerId === 'p1' && u.kind === 'PIONEER')!, b = state.units.find(u => u.ownerId === 'p2' && u.kind === 'PIONEER')!;
+      for (const region of hidden(state)) {
+        const at = rim(state, region); a.hexId = at[0] as typeof a.hexId; b.hexId = at[at.length - 1] as typeof b.hexId;
+        if (explorationAccess(state, a, region).block !== null || explorationAccess(state, b, region).block !== null) continue;
+        const first = explorationAccess(state, a, region).rotations[0]!;
+        exploreRegion(state, 'p1' as never, { type: 'EXPLORE', id: 'e1', unitId: a.id, target: region.hexIds[0]!, rotation: first });
+        const terrain = region.hexIds.map(id => state.core.map.find(t => t.id === id)!.terrain), resolvedBy = region.discovery?.resolvedBy ?? null, events = state.events.length;
+        exploreRegion(state, 'p2' as never, { type: 'EXPLORE', id: 'e2', unitId: b.id, target: region.hexIds[0]!, rotation: (first + 3) % 6 });
+        expect(region.rotation).toBe(first);
+        expect(region.hexIds.map(id => state.core.map.find(t => t.id === id)!.terrain)).toEqual(terrain);
+        expect(region.discovery?.resolvedBy ?? null).toBe(resolvedBy);
+        expect(state.events.slice(events).some(e => e.type === 'REGION_ALREADY_OPEN')).toBe(true);
+        expect(state.players[1]!.exploredRegions).toBe(0);
+        return;
+      }
+    }
+    throw new Error('no shared-region case found');
+  });
 });
