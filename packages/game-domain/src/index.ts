@@ -13,6 +13,7 @@ export * from './alpha-regions.js';
 export * from './alpha-institutions.js';
 export * from './alpha-web.js';
 export * from './alpha-cards.js';
+export * from './alpha-core10.js';
 export * from './alpha-leaders.js';
 export * from './alpha-stack.js';
 export * from './alpha-civilization-kits.js';

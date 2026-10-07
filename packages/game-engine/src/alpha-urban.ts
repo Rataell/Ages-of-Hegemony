@@ -11,7 +11,7 @@ import { activationsAllowed, administration, recruitLimit, cityYield, districtSl
 import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
-import { kitCivicInfluence, kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
+import { kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
 
 type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
 
@@ -344,7 +344,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
         }
         message = `${city.name} avançou na integração (${meta.integration}%).`;
       } else {
-        alphaGain(state, actor, { influence: balance.civicInfluence + kitCivicInfluence(state, actor) });
+        alphaGain(state, actor, { influence: balance.civicInfluence });
         meta.localCohesion = Math.min(100, meta.localCohesion + balance.civicCohesion);
         message = `${city.name} realizou uma ação cívica.`;
       }

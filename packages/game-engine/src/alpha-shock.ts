@@ -81,7 +81,7 @@ export function signaturePassives(state: AlphaState, side: ShockSide, attacking:
     if (piece.kind === 'GUARD' && !attacking) {
       if (input.city) push(list, `Muro (${name})`, sig.muroCity[g]!);
       if (input.terrain === 'HILLS' || input.terrain === 'MOUNTAINS') push(list, `Muro em terreno alto (${name})`, sig.muroRough[g]!);
-      if (piece.signature && isFortified(input.fortification)) push(list, 'Guarda de Escudos', 1);
+      if (piece.signature && isFortified(input.fortification)) push(list, 'Falange de Escudos', 1);
     }
   }
   return list;

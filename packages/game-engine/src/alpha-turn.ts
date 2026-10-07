@@ -187,7 +187,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     } else if(command.type==='BUILD_ROAD') {
       const tile=state.core.map.find(t=>t.id===command.hexId&&t.ownerId===actor);
       if(!tile||state.roads.includes(tile.id))throw new Error('Construa estrada em território próprio sem estrada.');
-      alphaPay(state,actor,kitWorksCost(state,actor,state.rules.roadCost));state.roads.push(tile.id);
+      alphaPay(state,actor,kitWorksCost(state,actor,state.rules.roadCost,tile));state.roads.push(tile.id);
       alphaEvent(state,'ROAD_BUILT',`${state.core.players.find(p=>p.id===actor)?.name??'Uma civilização'} construiu uma estrada.`,null);
     }
     if(actionClass==='MAIN')chargeMainAction(state,actor,reservedMainAction?'RESERVE':'COMMIT',orderTypeForCommand(command,state.phase));

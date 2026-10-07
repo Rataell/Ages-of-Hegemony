@@ -19,7 +19,7 @@ import { resolveBattle } from './alpha-combat.js';
 import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
 import { applyRecurringEffects, passEraByCalendar } from './alpha-institutions.js';
 import { performUrbanAction } from './alpha-urban.js';
-import { kitFoodUpkeep } from './alpha-kits.js';
+import { kitDroughtRecovery, kitDroughtRelief, kitFoodUpkeep } from './alpha-kits.js';
 import { recordRoundTelemetry, snapshotOrders } from './alpha-telemetry.js';
 import { applyGovernmentRoundStart } from './alpha-government.js';
 import { enterEraTurn, finishEraTurn, isEraTurnDue } from './alpha-era-turn.js';
@@ -85,8 +85,11 @@ export function drawWorldPulse(state: AlphaState): void {
     const key = RESOURCE_OF_MODULE[module.resource];
     for (const player of state.players) {
       if (module.amount > 0) alphaGain(state, player.playerId, { [key]: module.amount } as Partial<AlphaResourcePool>);
-      else if (card.mitigatedBy.some(id => player.research.includes(id))) { state.telemetry.eventMitigations++; alphaEvent(state, 'PULSE_MITIGATED', `${card.name}: sua civilização mitigou a perda.`, [player.playerId]); }
-      else alphaLose(state, player.playerId, { [key]: -module.amount } as Partial<AlphaResourcePool>);
+      else if (card.mitigatedBy.some(id => player.research.includes(id))) {
+        state.telemetry.eventMitigations++; alphaEvent(state, 'PULSE_MITIGATED', `${card.name}: sua civilização mitigou a perda.`, [player.playerId]);
+        const recovery = kitDroughtRecovery(state, player.playerId, card);
+        if (recovery > 0 && key === 'food') { alphaGain(state, player.playerId, { food: recovery }); alphaEvent(state, 'PULSE_RECOVERY', 'Cheia do Nilo: a Irrigação devolve +1 Alimento.', [player.playerId]); }
+      } else { const loss = kitDroughtRelief(state, player.playerId, card, -module.amount); if (loss > 0) alphaLose(state, player.playerId, { [key]: loss } as Partial<AlphaResourcePool>); }
     }
   }
   // Each civilization may answer the Pulse: Prestígio or Cultura (canon §24 "Pulso (escolha) +1 Prestígio").

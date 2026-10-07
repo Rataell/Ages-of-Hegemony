@@ -4,17 +4,17 @@ export { AlphaEffectSchema, EffectTimingSchema, type AlphaEffect, type EffectTim
 export { AdvancementSchema, WEB_ADVANCES as ADVANCEMENTS, type Advancement } from './alpha-web.js';
 export interface AlphaCivilization {id:string;name:string;/** Name of the founding capital; players' own names identify seats, not cities. */capital:string;identity:string;color:string;symbol:string;bias:string;passives:readonly AlphaEffect[];ability:{name:string;effects:readonly Extract<AlphaEffect,{kind:'PRODUCTION'}>[]}}
 const civilizations=[
-  ['aurelia','Aurélia','Celeiro Áureo','Comunidades de cultivo e reservas comuns','food','materials','Celeiros compartilhados'],
-  ['valgard','Valgard','Passo de Valgard','Guardas das passagens e construtores de refúgios','materials','food','Oficinas de fronteira'],
-  ['meridia','Merídia','Porto das Margens','Redes de intercâmbio entre margens distantes','wealth','knowledge','Feira das margens'],
-  ['thalos','Thalos','Farol de Thalos','Cartógrafos e mediadores das costas','knowledge','wealth','Expedição de cartas'],
-  ['saren','Saren','Vale do Concílio','Conselhos que preservam acordos entre comunidades','influence','food','Convocação dos vales'],
-  ['kor','Kor','Forja de Kor','Mestres de transformação e manutenção material','materials','wealth','Mutirão de oficinas'],
-  ['orinth','Orinth','Mirante de Orinth','Observadores que compartilham métodos e medidas','knowledge','materials','Círculo de estudos'],
-  ['nymara','Nymara','Bosque da Memória','Cultivadores de paisagens e memória coletiva','food','influence','Partilha de sementes'],
+  ['aurelia','Incas (Tawantinsuyu)','Cusco','Terraços, qollqas e estradas através dos Andes','food','materials','Colheita do Inca'],
+  ['valgard','Helênicos','Atenas','Pólis armadas, estratégia e defesa do território','materials','food','Convocação da Pólis'],
+  ['meridia','Mesopotâmicos','Babilônia','Cidades de tijolo, canais de irrigação e rotas de comércio','wealth','knowledge','Feira do Karum'],
+  ['thalos','Nórdicos','Hedeby','Navegadores, incursores e exploradores das costas do Norte','knowledge','wealth','Travessia do Mar do Norte'],
+  ['saren','Índia Antiga','Pataliputra','Editos, diplomacia e cidades planejadas do vale do Ganges','influence','food','Pilares de Edito'],
+  ['kor','Romanos','Roma','Legiões, estradas e engenharia de cerco e muralha','materials','wealth','Mutirão das Legiões'],
+  ['orinth','Chineses','Chang’an','Burocracia, astronomia e muralhas de um império de estudiosos','knowledge','materials','Exames Imperiais'],
+  ['nymara','Egípcios','Tebas','Cheias do Nilo, obras monumentais e a estabilidade das colheitas','food','wealth','Cheia do Nilo'],
   ['veyra','Veyra','Encruzilhada de Veyra','Articuladores de rotas e padrões de confiança','wealth','influence','Câmara de trocas'],
-  ['solenne','Solenne','Ágora de Solenne','Anfitriões de encontros e instituições abertas','influence','knowledge','Assembleia de vozes'],
-  ['dravik','Dravik','Aqueduto de Dravik','Planejadores de obras e redes de abastecimento','materials','knowledge','Jornada de construção'],
+  ['solenne','Israel e Judá','Jerusalém','Tribos reunidas em torno da Lei, do Templo e da memória','influence','knowledge','Assembleia do Portão'],
+  ['dravik','Persas','Persépolis','Estradas reais, satrapias e administração de muitos povos','materials','knowledge','Tributo das Satrapias'],
   ['elyra','Elyra','Escola de Elyra','Curadores de saberes e vínculos comunitários','knowledge','food','Escola itinerante'],
 ] as const;
 const colors=['#c8a45c','#7ca6b8','#b6798c','#69a69a','#aab875','#bd8f66','#9b92bf','#80af82','#c294b1','#d1b77d','#91a7ba','#c59a78'];

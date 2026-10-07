@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { drawWorldPulse } from '../packages/game-engine/src/alpha-phases.js';
+import { hexDistance, unitSupply, kitRoadSupply, kitSupplyBonus, kitDroughtRecovery, kitDroughtRelief, kitLegacyPrestige } from '@aoh/game-engine';
 import { ADVANCEMENTS, AlphaStateSchema, CIVILIZATION_KITS, PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
 import { beginAlphaPlanning, createAlphaGame, hexId, hexNeighbors, isSignature, kitExplorationReach, resolveBattleWithFaces, kitProduceBonus, kitTradeBonus, kitWorksCost, kitAdvancementCost, kitExplorationKnowledge, kitFoodUpkeep, kitFortificationBlock, kitMovement, kitTreatyRounds, kitUnitCost } from '@aoh/game-engine';
 
@@ -8,7 +10,7 @@ const own = (state: AlphaState, kind: string) => state.units.filter(unit => unit
 const base = game('aurelia', 'valgard');
 /** Before the first round opens: every civilization has the same pool, so the heritage is the only difference. */
 const raw = (civ: string): AlphaState => createAlphaGame({ gameId: `kit-raw-${civ}`, seed: 21, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um', civilization: civ }, { id: 'p2', name: 'Dois', civilization: civ === 'valgard' ? 'aurelia' : 'valgard' }] });
-const start = raw('aurelia').players[0]!.resources;
+const start = raw('valgard').players[0]!.resources;
 
 describe('civilization kits applied by the engine', () => {
   it('marks as active only kit items the engine applies', () => {
@@ -28,8 +30,10 @@ describe('civilization kits applied by the engine', () => {
     expect(raw('meridia').players[0]!.resources.wealth).toBe(start.wealth + 3);
     expect(raw('orinth').players[0]!.resources.knowledge).toBe(start.knowledge + 2);
     expect(raw('dravik').players[0]!.resources.stone).toBe(start.stone + 2);
-    const nymara = raw('nymara'), plain = raw('aurelia');
-    expect(nymara.cities.find(city => city.currentOwnerId === p1)!.mood).toBe(Math.min(6, plain.cities.find(city => city.currentOwnerId === p1)!.mood + 1));
+    const solenne = raw('solenne'), plain = raw('aurelia');
+    expect(solenne.cities.find(city => city.currentOwnerId === p1)!.mood).toBe(Math.min(6, plain.cities.find(city => city.currentOwnerId === p1)!.mood + 1));
+    expect(raw('nymara').players[0]!.resources.food).toBe(start.food + 3);
+    expect(raw('aurelia').players[0]!.resources).toMatchObject({ food: start.food + 2, wood: start.wood + 1, stone: start.stone + 1 });
     for (const civ of ['valgard', 'saren', 'veyra', 'thalos', 'kor']) expect(AlphaStateSchema.safeParse(game(civ)).success).toBe(true);
   });
 
@@ -86,7 +90,57 @@ describe('civilization kits applied by the engine', () => {
     state.players[0]!.knownHexIds = [...new Set([...state.players[0]!.knownHexIds, capital.hexId, near])].sort() as never;
     state.wars.push(['p1', 'p2'] as never);
     resolveBattleWithFaces(state, p1, { id: 'storm', type: 'ATTACK', unitIds: ['attacker'], target: capital.hexId, posture: 'ASSAULT' });
-    expect(state.battles.at(-1)!.defenseBreakdown.find(entry => entry.source === 'Guarda de Escudos')?.amount).toBe(1);
+    expect(state.battles.at(-1)!.defenseBreakdown.find(entry => entry.source === 'Falange de Escudos')?.amount).toBe(1);
+  });
+
+  describe('Core 10 identities (RC 1.2)', () => {
+    const food = (state: AlphaState) => state.players[0]!.resources.food;
+    const drought = (state: AlphaState) => { state.worldPulse.deck = ['wp-drought' as never]; state.worldPulse.current = null; drawWorldPulse(state); };
+    it('Egípcios: a drought costs 1 Food less, and Irrigação still returns 1 Food; never immunity', () => {
+      const plain = game('aurelia', 'valgard'), egypt = game('nymara', 'valgard');
+      plain.players[0]!.resources.food = 10; egypt.players[0]!.resources.food = 10;
+      const a = food(plain), b = food(egypt);
+      drought(plain); drought(egypt);
+      expect(food(plain)).toBe(Math.max(0, a - 2));
+      expect(food(egypt)).toBe(Math.max(0, b - 1));
+      const irrigated = game('nymara', 'valgard'); irrigated.players[0]!.research.push('web-irrigation'); irrigated.players[0]!.resources.food = 10;
+      const before = food(irrigated); drought(irrigated);
+      expect(food(irrigated)).toBe(before + 1);
+      const others = game('aurelia', 'valgard'); others.players[0]!.research.push('web-irrigation'); others.players[0]!.resources.food = 10;
+      const o = food(others); drought(others);
+      expect(food(others)).toBe(o);
+      expect(kitDroughtRelief(egypt, p1, { mitigatedBy: ['web-bank'] }, 2)).toBe(2);
+      expect(kitDroughtRecovery(egypt, p2, { mitigatedBy: ['web-irrigation'] })).toBe(0);
+    });
+    it('Egípcios: every completed Obra de Legado earns +2 Prestígio more', () => {
+      expect(kitLegacyPrestige(game('nymara'), p1)).toBe(2);
+      expect(kitLegacyPrestige(game('kor'), p1)).toBe(0);
+    });
+    it('Persas, Romanos and Incas use the existing road network, nothing else', () => {
+      const place = (civ: string) => { const state = game(civ, 'aurelia'), unit = state.units.find(u => u.ownerId === p1 && u.kind === 'PIONEER')!; return { state, unit }; };
+      const persian = place('dravik');
+      expect(kitSupplyBonus(persian.state, persian.unit)).toBe(0);
+      persian.state.roads.push(persian.unit.hexId);
+      expect(kitSupplyBonus(persian.state, persian.unit)).toBe(1);
+      const roman = place('kor');
+      expect(kitRoadSupply(roman.state, roman.unit)).toBe(false);
+      roman.state.roads.push(roman.unit.hexId);
+      expect(kitRoadSupply(roman.state, roman.unit)).toBe(true);
+      const far = roman.state.core.map.find(t => t.ownerId === null && !['SEA', 'UNKNOWN'].includes(t.terrain) && hexDistance(roman.state.core.map.find(c => c.id === roman.state.core.players[0]!.civilization.cities[0]!.hexId)!, t) > roman.state.rules.supplyRadius + 2)!;
+      roman.state.roads.push(far.id);
+      expect(unitSupply(roman.state, { ...roman.unit, hexId: far.id }).supplied).toBe(true);
+      expect(kitRoadSupply(game('dravik'), roman.unit)).toBe(false);
+      const inca = game('aurelia', 'valgard'), roadCost = inca.rules.roadCost;
+      expect(kitWorksCost(inca, p1, roadCost, { terrain: 'HILLS' }).materials).toBe(Math.max(0, roadCost.materials - 1));
+      expect(kitWorksCost(inca, p1, roadCost, { terrain: 'PLAINS' }).materials).toBe(roadCost.materials);
+      expect(kitWorksCost(inca, p1, roadCost).materials).toBe(roadCost.materials);
+    });
+    it('Nórdicos: land armies have −1 supply outside their own territory', () => {
+      const state = game('thalos', 'valgard'), soldier = { id: 's', ownerId: p1, kind: 'INFANTRY' as const, hexId: state.core.map.find(t => t.ownerId === null && !['SEA', 'UNKNOWN'].includes(t.terrain))!.id, recruitedRound: 1, carrierId: null };
+      expect(kitSupplyBonus(state, soldier)).toBe(-1);
+      const own = state.core.map.find(t => t.ownerId === p1)!;
+      expect(kitSupplyBonus(state, { ...soldier, hexId: own.id })).toBe(0);
+      expect(kitSupplyBonus(state, { ...soldier, kind: 'PIONEER' })).toBe(0);
+    });
   });
 });
-

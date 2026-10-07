@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CIVILIZATIONS } from './alpha-institutions.js';
+import { FIGURES, isCore10Chassis, recommendedFigure } from './alpha-core10.js';
 
 /**
  * Every Alpha number a leader may use. One table, so power stays comparable: passives are small standing conveniences, era
@@ -28,6 +29,8 @@ export type LeaderAbilityEffect = z.infer<typeof LeaderAbilityEffectSchema>;
 
 export interface AlphaLeader {
   id: string; name: string; title: string; civilizationId: string; symbol: string;
+  /** Pre-1.2 leaders: kept so a saved V1.1 match still reads; never offered in a new match. */
+  legacy?: boolean;
   passiveAbility: { name: string; description: string; effect: LeaderPassive };
   eraAbility: { name: string; description: string; effect: LeaderAbilityEffect };
 }
@@ -60,16 +63,41 @@ const rows: Row[] = [
   ['elyra', 'leader-lirien-elyrae', 'Lirien Elyrae', 'Curadora Itinerante', 'LE', ['Vínculos de aprendizado', 'A Ação cívica integra 10 pontos a mais em cidades ocupadas.', integration], ['Escola de Convivência', 'Uma vez por Era, a coesão local de todas as suas cidades sobe 15.', cohesion]],
 ];
 
-export const LEADERS: readonly AlphaLeader[] = rows.map(([civilizationId, id, name, title, symbol, passive, ability]) => ({
-  id, name, title, civilizationId, symbol,
+const legacyLeaders: AlphaLeader[] = rows.map(([civilizationId, id, name, title, symbol, passive, ability]) => ({
+  id, name, title, civilizationId, symbol, legacy: isCore10Chassis(civilizationId),
   passiveAbility: { name: passive[0], description: passive[1], effect: LeaderPassiveSchema.parse(passive[2]) },
   eraAbility: { name: ability[0], description: ability[1], effect: LeaderAbilityEffectSchema.parse(ability[2]) },
 }));
+const RESOURCE_NAMES = { food: 'Alimento', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza' } as const;
+const passiveText = (effect: LeaderPassive): string => effect.kind === 'STORAGE' ? `Seu limite de ${RESOURCE_NAMES[effect.resource]} aumenta em ${effect.amount}.`
+  : effect.kind === 'SUPPLY' ? 'Suas peças ficam abastecidas 1 hex mais longe das cidades.' : `A Ação cívica integra ${effect.amount} pontos a mais em cidades ocupadas.`;
+const powerText = (effect: LeaderAbilityEffect): string => effect.kind === 'ROUND_BONUS'
+  ? (effect.bonus === 'STRENGTH' ? `Uma vez por Era, suas peças ganham +${effect.amount} de Força nos conflitos desta rodada.` : effect.bonus === 'MOVEMENT' ? `Uma vez por Era, suas peças ganham +${effect.amount} de movimento nesta rodada.` : `Uma vez por Era, +${effect.amount} ponto de comando nesta rodada.`)
+  : effect.kind === 'MOOD_ALL' ? `Uma vez por Era, o ânimo de todas as suas cidades sobe ${effect.amount}.`
+  : effect.kind === 'COHESION_ALL' ? `Uma vez por Era, a coesão local de todas as suas cidades sobe ${effect.amount}.` : `Uma vez por Era, seus tratados ativos duram mais ${effect.rounds} rodadas.`;
+const plain = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const initials = (name: string) => { const words = plain(name).split(/[\s,]+/).filter(word => /^[A-Z]/.test(word)); return (words.length > 1 ? words.slice(0, 2).map(word => word[0]).join('') : (words[0] ?? plain(name)).slice(0, 2)).toUpperCase(); };
+/** The 30 playable Figuras of the Core 10 (3 per civilization), validated against the same budget as every leader. */
+const figureLeaders: AlphaLeader[] = FIGURES.map(figure => ({
+  id: figure.id, name: figure.name, title: figure.archetype, civilizationId: figure.civilizationId, symbol: initials(figure.name),
+  passiveAbility: { name: figure.passive.name, description: passiveText(figure.passive.effect), effect: LeaderPassiveSchema.parse(figure.passive.effect) },
+  eraAbility: { name: figure.power.name, description: powerText(figure.power.effect), effect: LeaderAbilityEffectSchema.parse(figure.power.effect) },
+}));
+export const LEADERS: readonly AlphaLeader[] = [...legacyLeaders, ...figureLeaders];
 
-/** The single leader of a civilization; every civilization has exactly one and receives it automatically. */
-export const leaderOfCivilization = (civilizationId: string | null): AlphaLeader | null => LEADERS.find(leader => leader.civilizationId === civilizationId) ?? null;
-export const leaderStateFor = (civilizationId: string | null): LeaderState | null => {
-  const leader = leaderOfCivilization(civilizationId);
+/** The Figuras a player may pick for a civilization (three for the Core 10; the single legacy leader otherwise). */
+export const figuresOfCivilization = (civilizationId: string | null): AlphaLeader[] => {
+  const figures = figureLeaders.filter(leader => leader.civilizationId === civilizationId);
+  return figures.length ? figures : legacyLeaders.filter(leader => leader.civilizationId === civilizationId);
+};
+/** The default Figura of a civilization: the one marked recommended for beginners (★). */
+export const leaderOfCivilization = (civilizationId: string | null): AlphaLeader | null => {
+  const star = recommendedFigure(civilizationId);
+  return (star ? LEADERS.find(leader => leader.id === star.id) : null) ?? figuresOfCivilization(civilizationId)[0] ?? null;
+};
+/** A match's leader state for a chosen Figura (or the recommended one); a Figura of another civilization is refused with null. */
+export const leaderStateFor = (civilizationId: string | null, figureId?: string | null): LeaderState | null => {
+  const leader = figureId ? figuresOfCivilization(civilizationId).find(candidate => candidate.id === figureId) ?? null : leaderOfCivilization(civilizationId);
   return leader ? { leaderId: leader.id, eraAbilityUsed: false } : null;
 };
 /** Consistency guard used by the catalog tests and the state schema. */

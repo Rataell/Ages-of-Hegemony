@@ -6,7 +6,7 @@ import { atWar, enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { leaderSupplyBonus } from './alpha-leaders.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { blockadedBy, isCarried, isPort, launchHex } from './alpha-naval.js';
-import { kitMovement, kitSupplyBonus, kitUnitCost } from './alpha-kits.js';
+import { kitMovement, kitRoadSupply, kitSupplyBonus, kitUnitCost } from './alpha-kits.js';
 import { mobilizationBlock } from './alpha-city.js';
 import { unitMovement } from './alpha-grades.js';
 import { governmentEffects } from './alpha-government.js';
@@ -50,6 +50,7 @@ export function unitSupply(state:AlphaState,unit:AlphaUnit):{supplied:boolean;re
   // Autocracia (canon §16): own pieces within 1 hex of a road are always supplied.
   const near=governmentEffects(state,unit.ownerId).suppliedNearRoad;
   if(near>0&&state.roads.some(id=>{const road=state.core.map.find(t=>t.id===id);return road!==undefined&&hexDistance(road,tile)<=near;}))return {supplied:true,reason:'Autocracia: a 1 hex de uma estrada.'};
+  if(kitRoadSupply(state,unit))return {supplied:true,reason:'Via Militar: sobre ou ao lado de uma estrada.'};
   const cities=player.civilization.cities.filter(c=>!state.occupations.some(o=>o.cityId===c.id));
   if(cities.some(c=>hexDistance(state.core.map.find(t=>t.id===c.hexId)!,tile)<=state.rules.supplyRadius+leaderSupplyBonus(state,unit.ownerId)+kitSupplyBonus(state,unit)))return {supplied:true,reason:'Dentro do alcance de uma cidade própria.'};
   const byId=new Map(state.core.map.map(t=>[t.id,t]));const seen=new Set<HexId>();const queue=cities.map(c=>c.hexId);

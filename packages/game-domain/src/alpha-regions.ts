@@ -13,7 +13,7 @@ const patterns:readonly (readonly TerrainType[])[]=[
   ['PLAINS','HILLS','PLAINS','FOREST','HILLS','MOUNTAINS','PLAINS'],
   ['PLAINS','PLAINS','COAST','SEA','COAST','PLAINS','FOREST'],
 ];
-const homeNames=['Bacia de Alvor','Altos de Vard','Estuário de Méria','Costa de Tal','Vale de Saren','Terraços de Kor'];
+const homeNames=['Bacia de Alvor','Altos da Vigia','Estuário das Garças','Costa de Tal','Vale dos Cedros','Terraços do Cobre'];
 const frontierNames=['Várzeas de Vidro','Espinha do Norte','Bosque Silente','Enseada das Agulhas','Escarpa de Cobre','Delta dos Ventos',
   'Campos da Aurora','Pedras da Vigília','Mata das Fontes','Baía do Retorno','Colinas de Âmbar','Praias da Bruma',
   'Planície das Linhas','Maciço do Eco','Floresta das Pontes','Costa das Marés','Serras da Travessia','Ilhas do Horizonte',

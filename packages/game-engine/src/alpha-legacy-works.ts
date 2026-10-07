@@ -2,6 +2,7 @@ import { ADVANCEMENTS, FortificationLevelSchema, LEGACY_WORKS, LEGACY_WORK_PREST
 import { alphaEvent } from './alpha-events.js';
 import { alphaCanAfford, alphaPay } from './alpha-resources.js';
 import { activationCapacity } from './alpha-city.js';
+import { kitLegacyPrestige } from './alpha-kits.js';
 
 /** Obras de Legado (canon §11, D-3): start and advance, one step per Legado Order. */
 
@@ -61,7 +62,7 @@ export function advanceLegacyWork(state: AlphaState, actor: PlayerId, command: {
   progress.stepsDone++;
   const player = state.players.find(candidate => candidate.playerId === actor)!;
   if (progress.stepsDone >= LEGACY_WORK_STEPS) {
-    progress.completedRound = state.core.round; player.prestige += LEGACY_WORK_PRESTIGE;
+    progress.completedRound = state.core.round; player.prestige += LEGACY_WORK_PRESTIGE + kitLegacyPrestige(state, actor);
     alphaEvent(state, 'LEGACY_WORK_COMPLETED', `${work.name} foi concluída: +${LEGACY_WORK_PRESTIGE} Prestígio.`, null);
   } else alphaEvent(state, 'LEGACY_WORK_STEP', `${work.name}: passo ${progress.stepsDone} de ${LEGACY_WORK_STEPS}.`, null);
 }

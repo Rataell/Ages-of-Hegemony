@@ -13,7 +13,7 @@ import { alphaGainLegacy } from './alpha-resources.js';
 import { applyDiscovery, generateDiscoveries } from './alpha-discoveries.js';
 import { spawnThreat, threatIntent } from './alpha-threats.js';
 
-export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;mapSize?:MapSize;actionsPerRound?:number;revealMap?:boolean;startingPioneers?:number}):AlphaState {
+export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string;figureId?:string|null}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;mapSize?:MapSize;actionsPerRound?:number;revealMap?:boolean;startingPioneers?:number}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
   const random:Pick<AlphaState,'privateRng'>={privateRng:{algorithm:'hmac-sha256-counter-v1',seed:input.privateSeed?combineAlphaSeed(input.seed,input.privateSeed):deterministicAlphaSeed(input.seed,input.gameId),counter:0}};
   const mapSizeIn:MapSize=input.mapSize??'STANDARD';
@@ -60,7 +60,7 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   const migrated=migrateSnapshotV3ToV4(created.value);if(!migrated.ok)throw new Error(migrated.error.message);
   const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED',input.actionsPerRound??5);state.rules.revealMap=input.revealMap??false;state.rules.mapSize=mapSize;if(input.startingPioneers!==undefined)state.rules.startingPioneers=input.startingPioneers;state.rulesVersion='v5.1b';liftLegacyCityCaps(state);state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
   // Every civilization starts with `startingPioneers` Pioneiros: one can scout while another founds, so first contact does not wait on recruitment.
-  state.players.forEach((p,i)=>{p.civilization=input.players[i]!.civilization??CIVILIZATIONS[i]!.id;p.leader=leaderStateFor(p.civilization);const center=state.core.players[i]!.civilization.cities[0]!.hexId;for(let k=0;k<state.rules.startingPioneers;k++)state.units.push({id:`pioneer-${i+1}-${k+1}`,ownerId:p.playerId,kind:'PIONEER',hexId:center,recruitedRound:1});const city=state.cities.find(city=>city.currentOwnerId===p.playerId)!;city.nativeIdentity=p.civilization;});
+  state.players.forEach((p,i)=>{p.civilization=input.players[i]!.civilization??CIVILIZATIONS[i]!.id;p.leader=leaderStateFor(p.civilization,input.players[i]!.figureId);if(p.leader===null)throw new Error('Figura inválida para esta civilização.');const center=state.core.players[i]!.civilization.cities[0]!.hexId;for(let k=0;k<state.rules.startingPioneers;k++)state.units.push({id:`pioneer-${i+1}-${k+1}`,ownerId:p.playerId,kind:'PIONEER',hexId:center,recruitedRound:1});const city=state.cities.find(city=>city.currentOwnerId===p.playerId)!;city.nativeIdentity=p.civilization;});
   const occupied=new Set(state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)));
   const neutral=state.core.map.filter(tile=>!occupied.has(tile.id)&&!['SEA','UNKNOWN'].includes(tile.terrain)).sort((a,b)=>a.id.localeCompare(b.id));
   // Independent peoples sit in contested ground: about as far from a seat's capital as from its nearest rival's, at least

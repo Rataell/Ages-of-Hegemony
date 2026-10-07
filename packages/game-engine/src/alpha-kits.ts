@@ -4,7 +4,10 @@ import { stackBlock } from './alpha-stack.js';
 import { alphaGain } from './alpha-resources.js';
 
 /**
- * Civilization kits in the engine (DEC-011). Each rule here is a kit item marked ACTIVE in `CIVILIZATION_KITS`; the rest stay
+ * Civilization kits in the engine (DEC-011). The ids below are the hidden technical chassis of the Core 10 (RC 1.2):
+ * valgard = Helênicos, nymara = Egípcios, meridia = Mesopotâmicos, dravik = Persas, solenne = Israel e Judá, kor = Romanos,
+ * thalos = Nórdicos, orinth = Chineses, saren = Índia Antiga, aurelia = Incas. veyra and elyra are not selectable.
+ * Each rule here is a kit item marked ACTIVE in `CIVILIZATION_KITS`; the rest stay
  * PLANNED there and do nothing. All of them reuse mechanisms the Alpha already has: costs, upkeep, research, exploration,
  * treaties, civic action, cultural contests, routes, movement and the starting position.
  */
@@ -36,22 +39,40 @@ export function kitExplorationKnowledge(state: AlphaState, actor: PlayerId, hexI
 }
 /** Saren's treaties last one round more. */
 export const kitTreatyRounds = (state: AlphaState, a: PlayerId, b: PlayerId) => [a, b].some(id => civilizationOf(state, id) === 'saren') ? 1 : 0;
-/** Nymara's civic action yields 1 Influence more. */
-export const kitCivicInfluence = (state: AlphaState, actor: PlayerId) => civilizationOf(state, actor) === 'nymara' ? 1 : 0;
 /** Solenne defends its cultural presence with +1. */
 export const kitCultureDefense = (_state: AlphaState, civilizationId: string) => civilizationId === 'solenne' ? 1 : 0;
 /** Dravik's routes yield 1 Wealth less. */
 export const kitRouteIncome = (state: AlphaState, actor: PlayerId) => civilizationOf(state, actor) === 'dravik' ? -1 : 0;
 /** Kor's fleets move 1 less. */
 export const kitMovement = (state: AlphaState, actor: PlayerId, kind: AlphaUnit['kind']) => civilizationOf(state, actor) === 'kor' && kind === 'FLEET' ? -1 : 0;
-/** Valgard: +1 supply range for pieces standing on its own territory. */
+/**
+ * Supply range of a piece, by kit. Helênicos: +1 on their own territory. Persas (Estrada Real): +1 on a hex with a road.
+ * Nórdicos: land armies have −1 outside their own territory.
+ */
 export function kitSupplyBonus(state: AlphaState, unit: AlphaUnit): number {
-  return civilizationOf(state, unit.ownerId) === 'valgard' && state.core.map.find(t => t.id === unit.hexId)?.ownerId === unit.ownerId ? 1 : 0;
+  const civ = civilizationOf(state, unit.ownerId), tile = state.core.map.find(t => t.id === unit.hexId);
+  if (civ === 'valgard' && tile?.ownerId === unit.ownerId) return 1;
+  if (civ === 'dravik' && state.roads.includes(unit.hexId)) return 1;
+  if (civ === 'thalos' && state.rules.units[unit.kind].domain === 'LAND' && state.rules.units[unit.kind].strength > 0 && tile?.ownerId !== unit.ownerId) return -1;
+  return 0;
 }
+/** Romanos (Via Militar): a piece on a road, or on its own hex next to a road, is supplied. The same road network every other rule reads. */
+export function kitRoadSupply(state: AlphaState, unit: AlphaUnit): boolean {
+  if (civilizationOf(state, unit.ownerId) !== 'kor') return false;
+  const tile = state.core.map.find(t => t.id === unit.hexId);
+  if (!tile) return false;
+  return state.roads.includes(tile.id) || (tile.ownerId === unit.ownerId && hexNeighbors(tile).some(point => state.roads.includes(hexId(point))));
+}
+/** Egípcios (Cheia do Nilo): a drought costs 1 Food less, and a drought stopped by Irrigação still returns 1 Food. Never immunity. */
+export const isDroughtPulse = (card: { mitigatedBy: readonly string[] }) => card.mitigatedBy.includes('web-irrigation');
+export const kitDroughtRelief = (state: AlphaState, actor: PlayerId, card: { mitigatedBy: readonly string[] }, loss: number): number => civilizationOf(state, actor) === 'nymara' && isDroughtPulse(card) ? Math.max(0, loss - 1) : loss;
+export const kitDroughtRecovery = (state: AlphaState, actor: PlayerId, card: { mitigatedBy: readonly string[] }): number => civilizationOf(state, actor) === 'nymara' && isDroughtPulse(card) ? 1 : 0;
+/** Egípcios (Casa da Eternidade): every Legacy Work they complete earns 2 more Prestige. */
+export const kitLegacyPrestige = (state: AlphaState, actor: PlayerId): number => civilizationOf(state, actor) === 'nymara' ? 2 : 0;
 /** Merídia's walls stop at the Stone Wall until Era IV (Impérios). */
 export function kitFortificationBlock(state: AlphaState, actor: PlayerId, next: string): string | null {
   const player = state.players.find(p => p.playerId === actor);
-  if (civilizationOf(state, actor) === 'meridia' && player && eraIndex(player.era) < eraIndex('EMPIRES') && !['PALISADE', 'STONE_WALL'].includes(next)) return 'Merídia não passa da Muralha de Pedra antes da Era IV.';
+  if (civilizationOf(state, actor) === 'meridia' && player && eraIndex(player.era) < eraIndex('EMPIRES') && !['PALISADE', 'STONE_WALL'].includes(next)) return 'Os Mesopotâmicos não passam da Muralha de Pedra antes da Era IV.';
   return null;
 }
 /** Extra food upkeep: Saren and Orinth pay 1 more per Cavalry; Aurélia pays 1 more for every 4 military pieces. */
@@ -72,9 +93,11 @@ export function kitProduceBonus(state: AlphaState, actor: PlayerId, cityId: stri
     stone: civ === 'kor' ? worked.filter(t => t.improvement === 'QUARRY' && t.terrain === 'HILLS').length : 0,
   };
 }
-/** Dravik's roads and improvements cost 1 Wood/Stone (legacy materials) less. */
-export function kitWorksCost(state: AlphaState, actor: PlayerId, cost: ResourcePool): ResourcePool {
-  return civilizationOf(state, actor) === 'dravik' ? { ...cost, materials: Math.max(0, cost.materials - 1) } : cost;
+/** Persas: roads and improvements cost 1 Wood/Stone (legacy materials) less. Incas (Qhapaq Ñan): a road on Hills or Mountains costs 1 less. */
+export function kitWorksCost(state: AlphaState, actor: PlayerId, cost: ResourcePool, road?: { terrain: string }): ResourcePool {
+  const civ = civilizationOf(state, actor);
+  if (civ === 'dravik' || (civ === 'aurelia' && road && (road.terrain === 'HILLS' || road.terrain === 'MOUNTAINS'))) return { ...cost, materials: Math.max(0, cost.materials - 1) };
+  return cost;
 }
 /** Merídia: +1 Wealth for the first trade offer it settles in a round (as proposer or recipient). */
 export function kitTradeBonus(state: AlphaState, parties: readonly PlayerId[]): void {
@@ -121,7 +144,9 @@ export function applyCivilizationHeritage(state: AlphaState): void {
     if (civ === 'veyra') { place('ENVOY', 1); place('ENVOY', 2); }
     if (civ === 'kor' && meta && meta.fortification.level === 'NONE') meta.fortification = { level: 'PALISADE', state: 'INTACT' };
     if (civ === 'orinth') player.resources.knowledge += 2;
-    if (civ === 'nymara' && meta) meta.mood = Math.min(6, meta.mood + 1);
+    if (civ === 'solenne' && meta) meta.mood = Math.min(6, meta.mood + 1);
+    if (civ === 'nymara') player.resources.food += 3;
+    if (civ === 'aurelia') { player.resources.food += 2; player.resources.wood += 1; player.resources.stone += 1; }
     if (civ === 'dravik') player.resources.stone += 2;
   }
 }
