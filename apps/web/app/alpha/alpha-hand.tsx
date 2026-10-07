@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ALPHA_CARDS, AlphaEraSchema, civilizationKit, type AlphaEffect } from '@aoh/game-domain';
+import { ALPHA_CARDS, AlphaEraSchema, civilizationDisplayName, civilizationKit, type AlphaEffect } from '@aoh/game-domain';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import type { AlphaSend } from './alpha-board';
 import { bannerArt } from './table-art';
@@ -34,7 +34,7 @@ export function AlphaHand({ game, locked, send, seatColor, onFocus }: { game: Ga
     ...(kit?.cards ?? []).map(card => {
       const lockedByEra = era < AlphaEraSchema.options.indexOf(card.unlockEra), used = self.civilizationCardsPlayed.some(entry => entry.cardId === card.id && entry.era === self.era);
       const blocked = lockedByEra ? `Libera na ${card.unlockEra === 'CIVILIZATION' ? 'Era IV' : 'Era VII'}.` : used ? 'Já usada nesta era.' : locked ? 'Aguarde a sua vez de planejar.' : game.phase !== 'PLANNING' ? 'Só no planejamento.' : spent ? `Limite de ${limit} cartas por rodada atingido.` : null;
-      return { key: card.id, family: kit!.name, name: card.name, text: card.text, play: {type:'PLAY_CIVILIZATION_CARD',cardId:card.id}, blocked, civ: true };
+      return { key: card.id, family: civilizationDisplayName(self.civilization), name: card.name, text: card.text, play: {type:'PLAY_CIVILIZATION_CARD',cardId:card.id}, blocked, civ: true };
     }),
   ];
   if (!cards.length) return null;

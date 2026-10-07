@@ -98,4 +98,23 @@ describe('exploration: who explores and how a Region is entered', () => {
     }
     throw new Error('no shared-region case found');
   });
+  it('an orientation never changes terrain somebody already observes', () => {
+    for (const seed of [2, 5, 9, 13, 21]) {
+      const state = world(seed), pioneer = state.units.find(u => u.ownerId === 'p1' && u.kind === 'PIONEER')!;
+      for (const region of hidden(state)) for (const at of rim(state, region)) {
+        pioneer.hexId = at as typeof pioneer.hexId;
+        const free = explorationAccess(state, pioneer, region).rotations;
+        if (free.length < 2) continue;
+        // Somebody sees one hex of the Region (a scout's line of sight): only orientations that keep it are legal now.
+        const seen = region.hexIds[3]!, tile = state.core.map.find(t => t.id === seen)!;
+        state.players[1]!.knownHexIds = [...state.players[1]!.knownHexIds, seen as never];
+        const kept = explorationAccess(state, pioneer, region).rotations;
+        for (const rotation of kept) expect(rotatedRegionTiles(state, region, rotation)[3]!.terrain).toBe(tile.terrain);
+        for (const rotation of free.filter(r => !kept.includes(r))) expect(rotatedRegionTiles(state, region, rotation)[3]!.terrain === tile.terrain && rotatedRegionTiles(state, region, rotation)[3]!.features.join() === tile.features.join()).toBe(false);
+        expect(kept.length).toBeLessThan(free.length);
+        return;
+      }
+    }
+    throw new Error('no case found');
+  });
 });
