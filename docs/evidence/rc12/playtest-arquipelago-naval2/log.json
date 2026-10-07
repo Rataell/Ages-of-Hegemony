@@ -1,0 +1,215 @@
+{
+ "name": "arquipelago-naval2",
+ "world": "ARCHIPELAGO",
+ "size": "STANDARD",
+ "bots": 2,
+ "naval": true,
+ "rounds": [
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "EXPLORE PIONEER",
+    "RESEARCH:web-coastal-navigation"
+   ]
+  },
+  {
+   "round": 2,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "MOVE PIONEER",
+    "BUILD:MARITIME"
+   ]
+  },
+  {
+   "round": 3,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 4,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 5,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RESEARCH:web-agriculture"
+   ]
+  },
+  {
+   "round": 6,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "MOVE COASTAL_VESSEL",
+    "MOVE COASTAL_VESSEL",
+    "ELEVATE"
+   ]
+  },
+  {
+   "round": 7,
+   "era": "EXPANSION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "EXPLORE COASTAL_VESSEL",
+    "EXPLORE COASTAL_VESSEL",
+    "BUILD:AGRARIAN"
+   ]
+  },
+  {
+   "round": 8,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "EXPLORE COASTAL_VESSEL",
+    "EXPLORE COASTAL_VESSEL",
+    "RESEARCH:web-writing"
+   ]
+  },
+  {
+   "round": 9,
+   "era": "EXPANSION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "MOVE COASTAL_VESSEL",
+    "MOVE COASTAL_VESSEL",
+    "RESEARCH:web-mathematics"
+   ]
+  },
+  {
+   "round": 10,
+   "era": "EXPANSION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "EXPLORE COASTAL_VESSEL",
+    "EXPLORE COASTAL_VESSEL",
+    "RESEARCH:web-irrigation"
+   ]
+  },
+  {
+   "round": 11,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "MOVE COASTAL_VESSEL",
+    "MOVE COASTAL_VESSEL",
+    "RESEARCH:web-natural-philosophy"
+   ]
+  },
+  {
+   "round": 12,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "EXPLORE COASTAL_VESSEL",
+    "EXPLORE COASTAL_VESSEL",
+    "RESEARCH:web-cartography"
+   ]
+  },
+  {
+   "round": 13,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "MOVE COASTAL_VESSEL",
+    "MOVE COASTAL_VESSEL",
+    "RESEARCH:web-naval-architecture"
+   ]
+  },
+  {
+   "round": 14,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "EXPLORE COASTAL_VESSEL",
+    "EXPLORE COASTAL_VESSEL",
+    "RESEARCH:web-masonry"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "kind": "VISUAL",
+   "text": "console errors: Failed to load resource: the server responded with a status of 409 ()"
+  }
+ ],
+ "rejected": {
+  "WORLD_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 3,
+  "QUEUE_ORDER:A partida mudou. Atualize antes de confirmar novamente.": 3,
+  "RESOLVE_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 1
+ },
+ "final": {
+  "round": 15,
+  "era": "CONSOLIDATION",
+  "cities": 1,
+  "prestige": [
+   [
+    "thalos",
+    15,
+    null
+   ],
+   [
+    "nymara",
+    10,
+    null
+   ],
+   [
+    "meridia",
+    13,
+    null
+   ]
+  ],
+  "regionsOpen": 21,
+  "regions": 30,
+  "discoveries": [
+   "ANCHORAGE",
+   "ANCHORAGE",
+   "NONE",
+   "PASSAGE",
+   "ANCHORAGE",
+   "RUIN",
+   "PASSAGE",
+   "NONE",
+   "NONE",
+   "RUIN",
+   "NONE"
+  ],
+  "vessels": 2,
+  "maritime": 1
+ },
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 409 ()"
+ ]
+}

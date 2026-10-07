@@ -1,0 +1,189 @@
+{
+ "name": "arquipelago-naval",
+ "world": "ARCHIPELAGO",
+ "size": "STANDARD",
+ "bots": 2,
+ "naval": true,
+ "rounds": [
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "EXPLORE PIONEER",
+    "RESEARCH:web-coastal-navigation"
+   ]
+  },
+  {
+   "round": 2,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "MOVE PIONEER",
+    "BUILD:MARITIME"
+   ]
+  },
+  {
+   "round": 3,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 4,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 5,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "EXPLORE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RESEARCH:web-agriculture"
+   ]
+  },
+  {
+   "round": 6,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "BUILD:AGRARIAN"
+   ]
+  },
+  {
+   "round": 7,
+   "era": "EXPANSION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-writing"
+   ]
+  },
+  {
+   "round": 8,
+   "era": "EXPANSION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-mathematics"
+   ]
+  },
+  {
+   "round": 9,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-irrigation"
+   ]
+  },
+  {
+   "round": 10,
+   "era": "EXPANSION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-cartography"
+   ]
+  },
+  {
+   "round": 11,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-natural-philosophy"
+   ]
+  },
+  {
+   "round": 12,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-masonry"
+   ]
+  },
+  {
+   "round": 13,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-guard-formations"
+   ]
+  },
+  {
+   "round": 14,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval."
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "kind": "VISUAL",
+   "text": "console errors: Failed to load resource: the server responded with a status of 409 ()"
+  }
+ ],
+ "rejected": {
+  "RESOLVE_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 1,
+  "QUEUE_ORDER:A partida mudou. Atualize antes de confirmar novamente.": 2,
+  "WORLD_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 1
+ },
+ "final": {
+  "round": 15,
+  "era": "CONSOLIDATION",
+  "cities": 1,
+  "prestige": [
+   [
+    "thalos",
+    10,
+    null
+   ],
+   [
+    "saren",
+    15,
+    null
+   ],
+   [
+    "aurelia",
+    7,
+    null
+   ]
+  ],
+  "regionsOpen": 14,
+  "regions": 30,
+  "discoveries": [
+   "CAMP",
+   "NONE",
+   "RUIN",
+   "NONE",
+   "NONE",
+   "DANGER",
+   "RUIN"
+  ],
+  "vessels": 0,
+  "maritime": 1
+ },
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 409 ()"
+ ]
+}

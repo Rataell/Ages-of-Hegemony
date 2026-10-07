@@ -1,0 +1,200 @@
+{
+ "name": "local-naval",
+ "world": "ARCHIPELAGO",
+ "size": "STANDARD",
+ "bots": 2,
+ "naval": true,
+ "rounds": [
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "EXPLORE PIONEER",
+    "RESEARCH:web-coastal-navigation"
+   ]
+  },
+  {
+   "round": 2,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "BUILD:MARITIME"
+   ]
+  },
+  {
+   "round": 3,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "MOVE PIONEER",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 4,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "EXPLORE PIONEER",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 5,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "MOVE COASTAL_VESSEL",
+    "MOVE COASTAL_VESSEL",
+    "RESEARCH:web-agriculture"
+   ]
+  },
+  {
+   "round": 6,
+   "era": "EXPANSION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "MOVE PIONEER",
+    "EXPLORE COASTAL_VESSEL",
+    "EXPLORE COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 7,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "MOVE COASTAL_VESSEL",
+    "MOVE COASTAL_VESSEL",
+    "ELEVATE"
+   ]
+  },
+  {
+   "round": 8,
+   "era": "EXPANSION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "MOVE PIONEER",
+    "EXPLORE COASTAL_VESSEL",
+    "EXPLORE COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 9,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "MOVE COASTAL_VESSEL",
+    "MOVE COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 10,
+   "era": "EXPANSION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "BUILD:AGRARIAN"
+   ]
+  },
+  {
+   "round": 11,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-writing"
+   ]
+  },
+  {
+   "round": 12,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-mathematics"
+   ]
+  },
+  {
+   "round": 13,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-natural-philosophy"
+   ]
+  },
+  {
+   "round": 14,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "PIONEER: Requer acesso naval.",
+    "PIONEER: Requer acesso naval.",
+    "RESEARCH:web-irrigation"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "kind": "VISUAL",
+   "text": "console errors: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+  }
+ ],
+ "rejected": {
+  "QUEUE_ORDER:Limite de pilha atingido em -1,-3: Civis 0/2, as 3 peças não cabem.": 1,
+  "QUEUE_ORDER:Limite de pilha atingido em -2,-2: Civis 0/2, as 3 peças não cabem.": 1
+ },
+ "final": {
+  "round": 15,
+  "era": "CONSOLIDATION",
+  "cities": 1,
+  "prestige": [
+   [
+    "thalos",
+    12,
+    null
+   ],
+   [
+    "orinth",
+    15,
+    null
+   ],
+   [
+    "saren",
+    13,
+    null
+   ]
+  ],
+  "regionsOpen": 21,
+  "regions": 30,
+  "discoveries": [
+   "NONE",
+   "ANCHORAGE",
+   "PASSAGE",
+   "RUIN",
+   "NONE",
+   "NONE",
+   "NONE",
+   "NONE",
+   "DEPOSIT"
+  ],
+  "vessels": 2,
+  "maritime": 1
+ },
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+ ]
+}

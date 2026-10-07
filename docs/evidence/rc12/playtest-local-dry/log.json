@@ -1,0 +1,122 @@
+{
+ "name": "local-dry",
+ "world": "MIXED",
+ "size": "STANDARD",
+ "bots": 3,
+ "naval": false,
+ "rounds": [
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "RESEARCH:web-writing"
+   ]
+  },
+  {
+   "round": 2,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "RESEARCH:web-agriculture"
+   ]
+  },
+  {
+   "round": 3,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "ELEVATE"
+   ]
+  },
+  {
+   "round": 4,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "BUILD:AGRARIAN"
+   ]
+  },
+  {
+   "round": 5,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "RESEARCH:web-masonry"
+   ]
+  },
+  {
+   "round": 6,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "RESEARCH:web-exchange"
+   ]
+  },
+  {
+   "round": 7,
+   "era": "EXPANSION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "RESEARCH:web-mathematics"
+   ]
+  },
+  {
+   "round": 8,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "RESEARCH:web-coastal-navigation"
+   ]
+  }
+ ],
+ "findings": [],
+ "rejected": {},
+ "final": {
+  "round": 9,
+  "era": "EXPANSION",
+  "cities": 1,
+  "prestige": [
+   [
+    "valgard",
+    6,
+    null
+   ],
+   [
+    "orinth",
+    13,
+    null
+   ],
+   [
+    "saren",
+    10,
+    null
+   ],
+   [
+    "aurelia",
+    8,
+    null
+   ]
+  ],
+  "regionsOpen": 19,
+  "regions": 30,
+  "discoveries": [
+   "RUIN",
+   "DEPOSIT",
+   "NONE",
+   "NONE",
+   "DANGER"
+  ],
+  "vessels": 0,
+  "maritime": 0
+ },
+ "consoleErrors": []
+}

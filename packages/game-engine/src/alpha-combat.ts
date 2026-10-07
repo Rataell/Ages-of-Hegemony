@@ -49,7 +49,7 @@ function staticSide(state: AlphaState, sides: Sides, attacking: boolean) {
   if (fighters.some(unit => !unitSupply(state, unit).supplied)) push(modifiers, 'Sem suprimento', -config.unsuppliedPenalty);
   const sources = strengthSources(state, owner);
   push(modifiers, 'Tecnologia', sources.technology);
-  push(modifiers, 'Líder', sources.leader);
+  push(modifiers, 'Figura', sources.leader);
   push(modifiers, 'Cartas e efeitos', sources.other);
   return { owner, units, fighters, modifiers };
 }

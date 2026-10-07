@@ -384,7 +384,7 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-strip-civ small { display: block; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 .alpha-strip-when { display: flex; gap: 10px; align-items: center; white-space: nowrap; font-size: 13px; color: var(--text-secondary); min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
 .alpha-strip-seals { flex: none; }
-@media (max-width: 1500px) { .alpha-strip-when .era-name { display: none; } }
+@media (max-width: 1500px) { .alpha-strip-when .era-name { display: none; } .alpha-strip-when .rl { font-size: 0; } .alpha-strip-when .rl::after { content: 'R. '; font-size: 13px; } }
 .alpha-strip-seals { display: flex; gap: 6px; align-items: center; margin: 0; padding: 0; list-style: none; }
 .alpha-strip-alert { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 40%, var(--border)); }
 .alpha-strip-tools { margin-left: auto; display: flex; gap: 6px; align-items: center; flex: none; }

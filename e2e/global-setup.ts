@@ -37,7 +37,7 @@ async function waitUntilReady(child: ChildProcess): Promise<void> {
 export default async function globalSetup(): Promise<() => Promise<void>> {
   const child = spawn(process.execPath, [join(ROOT, 'scripts', 'local-alpha.mjs'), 'dev', '--no-watch-packages'], {
     cwd: ROOT,
-    env: { ...process.env, AOH_E2E: '1', ALPHA_LOCAL_PORT: '3107' },
+    env: { ...process.env, AOH_E2E: '1', ALPHA_LOCAL_PORT: '3107', ALPHA_CREATE_RATE_PER_MINUTE: '120' },
     shell: false,
     stdio: 'inherit',
     windowsHide: true,

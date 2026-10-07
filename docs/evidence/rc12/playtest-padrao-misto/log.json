@@ -1,0 +1,180 @@
+{
+ "name": "padrao-misto",
+ "world": "MIXED",
+ "size": "STANDARD",
+ "bots": 3,
+ "naval": false,
+ "rounds": [
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "RESEARCH:web-writing"
+   ]
+  },
+  {
+   "round": 2,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "EXPLORE PIONEER",
+    "RESEARCH:web-agriculture"
+   ]
+  },
+  {
+   "round": 3,
+   "era": "FOUNDATION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "ELEVATE"
+   ]
+  },
+  {
+   "round": 4,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "BUILD:AGRARIAN"
+   ]
+  },
+  {
+   "round": 5,
+   "era": "FOUNDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "EXPLORE PIONEER",
+    "RESEARCH:web-masonry"
+   ]
+  },
+  {
+   "round": 6,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER",
+    "RESEARCH:web-exchange"
+   ]
+  },
+  {
+   "round": 7,
+   "era": "EXPANSION",
+   "notes": [
+    "EXPLORE PIONEER"
+   ]
+  },
+  {
+   "round": 8,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER"
+   ]
+  },
+  {
+   "round": 9,
+   "era": "EXPANSION",
+   "notes": [
+    "MOVE PIONEER"
+   ]
+  },
+  {
+   "round": 10,
+   "era": "EXPANSION",
+   "notes": [
+    "EXPLORE PIONEER",
+    "MOVE PIONEER"
+   ]
+  },
+  {
+   "round": 11,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER"
+   ]
+  },
+  {
+   "round": 12,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "EXPLORE PIONEER"
+   ]
+  },
+  {
+   "round": 13,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "MOVE PIONEER"
+   ]
+  },
+  {
+   "round": 14,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "MOVE PIONEER",
+    "MOVE PIONEER"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "kind": "RULE",
+   "text": "ERA_TURN READY refused: A partida mudou. Atualize antes de confirmar novamente."
+  },
+  {
+   "kind": "VISUAL",
+   "text": "console errors: Failed to load resource: the server responded with a status of 409 ()"
+  }
+ ],
+ "rejected": {
+  "RESOLVE_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 2,
+  "QUEUE_ORDER:A partida mudou. Atualize antes de confirmar novamente.": 6,
+  "READY:A partida mudou. Atualize antes de confirmar novamente.": 1,
+  "WORLD_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 2
+ },
+ "final": {
+  "round": 15,
+  "era": "CONSOLIDATION",
+  "cities": 1,
+  "prestige": [
+   [
+    "valgard",
+    13,
+    null
+   ],
+   [
+    "orinth",
+    11,
+    null
+   ],
+   [
+    "saren",
+    10,
+    null
+   ],
+   [
+    "aurelia",
+    14,
+    null
+   ]
+  ],
+  "regionsOpen": 19,
+  "regions": 30,
+  "discoveries": [
+   "NONE",
+   "DEPOSIT",
+   "NONE",
+   "NONE",
+   "NONE",
+   "DEPOSIT",
+   "NONE"
+  ],
+  "vessels": 0,
+  "maritime": 0
+ },
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 409 ()"
+ ]
+}

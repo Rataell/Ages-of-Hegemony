@@ -27,8 +27,8 @@ export const leaderIntegrationBonus = (state: AlphaState, actor: PlayerId): numb
 export function leaderAbilityBlock(state: AlphaState, actor: PlayerId): string | null {
   const player = state.players.find(candidate => candidate.playerId === actor);
   const leader = leaderOf(state, actor);
-  if (!player || !player.leader || !leader) return 'Sua civilização ainda não tem um líder.';
-  if (player.leader.eraAbilityUsed) return 'A habilidade do líder já foi usada nesta Era.';
+  if (!player || !player.leader || !leader) return 'Sua civilização ainda não tem uma Figura.';
+  if (player.leader.eraAbilityUsed) return 'O Poder da Figura já foi usado nesta Era.';
   const effect = leader.eraAbility.effect;
   const ceiling = state.rules.balance.promoteMoodCeiling;
   const own = state.cities.filter(city => city.currentOwnerId === actor);

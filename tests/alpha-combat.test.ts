@@ -208,7 +208,7 @@ describe('modifiers by origin', () => {
     resolveBattleWithFaces(state, p1, order, faces('EMPTY', 'a1', 'a2', 'd1'));
     const battle = state.battles[0]!;
     expect(amount(battle.attackBreakdown, 'Tecnologia')).toBe(1);
-    expect(amount(battle.attackBreakdown, 'Líder')).toBe(2);
+    expect(amount(battle.attackBreakdown, 'Figura')).toBe(2);
     expect(amount(battle.attackBreakdown, 'Cartas e efeitos')).toBe(1);
     expect(ALPHA_CARDS.some(card => card.effect?.kind === 'STRENGTH')).toBe(true);
   });
@@ -217,8 +217,8 @@ describe('modifiers by origin', () => {
     const { state, order } = arena();
     state.players[1]!.temporaryEffects = [{ source: 'leader-hartvig-drell', effect: { kind: 'STRENGTH', amount: 2 }, round: state.core.round }];
     resolveBattleWithFaces(state, p1, order, faces('EMPTY', 'a1', 'd1'));
-    expect(amount(state.battles[0]!.defenseBreakdown, 'Líder')).toBe(2);
-    expect(entry(state.battles[0]!.attackBreakdown, 'Líder')).toBeUndefined();
+    expect(amount(state.battles[0]!.defenseBreakdown, 'Figura')).toBe(2);
+    expect(entry(state.battles[0]!.attackBreakdown, 'Figura')).toBeUndefined();
   });
 
   it('keeps the arithmetic exact for every battle: total = strength + the sum of the breakdown', () => {

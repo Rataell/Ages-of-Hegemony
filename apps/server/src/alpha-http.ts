@@ -108,7 +108,7 @@ export class AlphaHttp {
       const parsed=envelope.safeParse(raw);if(!parsed.success)return error('INVALID_INPUT','Solicitação inválida.',400);
       const action=parsed.data;
       // Per client, never global: creating rooms is the scarce one; joining with an invite is cheap but still bounded per client and per invite.
-      if(action.operation==='create'&&!this.rate.allow(`create:${this.clientKey(request)}`,6,now))return error('RATE_LIMIT','Muitas salas criadas. Aguarde um minuto.',429);
+      if(action.operation==='create'&&!this.rate.allow(`create:${this.clientKey(request)}`,Number(process.env.ALPHA_CREATE_RATE_PER_MINUTE??6),now))return error('RATE_LIMIT','Muitas salas criadas. Aguarde um minuto.',429);
       if(action.operation==='join'&&(!this.rate.allow(`join:${this.clientKey(request)}`,20,now)||!this.rate.allow(`invite:${action.code}`,40,now)))return error('RATE_LIMIT','Muitas entradas. Aguarde um minuto.',429);
       if(action.operation==='telemetry'){
         if(!principal)return error('UNAUTHENTICATED','Sua sessão expirou. Entre novamente.',401);

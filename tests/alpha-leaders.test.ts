@@ -164,7 +164,7 @@ describe('era abilities', () => {
       if (effect.kind === 'COHESION_ALL') expect(after.cities.filter(c => c.currentOwnerId === p1).map(c => c.localCohesion)).toEqual(cohesions.map(c => Math.min(100, c + effect.amount)));
       if (effect.kind === 'TREATY_EXTEND') expect(after.treaties[0]!.expiresRound).toBe(4 + effect.rounds);
       const again = ability(after);
-      expect(again, `${leader.name} second use`).toMatchObject({ ok: false, error: { code: 'RULE_FAILURE', message: expect.stringContaining('já foi usada nesta Era') } });
+      expect(again, `${leader.name} second use`).toMatchObject({ ok: false, error: { code: 'RULE_FAILURE', message: expect.stringContaining('já foi usado nesta Era') } });
       expect(AlphaStateSchema.safeParse(after).success).toBe(true);
     }
   });
@@ -184,7 +184,7 @@ describe('era abilities', () => {
     const state = match('thalos');
     state.players[1]!.leader = null;
     state.players[1]!.civilization = null;
-    expect(leaderAbilityBlock(state, p2)).toBe('Sua civilização ainda não tem um líder.');
+    expect(leaderAbilityBlock(state, p2)).toBe('Sua civilização ainda não tem uma Figura.');
     expect(ability(state, PlayerIdSchema.parse('stranger'))).toMatchObject({ ok: false, error: { code: 'FORBIDDEN' } });
     const urban = match('thalos');setAlphaPhase(urban,'URBAN_ACTIONS');
     expect(ability(urban)).toMatchObject({ ok: false, error: { code: 'WRONG_PHASE' } });

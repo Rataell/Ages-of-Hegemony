@@ -156,7 +156,7 @@ describe('stale multiplayer commands recover once', () => {
     const outcome = await stale.send({ type: 'LEADER_ABILITY' });
     expect(outcome.retried).toBe(true);
     expect(outcome.reply).toMatchObject({ ok: false, error: { code: 'RULE_FAILURE' } });
-    expect(outcome.reply.ok === false && outcome.reply.error.message).toContain('já foi usada');
+    expect(outcome.reply.ok === false && outcome.reply.error.message).toContain('já foi usado');
     expect(await game()).toEqual(before);
   });
 

@@ -28,7 +28,7 @@ export type AlphaRoundPhase = z.infer<typeof AlphaRoundPhaseSchema>;
 /** The nine steps of the Era turn (canon §22), in order. */
 export const ERA_TURN_STEPS = [
   'Sustento e efeitos de fim de Era', 'Pontuar Ambição', 'Pulso do Mundo', 'Ameaças do Mundo', 'Reforma de Governo',
-  'Poder do Líder', 'Manobras e Ambições', 'Próximo patamar da Teia', 'Nova Era',
+  'Poder da Figura', 'Manobras e Ambições', 'Próximo patamar da Teia', 'Nova Era',
 ] as const;
 
 

@@ -106,7 +106,7 @@ export function enterEraTurn(state: AlphaState): void {
   state.eraTurn.step = 5; log(state, 5, reforms(state));
   state.eraTurn.step = 6;
   for (const player of state.players) if (player.leader) player.leader.eraAbilityUsed = false;
-  log(state, 6, 'O poder de cada Líder foi recuperado.');
+  log(state, 6, 'O poder de cada Figura foi recuperado.');
   state.eraTurn.step = 7;
 }
 

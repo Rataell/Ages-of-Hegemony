@@ -317,7 +317,7 @@ function assault(state: AlphaState, threat: Threat, hex: string): void {
   const sources = strengthSources(state, defenderId);
   const flat: Modifier[] = [];
   const add = (source: string, amount: number) => { if (amount !== 0) flat.push({ source, amount }); };
-  add('Terreno', landform(state, tile.terrain)); add('Tecnologia', sources.technology); add('Líder', sources.leader); add('Cartas e efeitos', sources.other);
+  add('Terreno', landform(state, tile.terrain)); add('Tecnologia', sources.technology); add('Figura', sources.leader); add('Cartas e efeitos', sources.other);
   const before: Fort | null = meta ? { ...meta.fortification } : null;
   const attackerPieces = threatPieces(threat);
   const shock = resolveShock(state, {
