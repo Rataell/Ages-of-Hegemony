@@ -34,6 +34,8 @@ export function planBotSeat(roomId: string, game: AlphaState, seat: PlayerId, pe
     state: redactStateForSeat(live, seat), ctx: memory,
     apply: (id: PlayerId, command: Record<string, unknown>) => { const result = applyAlphaCommand(live, id, command); if (result.ok) live = result.value; return result; },
     refresh: () => redactStateForSeat(live, seat),
+    /** Exploration access (which orientations give a piece a way in) is what a human's unit options carry; it needs the hidden Region content, so it is read from the real state, exactly as the player projection does. */
+    real: () => live,
   };
   let fallback = false;
   try {

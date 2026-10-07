@@ -147,6 +147,8 @@ export interface ExplorationAccess {
 export function explorationAccess(state:AlphaState,unit:AlphaUnit,region:AlphaState['regions'][number]):ExplorationAccess {
   const role=explorerRole(state,unit),blocked=role==='NAVAL'?EXPLORE_NEEDS_LAND:EXPLORE_NEEDS_NAVAL;
   if(role===null)return {rotations:[],block:'Esta peça não explora.'};
+  // A seat-redacted copy (bots) hides the Region template: the caller reads the real match for this answer, here nothing can be computed.
+  if(!REGION_TEMPLATES.some(t=>t.id===region.templateId))return {rotations:[0],block:null};
   const origin=state.core.map.find(t=>t.id===unit.hexId)!,reach=kitExplorationReach(state,unit),enters=role==='LAND'?isLandTerrain:isNavigableTerrain;
   const entry=region.hexIds.map((id,i)=>({id,i,tile:state.core.map.find(t=>t.id===id)!})).filter(x=>hexDistance(origin,x.tile)<=reach);
   if(!entry.length)return {rotations:[],block:'A região não está na fronteira desta peça.'};
