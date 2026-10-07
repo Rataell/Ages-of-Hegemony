@@ -1,6 +1,7 @@
 import { liftLegacyCityCaps } from './alpha-turn.js';
 import { layoutBoard, HOME_SLOTS, MAP_FOOTPRINT, featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type MapSize, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
+import { presetTerrain, worldShape } from './alpha-presets.js';
 import { alphaEvent } from './alpha-events.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
@@ -26,37 +27,19 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   if(frontier.length<board.cells.length-HOME_SLOTS)throw new Error('Not enough frontier Region templates for this footprint');
   const slotOf=new Map(board.homeSlots.map((id,slot)=>[id,slot]));
   const regions:AlphaState['regions']=[];const map:{id:string;q:number;r:number;terrain:TerrainType;features:string[]}[]=[];let index=0;
-  for(const cell of board.cells){
-    const slot=slotOf.get(cell.id);
-    const template=slot!==undefined?REGION_TEMPLATES[slot]!:frontier[index++]!;
+  const picked=board.cells.map(cell=>{const slot=slotOf.get(cell.id);return {cell,slot,template:slot!==undefined?REGION_TEMPLATES[slot]!:frontier[index++]!};});
+  const shape=worldShape(input.worldPreset??'MIXED',input.seed,picked.map(({cell,template})=>({id:cell.id,templateId:template.id,hexIds:cell.hexes.map(hexId)})),input.players.length);
+  for(const {cell,slot,template} of picked){
     const activeHome=slot!==undefined&&slot<input.players.length;
     regions.push({id:cell.id,templateId:template.id,hexIds:cell.hexes.map(hexId),rotation:0,revealedBy:activeHome?[PlayerIdSchema.parse(input.players[slot!]!.id)]:[]});
     const content=rotatedRegionContent(template,0);
     cell.hexes.forEach((p,i)=>{
-      let terrain=content[i]!.terrain;const preset=input.worldPreset??'MIXED';
-      if(preset==='CONTINENTAL'&&terrain==='SEA')terrain=(p.q+p.r+input.seed)%2===0?'PLAINS':'COAST';
-      if(preset==='ARCHIPELAGO'&&!activeHome&&terrain!=='MOUNTAINS'&&(Math.abs(p.q*17+p.r*31+input.seed)%5)<2)terrain='SEA';
-      if(preset==='INLAND_SEA'&&!activeHome&&cell.neighbors.length===6)terrain=i===0?'SEA':'COAST';
+      const terrain=presetTerrain(shape,cell.id,hexId(p),content[i]!);
       const feature=content[i]!.feature;
       map.push({...p,id:hexId(p),terrain,features:[...(content[i]!.deposit&&holdsMetal(terrain)?['METAL']:[]),...(feature&&featureFits(feature,terrain)?[feature]:[])]});
     });
   }
-  // Active homelands must be joined by land: open the cheapest chain of SEA hexes (0-1 search over the whole board) into COAST.
   const tiles=new Map(map.map(t=>[t.id as string,t]));
-  const homeCentres=board.homeSlots.slice(0,input.players.length).map(id=>board.cells.find(cell=>cell.id===id)!.center);
-  for(let k=1;k<homeCentres.length;k++){
-    const goal=homeCentres[k]!, start=hexId(homeCentres[0]!) as string, target=hexId(goal) as string;
-    const cost=new Map<string,number>([[start,0]]), from=new Map<string,string>(), deque=[start];
-    while(deque.length){
-      const at=deque.shift()!, here=tiles.get(at)!;
-      for(const next of hexNeighbors(here).map(hexId)){
-        const tile=tiles.get(next);if(!tile)continue;
-        const step=tile.terrain==='SEA'?1:0,total=(cost.get(at)??0)+step;
-        if(total<(cost.get(next)??Infinity)){cost.set(next,total);from.set(next,at);if(step===0)deque.unshift(next);else deque.push(next);}
-      }
-    }
-    for(let at:string|undefined=target;at&&at!==start;at=from.get(at)){const tile=tiles.get(at)!;if(tile.terrain==='SEA')tile.terrain='COAST';}
-  }
   // The capital is a real hex of its Pátria. The Pátria is public, so nothing about its position is hidden or bent for privacy: the centre when its terrain
   // can hold a city (it always does in the authored homelands), otherwise a seeded pick among the outer hexes that can, plains first.
   const capitalHex=(slot:number):string=>{
@@ -154,15 +137,16 @@ export function validateExploration(state:AlphaState,actor:PlayerId,order:Extrac
 const holdsMetal=(terrain:TerrainType)=>terrain==='HILLS'||terrain==='MOUNTAINS';
 /**
  * The region's tiles after turning it from its current rotation to `rotation`. Terrain and the metal deposit come from the
- * same rotated template position. World-preset and contact-corridor overrides were generated before fog reveal and stay
- * where they are; the deposit follows the creation rule (only on hills or mountains).
+ * same rotated template position, then the world preset (alpha-presets) is applied to that hex again, so turning a Region
+ * never undoes the shape of the world; the deposit follows the creation rule (only on hills or mountains).
  */
 export function rotatedRegionTiles(state:AlphaState,region:AlphaState['regions'][number],rotation:number):{terrain:TerrainType;features:TerrainFeature[]}[] {
   const template=REGION_TEMPLATES.find(r=>r.id===region.templateId)!;
-  const before=rotatedRegionContent(template,region.rotation),after=rotatedRegionContent(template,rotation);
+  const after=rotatedRegionContent(template,rotation);
+  const shape=worldShape(state.rules.worldPreset,state.telemetry.seed,state.regions,state.players.length);
   return region.hexIds.map((id,i)=>{
     const tile=state.core.map.find(t=>t.id===id)!;
-    const terrain=tile.terrain===before[i]!.terrain?after[i]!.terrain:tile.terrain;
+    const terrain=presetTerrain(shape,region.id,id,after[i]!);
     const authored=new Set<string>(['METAL','FISH','TIMBER','FERTILE','STONE']),feature=after[i]!.feature;
     return {terrain,features:[...tile.features.filter(item=>!authored.has(item)),...(after[i]!.deposit&&holdsMetal(terrain)?['METAL' as const]:[]),...(feature&&featureFits(feature,terrain)?[feature]:[])]};
   });

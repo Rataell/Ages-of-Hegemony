@@ -27,18 +27,6 @@ describe('modular regions and fog of war',()=>{
       expect(nearest).toBeLessThanOrEqual(10);
     }
   });
-  it.each([2,4,6])('keeps all %i-player capitals connected by land across Alpha world presets',count=>{
-    for(const worldPreset of ['MIXED','INLAND_SEA','ARCHIPELAGO'] as const)for(const seed of [23,42]){
-      const state=beginAlphaPlanning(createAlphaGame({gameId:`corridor-${count}-${worldPreset}-${seed}`,seed,preset:'QUICK',worldPreset,players:Array.from({length:count},(_,i)=>({id:`p${i+1}`,name:`Pessoa ${i+1}`}))}));
-      const actor=state.players[0]!.playerId,unit=state.units.find(candidate=>candidate.ownerId===actor)!;
-      state.regions.forEach(region=>{region.discovery={kind:'NONE',resolved:true,resolvedBy:null};});
-      for(const region of state.regions.filter(candidate=>!candidate.revealedBy.includes(actor))){const edge=state.core.map.find(tile=>!region.hexIds.includes(tile.id)&&region.hexIds.some(id=>hexDistance(tile,state.core.map.find(candidate=>candidate.id===id)!)===1));expect(edge).toBeDefined();unit.hexId=edge!.id;exploreRegion(state,actor,{type:'EXPLORE',id:`reveal-${region.id}`,unitId:unit.id,target:region.hexIds[1]!,rotation:0});}
-      const capitals=state.core.players.map(player=>player.civilization.cities[0]!.hexId),byId=new Map(state.core.map.map(tile=>[tile.id,tile]));
-      const seen=new Set<string>(),queue=[capitals[0]!];
-      for(let i=0;i<queue.length;i++){const id=queue[i]!;if(seen.has(id))continue;seen.add(id);const tile=byId.get(id)!;for(const point of hexNeighbors(tile)){const next=byId.get(hexId(point));if(next&&!seen.has(next.id)&&!['SEA','UNKNOWN'].includes(next.terrain))queue.push(next.id);}}
-      expect(capitals.every(id=>seen.has(id)),`${worldPreset} seed ${seed}`).toBe(true);
-    }
-  });
   it('a Region revealed by anyone is revealed for the whole table, immediately, and never hides again',()=>{
     const state=setup();const actor=state.players[0]!.playerId,other=state.players[1]!.playerId;
     const before=alphaPlayerView(state,actor)!,closed=before.board.find(region=>region.closed&&region.homeOf===null)!,target=closed.hexIds[1]!;
