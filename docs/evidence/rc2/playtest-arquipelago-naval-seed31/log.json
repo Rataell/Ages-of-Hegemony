@@ -1,0 +1,184 @@
+{
+ "name": "arquipelago-naval-seed31",
+ "world": "ARCHIPELAGO",
+ "size": "STANDARD",
+ "bots": 3,
+ "naval": true,
+ "rounds": [
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "PIONEER (sea) waits for a ship",
+    "PIONEER (sea) waits for a ship",
+    "RESEARCH:web-coastal-navigation",
+    "READY refused: Escolha duas ambições antes de confirmar seu primeiro planejamento."
+   ]
+  },
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "PIONEER (sea) waits for a ship",
+    "PIONEER (sea) waits for a ship",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 2,
+   "era": "FOUNDATION",
+   "notes": [
+    "EMBARK",
+    "PIONEER (sea) waits for a ship",
+    "DISCOVER COASTAL_VESSEL",
+    "BUILD:MARITIME"
+   ]
+  },
+  {
+   "round": 3,
+   "era": "FOUNDATION",
+   "notes": [
+    "PIONEER (sea) waits for a ship",
+    "DISCOVER COASTAL_VESSEL",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 4,
+   "era": "FOUNDATION",
+   "notes": [
+    "PIONEER (sea) waits for a ship",
+    "DISCOVER COASTAL_VESSEL",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.",
+    "RESEARCH:web-agriculture"
+   ]
+  },
+  {
+   "round": 5,
+   "era": "FOUNDATION",
+   "notes": [
+    "EMBARK",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "MOVE COASTAL_VESSEL",
+    "ELEVATE"
+   ]
+  },
+  {
+   "round": 6,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "BUILD:AGRARIAN"
+   ]
+  },
+  {
+   "round": 7,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RESEARCH:web-writing"
+   ]
+  },
+  {
+   "round": 8,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RESEARCH:web-mathematics"
+   ]
+  },
+  {
+   "round": 9,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra."
+   ]
+  },
+  {
+   "round": 10,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra."
+   ]
+  },
+  {
+   "round": 11,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RESEARCH:web-masonry"
+   ]
+  },
+  {
+   "round": 12,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RESEARCH:web-guard-formations"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "kind": "VISUAL",
+   "text": "console errors: Failed to load resource: the server responded with a status of 409 () | Failed to load resource: the server responded with a status of 400 ()"
+  }
+ ],
+ "rejected": {
+  "CHOOSE_AMBITIONS:A partida mudou. Atualize antes de confirmar novamente.": 1,
+  "READY:Escolha duas ambições antes de confirmar seu primeiro planejamento.": 1,
+  "URBAN_ACTION:Este avanço já está planejado em outra cidade nesta rodada.": 1,
+  "EMBARK:A partida mudou. Atualize antes de confirmar novamente.": 1,
+  "RESOLVE_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 1,
+  "WORLD_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 2
+ },
+ "final": {
+  "round": 13,
+  "era": "CONSOLIDATION",
+  "cities": 1,
+  "prestige": [
+   [
+    "valgard",
+    6,
+    null
+   ],
+   [
+    "nymara",
+    8,
+    null
+   ],
+   [
+    "meridia",
+    14,
+    null
+   ],
+   [
+    "dravik",
+    8,
+    null
+   ]
+  ],
+  "regionsOpen": 15,
+  "regions": 30,
+  "discoveries": [
+   "NONE",
+   "CAMP",
+   "RUIN",
+   "PASSAGE"
+  ],
+  "vessels": 2,
+  "maritime": 1
+ },
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 409 ()",
+  "Failed to load resource: the server responded with a status of 400 ()"
+ ]
+}

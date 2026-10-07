@@ -1,0 +1,151 @@
+{
+ "name": "padrao-misto",
+ "world": "MIXED",
+ "size": "STANDARD",
+ "bots": 3,
+ "naval": false,
+ "rounds": [
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "DISCOVER PIONEER",
+    "DISCOVER PIONEER",
+    "RESEARCH:web-writing"
+   ]
+  },
+  {
+   "round": 2,
+   "era": "FOUNDATION",
+   "notes": [
+    "DISCOVER PIONEER",
+    "SETTLE",
+    "RESEARCH:web-agriculture",
+    "PRODUCE"
+   ]
+  },
+  {
+   "round": 3,
+   "era": "FOUNDATION",
+   "notes": [
+    "ELEVATE"
+   ]
+  },
+  {
+   "round": 4,
+   "era": "FOUNDATION",
+   "notes": [
+    "BUILD:AGRARIAN",
+    "BUILD:AGRARIAN"
+   ]
+  },
+  {
+   "round": 5,
+   "era": "FOUNDATION",
+   "notes": [
+    "RESEARCH:web-masonry",
+    "RESEARCH:web-coastal-navigation"
+   ]
+  },
+  {
+   "round": 6,
+   "era": "EXPANSION",
+   "notes": [
+    "RESEARCH:web-exchange",
+    "RESEARCH:web-guard-formations"
+   ]
+  },
+  {
+   "round": 7,
+   "era": "EXPANSION",
+   "notes": []
+  },
+  {
+   "round": 8,
+   "era": "EXPANSION",
+   "notes": []
+  },
+  {
+   "round": 9,
+   "era": "EXPANSION",
+   "notes": []
+  },
+  {
+   "round": 10,
+   "era": "EXPANSION",
+   "notes": []
+  },
+  {
+   "round": 11,
+   "era": "CONSOLIDATION",
+   "notes": []
+  },
+  {
+   "round": 12,
+   "era": "CONSOLIDATION",
+   "notes": []
+  },
+  {
+   "round": 13,
+   "era": "CONSOLIDATION",
+   "notes": []
+  },
+  {
+   "round": 14,
+   "era": "CONSOLIDATION",
+   "notes": []
+  }
+ ],
+ "findings": [
+  {
+   "kind": "VISUAL",
+   "text": "console errors: Failed to load resource: the server responded with a status of 400 () | Failed to load resource: the server responded with a status of 409 ()"
+  }
+ ],
+ "rejected": {
+  "URBAN_ACTION:Este avanço já está planejado em outra cidade nesta rodada.": 4,
+  "URBAN_ACTION:A partida mudou. Atualize antes de confirmar novamente.": 4,
+  "RESOLVE_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 1,
+  "WORLD_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 3
+ },
+ "final": {
+  "round": 15,
+  "era": "CONSOLIDATION",
+  "cities": 2,
+  "prestige": [
+   [
+    "valgard",
+    5,
+    null
+   ],
+   [
+    "orinth",
+    12,
+    null
+   ],
+   [
+    "saren",
+    8,
+    null
+   ],
+   [
+    "aurelia",
+    10,
+    null
+   ]
+  ],
+  "regionsOpen": 13,
+  "regions": 30,
+  "discoveries": [
+   "DANGER",
+   "NONE",
+   "RUIN"
+  ],
+  "vessels": 0,
+  "maritime": 0
+ },
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 400 ()",
+  "Failed to load resource: the server responded with a status of 409 ()"
+ ]
+}

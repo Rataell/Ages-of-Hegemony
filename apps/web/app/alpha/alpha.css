@@ -385,6 +385,18 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-strip-when { display: flex; gap: 10px; align-items: center; white-space: nowrap; font-size: 13px; color: var(--text-secondary); min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
 .alpha-strip-seals { flex: none; }
 @media (max-width: 1500px) { .alpha-strip-when .era-name { display: none; } .alpha-strip-when .rl { font-size: 0; } .alpha-strip-when .rl::after { content: 'R. '; font-size: 13px; } }
+/* Priority on the strip below 1500 px: Era, round, Ressonância and phase are never clipped (six seats fill the strip); the tools give way first. */
+@media (max-width: 1500px) {
+  .alpha-strip-when { flex: none; overflow: visible; }
+  .alpha-strip-tools .alpha-tips-button { display: none; }
+  .alpha-strip-tools .alpha-theme { font-size: 0; }
+  .alpha-strip-tools .alpha-theme select { font-size: 12px; }
+  .alpha-strip-tools .alpha-leave { font-size: 0; }
+  .alpha-strip-tools .alpha-leave::after { content: 'Sair'; font-size: 11px; }
+  .alpha-strip-alert { font-size: 0; padding-inline: 8px; }
+  .alpha-strip-alert::after { content: '!'; font-size: 13px; font-weight: 700; }
+}
+@media (max-width: 1320px) { .alpha-mesa .alpha-strip { gap: 8px; } .alpha-strip-tools { gap: 4px; } .alpha-strip-seals { gap: 4px; } .alpha-strip-when { gap: 8px; } .alpha-strip-tools .alpha-howto-button { font-size: 0; } .alpha-strip-tools .alpha-howto-button::after { content: 'Guia'; font-size: 12px; } .alpha-strip-seals .aoh-seal { width: 28px; height: 28px; } .alpha-strip-seals .aoh-seal.is-self { width: 32px; height: 32px; } .alpha-strip-seals .aoh-seal > svg { width: 18px; height: 18px; } }
 .alpha-strip-seals { display: flex; gap: 6px; align-items: center; margin: 0; padding: 0; list-style: none; }
 .alpha-strip-alert { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 40%, var(--border)); }
 .alpha-strip-tools { margin-left: auto; display: flex; gap: 6px; align-items: center; flex: none; }

@@ -1,0 +1,204 @@
+{
+ "name": "arquipelago-naval",
+ "world": "ARCHIPELAGO",
+ "size": "STANDARD",
+ "bots": 3,
+ "naval": true,
+ "rounds": [
+  {
+   "round": 1,
+   "era": "FOUNDATION",
+   "notes": [
+    "DISCOVER PIONEER",
+    "PIONEER (sea) waits for a ship",
+    "RESEARCH:web-coastal-navigation"
+   ]
+  },
+  {
+   "round": 2,
+   "era": "FOUNDATION",
+   "notes": [
+    "DISCOVER PIONEER",
+    "PIONEER (sea) waits for a ship",
+    "BUILD:MARITIME"
+   ]
+  },
+  {
+   "round": 3,
+   "era": "FOUNDATION",
+   "notes": [
+    "DISCOVER PIONEER",
+    "PIONEER (sea) waits for a ship",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 4,
+   "era": "FOUNDATION",
+   "notes": [
+    "DISCOVER PIONEER",
+    "EMBARK",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "RECRUIT:COASTAL_VESSEL"
+   ]
+  },
+  {
+   "round": 5,
+   "era": "FOUNDATION",
+   "notes": [
+    "DISCOVER PIONEER",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.",
+    "RESEARCH:web-agriculture"
+   ]
+  },
+  {
+   "round": 6,
+   "era": "EXPANSION",
+   "notes": [
+    "DISCOVER PIONEER",
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.",
+    "ELEVATE"
+   ]
+  },
+  {
+   "round": 7,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.",
+    "BUILD:AGRARIAN"
+   ]
+  },
+  {
+   "round": 8,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.",
+    "RESEARCH:web-writing"
+   ]
+  },
+  {
+   "round": 9,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.",
+    "RESEARCH:web-mathematics"
+   ]
+  },
+  {
+   "round": 10,
+   "era": "EXPANSION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.",
+    "RESEARCH:web-irrigation"
+   ]
+  },
+  {
+   "round": 11,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir."
+   ]
+  },
+  {
+   "round": 12,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.",
+    "RESEARCH:web-masonry"
+   ]
+  },
+  {
+   "round": 13,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir."
+   ]
+  },
+  {
+   "round": 14,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir."
+   ]
+  },
+  {
+   "round": 15,
+   "era": "CONSOLIDATION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir."
+   ]
+  },
+  {
+   "round": 16,
+   "era": "CIVILIZATION",
+   "notes": [
+    "COASTAL_VESSEL: Requer acesso por terra.",
+    "COASTAL_VESSEL: Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir."
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "kind": "VISUAL",
+   "text": "console errors: Failed to load resource: the server responded with a status of 409 ()"
+  }
+ ],
+ "rejected": {
+  "WORLD_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 5,
+  "RESOLVE_CHOICE:A partida mudou. Atualize antes de confirmar novamente.": 5
+ },
+ "final": {
+  "round": 17,
+  "era": "CIVILIZATION",
+  "cities": 1,
+  "prestige": [
+   [
+    "valgard",
+    17,
+    null
+   ],
+   [
+    "kor",
+    13,
+    null
+   ],
+   [
+    "thalos",
+    13,
+    null
+   ],
+   [
+    "orinth",
+    11,
+    null
+   ]
+  ],
+  "regionsOpen": 19,
+  "regions": 30,
+  "discoveries": [
+   "RUIN",
+   "RUIN",
+   "DEPOSIT",
+   "RUIN",
+   "RUIN",
+   "DANGER",
+   "NONE"
+  ],
+  "vessels": 2,
+  "maritime": 1
+ },
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 409 ()"
+ ]
+}

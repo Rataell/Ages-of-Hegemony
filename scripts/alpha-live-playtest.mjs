@@ -9,7 +9,7 @@ const arg = new Map(process.argv.slice(2).map(a => { const [k, v] = a.replace(/^
 const BASE = process.env.ALPHA_BASE_URL, CODE = process.env.ALPHA_ACCESS_CODE ?? '';
 const NAME = String(arg.get('name') ?? 'playtest'), WORLD = String(arg.get('world') ?? 'MIXED'), SIZE = String(arg.get('size') ?? 'STANDARD');
 const BOTS = Number(arg.get('bots') ?? 3), ROUNDS = Number(arg.get('rounds') ?? 14), NAVAL = arg.has('naval'), CIV = String(arg.get('civ') ?? 'valgard');
-const OUT = `docs/evidence/rc12/playtest-${NAME}`; mkdirSync(OUT, { recursive: true });
+const OUT = `docs/evidence/rc2/playtest-${NAME}`; mkdirSync(OUT, { recursive: true });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const log = { name: NAME, world: WORLD, size: SIZE, bots: BOTS, naval: NAVAL, rounds: [], findings: [], rejected: {} };
 const finding = (kind, text) => { log.findings.push({ kind, text }); console.log(`[${kind}] ${text}`); };
@@ -63,7 +63,13 @@ async function playRound(g) {
   // explorers: Pioneiros (land) and any vessel (sea)
   for (const u of mine.filter(x => ['PIONEER', 'FLEET', 'COASTAL_VESSEL'].includes(x.kind))) {
     g = (await read(id)).game; const o = g.unitOptions[u.id]; if (!o) continue;
-    const founder = u.kind === 'PIONEER' && mine.filter(x => x.kind === 'PIONEER').indexOf(u) === 1;
+    // --naval keeps the second Pioneiro for the sea: it boards the first vessel instead of founding.
+    const founder = !NAVAL && u.kind === 'PIONEER' && mine.filter(x => x.kind === 'PIONEER').indexOf(u) === 1;
+    const seaPioneer = NAVAL && u.kind === 'PIONEER' && (arg.has('sea-only') || mine.filter(x => x.kind === 'PIONEER').indexOf(u) === 1);
+    if (seaPioneer && o.embark?.length) { const x = await send(id, g, { type: 'EMBARK', unitIds: [u.id], fleetId: o.embark[0] }, 'PIONEER boards a ship (naval playtest)'); if (x.ok) { notes.push('EMBARK'); continue; } }
+    if (seaPioneer) { notes.push('PIONEER (sea) waits for a ship'); continue; }
+    // A ship opens a Region only with a Pioneiro aboard (or Navegação Oceânica): without a discoverer it keeps its naval work.
+    if (u.kind !== 'PIONEER' && !o.discoverer) { if (o.frontierNote) notes.push(`${u.kind}: ${o.frontierNote}`); continue; }
     if (founder && o.settleBlock === null && g.cityStates.length < 4) { const x = await send(id, g, { type: 'SETTLE', unitId: u.id, name: `Colônia ${g.view.round}-${u.id.slice(-2)}` }); if (x.ok) { notes.push('SETTLE'); continue; } }
     // Move + Discovery (RC2): discovery is a MOVE whose last step enters a closed Region and carries the orientation.
     const open = (o.frontier ?? []).filter(r => r.block === null && r.entries.length).map(r => ({ r, e: [...r.entries].sort((a, b) => a.path.length - b.path.length || a.hexId.localeCompare(b.hexId))[0] })).sort((a, b) => a.e.path.length - b.e.path.length);
@@ -71,7 +77,7 @@ async function playRound(g) {
     else if ((o.frontier ?? []).some(e => e.block)) notes.push(`${u.kind}: ${o.frontier.find(e => e.block).block}`);
     else if (o.frontierNote) notes.push(`${u.kind}: ${o.frontierNote}`);
     // A Pioneiro next to an own ship boards it when no Region is open to it on foot: the ship then carries the Discovery.
-    if (u.kind === 'PIONEER' && !open.length && o.embark?.length && (NAVAL || (o.frontier ?? []).some(e => e.block))) { const x = await send(id, g, { type: 'EMBARK', unitIds: [u.id], fleetId: o.embark[0] }, 'PIONEER boards a ship'); if (x.ok) { notes.push('EMBARK'); continue; } }
+    if (u.kind === 'PIONEER' && !seaPioneer && !open.length && o.embark?.length && (NAVAL || (o.frontier ?? []).some(e => e.block))) { const x = await send(id, g, { type: 'EMBARK', unitIds: [u.id], fleetId: o.embark[0] }, 'PIONEER boards a ship'); if (x.ok) { notes.push('EMBARK'); continue; } }
     if (u.kind === 'PIONEER' && o.settleBlock === null && g.cityStates.length < 5) { const x = await send(id, g, { type: 'SETTLE', unitId: u.id, name: `Colônia ${g.view.round}` }); if (x.ok) { notes.push('SETTLE'); continue; } }
     if (closedHexes.length) {
       const here = u.hexId, water = u.kind !== 'PIONEER', terrain = Object.fromEntries((g.view.visibleTerritory ?? []).map(t => [t.id, t.terrain]));
