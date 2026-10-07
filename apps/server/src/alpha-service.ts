@@ -120,7 +120,7 @@ export class AlphaGameService {
       seats:[{guestId:principal.guestId,playerId:PlayerIdSchema.parse('player-1'),name:displayName,civilization:null,figureId:null,ready:false,bot:false,botPersona:null}]});
     if(!await this.repository.create(room))return err({code:'ALREADY_EXISTS',message:'Não foi possível criar a partida. Tente novamente.'});
     presenceTouch(room.id,principal.guestId,Date.now());
-    alphaLog('ROOM_CREATED',{room:short(room.id),seats:room.seatLimit,preset:room.preset});
+    alphaLog('ROOM_CREATED',{room:short(room.id),seats:room.seatLimit,preset:room.preset,world:room.worldPreset,size:room.mapSize});
     return ok(roomView(room,principal)!);
   }
   async join(principal:GuestPrincipal,code:string,displayName:string,now=Date.now()):Promise<Response>{

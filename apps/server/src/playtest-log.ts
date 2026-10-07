@@ -87,7 +87,7 @@ export class PlaytestRecorder {
     if (this.started) return;
     this.started = true;
     this.roundLogSeen = state.telemetry.roundLog.length; this.battlesSeen = state.battles.length; this.eventsSeen = state.events.length;
-    this.emit(state, 'session_start', { preset: state.rules.preset, worldPreset: state.rules.worldPreset, seed: state.telemetry.seed, rulesVersion: state.rulesVersion, seats: state.players.map(p => ({ seat: p.playerId, civilization: p.civilization })) });
+    this.emit(state, 'session_start', { preset: state.rules.preset, worldPreset: state.rules.worldPreset, mapSize: state.rules.mapSize, seed: state.telemetry.seed, rulesVersion: state.rulesVersion, seats: state.players.map(p => ({ seat: p.playerId, civilization: p.civilization, figure: p.leader?.leaderId ?? null })) });
     for (const t of state.treaties) this.seenTreaties.set(t.id, t.status);
     for (const w of state.wars) this.seenWars.add(pairKey(w[0], w[1]));
     this.openRound(state);
