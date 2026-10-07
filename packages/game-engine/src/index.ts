@@ -44,3 +44,4 @@ export * from './alpha-telemetry.js';
 export * from './alpha-scenario-contact.js';
 export * from './alpha-world-audit.js';
 export * from './alpha-presets.js';
+export * from './alpha-water.js';

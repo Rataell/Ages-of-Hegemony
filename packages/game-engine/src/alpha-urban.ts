@@ -1,5 +1,5 @@
 import {
-  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, ALPHA_RESOURCE_KEYS, elevateRequirement, emptyAlphaResourcePool, ladderStep, nextLevel,
+  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, districtEntry, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, ALPHA_RESOURCE_KEYS, elevateRequirement, emptyAlphaResourcePool, ladderStep, nextLevel,
   type AlphaCommand, type AlphaResourcePool, type AlphaState, type PlayerId,
 } from '@aoh/game-domain';
 import { applyCommand } from './engine.js';
@@ -11,6 +11,7 @@ import { activationsAllowed, administration, recruitLimit, cityYield, districtSl
 import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
+import { isCoastalCity } from './alpha-water.js';
 import { kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
 
 type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
@@ -99,6 +100,13 @@ function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: B
     if (!city.districts.some(item => item.type === entry.district)) return 'O edifício exige o distrito correspondente.';
     if (city.buildings.some(item => item.type === build.building)) return 'Este edifício já existe.';
     return alphaCanAfford(state, actor, entry.cost, 'BUILD') ? null : 'Recursos insuficientes para esta ação.';
+  }
+  if (build.kind === 'MARITIME') {
+    if (meta.districts.includes('MARITIME')) return 'Um distrito de cada tipo por cidade.';
+    if (!isCoastalCity(state, cityId)) return 'O Distrito Marítimo exige uma borda d’água navegável.';
+    if (meta.districts.length >= districtSlots(state, cityId)) return 'Sem vagas de distrito: Eleve a cidade.';
+    if (!hasUnlock(state, actor, 'district:MARITIME')) return 'Este distrito exige um avanço da Teia.';
+    return alphaCanAfford(state, actor, districtEntry('MARITIME').cost, 'BUILD') ? null : 'Recursos insuficientes para esta ação.';
   }
   const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
   if (!next) return 'A cidade já possui a fortificação máxima.';
@@ -194,6 +202,7 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     list.push(option(state, actor, id, 'ELEVATE', {}, higher ? `Elevar a ${higher}: Capacidade ${ladderStep(higher).capacity}, ${ladderStep(higher).slots} vaga(s), suprimento ${ladderStep(higher).supplyReach}` : 'Nível máximo'));
     for (const district of DistrictTypeSchema.options) list.push(option(state, actor, id, 'BUILD', { build: { kind: 'DISTRICT', district } }, `Novo distrito${listOf(territory.districts[district].production) ? ` · ${listOf(territory.districts[district].production)}` : ''}`));
     for (const building of BuildingTypeSchema.options) list.push(option(state, actor, id, 'BUILD', { build: { kind: 'BUILDING', building } }, `Novo edifício${listOf(territory.buildings[building].production) ? ` · ${listOf(territory.buildings[building].production)}` : ''}`));
+    list.push(option(state, actor, id, 'BUILD', { build: { kind: 'MARITIME' } }, `Distrito Marítimo · Porto incluído · +1 Alimento por Produzir`));
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
     list.push(option(state, actor, id, 'BUILD', { build: { kind: 'FORTIFICATION' } }, next ? `Fortificação ${next}` : 'Fortificação máxima'));
     for (const unit of AlphaUnitClassSchema.options) list.push(option(state, actor, id, 'RECRUIT', { unit }, `Força ${state.rules.units[unit].strength} · Movimento ${state.rules.units[unit].movement} · até ${recruitLimit(state, actor, id)} peça(s) por ativação`));
@@ -267,6 +276,14 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
         alphaPay(state, actor, alphaCostWithMetal(state, actor, spec.cost, spec.metal), 'BUILD');
         meta.fortification = { level: next, state: 'INTACT' };
         message = `${city.name} recebeu a fortificação ${next}.`;
+      } else if (command.build.kind === 'MARITIME') {
+        const blocked = buildBlock(state, actor, city.id, command.build);
+        if (blocked) throw new Error(blocked);
+        alphaPay(state, actor, districtEntry('MARITIME').cost, 'BUILD');
+        // The basic Porto comes with the district: it is not a separate purchase.
+        meta.districts = [...meta.districts, 'MARITIME'];
+        meta.buildings = [...meta.buildings.filter(item => item !== 'PORT'), 'PORT'];
+        message = `${city.name} concluiu o Distrito Marítimo e seu Porto.`;
       } else {
         const built = command.build.kind === 'DISTRICT'
           ? { type: 'BUILD_DISTRICT' as const, playerId: actor, cityId: city.id, district: command.build.district, expectedVersion: state.core.version }

@@ -6,6 +6,7 @@ import { atWar, enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { leaderSupplyBonus } from './alpha-leaders.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { blockadedBy, isCarried, isPort, launchHex } from './alpha-naval.js';
+import { isNavigableTerrain } from './alpha-water.js';
 import { kitMovement, kitRoadSupply, kitSupplyBonus, kitUnitCost } from './alpha-kits.js';
 import { mobilizationBlock } from './alpha-city.js';
 import { unitMovement } from './alpha-grades.js';
@@ -42,7 +43,7 @@ export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:A
 }
 export function canEnter(state:AlphaState,unit:AlphaUnit,target:HexId):boolean {
   const tile=state.core.map.find(t=>t.id===target);if(!tile)return false;
-  return state.rules.units[unit.kind].domain==='SEA'?['COAST','SEA'].includes(tile.terrain):!['SEA','UNKNOWN'].includes(tile.terrain);
+  return state.rules.units[unit.kind].domain==='SEA'?isNavigableTerrain(tile.terrain):!['SEA','UNKNOWN'].includes(tile.terrain);
 }
 export function unitSupply(state:AlphaState,unit:AlphaUnit):{supplied:boolean;reason:string} {
   const player=state.core.players.find(p=>p.id===unit.ownerId)!;

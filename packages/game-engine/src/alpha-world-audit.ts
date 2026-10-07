@@ -1,10 +1,8 @@
 import type { AlphaState } from '@aoh/game-domain';
 import { hexId, hexNeighbors } from './hex.js';
 
-/** Single truth of "water a ship can enter" (COAST and SEA). Everything naval reads this, never its own list. */
-export const isNavigableTerrain = (terrain: string): boolean => terrain === 'COAST' || terrain === 'SEA';
-/** Hexes a land piece can stand on. COAST is both: land you can walk, water edge a ship can enter. */
-export const isLandTerrain = (terrain: string): boolean => terrain === 'PLAINS' || terrain === 'FOREST' || terrain === 'HILLS' || terrain === 'MOUNTAINS' || terrain === 'COAST';
+import { isLandTerrain, isNavigableTerrain } from './alpha-water.js';
+export { isLandTerrain, isNavigableTerrain };
 
 export interface WorldAudit {
   regions: number; hexes: number;

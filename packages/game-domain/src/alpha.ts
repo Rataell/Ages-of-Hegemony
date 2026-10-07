@@ -78,6 +78,8 @@ export const UrbanBuildTargetSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('DISTRICT'), district: DistrictTypeSchema }),
   z.strictObject({ kind: z.literal('BUILDING'), building: BuildingTypeSchema }),
   z.strictObject({ kind: z.literal('FORTIFICATION') }),
+  /** Distrito Marítimo: needs a real navigable-water edge; the basic Porto is included in it (never bought apart). */
+  z.strictObject({ kind: z.literal('MARITIME') }),
 ]);
 /** Resources a player gained or lost during one round, by cause. Report arithmetic is verified against this. */
 export const RoundLedgerSchema = z.strictObject({

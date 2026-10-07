@@ -1,4 +1,5 @@
 import type { AlphaState, AlphaUnit, HexId, PlayerId } from '@aoh/game-domain';
+import { isNavigableTerrain, isNavigableWater } from './alpha-water.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
 import { atWar, enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { stackBlock } from './alpha-stack.js';
@@ -16,7 +17,6 @@ import { unitTransport } from './alpha-grades.js';
  * - rivals see the fleet, never its cargo.
  * The seven classes of the Bible atlas build on this once audited against the canon.
  */
-const WATER = new Set(['COAST', 'SEA']);
 const tileOf = (state: AlphaState, id: string) => state.core.map.find(tile => tile.id === id);
 const neighbours = (state: AlphaState, id: string) => { const tile = tileOf(state, id); return tile ? hexNeighbors(tile).map(hexId).map(n => tileOf(state, n)).filter(t => t !== undefined) : []; };
 
@@ -30,7 +30,7 @@ export const cargoRoom = (state: AlphaState, fleetId: string) => { const ship = 
 /** A port: on Coast, or next to Coast or Sea. */
 export function isPort(state: AlphaState, cityHexId: string): boolean {
   const tile = tileOf(state, cityHexId);
-  return !!tile && (tile.terrain === 'COAST' || neighbours(state, cityHexId).some(n => WATER.has(n.terrain)));
+  return !!tile && (tile.terrain === 'COAST' || neighbours(state, cityHexId).some(n => isNavigableWater(n)));
 }
 /** An enemy (at war) fleet on the city's hex or on a water hex next to it. */
 export function blockadedBy(state: AlphaState, cityHexId: string, ownerId: PlayerId): PlayerId | null {
@@ -38,7 +38,7 @@ export function blockadedBy(state: AlphaState, cityHexId: string, ownerId: Playe
   const city = state.core.players.flatMap(player => player.civilization.cities).find(candidate => candidate.hexId === cityHexId);
   const meta = city ? state.cities.find(candidate => candidate.cityId === city.id) : undefined;
   if (meta && meta.portBlockedUntil >= state.core.round && meta.portBlockedBy && meta.portBlockedBy !== ownerId && atWar(state, meta.portBlockedBy, ownerId)) return meta.portBlockedBy;
-  const near = new Set([cityHexId, ...neighbours(state, cityHexId).filter(n => WATER.has(n.terrain)).map(n => n.id)]);
+  const near = new Set([cityHexId, ...neighbours(state, cityHexId).filter(n => isNavigableTerrain(n.terrain)).map(n => n.id)]);
   // Only warships blockade; a coastal vessel does not.
   return state.units.find(unit => state.rules.units[unit.kind].domain === 'SEA' && state.rules.units[unit.kind].strength > 0 && unit.ownerId !== ownerId && near.has(unit.hexId) && atWar(state, unit.ownerId, ownerId))?.ownerId ?? null;
 }
@@ -46,7 +46,7 @@ export function blockadedBy(state: AlphaState, cityHexId: string, ownerId: Playe
 export function launchHex(state: AlphaState, actor: PlayerId, cityHexId: string, kind: AlphaUnit['kind'] = 'FLEET'): HexId | null {
   const fleet: AlphaUnit = { id: 'launch-preview', ownerId: actor, kind, hexId: cityHexId as HexId, recruitedRound: Math.max(1, state.core.round), carrierId: null };
   const candidates = [tileOf(state, cityHexId)!, ...neighbours(state, cityHexId).sort((a, b) => Number(a.terrain !== 'COAST') - Number(b.terrain !== 'COAST') || a.id.localeCompare(b.id))]
-    .filter(tile => WATER.has(tile.terrain) && !state.units.some(unit => unit.hexId === tile.id && unit.ownerId !== actor));
+    .filter(tile => isNavigableTerrain(tile.terrain) && !state.units.some(unit => unit.hexId === tile.id && unit.ownerId !== actor));
   return candidates.find(tile => stackBlock(state, actor, [{ ...fleet, hexId: tile.id }], tile.id) === null)?.id ?? null;
 }
 const ordered = (state: AlphaState, actor: PlayerId) => new Set(state.players.find(p => p.playerId === actor)!.orders.flatMap(order => 'unitIds' in order ? order.unitIds : 'unitId' in order ? [order.unitId] : []));

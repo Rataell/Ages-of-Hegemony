@@ -81,7 +81,7 @@ export const DISTRICT_CATALOG: readonly AlphaDistrictCatalogEntry[] = [
   { district: 'MILITARY', advance: 'web-guard-formations', coastal: false, cost: districtCost, buildings: ['BARRACKS', 'ARSENAL', 'TRAINING_GROUND'], effect: 'Recrutar sem limite de Capacidade (ainda ≤ Soldados); guarnição +1' },
   { district: 'INDUSTRIAL', advance: 'web-metallurgy', coastal: false, cost: districtCost, buildings: ['WORKSHOP', 'FOUNDRY', 'WAREHOUSE'], effect: '+1 Madeira e +1 Pedra por Produzir' },
   { district: 'CULTURAL', advance: 'web-common-narratives', coastal: false, cost: districtCost, buildings: ['TEMPLE', 'THEATER', 'CULTURAL_CENTER', 'SANCTUARY', 'TRADITION_HOUSE'], effect: '+1 Cultura por Produzir' },
-  { district: 'MARITIME', advance: 'web-coastal-navigation', coastal: true, cost: districtCost, buildings: ['PORT', 'SHIPYARD', 'LIGHTHOUSE'], effect: 'Porto incluído; navios; pesca +1 Alimento' },
+  { district: 'MARITIME', advance: 'web-coastal-navigation', coastal: true, cost: districtCost, buildings: ['PORT', 'SHIPYARD', 'LIGHTHOUSE'], effect: 'Porto básico incluído; pesca +1 Alimento; exige uma borda d’água navegável. Estaleiro e Farol são opcionais, ainda sem efeito.' },
 ].map(entry => AlphaDistrictCatalogSchema.parse(entry));
 export const districtEntry = (district: z.infer<typeof AlphaDistrictSchema>): AlphaDistrictCatalogEntry => DISTRICT_CATALOG.find(entry => entry.district === district)!;
 /** The district a building belongs to, or null for buildings outside every family. */

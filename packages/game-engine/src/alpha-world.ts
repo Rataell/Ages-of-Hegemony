@@ -2,7 +2,7 @@ import { liftLegacyCityCaps } from './alpha-turn.js';
 import { layoutBoard, HOME_SLOTS, MAP_FOOTPRINT, featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaUnit, type AlphaRules, type MapPreset, type MapSize, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { presetTerrain, worldShape } from './alpha-presets.js';
-import { isLandTerrain, isNavigableTerrain } from './alpha-world-audit.js';
+import { isLandTerrain, isNavigableTerrain } from './alpha-water.js';
 import { alphaEvent } from './alpha-events.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
