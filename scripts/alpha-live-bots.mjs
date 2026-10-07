@@ -23,7 +23,7 @@ try {
     const ctx = await browser.newContext(), a = await ctx.newPage(); await a.goto(`${BASE}/alpha`);
     const c = await post(a, { operation: 'create', accessCode: CODE, payload: { name: 'Bots live', displayName: 'Ana', preset: 'QUICK', seatLimit: 3, seed: 31, planningSeconds: 0 } }); const id = c.value.id;
     for (let i = 0; i < 2; i++) await post(a, { operation: 'lobby', gameId: id, payload: { type: 'ADD_BOT', expectedVersion: (await get(a, id)).value.version } });
-    let v = (await get(a, id)).value; ok('2 bots added in the lobby', v.seats.filter(s => s.bot).length === 2 && v.seats.every(s => s.civilization));
+    let v = (await get(a, id)).value; ok('2 bots added in the lobby', v.seats.filter(s => s.bot).length === 2 && v.seats.filter(s => s.bot).every(s => s.civilization));
     const free = ['aurelia', 'valgard', 'thalos', 'ironmark', 'kor'].find(x => !v.seats.some(s => s.civilization === x));
     v = (await post(a, { operation: 'lobby', gameId: id, payload: { type: 'CHOOSE_CIVILIZATION', civilization: free, expectedVersion: v.version } })).value;
     v = (await post(a, { operation: 'lobby', gameId: id, payload: { type: 'LOBBY_READY', ready: true, expectedVersion: v.version } })).value;
