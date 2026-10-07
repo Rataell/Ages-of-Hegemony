@@ -1,0 +1,276 @@
+<title>City & Material Culture Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: a drafting sheet. Left rail names the rule, the board shows the hex-body. Dark teal slate like the Mesa, brass for emphasis. */
+:root{
+  --bg:#e9eef0; --panel:#f6f9fa; --ink:#14262c; --muted:#4d6670; --line:#b9c8ce; --brass:#8a6420; --brass-soft:#d9c28f;
+  --ok:#2f7a4f; --bad:#a63d2f; --sea:#9ec3d6; --sea-line:#6f9fb8; --plains:#b6c98a; --forest:#8fae7a; --hills:#bba98a; --coast:#d8cfa8;
+  --city:#2f6d8f; --wall:#6c5f4c; --ground:#dfe6e0;
+  --d-agr:#5f9a52; --d-com:#c8a13d; --d-aca:#4a6fa5; --d-adm:#8e4f8a; --d-mil:#b0483b; --d-ind:#7d7566; --d-cul:#b24f84;
+  --disp:'Cinzel',Georgia,serif; --body:'Source Sans 3',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1519; --panel:#131f25; --ink:#e6eceb; --muted:#97aeb4; --line:#27404a; --brass:#d3ac5f; --brass-soft:#6b5a33;
+  --ok:#6fbf8a; --bad:#e08a78; --sea:#1f4558; --sea-line:#2f6580; --plains:#55703a; --forest:#3f6a43; --hills:#5d5546; --coast:#6b6847;
+  --city:#7cc4e8; --wall:#b5a888; --ground:#16252b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1519; --panel:#131f25; --ink:#e6eceb; --muted:#97aeb4; --line:#27404a; --brass:#d3ac5f; --brass-soft:#6b5a33;
+  --ok:#6fbf8a; --bad:#e08a78; --sea:#1f4558; --sea-line:#2f6580; --plains:#55703a; --forest:#3f6a43; --hills:#5d5546; --coast:#6b6847;
+  --city:#7cc4e8; --wall:#b5a888; --ground:#16252b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--body);margin:0;padding-inline:max(16px,4vw);padding-block:32px 64px}
+main{max-width:1180px;margin:0 auto;display:grid;gap:40px}
+h1,h2,h3{font-family:var(--disp);font-weight:700;letter-spacing:.05em;text-wrap:balance;margin:0}
+h1{font-size:clamp(26px,4.4vw,42px);text-transform:uppercase;line-height:1.1}
+h2{font-size:20px;text-transform:uppercase;letter-spacing:.09em}
+h3{font-size:14px;text-transform:uppercase;letter-spacing:.1em}
+p{margin:0;max-width:68ch}
+.eyebrow{font:600 11px var(--body);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;color:var(--muted)}
+header{display:grid;gap:12px}
+.status{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--brass);color:var(--brass);padding:3px 10px;border-radius:999px;font:600 12px var(--body);width:max-content}
+section{display:grid;gap:18px}
+.rings{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.ring{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start}
+.ring b{font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.ring small{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px}
+figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+figure svg{display:block;width:100%;height:auto;background:var(--ground)}
+figcaption{padding:12px 14px 14px;display:grid;gap:4px;min-width:0}
+figcaption b{font:700 13px var(--disp);letter-spacing:.08em;text-transform:uppercase}
+figcaption span{font-size:14px;color:var(--muted)}
+.tag{font:700 11px var(--body);letter-spacing:.12em;padding:2px 8px;border-radius:999px;border:1px solid currentColor;width:max-content}
+.tag.ok{color:var(--ok)} .tag.bad{color:var(--bad)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),360px));gap:20px;justify-content:start}
+.card{background:linear-gradient(180deg,var(--panel),var(--ground));border:2px solid var(--brass);border-radius:16px;padding:14px;display:grid;gap:10px;min-width:0}
+.card .art{aspect-ratio:4/3;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--ground)}
+.card .art svg{width:100%;height:100%;display:block}
+.card .name{font:700 20px var(--disp);letter-spacing:.06em;text-transform:uppercase;line-height:1.15}
+.card .sub{font-size:13px;color:var(--muted)}
+.card .blk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;display:grid;gap:2px}
+.card .blk b{font:700 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.card .blk.power{border-color:var(--brass);background:color-mix(in srgb,var(--brass) 8%,transparent)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.steps div{border:1px solid var(--line);border-radius:6px;padding:6px;font-size:12px;text-align:center;color:var(--muted)}
+.steps div b{display:block;color:var(--ink);font:700 12px var(--body)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{font:700 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.scroll table{min-width:760px}
+.gap{color:var(--bad);font-weight:600}
+.decide{display:grid;gap:8px;counter-reset:d;padding:0;list-style:none;margin:0}
+.decide li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:grid;gap:2px}
+.decide b{color:var(--brass)}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<main>
+<header>
+  <span class="status">Proposta de conceito · nada implementado</span>
+  <p class="eyebrow">Ages of Hegemony · próxima evolução visual e espacial</p>
+  <h1>City &amp; Material Culture Concept V1</h1>
+  <p class="lede">A cidade passa a ter um corpo na Mesa. Cada construção tem um lugar, uma conexão com a cidade e uma função legível pela forma. O caso a eliminar: uma cidade interior com Porto do outro lado do território.</p>
+</header>
+
+<section id="modelo">
+  <h2>O modelo: três anéis</h2>
+  <div class="rings">
+    <div class="ring"><b>1 · Núcleo</b><span>O hex da cidade: Coração no centro e até 6 <strong>Lotes</strong> (um por vaga: N7 = 6). Distritos ocupam o Lote; o Edifício é a cobertura dele.</span><small>Não precisa de conexão. É a cidade.</small></div>
+    <div class="ring"><b>2 · Cinturão, Face e Marcos</b><span>Bordas do mesmo hex: <strong>Fortificação</strong> nas arestas e vértices, <strong>Porto</strong> numa aresta que toca água, <strong>Obras de Legado</strong> como marcos altos nos vértices de fundo.</span><small>Existem na borda. Nunca remotos.</small></div>
+    <div class="ring"><b>3 · Área funcional</b><span>Hexes com <code>controllerCityId</code> desta cidade, <strong>contíguos</strong> ao núcleo e dentro do raio. Aqui moram Fazenda, Madeireira, Pedreira, Mina e Pesqueiro.</span><small>Território é do jogador; área funcional é da cidade.</small></div>
+  </div>
+  <p><strong>Regra única, "corpo conectado":</strong> uma construção ligada à cidade só existe em hex da área funcional dela, e essa área é contígua ao núcleo. A contiguidade é garantida uma vez, na reivindicação, e herdada por tudo. Hoje a melhoria só confere dono e terreno; essa é a origem do absurdo.</p>
+</section>
+
+<section id="mockups">
+  <h2>Mockups A–F: a linguagem na Mesa</h2>
+  <p class="lede" style="font-size:15px">Esquemas para avaliar a gramática, não o acabamento. Fio de cor = a que cidade pertence. Contorno tracejado = área funcional.</p>
+  <div class="grid" id="scenes"></div>
+</section>
+
+<section id="cartas">
+  <h2>Cartas G–H: Líder e Obra</h2>
+  <div class="cards">
+    <article class="card" aria-label="Carta de Líder (mockup)">
+      <div class="art"><svg viewBox="0 0 400 300" role="img" aria-label="Busto sob arco com emblema da civilização">
+        <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--brass-soft)" stop-opacity=".55"/><stop offset="1" stop-color="var(--ground)" stop-opacity="0"/></linearGradient></defs>
+        <rect width="400" height="300" style="fill:var(--ground)"/>
+        <path d="M60 300V150A140 140 0 0 1 340 150V300Z" style="fill:url(#ga);stroke:var(--brass);stroke-width:2"/>
+        <g style="stroke:var(--brass);fill:none;stroke-width:3;opacity:.7"><path d="M200 70V150M170 100L200 70L230 100M170 130L200 100L230 130"/></g>
+        <circle cx="200" cy="165" r="38" style="fill:var(--muted);opacity:.85"/>
+        <path d="M110 300C110 225 150 205 200 205C250 205 290 225 290 300Z" style="fill:var(--muted);opacity:.85"/>
+        <path d="M150 168C150 125 250 125 250 168C240 150 160 150 150 168Z" style="fill:var(--ink);opacity:.5"/>
+        <circle cx="338" cy="44" r="22" style="fill:var(--panel);stroke:var(--brass);stroke-width:2"/><path d="M338 30V58M330 38L338 30L346 38" style="fill:none;stroke:var(--brass);stroke-width:2.5"/>
+      </svg></div>
+      <div><div class="name">Maera Vaelun</div><div class="sub">Guardiã das Colheitas · Aurélia · Agrária</div></div>
+      <div class="blk"><b>Passiva</b>Texto curto da passiva do Líder, sempre ativa.</div>
+      <div class="blk power"><b>Poder da Era · 1× por Era</b>Texto do poder; é o bloco que o jogador procura primeiro.</div>
+      <p class="sub">Hierarquia: Nome, título, Passiva, Poder da Era, civilização. Retrato sob arco; o emblema da civilização é o vitral atrás.</p>
+    </article>
+    <article class="card" aria-label="Carta de Obra de Legado (mockup)">
+      <div class="art"><svg viewBox="0 0 400 300" role="img" aria-label="Silhueta da Obra sobre o Lote de origem">
+        <rect width="400" height="300" style="fill:var(--ground)"/>
+        <polygon points="200,250 330,210 330,150 200,190 70,150 70,210" style="fill:var(--d-aca);opacity:.35;stroke:var(--d-aca);stroke-width:2"/>
+        <g style="fill:var(--ink);opacity:.9"><rect x="176" y="70" width="48" height="125"/><polygon points="168,70 200,24 232,70"/><rect x="160" y="195" width="80" height="16"/></g>
+        <g style="stroke:var(--panel);stroke-width:3;opacity:.7"><path d="M188 100H212M188 126H212M188 152H212"/></g>
+        <circle cx="200" cy="28" r="6" style="fill:var(--brass)"/>
+      </svg></div>
+      <div><div class="name">Arquivo dos Horizontes</div><div class="sub">Obra de Legado · Caminho Científico · única no mundo</div></div>
+      <div class="steps"><div><b>1 · Andaime</b>2 Pedra · 1 Madeira · 1 Conh.</div><div><b>2 · Estrutura</b>2 Pedra · 1 Madeira · 1 Conh.</div><div><b>3 · Coroamento</b>2 Pedra · 2 Madeira · 1 Conh.</div></div>
+      <div class="blk power"><b>Efeito permanente</b>+1 Conhecimento por manutenção · +4 Prestígio.</div>
+      <p class="sub">A silhueta é a mesma que a peça tem na Mesa. Ela nasce sobre o Lote do pré-requisito (aqui, o Distrito Acadêmico).</p>
+    </article>
+  </div>
+</section>
+
+<section id="taxonomia">
+  <h2>Taxonomia do que existe hoje</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Componente</th><th>Classe</th><th>Onde existe</th><th>Conexão</th><th>Remoto hoje?</th><th>Mesa hoje</th></tr></thead>
+    <tbody>
+      <tr><td>Cidade N1–N7</td><td>Núcleo</td><td>Hex da cidade</td><td>É a cidade</td><td>—</td><td>Arte por nível + selo <span class="gap">(GAP-2: raio por 5 passos × 7 níveis)</span></td></tr>
+      <tr><td>7 Distritos · 7 Edifícios</td><td>Núcleo (Lote)</td><td>Lote do hex</td><td>Implícita</td><td>Não</td><td><span class="gap">Nenhuma (GAP-4)</span></td></tr>
+      <tr><td>Estruturas de civilização (6)</td><td>Núcleo (skin de Edifício)</td><td>Lote</td><td>—</td><td>Não</td><td><span class="gap">Sem vaga definida (GAP-7)</span></td></tr>
+      <tr><td>Fortificação (5 níveis)</td><td>Cinturão</td><td>Arestas e vértices</td><td>Implícita</td><td>Não</td><td>Anel já desenhado</td></tr>
+      <tr><td>Porto</td><td>Face do núcleo</td><td>Aresta que toca água</td><td>Aresta de água</td><td>Não é componente</td><td><span class="gap">Nenhuma (GAP-3)</span></td></tr>
+      <tr><td>Obras de Legado (12)</td><td>Marco</td><td>Vértice de fundo</td><td>Distrito exigido</td><td>Não</td><td><span class="gap">Só carta (GAP-5)</span></td></tr>
+      <tr><td>Fazenda · Madeireira · Pedreira · Mina · Pesqueiro</td><td>Territorial</td><td>Hex da área funcional</td><td><span class="gap">Hoje: só dono e terreno (GAP-1)</span></td><td><span class="gap">Sim, em qualquer hex do jogador</span></td><td>Glifo no hex</td></tr>
+      <tr><td>Estrada</td><td>Rede</td><td>Hex</td><td>Não auditado</td><td>—</td><td><span class="gap">GAP-8</span></td></tr>
+    </tbody></table></div>
+  <p>A matriz completa (27 linhas, 11 colunas) está em <code>docs/product/city-material-culture-concept-v1.md</code>.</p>
+</section>
+
+<section id="civs">
+  <h2>Civilizações: três direções</h2>
+  <div class="scroll"><table>
+    <thead><tr><th></th><th>A · Histórico real</th><th>B · Mitológico</th><th>C · Híbrido</th></tr></thead>
+    <tbody>
+      <tr><th>Ideia</th><td>Povos reais por Era</td><td>Panteões e lendas</td><td>Âncora geográfico-cultural real, com epítetos e lideranças lendárias</td></tr>
+      <tr><th>Líderes</th><td>Pessoas reais: sensibilidade e precisão</td><td>Deuses e heróis</td><td>Figuras arquetípicas ancoradas numa região</td></tr>
+      <tr><th>Monumentos</th><td>Obras reais, reconhecíveis, presas a uma Era</td><td>Templos lendários</td><td>Obras com silhueta própria que evocam sem reproduzir</td></tr>
+      <tr><th>Teia e Heranças</th><td>A Teia é universal: conflita com povo-por-época</td><td>Funciona, mas fantasioso</td><td>A Teia fica universal; a identidade vive em Líder, Herança e Estrutura</td></tr>
+      <tr><th>Originalidade</th><td>Baixa</td><td>Média</td><td><strong>Alta</strong></td></tr>
+      <tr><th>Risco</th><td>Estereótipo, anacronismo, direitos</td><td>Religiosidade viva, apropriação</td><td>Exige curadoria de coerência</td></tr>
+    </tbody></table></div>
+  <p><strong>Recomendação: C.</strong> O AoH já se organiza por arquétipos de afinidade (Agrária, Marítima, Científica); C preserva isso, evita reproduzir pessoas e religiões vivas e deixa espaço para as 6 civilizações em autoria. Começar por 3 pilotos.</p>
+</section>
+
+<section id="decidir">
+  <h2>Para aprovar</h2>
+  <ol class="decide">
+    <li><b>Modelo de três anéis</b>Núcleo com Lotes, Cinturão-Face-Marcos, Área funcional.</li>
+    <li><b>Regra única "corpo conectado"</b>Melhoria só em hex da área funcional da cidade, contígua e dentro do raio.</li>
+    <li><b>Porto = face do núcleo</b>Cais numa aresta que toca água. Sem Porto remoto. Cidade interior não tem Porto.</li>
+    <li><b>Obra = Marco no vértice de fundo</b>Sobre o Lote do pré-requisito, sem sistema paralelo.</li>
+    <li><b>Um hex, uma cidade funcional</b>Sem realocação no V1.</li>
+    <li><b>Resolver antes de implementar</b>GAP-1, 2, 3, 5, 6, 7 e 8 (detalhe no documento).</li>
+    <li><b>Civilizações: direção C</b>Em etapas, depois deste modelo.</li>
+  </ol>
+</section>
+</main>
+
+<script>
+(function(){
+  var S=44, SQ=Math.sqrt(3);
+  var DC={agr:'var(--d-agr)',com:'var(--d-com)',aca:'var(--d-aca)',adm:'var(--d-adm)',mil:'var(--d-mil)',ind:'var(--d-ind)',cul:'var(--d-cul)'};
+  var TF={plains:'var(--plains)',forest:'var(--forest)',hills:'var(--hills)',coast:'var(--coast)',sea:'var(--sea)'};
+  function c(q,r){return [S*SQ*(q+r/2), S*1.5*r];}
+  function hp(cx,cy,r){var a=[];for(var i=0;i<6;i++){var t=(60*i-30)*Math.PI/180;a.push([cx+r*Math.cos(t),cy+r*Math.sin(t)]);}return a;}
+  function P(a){return a.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ');}
+  function pol(pts,st){return '<polygon points="'+P(pts)+'" style="'+st+'"/>';}
+  function ang(cx,cy,deg,r){var t=deg*Math.PI/180;return [cx+r*Math.cos(t),cy+r*Math.sin(t)];}
+
+  function impr(kind,cx,cy){
+    var g='';
+    if(kind==='farm'){for(var i=-2;i<=2;i++)g+='<rect x="'+(cx-26)+'" y="'+(cy+i*9-3)+'" width="52" height="6" rx="2" style="fill:var(--ok);opacity:.55"/>';}
+    if(kind==='mine'){g+='<path d="M'+(cx-16)+' '+(cy+14)+'V'+(cy-2)+'A16 16 0 0 1 '+(cx+16)+' '+(cy-2)+'V'+(cy+14)+'Z" style="fill:var(--ink);opacity:.8"/><rect x="'+(cx+8)+'" y="'+(cy+10)+'" width="16" height="9" style="fill:var(--brass)"/><circle cx="'+(cx+11)+'" cy="'+(cy+21)+'" r="3" style="fill:var(--ink)"/><circle cx="'+(cx+21)+'" cy="'+(cy+21)+'" r="3" style="fill:var(--ink)"/>';}
+    if(kind==='fish'){for(var j=-1;j<=1;j++)g+='<path d="M'+(cx+j*14)+' '+(cy+14)+'V'+(cy-6)+'" style="stroke:var(--ink);stroke-width:2.5;opacity:.7"/>';g+='<path d="M'+(cx-22)+' '+(cy+4)+'Q'+cx+' '+(cy-6)+' '+(cx+22)+' '+(cy+4)+'" style="fill:none;stroke:var(--ink);opacity:.5"/>';}
+    return g;
+  }
+  function lot(cx,cy,edge,d,cap){
+    var p=ang(cx,cy,60*edge,S*.56), col=DC[d]||'var(--d-ind)';
+    var g='<g transform="translate('+p[0].toFixed(1)+' '+p[1].toFixed(1)+')"><rect x="-9" y="-6" width="18" height="13" rx="1.5" style="fill:'+col+';stroke:var(--ink);stroke-width:.8"/><polygon points="-11,-6 0,-14 11,-6" style="fill:'+col+';stroke:var(--ink);stroke-width:.8;opacity:.85"/>';
+    if(cap)g+='<rect x="-3" y="-21" width="6" height="8" rx="1" style="fill:var(--ink);opacity:.85"/>';
+    return g+'</g>';
+  }
+  function wall(cx,cy,lv){
+    if(!lv)return '';
+    var v=hp(cx,cy,S*.97), g='';
+    if(lv===1)return '<polygon points="'+P(v)+'" style="fill:none;stroke:var(--wall);stroke-width:3;stroke-dasharray:2 4;stroke-linecap:round"/>';
+    g+='<polygon points="'+P(v)+'" style="fill:none;stroke:var(--wall);stroke-width:'+(lv>=3?5:4)+'"/>';
+    if(lv>=3)v.forEach(function(p){g+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="5" style="fill:var(--wall);stroke:var(--ink);stroke-width:1"/>';});
+    return g;
+  }
+  function pier(cx,cy,edge){
+    var a=60*edge, p0=ang(cx,cy,a,S*.86), p1=ang(cx,cy,a,S*1.38);
+    return '<path d="M'+p0[0].toFixed(1)+' '+p0[1].toFixed(1)+'L'+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+'" style="stroke:var(--wall);stroke-width:6;stroke-linecap:round"/><path d="M'+(p1[0]-7).toFixed(1)+' '+(p1[1]+6).toFixed(1)+'h16l-3 7h-10z" style="fill:var(--brass);stroke:var(--ink);stroke-width:1"/>';
+  }
+  function landmark(cx,cy){
+    var p=ang(cx,cy,270,S*.9);
+    return '<g transform="translate('+p[0].toFixed(1)+' '+p[1].toFixed(1)+')"><rect x="-6" y="-34" width="12" height="40" style="fill:var(--ink);stroke:var(--panel);stroke-width:1"/><polygon points="-9,-34 0,-48 9,-34" style="fill:var(--ink)"/><circle cy="-51" r="3.2" style="fill:var(--brass)"/></g>';
+  }
+  function core(cx,cy,o){
+    var g='<g>',cc=o.color||'var(--city)';
+    g+=pol(hp(cx,cy,S*.9),'fill:var(--panel);stroke:'+cc+';stroke-width:2.5;opacity:.92');
+    g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(5+(o.level||1)*1.2).toFixed(1)+'" style="fill:'+cc+';opacity:.85"/>';
+    (o.lots||[]).forEach(function(l){g+=lot(cx,cy,l[0],l[1],l[2]);});
+    g+=wall(cx,cy,o.wall||0);
+    (o.piers||[]).forEach(function(e){g+=pier(cx,cy,e);});
+    if(o.landmark)g+=landmark(cx,cy);
+    if(o.n!==undefined)g+='<g transform="translate('+(cx-27)+' '+(cy-35)+')"><rect x="-12" y="-8" width="24" height="16" rx="8" style="fill:var(--panel);stroke:'+cc+'"/><text y="4" text-anchor="middle" style="font:700 10px var(--body);fill:var(--ink)">N'+o.n+'</text></g>';
+    return g+'</g>';
+  }
+  function scene(o){
+    var cells=o.cells, xs=[],ys=[];
+    var out='';
+    cells.forEach(function(h){var p=c(h.q,h.r);xs.push(p[0]);ys.push(p[1]);});
+    var minx=Math.min.apply(0,xs)-S-6,maxx=Math.max.apply(0,xs)+S+6,miny=Math.min.apply(0,ys)-S-(o.city.landmark?66:34),maxy=Math.max.apply(0,ys)+S+8;
+    var w=maxx-minx,hh=maxy-miny, svg='<svg viewBox="'+minx.toFixed(0)+' '+miny.toFixed(0)+' '+w.toFixed(0)+' '+hh.toFixed(0)+'" role="img" aria-label="'+o.alt+'">';
+    cells.forEach(function(h){
+      var p=c(h.q,h.r), pts=hp(p[0],p[1],S);
+      svg+=pol(pts,'fill:'+TF[h.t]+';stroke:'+(h.t==='sea'?'var(--sea-line)':'var(--line)')+';stroke-width:1.2');
+      if(h.t==='sea')svg+='<path d="M'+(p[0]-18)+' '+(p[1]+4)+'q6 -6 12 0t12 0t12 0" style="fill:none;stroke:var(--sea-line);stroke-width:1.2"/>';
+      if(h.t==='hills')svg+='<path d="M'+(p[0]-20)+' '+(p[1]+14)+'l12 -20 8 10 8 -14 12 24z" style="fill:var(--muted);opacity:.28"/>';
+      if(h.t==='forest')svg+='<path d="M'+(p[0]-14)+' '+(p[1]+12)+'l8 -18 8 18zM'+(p[0]+2)+' '+(p[1]+12)+'l8 -18 8 18z" style="fill:var(--ok);opacity:.35"/>';
+    });
+    (o.af||[]).forEach(function(h){var p=c(h.q,h.r);svg+=pol(hp(p[0],p[1],S*.94),'fill:var(--city);fill-opacity:.12;stroke:var(--city);stroke-width:2;stroke-dasharray:6 4');});
+    (o.threads||[]).forEach(function(t){var a=c(t[0],t[1]),b=c(t[2],t[3]);svg+='<path d="M'+a[0].toFixed(1)+' '+a[1].toFixed(1)+'L'+b[0].toFixed(1)+' '+b[1].toFixed(1)+'" style="stroke:var(--city);stroke-width:2;stroke-dasharray:1 5;stroke-linecap:round"/>';});
+    (o.imps||[]).forEach(function(i){var p=c(i.q,i.r);svg+=impr(i.k,p[0],p[1]);if(!i.nofio)svg+=pol(hp(p[0],p[1],S*.97),'fill:none;stroke:var(--city);stroke-width:3;opacity:.9');});
+    var cp=c(o.city.q,o.city.r); svg+=core(cp[0],cp[1],o.city);
+    (o.extra||[]).forEach(function(e){svg+=e;});
+    return svg+'</svg>';
+  }
+  function xmark(x,y){return '<g transform="translate('+x+' '+y+')"><circle r="13" style="fill:var(--bad)"/><path d="M-6 -6L6 6M6 -6L-6 6" style="stroke:var(--panel);stroke-width:3;stroke-linecap:round"/></g>';}
+  function ckmark(x,y){return '<g transform="translate('+x+' '+y+')"><circle r="13" style="fill:var(--ok)"/><path d="M-6 0L-2 5L7 -5" style="fill:none;stroke:var(--panel);stroke-width:3;stroke-linecap:round;stroke-linejoin:round"/></g>';}
+
+  var SC=[
+   {id:'A',t:'Cidade N1 · Posto',d:'Um hex, um Coração pequeno e um único Lote aberto. Sem cinturão. A cidade parece pequena porque é pequena.',
+    s:scene({alt:'Cidade nível 1',cells:[{q:0,r:0,t:'plains'},{q:1,r:0,t:'plains'},{q:0,r:1,t:'forest'},{q:-1,r:1,t:'plains'}],city:{q:0,r:0,level:1,n:1,lots:[[2,'agr',false]]}})},
+   {id:'B',t:'Cidade N3 · Fazenda + Celeiro',d:'Dois Lotes: Agrário (com Celeiro em cima) e Comercial. Duas Fazendas na área funcional, com fio da cor da cidade e linha de ligação.',
+    s:scene({alt:'Cidade nível 3 com fazendas',cells:[{q:0,r:0,t:'plains'},{q:1,r:0,t:'plains'},{q:2,r:0,t:'plains'},{q:0,r:1,t:'plains'},{q:1,r:1,t:'forest'},{q:-1,r:0,t:'hills'}],
+      city:{q:0,r:0,level:3,n:3,lots:[[0,'agr',true],[1,'com',false]]},af:[{q:1,r:0},{q:2,r:0},{q:0,r:1}],imps:[{q:1,r:0,k:'farm'},{q:2,r:0,k:'farm'}],threads:[[0,0,1,0],[1,0,2,0]]})},
+   {id:'C',t:'Cidade costeira · Porto',d:'O cais nasce na aresta que toca a água e aponta para ela. Uma cidade interior não tem aresta de água, logo não tem Porto.',
+    s:scene({alt:'Cidade costeira com cais',cells:[{q:0,r:0,t:'plains'},{q:-1,r:0,t:'plains'},{q:1,r:0,t:'sea'},{q:1,r:-1,t:'sea'},{q:0,r:1,t:'sea'},{q:2,r:-1,t:'sea'},{q:2,r:0,t:'sea'},{q:0,r:-1,t:'plains'}],
+      city:{q:0,r:0,level:4,n:4,lots:[[3,'com',false],[4,'agr',false],[2,'ind',false]],piers:[0]},extra:[ckmark(-70,-70)]})},
+   {id:'C2',tag:'bad',t:'O caso proibido',d:'Hoje nada impede a melhoria longe da cidade. No modelo proposto, o cais só existe na aresta do núcleo; não há "Porto remoto".',
+    s:scene({alt:'Cidade interior com porto remoto, proibido',cells:[{q:0,r:0,t:'plains'},{q:1,r:0,t:'plains'},{q:2,r:0,t:'plains'},{q:3,r:0,t:'coast'},{q:4,r:0,t:'sea'},{q:3,r:-1,t:'sea'},{q:-1,r:1,t:'hills'}],
+      city:{q:0,r:0,level:3,n:3,lots:[[0,'com',false]]},af:[{q:1,r:0},{q:2,r:0}],extra:[(function(){var p=c(3,0);return '<g transform="translate('+p[0]+' '+p[1]+')"><path d="M14 -14l16 12" style="stroke:var(--wall);stroke-width:6;stroke-linecap:round"/><path d="M22 -2h16l-3 7h-10z" style="fill:var(--brass);stroke:var(--ink)"/></g>'})(),xmark(c(3,0)[0]+8,c(3,0)[1]-34),'<text x="'+(c(3,0)[0]-40)+'" y="'+(c(3,0)[1]+60)+'" style="font:600 12px var(--body);fill:var(--bad)">Porto fora da AF</text>']})},
+   {id:'D',t:'Mina vinculada',d:'A Mina está em hex de Colinas da área funcional, ligada ao núcleo por cadeia contígua. A cidade selecionada acende a área tracejada.',
+    s:scene({alt:'Cidade com mina vinculada por área funcional',cells:[{q:0,r:0,t:'plains'},{q:1,r:0,t:'plains'},{q:2,r:0,t:'hills'},{q:1,r:1,t:'forest'},{q:0,r:1,t:'plains'},{q:3,r:0,t:'hills'}],
+      city:{q:0,r:0,level:3,n:3,lots:[[1,'ind',true],[4,'agr',false]]},af:[{q:1,r:0},{q:2,r:0}],imps:[{q:2,r:0,k:'mine'}],threads:[[0,0,1,0],[1,0,2,0]]})},
+   {id:'E',t:'Cidade N5 fortificada',d:'Quatro Lotes, muralha contínua e torres nos seis vértices (Fortaleza). Uma brecha aparece só na aresta atacada.',
+    s:scene({alt:'Cidade nível 5 com muralha e torres',cells:[{q:0,r:0,t:'plains'},{q:1,r:0,t:'plains'},{q:-1,r:0,t:'hills'},{q:0,r:1,t:'plains'}],
+      city:{q:0,r:0,level:5,n:5,lots:[[0,'mil',true],[1,'com',true],[2,'aca',true],[3,'adm',true]],wall:3}})},
+   {id:'F',t:'Cidade com Obra de Legado',d:'O Marco sobe do vértice de fundo, mais alto que qualquer Lote. Nasce sobre o Lote do pré-requisito (Acadêmico).',
+    s:scene({alt:'Cidade com marco da obra',cells:[{q:0,r:0,t:'plains'},{q:1,r:0,t:'plains'},{q:0,r:1,t:'plains'},{q:-1,r:1,t:'forest'}],
+      city:{q:0,r:0,level:5,n:5,lots:[[4,'aca',true],[0,'com',false],[1,'agr',false],[2,'adm',false]],wall:2,landmark:true}})}
+  ];
+  var host=document.getElementById('scenes'), html='';
+  SC.forEach(function(x){html+='<figure>'+x.s+'<figcaption><b>'+(x.id.length===1?x.id+' · ':'')+x.t+'</b>'+(x.tag?'<span class="tag bad">PROIBIDO</span>':'')+'<span>'+x.d+'</span></figcaption></figure>';});
+  host.innerHTML=html;
+})();
+</script>
