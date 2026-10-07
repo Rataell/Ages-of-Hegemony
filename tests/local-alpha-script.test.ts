@@ -74,7 +74,7 @@ describe('scripts/local-alpha.mjs', () => {
     expect(example).toMatch(/^ALPHA_SESSION_SECRET=$/m);
     expect(example).toMatch(/^ALPHA_PUBLIC_ORIGIN=http:\/\/127\.0\.0\.1:3001$/m);
     for (const name of ['DATABASE_URL', 'DIRECT_URL', 'ALPHA_SESSION_SECRET', 'ALPHA_PUBLIC_ORIGIN']) expect(example).toContain(name);
-    expect(JSON.parse(readFileSync('railway.json', 'utf8')).deploy.startCommand).toBe('npm run start -w @aoh/web');
+    expect(JSON.parse(readFileSync('railway.json', 'utf8')).deploy.startCommand).toBe('npx prisma migrate deploy && npm run start -w @aoh/web');
   });
 });
 

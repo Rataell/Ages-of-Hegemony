@@ -1,14 +1,13 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { GameIdSchema, PlayerIdSchema, mapSizeAllows, recommendedMapSize, type AlphaError } from '@aoh/game-domain';
+import { CORE10_CHASSIS, GameIdSchema, PlayerIdSchema, figuresOfCivilization, isCore10Chassis, mapSizeAllows, recommendedFigure, recommendedMapSize, type AlphaError } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, forceContactSetup } from '@aoh/game-engine';
 import { err, ok, type Result } from '@aoh/shared';
-import { AlphaRoomSchema, CreateAlphaRoomSchema, LobbyActionSchema, RoomActionSchema, lifecycleOf, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
+import { AlphaRoomSchema, CreateAlphaRoomSchema, LEGACY_ROOM_MESSAGE, LobbyActionSchema, RoomActionSchema, isLegacyRoom, lifecycleOf, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
 import { addNotice, eligibleVoters, maxSeats, maybeTransferHost, nextPlayerId, presenceOf, runGuards, safePoint, tallyVote, voteView } from './alpha-lifecycle.js';
 import { leave as presenceLeave, touch as presenceTouch } from './alpha-presence.js';
 import { publishAlphaEvent } from './alpha-bus.js';
 import { alphaLog, short } from './alpha-log.js';
 import { botDelayMs, botPersonaFor, confirmBotSeat, planBotSeat } from './alpha-bot.js';
-import { CIVILIZATION_KITS } from '@aoh/game-domain';
 import { alphaPlayerView } from './alpha-projection.js';
 import type { GuestPrincipal } from './guest-session.js';
 import { playtestEnabled, playtestRecorderFor, UI_KINDS, type UiKind } from './playtest-log.js';
@@ -17,11 +16,14 @@ export function roomView(room:AlphaRoom,principal:GuestPrincipal,now=Date.now())
   const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return null;
   const lifecycle=lifecycleOf(room),safe=room.game?safePoint(room):null;
   return {playtest:playtestEnabled(),id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,seed:room.seed,seatLimit:room.seatLimit,maxSeats:maxSeats(),actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,planningSeconds:room.planningSeconds,deadline:room.deadline,
+    contentVersion:room.contentVersion,legacy:isLegacyRoom(room),legacyMessage:isLegacyRoom(room)?LEGACY_ROOM_MESSAGE:null,
     selfPlayerId:seat.playerId,isHost:room.hostGuestId===principal.guestId,
     lifecycle,suspended:room.suspended,closedReason:room.closedReason,selfOnGuard:room.onGuard.includes(seat.playerId),
     canSuspend:lifecycle==='ACTIVE'&&room.hostGuestId===principal.guestId&&safe?.ok===true,suspendBlock:safe&&!safe.ok?safe.reason:null,
     vote:voteView(room,seat.playerId,now),notices:room.notices.slice(-8),
-    seats:room.seats.map(s=>({playerId:s.playerId,name:s.name,civilization:s.civilization,ready:s.ready,isHost:s.guestId===room.hostGuestId,bot:s.bot,presence:s.bot?'BOT' as const:presenceOf(room,s.guestId,now),onGuard:room.onGuard.includes(s.playerId)})),
+    seats:room.seats.map(s=>({playerId:s.playerId,name:s.name,civilization:s.civilization,
+      // A Figura stays private until everyone confirmed (or the match began): the table reveals all choices at once.
+      figureId:s.playerId===seat.playerId||room.game!==null||room.seats.every(other=>other.ready)?s.figureId:null,figureChosen:s.figureId!==null,ready:s.ready,isHost:s.guestId===room.hostGuestId,bot:s.bot,presence:s.bot?'BOT' as const:presenceOf(room,s.guestId,now),onGuard:room.onGuard.includes(s.playerId)})),
     game:room.game?alphaPlayerView(room.game,seat.playerId):null};
 }
 export type AlphaRoomView=NonNullable<ReturnType<typeof roomView>>;
@@ -114,8 +116,8 @@ export class AlphaGameService {
     const {displayName,mapSize:askedSize,...options}=input.data;
     const mapSize=askedSize??recommendedMapSize(options.seatLimit);
     if(!mapSizeAllows(mapSize,options.seatLimit))return err({code:'INVALID_INPUT',message:'Este tamanho de mapa não comporta esse número de jogadores.'});
-    const room=AlphaRoomSchema.parse({...options,mapSize,id:GameIdSchema.parse(randomUUID()),joinCode:randomBytes(16).toString('base64url'),version:0,hostGuestId:principal.guestId,deadline:null,game:null,
-      seats:[{guestId:principal.guestId,playerId:PlayerIdSchema.parse('player-1'),name:displayName,civilization:null,ready:false,bot:false,botPersona:null}]});
+    const room=AlphaRoomSchema.parse({...options,mapSize,contentVersion:'v1.2',id:GameIdSchema.parse(randomUUID()),joinCode:randomBytes(16).toString('base64url'),version:0,hostGuestId:principal.guestId,deadline:null,game:null,
+      seats:[{guestId:principal.guestId,playerId:PlayerIdSchema.parse('player-1'),name:displayName,civilization:null,figureId:null,ready:false,bot:false,botPersona:null}]});
     if(!await this.repository.create(room))return err({code:'ALREADY_EXISTS',message:'Não foi possível criar a partida. Tente novamente.'});
     presenceTouch(room.id,principal.guestId,Date.now());
     alphaLog('ROOM_CREATED',{room:short(room.id),seats:room.seatLimit,preset:room.preset});
@@ -125,10 +127,11 @@ export class AlphaGameService {
     if(!/^[A-Za-z0-9_-]{22}$/.test(code)||!displayName.trim()||displayName.trim().length>80)return err({code:'INVALID_INPUT',message:'Informe um código de convite válido e seu nome.'});
     const room=await this.repository.findByCode(code);if(!room)return err({code:'NOT_FOUND',message:'Convite não encontrado.'});
     const existing=roomView(room,principal,now);if(existing){presenceTouch(room.id,principal.guestId,now);return ok(existing);}
+    if(isLegacyRoom(room))return err({code:'LEGACY_ROOM',message:LEGACY_ROOM_MESSAGE});
     if(room.closedReason!==null)return err({code:'LOBBY_CLOSED',message:'Esta sala foi encerrada.'});
     if(room.game||room.seats.length>=Math.min(room.seatLimit,maxSeats()))return err({code:'LOBBY_CLOSED',message:'A partida já começou ou não possui vagas.'});
     const expected=room.version;
-    room.seats.push({guestId:principal.guestId,playerId:PlayerIdSchema.parse(nextPlayerId(room)),name:displayName.trim(),civilization:null,ready:false,bot:false,botPersona:null});room.version++;
+    room.seats.push({guestId:principal.guestId,playerId:PlayerIdSchema.parse(nextPlayerId(room)),name:displayName.trim(),civilization:null,figureId:null,ready:false,bot:false,botPersona:null});room.version++;
     addNotice(room,'PLAYER_JOINED',`${displayName.trim()} entrou na sala.`,now);
     if(!await this.repository.save(room,expected))return conflict();
     presenceTouch(room.id,principal.guestId,now);alphaLog('PLAYER_JOINED',{room:short(room.id),seats:room.seats.length});
@@ -178,6 +181,8 @@ export class AlphaGameService {
     const seat=loaded.seats.find(s=>s.guestId===principal.guestId);if(!seat)return forbidden();
     const touched=presenceTouch(id,principal.guestId,now);
     if(touched.returned){alphaLog('PLAYER_RECONNECTED',{room:short(id)});publishAlphaEvent(id,{type:'PRESENCE'});}
+    // A V1.1 room is only displayed: no housekeeping, no expiry, no bot timers, nothing is written.
+    if(isLegacyRoom(loaded))return ok(roomView(loaded,principal,now)!);
     const settled=await this.housekeeping(loaded,now);if(!settled)return conflict();
     const room=await this.expire(settled,now);return room?ok(roomView(room,principal,now)!):conflict();
   }
@@ -193,6 +198,7 @@ export class AlphaGameService {
     const parsed=LobbyActionSchema.safeParse(raw);if(!parsed.success)return err({code:'INVALID_INPUT',message:'Decisão de lobby inválida.'});
     const room=await this.repository.find(id);if(!room)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
     const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return forbidden();
+    if(isLegacyRoom(room))return err({code:'LEGACY_ROOM',message:LEGACY_ROOM_MESSAGE});
     if(room.closedReason!==null)return err({code:'LOBBY_CLOSED',message:'Esta sala foi encerrada.'});
     if(room.game)return err({code:'LOBBY_CLOSED',message:'A partida já começou.'});
     const command=parsed.data;if(room.version!==command.expectedVersion)return conflict();
@@ -200,7 +206,15 @@ export class AlphaGameService {
     let lobbyBots:{timers:{key:string;delay:number}[];changed:boolean;planned:string[]}={timers:[],changed:false,planned:[]};
     if(command.type==='CHOOSE_CIVILIZATION'){
       if(seat.ready)return err({code:'ALREADY_READY',message:'Desmarque Pronto antes de trocar de civilização.'});
-      seat.civilization=command.civilization;
+      if(!isCore10Chassis(command.civilization))return err({code:'INVALID_CHOICE',message:'Escolha uma das dez civilizações disponíveis.'});
+      if(room.seats.some(other=>other!==seat&&other.civilization===command.civilization))return err({code:'INVALID_CHOICE',message:'Essa civilização já foi escolhida por outro lugar da mesa.'});
+      // Picking a civilization offers its three Figuras; the one marked ★ (recommended for beginners) is selected until the player changes it.
+      if(seat.civilization!==command.civilization){seat.civilization=command.civilization;seat.figureId=recommendedFigure(command.civilization)?.id??null;}
+    }else if(command.type==='CHOOSE_FIGURE'){
+      if(seat.ready)return err({code:'ALREADY_READY',message:'Desmarque Pronto antes de trocar de Figura.'});
+      if(seat.civilization===null)return err({code:'INVALID_CHOICE',message:'Escolha a civilização antes da Figura.'});
+      if(!figuresOfCivilization(seat.civilization).some(figure=>figure.id===command.figureId))return err({code:'INVALID_CHOICE',message:'Essa Figura não pertence à sua civilização.'});
+      seat.figureId=command.figureId;
     }else if(command.type==='LOBBY_READY')seat.ready=command.ready;
     else if(command.type==='KICK'){
       if(!isHost)return forbidden();
@@ -219,11 +233,13 @@ export class AlphaGameService {
     }else if(command.type==='ADD_BOT'){
       if(!isHost)return forbidden();
       if(room.seats.length>=Math.min(room.seatLimit,maxSeats()))return err({code:'LOBBY_FULL',message:'Não há lugar vazio para um bot.'});
-      const taken=new Set(room.seats.map(s=>s.civilization)),playable=CIVILIZATION_KITS.filter(k=>k.availability!=='AUTHORING').map(k=>k.id);
+      const taken=new Set(room.seats.map(s=>s.civilization)),playable=[...CORE10_CHASSIS];
       const start=room.seed%playable.length,civilization=[...playable.slice(start),...playable.slice(0,start)].find(id=>!taken.has(id));
       if(!civilization)return err({code:'NO_CIVILIZATION',message:'Nenhuma civilização livre para o bot.'});
       const botNumber=room.seats.filter(s=>s.bot).length+1;
-      room.seats.push({guestId:randomUUID(),playerId:PlayerIdSchema.parse(nextPlayerId(room)),name:`Bot ${botNumber}`,civilization,ready:true,bot:true,botPersona:botPersonaFor(room.seed,room.seats.length)});
+      // Bots pick their Figura deterministically from the seed, so a replay of the same room draws the same table.
+      const offered=figuresOfCivilization(civilization);
+      room.seats.push({guestId:randomUUID(),playerId:PlayerIdSchema.parse(nextPlayerId(room)),name:`Bot ${botNumber}`,civilization,figureId:offered[(room.seed+room.seats.length)%offered.length]?.id??null,ready:true,bot:true,botPersona:botPersonaFor(room.seed,room.seats.length)});
       addNotice(room,'BOT_ADDED',`Bot ${botNumber} entrou na sala.`,now);alphaLog('BOT_ADDED',{room:short(room.id),seats:room.seats.length});
     }else if(command.type==='REMOVE_BOT'){
       if(!isHost)return forbidden();
@@ -235,7 +251,7 @@ export class AlphaGameService {
     }else {
       if(!isHost)return forbidden();
       if(room.seats.length<2||room.seats.length>maxSeats()||room.seats.every(s=>s.bot)||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
-      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))});
+      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!,figureId:s.figureId}))});
       // Dev-only test scenario (never in production): a legal Contact between the two nearest Pátrias, from the real proximity rule.
       if(process.env.ALPHA_FORCE_CONTACT==='1'&&process.env.NODE_ENV!=='production')forceContactSetup(created);
       room.game=beginAlphaPlanning(created);
@@ -253,6 +269,7 @@ export class AlphaGameService {
   async command(principal:GuestPrincipal,id:string,raw:unknown,now:number):Promise<Response>{
     const room=await this.repository.find(id);if(!room)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
     const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return forbidden();
+    if(isLegacyRoom(room))return err({code:'LEGACY_ROOM',message:LEGACY_ROOM_MESSAGE});
     presenceTouch(id,principal.guestId,now);
     if(!room.game)return err({code:'NOT_STARTED',message:'Aguarde o início da partida.'});
     if(room.closedReason!==null)return err({code:'ROOM_CLOSED',message:'A partida foi encerrada. A mesa fica disponível só para leitura.'});
@@ -278,6 +295,7 @@ export class AlphaGameService {
     const parsed=RoomActionSchema.safeParse(raw);if(!parsed.success)return err({code:'INVALID_INPUT',message:'Ação de sala inválida.'});
     const room=await this.repository.find(id);if(!room)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
     const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return forbidden();
+    if(isLegacyRoom(room))return err({code:'LEGACY_ROOM',message:LEGACY_ROOM_MESSAGE});
     const action=parsed.data,expected=room.version,isHost=room.hostGuestId===principal.guestId,life=lifecycleOf(room);
     if(action.type==='LEAVE'){
       // "Sair e poder voltar": nothing about the seat or the civilization changes; only presence (and the host role, if this was the host).

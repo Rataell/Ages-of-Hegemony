@@ -95,7 +95,7 @@ describe('region orientation', () => {
 describe('names players read', () => {
   it('names each capital after its civilization, not after the player', () => {
     const state = beginAlphaPlanning(createAlphaGame({ gameId: 'capitals', seed: 3, preset: 'QUICK', players: [{ id: 'p1', name: 'Ana', civilization: 'meridia' }, { id: 'p2', name: 'Beto', civilization: 'kor' }] }));
-    expect(state.core.players.map(player => player.civilization.cities[0]!.name)).toEqual(['Porto das Margens', 'Forja de Kor']);
+    expect(state.core.players.map(player => player.civilization.cities[0]!.name)).toEqual(['Babilônia', 'Roma']);
     expect(new Set(CIVILIZATIONS.map(civ => civ.capital)).size).toBe(CIVILIZATIONS.length);
   });
 
