@@ -31,8 +31,8 @@ function seeded(extra: string[] = []): AlphaState {
 async function open(browser: import('@playwright/test').Browser, state: AlphaState, viewport = { width: 1366, height: 768 }) {
   const repository = new InMemoryAlphaRepository(), sessions = new GuestSessions('v51b-browser-secret-'.repeat(4)), identity = sessions.issue(Date.now()), other = sessions.issue(Date.now());
   const http = new AlphaHttp(new AlphaGameService(repository), sessions, origin, false);
-  const room = AlphaRoomSchema.parse({ id: state.gameId, version: 0, name: 'Mesa V5.1b', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: identity.principal.guestId, preset: 'QUICK', seed: 11, seatLimit: 2, planningSeconds: 0, deadline: null,
-    seats: state.players.map((p, i) => ({ guestId: (i === 0 ? identity : other).principal.guestId, playerId: p.playerId, name: i === 0 ? 'Ana' : 'Beto', civilization: p.civilization, ready: true })), game: state });
+  const room = AlphaRoomSchema.parse({ id: state.gameId, version: 0, contentVersion: 'v1.2', name: 'Mesa V5.1b', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: identity.principal.guestId, preset: 'QUICK', seed: 11, seatLimit: 2, planningSeconds: 0, deadline: null,
+    seats: state.players.map((p, i) => ({ guestId: (i === 0 ? identity : other).principal.guestId, playerId: p.playerId, name: i === 0 ? 'Ana' : 'Beto', civilization: p.civilization, figureId: p.leader?.leaderId ?? null, ready: true })), game: state });
   await repository.create(room);
   const context = await browser.newContext({ viewport });
   await connectAlphaContext(context, http); await muteTour(context);
@@ -122,8 +122,8 @@ test('combat: preview with Δ thresholds and the result card with outcome, losse
   expect(beforeAttack).toBeDefined();
   const repository = new InMemoryAlphaRepository(), sessions = new GuestSessions('v51b-battle-secret-'.repeat(4)), identities = [sessions.issue(Date.now()), sessions.issue(Date.now())];
   const http = new AlphaHttp(new AlphaGameService(repository), sessions, origin, false);
-  const room = AlphaRoomSchema.parse({ id: beforeAttack!.gameId, version: 0, name: 'Prova de combate', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: identities[0]!.principal.guestId, preset: 'EPIC', seed: 61, seatLimit: 2, planningSeconds: 0, deadline: null,
-    seats: beforeAttack!.players.map((p, i) => ({ guestId: identities[i]!.principal.guestId, playerId: p.playerId, name: i === 0 ? 'Aurélia' : 'Valgard', civilization: p.civilization, ready: true })), game: beforeAttack });
+  const room = AlphaRoomSchema.parse({ id: beforeAttack!.gameId, version: 0, contentVersion: 'v1.2', name: 'Prova de combate', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: identities[0]!.principal.guestId, preset: 'EPIC', seed: 61, seatLimit: 2, planningSeconds: 0, deadline: null,
+    seats: beforeAttack!.players.map((p, i) => ({ guestId: identities[i]!.principal.guestId, playerId: p.playerId, name: i === 0 ? 'Aurélia' : 'Valgard', civilization: p.civilization, figureId: p.leader?.leaderId ?? null, ready: true })), game: beforeAttack });
   await repository.create(room);
   const pages: Page[] = [];
   for (const [i, identity] of identities.entries()) {

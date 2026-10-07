@@ -11,27 +11,17 @@
 .alpha-masthead label { flex-direction: row; align-items: center; }
 .alpha-wordmark { color: var(--text-primary); font-family: var(--serif); text-decoration: none; letter-spacing: .15em; }
 .alpha-wordmark > span { display: inline-grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--accent); margin-right: 14px; color: var(--accent); letter-spacing: -.15em; }
-.alpha-entry { max-width: 1260px; margin: auto; padding: 8vh 40px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; }
-.alpha-intro h1 { font-size: clamp(44px,6vw,84px); line-height: 1.06; margin: 24px 0; }
-.alpha-intro p { max-width: 480px; font-size: 16px; }
-.alpha-intro a { color: var(--accent); }
-.alpha-entry-forms { padding: 28px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); }
-.alpha-entry-forms form + form { border-top: 1px solid var(--border); margin-top: 24px; }
-.alpha-entry-forms form { display: grid; gap: 14px; }
 .alpha-form-row { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0; }
 .alpha-form-row > * { flex: 1; min-width: 140px; }
 .alpha-error { display: flex; gap: 18px; align-items: center; justify-content: space-between; position: sticky; z-index: 30; top: 0; padding: 12px 24px; background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
-.alpha-lobby, .alpha-panel { max-width: 1440px; margin: auto; padding: 30px; }
-.alpha-lobby-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; }
-.alpha-lobby-heading code { display: block; overflow-wrap: anywhere; padding: 12px 0; font-size: 16px; letter-spacing: .06em; }
-.alpha-seats, .alpha-civilizations, .alpha-research-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 16px; margin: 24px 0; }
+.alpha-panel { max-width: 1440px; margin: auto; padding: 30px; }
+.alpha-research-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 16px; margin: 24px 0; }
 .alpha-card { padding: 22px; border: 1px solid var(--border); background: linear-gradient(145deg,var(--surface-elevated),var(--surface)); box-shadow: var(--shadow-sm); border-radius: 8px; overflow-wrap: anywhere; }
 button.alpha-card { text-align: left; }
 .alpha-card h3 { font-size: 21px; margin: 14px 0; }
 .alpha-card small { text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
 .alpha-card.is-selected { border-color: var(--accent); box-shadow: inset 0 3px var(--accent); }
 .alpha-card button { margin: 6px 5px 0 0; }
-.alpha-lobby-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 20px 0; }
 .alpha-shell details { margin: 12px 0; padding: 12px; border: 1px solid var(--border); background: var(--surface); }
 .alpha-shell summary { cursor: pointer; color: var(--accent); font-weight: 600; }
 .alpha-option { padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
@@ -54,8 +44,7 @@ button.alpha-card { text-align: left; }
 .alpha-feed { padding-left: 20px; }
 .alpha-feed li { padding: 8px; }
 .alpha-finale { padding: 25px; text-align: center; border: 1px solid var(--accent); background: var(--surface-elevated); }
-@media(max-width:1100px) { .alpha-entry { gap: 30px; } }
-@media(max-width:650px) { .alpha-entry { display: block; padding: 24px 18px; } .alpha-entry-forms { margin-top: 28px; padding: 18px; } .alpha-masthead { padding: 14px; gap: 8px; } .alpha-wordmark { font-size: 11px; letter-spacing: .08em; } .alpha-masthead > small { font-size: 10px; } .alpha-lobby,.alpha-panel { padding: 18px 12px; } .alpha-intro h1 { font-size: 48px; } }
+@media(max-width:650px) { .alpha-panel { padding: 18px 12px; } }
 
 .alpha-urban { display: grid; gap: 10px; padding: 14px 0; }
 .alpha-produce { padding: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-elevated); }
@@ -175,7 +164,6 @@ button.alpha-card { text-align: left; }
 .alpha-leave-confirm small { font-size: 11px; color: var(--warning); }
 .alpha-leave-confirm code { letter-spacing: .04em; }
 .alpha-leave-confirm button { padding: 3px 10px; font-size: 11px; }
-.alpha-lobby-controls .alpha-leave, .alpha-lobby-controls .alpha-leave-confirm { margin-left: auto; }
 
 /* ==========================================================================
    Phase 1 · game shell foundation (desktop >= 901px)
@@ -329,8 +317,6 @@ button.alpha-card { text-align: left; }
   .alpha-ready-check { right: 8px; left: 8px; width: auto; }
 }
 .alpha-civ-facts { list-style: none; padding: 0; margin: 8px 0 10px; display: grid; gap: 4px; font-size: 12px; color: var(--text-secondary); text-align: left; }
-.alpha-civilizations .alpha-card { display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; text-align: left; }
-.alpha-civilizations .alpha-card > span { margin-top: auto; }
 
 /* Independent peoples and raid bands in the Território inspector. */
 .alpha-people-panel { margin: 0 0 14px; padding: 12px; border: 1px solid var(--border-subtle); border-left: 3px solid #b9c4a0; border-radius: 4px; }
@@ -348,21 +334,6 @@ button.alpha-card { text-align: left; }
 .alpha-army-actions { flex-wrap: wrap; }
 .alpha-army-actions small { min-width: 0; }
 /* Lobby roster: 18 canonical civilizations as compact rows plus one detail panel (DEC-011). */
-.alpha-roster { display: grid; grid-template-columns: minmax(260px, 420px) 1fr; gap: 18px; align-items: start; margin: 18px 0; }
-.alpha-roster-list.alpha-civilizations { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; }
-.alpha-roster-row { display: grid; grid-template-columns: 30px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); min-height: 48px; }
-.alpha-roster-row svg { grid-row: span 2; }
-.alpha-roster-row h3 { margin: 0; font-size: 15px; }
-.alpha-roster-row small { font-size: 11px; color: var(--text-muted, inherit); }
-.alpha-roster-row.is-selected { border-color: #f4ecd8; box-shadow: inset 0 0 0 1px #f4ecd8; }
-.alpha-roster-row:disabled { opacity: .55; }
-.alpha-roster-detail { padding: 16px 18px; border: 1px solid var(--border); border-radius: 10px; background: linear-gradient(145deg, var(--surface-elevated), var(--surface)); }
-.alpha-roster-detail header { display: flex; gap: 12px; align-items: center; }
-.alpha-roster-detail h3 { margin: 2px 0; font-size: 22px; }
-.alpha-roster-detail ul { padding-left: 18px; margin: 10px 0; display: grid; gap: 4px; font-size: 14px; }
-.alpha-roster-detail h4 { margin: 10px 0 4px; }
-.alpha-kit-planned { opacity: .7; font-size: 12px; }
-@media (max-width: 760px) { .alpha-roster { grid-template-columns: 1fr; } .alpha-roster-detail { order: -1; } }
 /* Card fan on the table (approved): collapsed at the map edge, lifted on hover/click, one card in focus; drawer on phones. */
 .alpha-hand-fan { position: absolute; left: 96px; bottom: -92px; width: 300px; height: 190px; z-index: 6; transition: bottom .18s ease; }
 .alpha-hand-fan:hover, .alpha-hand-fan.has-focus, .alpha-hand-fan:focus-within { bottom: 12px; }
@@ -633,12 +604,46 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .home-banner-name { fill: var(--text-primary); font: 600 17px var(--font-display); letter-spacing: .06em; paint-order: stroke; stroke: #0b1114; stroke-width: 4px; }
 .home-banner-sub { fill: var(--text-muted); font: 11px var(--font-body); paint-order: stroke; stroke: #0b1114; stroke-width: 3px; }
 .world-map.has-board:not(.zoom-near) .home-banner-sub { display: none; }
-.hex.flip-in { transform-box: fill-box; transform-origin: center; animation: region-flip 600ms ease-out; }
-@keyframes region-flip { 0% { opacity: 0; transform: scaleX(.2); } 60% { opacity: 1; } 100% { transform: scaleX(1); } }
+/* A hex group is placed by its transform attribute; a CSS transform replaces it, so the flip re-applies the hex position (--hx, --hy, set by the map). */
+.world-map .hex { --hx: 0px; --hy: 0px; }
+.region-reveal { --turn: 0deg; }
+.hex.flip-in { transform-box: view-box; transform-origin: 0 0; animation: region-flip 600ms ease-out; }
+@keyframes region-flip { 0% { opacity: 0; transform: translate(var(--hx, 0), var(--hy, 0)) scaleX(.2); } 60% { opacity: 1; } 100% { transform: translate(var(--hx, 0), var(--hy, 0)) scaleX(1); } }
 @media (prefers-reduced-motion: reduce) { .hex.flip-in { animation: none; } }
+/* RC 1.2 · closed Regions read as face-down board pieces (inset rings, a neutral compass boss); never terrain. */
+.world-map.has-board .region-back-inset { fill: none; stroke: color-mix(in srgb, var(--text-secondary) 7%, transparent); stroke-width: 2; }
+.world-map.has-board:not(.zoom-near) .region-back-inset { display: none; }
+.world-map.has-board .region-back-mark circle { fill: none; stroke: color-mix(in srgb, var(--text-secondary) 22%, transparent); stroke-width: 2; }
+.world-map.has-board .region-back-mark path { fill: color-mix(in srgb, var(--text-secondary) 24%, transparent); }
+.world-map.has-board .region-back.is-target .region-back-edge { stroke: color-mix(in srgb, var(--text-secondary) 80%, transparent); stroke-width: 4; }
+.world-map.has-board .region-back.is-oriented .region-back-edge { stroke: #c9a45c; stroke-width: 4.5; }
+.region-orientation, .region-reveal, .art-harbors, .art-discoveries { pointer-events: none; }
+/* Physical reveal (≈ 1.15 s): lift + highlight → small turn toward the chosen orientation → flip on edge → the terrain lands. */
+.region-reveal-piece, .region-reveal-shadow { transform-box: fill-box; transform-origin: center; transition: transform 300ms cubic-bezier(.3, .7, .3, 1), opacity 220ms ease; }
+.region-reveal-shadow { opacity: 0; }
+.region-reveal-shadow polygon { fill: #000; opacity: .5; }
+.region-reveal.phase-lift .region-reveal-piece { transform: scale(1.03); }
+.region-reveal.phase-lift .region-reveal-piece .region-back-edge { stroke: #c9a45c; stroke-width: 7; animation: reveal-glow 220ms ease-out; }
+.region-reveal.phase-turn .region-reveal-piece { transform: rotate(var(--turn, 0deg)) scale(1.07); }
+.region-reveal.phase-turn .region-reveal-shadow, .region-reveal.phase-flip .region-reveal-shadow { opacity: 1; }
+.region-reveal.phase-turn .region-reveal-piece .region-back-edge, .region-reveal.phase-flip .region-reveal-piece .region-back-edge { stroke: #c9a45c; stroke-width: 5; }
+.region-reveal.phase-flip .region-reveal-piece { transform: rotate(var(--turn, 0deg)) scale(1.07) scaleX(.03); transition-duration: 230ms; transition-timing-function: ease-in; }
+.region-reveal.phase-flip .region-reveal-shadow { transform: scaleX(.05); }
+@keyframes reveal-glow { from { stroke-opacity: 0; } to { stroke-opacity: 1; } }
+.hex.reveal-hidden { visibility: hidden; }
+.hex.reveal-land { transform-box: view-box; transform-origin: 0 0; animation: region-land 390ms cubic-bezier(.2, .8, .3, 1.15); }
+@keyframes region-land { 0% { opacity: 0; transform: translate(var(--hx, 0), var(--hy, 0)) scaleX(.04); } 55% { opacity: 1; } 100% { transform: translate(var(--hx, 0), var(--hy, 0)) scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .region-reveal-piece, .region-reveal-shadow { transition: none; } .hex.reveal-land { animation: none; } }
+/* Descobertas: small and calm at the Mesa, clearer when zoomed in. */
+.world-map .discovery-marker { opacity: .8; }
+.world-map.zoom-near .discovery-marker { opacity: 1; }
 .seat-plates { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; z-index: 6; }
 .seat-plate { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid color-mix(in srgb, var(--seat) 65%, var(--border)); backdrop-filter: blur(4px); white-space: nowrap; }
 .seat-plate i { width: 10px; height: 10px; border-radius: 50%; background: var(--seat); flex: none; }
+/* Seat seal (RC 1.2): the seat color plus a per-seat glyph, so grayscale still tells six players apart. */
+.seat-plate i.seat-plate-seal { width: 18px; height: 18px; border-radius: 0; background: none; display: grid; place-items: center; }
+.seat-plate i.seat-plate-seal svg { display: block; }
+.seat-strip-seal { position: absolute; top: -5px; left: -5px; line-height: 0; pointer-events: none; }
 .seat-plate b { font: 600 13px var(--font-display); letter-spacing: .05em; color: var(--text-primary); }
 .seat-plate small { font-size: 12px; color: var(--text-secondary); }
 .seat-plate.is-mine { box-shadow: 0 0 0 1px var(--seat); }

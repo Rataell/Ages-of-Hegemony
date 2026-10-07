@@ -6,18 +6,25 @@ import type { AlphaUnit, HexTile } from '@aoh/game-domain';
 import { label, roman } from './presentation';
 import { DEFAULT_SAFE, cameraBox, clampCentre, clampZoom, fitScale, mapFrame, position, regionOutline, tileSummary, viewBoxOf, type SafeInsets } from './map-frame';
 import { type CivilizationMark } from '@aoh/game-domain';
-import { CIVIL_PIECES, bannerArt, borderStrokes, cityArt, fortificationArt, pieceArt, seedOf } from '../alpha/table-art';
+import { CIVIL_PIECES, DISCOVERY_MARKERS, bannerArt, borderStrokes, cityPieceArt, discoveryArt, harborArt, orientationArt, pieceArt, seatSealSvg, seedOf } from '../alpha/table-art';
 
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
 export type MapArt = {
-  seats: Record<string, { color: string; mark: CivilizationMark | null; signature?: string | null }>;
+  /** `seat`: the seat index 0–5 (seat color and seat seal; the seal tells players apart without hue). */
+  seats: Record<string, { color: string; mark: CivilizationMark | null; signature?: string | null; seat?: number }>;
   /** Roads (visible) and own trade routes, drawn under the pieces. */
   roads?: readonly string[];
   routes?: readonly { id: string; path: readonly string[]; suspended: boolean }[];
   /** Results shown on their target: a neutral halo and a short tag (resolution events, card effects on pieces). */
   marks?: readonly { hexId: string; label: string; tone: 'event' | 'card' | 'loss' | 'plan' }[];
-  cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capacity?: number; capital: boolean; fortification: { level: string; state: string }; blockaded?: boolean | null }[];
+  /** Material culture (RC 1.2): `civilization` = the owner's hidden chassis (architecture), `harbor` = the navigable hex the Porto reaches across a shared edge, `work` = the Obra de Legado on the city. */
+  cityMarks: readonly { cityId: string; hexId: string; ownerId: string; level: number; capacity?: number; capital: boolean; fortification: { level: string; state: string }; blockaded?: boolean | null; civilization?: string | null; harbor?: string | null; work?: { workId: string; steps: number; complete: boolean } | null }[];
+  /** Descobertas the viewer revealed: a small permanent 3D marker at the Region's centre for the kinds that keep one. */
+  discoveries?: readonly { regionId: string; hexIds: readonly string[]; kind: string; resolved?: boolean }[];
 };
+/** Reveal choreography (board-game feel, ≈ 1.15 s): highlight → (orientation) small turn of the back → flip → terrain lands. */
+const REVEAL_STEPS: readonly [number, 'lift' | 'turn' | 'flip' | 'land'][] = [[0, 'lift'], [220, 'turn'], [520, 'flip'], [760, 'land']];
+const REVEAL_TOTAL = 1150;
 const svgFragment = (html: string) => ({ __html: html });
 /** The two corners a tile shares with a neighbour centred at (nx, ny): the tile corners nearest to it. */
 function sharedEdge(x: number, y: number, nx: number, ny: number, r: number): [number, number, number, number] {
@@ -26,6 +33,12 @@ function sharedEdge(x: number, y: number, nx: number, ny: number, r: number): [n
   return [corners[0]![0], corners[0]![1], corners[1]![0], corners[1]![1]];
 }
 const NEIGHBOURS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]] as const;
+/** Direction (radians) from a city hex to its harbor hex: the Porto crosses the edge they share. */
+function harborAngle(cityHexId: string, harborHexId: string) {
+  const [q, r] = cityHexId.split(',').map(Number), [hq, hr] = harborHexId.split(',').map(Number);
+  const a = position(q ?? 0, r ?? 0), b = position(hq ?? 0, hr ?? 0);
+  return Math.atan2(b.y - a.y, b.x - a.x);
+}
 
 type Props = {
   data: Pick<LocalView,'players'|'claimable'|'workable'> & {view:Pick<LocalView['view'],'player'|'visibleCities'> & {era:string;visibleTerritory:HexTile[]}};
@@ -50,6 +63,11 @@ type Props = {
   onBackground?: () => void;
   /** A click on the player's own pieces drawn on a hex (selects the stack, not the hex). */
   onSelectPieces?: (hexId: string) => void;
+  /** Exploration selector: an ABSTRACT orientation mark on a face-down Region (never terrain), rotated rotation × 60°. */
+  orientation?: { regionId: string; rotation: number } | null;
+  /** Plays the physical reveal of that Region (highlight → turn → flip → terrain) and then calls `onRevealDone`. */
+  reveal?: { regionId: string; rotation: number } | null;
+  onRevealDone?: () => void;
   selected: string | null;
   focus: string | null;
   working: boolean;
@@ -114,6 +132,9 @@ export const HexMap = memo(function HexMap({
   targets = null,
   onBackground,
   onSelectPieces,
+  orientation = null,
+  reveal = null,
+  onRevealDone,
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   // null = fitted to the projected tiles; otherwise an explicit centre and zoom (1 shows the whole fitted frame).
@@ -146,6 +167,8 @@ export const HexMap = memo(function HexMap({
   const camera = mesa ? cameraBox(frame, size, safe, view) : { viewBox: viewBoxOf(frame, view), scale: 1 };
   const focusTile = tiles.find(t => t.id === focus);
   const zoomed = mesa && camera.scale / fitScale(frame, size, safe) > 1.8;
+  // Level of detail of the table art: Mesa (mass, level, rim, walls, one dominant silhouette) or Focar (districts, roofs, ornament).
+  const lod = zoomed || !mesa ? 'focus' : 'mesa';
   const focusHere = () => {
     const target = tiles.find(t => t.id === selected) ?? focusTile ?? tiles.find(t => t.id === data.view.player.civilization.cities[0]?.hexId);
     if (!target) return;
@@ -162,6 +185,20 @@ export const HexMap = memo(function HexMap({
     closedBefore.current = nowClosed;
     if (opened.length) { setFlipping(new Set(opened)); const timer = setTimeout(() => setFlipping(new Set()), 900); return () => clearTimeout(timer); }
   }, [board]);
+  // Physical reveal driven by the exploration UI: the back is lifted, turned (if an orientation was chosen), flipped, and the terrain lands.
+  const [revealing, setRevealing] = useState<{ id: string; rotation: number; phase: 'lift' | 'turn' | 'flip' | 'land' } | null>(null);
+  const revealDone = useRef(onRevealDone);
+  revealDone.current = onRevealDone;
+  useEffect(() => {
+    if (!reveal) { setRevealing(null); return; }
+    const calm = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const steps = calm ? [[0, 'land'] as const] : REVEAL_STEPS;
+    const timers = steps.map(([at, phase]) => setTimeout(() => setRevealing({ id: reveal.regionId, rotation: reveal.rotation, phase }), at));
+    timers.push(setTimeout(() => { setRevealing(null); revealDone.current?.(); }, calm ? 200 : REVEAL_TOTAL));
+    return () => timers.forEach(clearTimeout);
+  }, [reveal?.regionId, reveal?.rotation]);
+  const revealRegion = revealing ? board?.find(region => region.id === revealing.id) : undefined;
+  const revealHexes = useMemo(() => new Set(revealRegion?.hexIds ?? []), [revealRegion]);
 
   const cities = [...data.view.player.civilization.cities, ...data.view.visibleCities];
   // Shared table: a piece or city that appears (or lands) because of anyone's resolved action pops in for a moment, so every window reads the change.
@@ -263,13 +300,33 @@ export const HexMap = memo(function HexMap({
         </defs>
 
         {/* Face-down Regions: ONE board piece each (dark back, light edge, no terrain, no icons). Their hexes only show faint seams when zoomed in. */}
-        {mesa && <g className="region-backs" aria-hidden="true">{board!.filter(region => region.closed).map(region => {
+        {mesa && <g className="region-backs" aria-hidden="true">{board!.filter(region => region.closed && region.id !== revealing?.id).map(region => {
           const centres = region.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return position(q ?? 0, r ?? 0); });
-          return <g key={region.id} className={`region-back${region.homeOf ? ' is-homeland' : ''}${targetSet.size && region.hexIds.some(id => targetSet.has(id)) ? ' is-target' : ''}`} style={region.homeOf && art?.seats[region.homeOf] ? { ['--seat' as string]: art.seats[region.homeOf]!.color } : undefined}>
+          const cx = centres.reduce((n, c) => n + c.x, 0) / (centres.length || 1), cy = centres.reduce((n, c) => n + c.y, 0) / (centres.length || 1);
+          const oriented = orientation?.regionId === region.id;
+          return <g key={region.id} className={`region-back${region.homeOf ? ' is-homeland' : ''}${targetSet.size && region.hexIds.some(id => targetSet.has(id)) ? ' is-target' : ''}${oriented ? ' is-oriented' : ''}`} data-region={region.id} style={region.homeOf && art?.seats[region.homeOf] ? { ['--seat' as string]: art.seats[region.homeOf]!.color } : undefined}>
             {centres.map((c, k) => <polygon key={k} className="region-back-hex" points={points} transform={`translate(${c.x} ${c.y}) scale(1.08)`} />)}
+            {centres.map((c, k) => <polygon key={`i${k}`} className="region-back-inset" points={innerPoints} transform={`translate(${c.x} ${c.y}) scale(.62)`} />)}
             <path className="region-back-edge" d={regionOutline(centres, 56)} />
+            {!region.homeOf && <g className="region-back-mark" transform={`translate(${cx} ${cy})`}><circle r="15" /><path d="M0 -11L3 0L0 11L-3 0Z M-11 0L0 -3L11 0L0 3Z" /></g>}
+            {oriented && <g className="region-orientation" transform={`translate(${cx} ${cy}) scale(${Math.max(1.4, 0.7 / camera.scale).toFixed(2)})`} dangerouslySetInnerHTML={svgFragment(orientationArt(orientation!.rotation, 40))} />}
           </g>;
         })}</g>}
+        {/* The Region being revealed: the same face-down piece, lifted, turned and flipped above the table (no terrain until it lands). */}
+        {mesa && revealRegion && revealing && revealing.phase !== 'land' && (() => {
+          const centres = revealRegion.hexIds.map(id => { const [q, r] = id.split(',').map(Number); return position(q ?? 0, r ?? 0); });
+          const cx = centres.reduce((n, c) => n + c.x, 0) / (centres.length || 1), cy = centres.reduce((n, c) => n + c.y, 0) / (centres.length || 1);
+          const norm = ((((revealing.rotation % 6) + 6) % 6) * 60 + 180) % 360 - 180, turn = Math.max(-40, Math.min(40, norm * 0.35));
+          return <g className={`region-reveal phase-${revealing.phase}`} aria-hidden="true" style={{ ['--turn' as string]: `${turn}deg` }}>
+            <g className="region-reveal-shadow">{centres.map((c, k) => <polygon key={k} points={points} transform={`translate(${c.x + 6} ${c.y + 12}) scale(1.08)`} />)}</g>
+            <g className="region-reveal-piece">
+              {centres.map((c, k) => <polygon key={k} className="region-back-hex" points={points} transform={`translate(${c.x} ${c.y}) scale(1.08)`} />)}
+              {centres.map((c, k) => <polygon key={`i${k}`} className="region-back-inset" points={innerPoints} transform={`translate(${c.x} ${c.y}) scale(.62)`} />)}
+              <path className="region-back-edge" d={regionOutline(centres, 56)} />
+              {revealing.rotation % 6 !== 0 && <g transform={`translate(${cx} ${cy}) scale(${Math.max(1.4, 0.7 / camera.scale).toFixed(2)})`} dangerouslySetInnerHTML={svgFragment(orientationArt(revealing.rotation, 40))} />}
+            </g>
+          </g>;
+        })()}
         {tiles.map(tile => {
           const p = position(tile.q, tile.r);
           const city = cities.find(c => c.hexId === tile.id);
@@ -292,7 +349,8 @@ export const HexMap = memo(function HexMap({
             working && !eligible ? 'unavailable' : '',
             isForeign ? 'foreign' : '',
             isWorked ? 'is-worked' : '',
-            flipping.has(tile.id) ? 'flip-in' : '',
+            flipping.has(tile.id) && !revealHexes.has(tile.id) ? 'flip-in' : '',
+            revealHexes.has(tile.id) ? (revealing?.phase === 'land' ? 'reveal-land' : 'reveal-hidden') : '',
             arriving.has(tile.id) ? 'arrive' : '',
           ].filter(Boolean).join(' ');
 
@@ -304,6 +362,7 @@ export const HexMap = memo(function HexMap({
               key={tile.id}
               data-hex={tile.id}
               transform={`translate(${p.x} ${p.y})`}
+              style={{ ['--hx' as string]: `${p.x}px`, ['--hy' as string]: `${p.y}px` }}
               role="button"
               tabIndex={0}
               aria-pressed={isSelected}
@@ -344,9 +403,9 @@ export const HexMap = memo(function HexMap({
               {/* Content: City Monument or Rural Terrain */}
               {city && art ? (() => {
                 const mark = art.cityMarks.find(m => m.cityId === city.id), seat = art.seats[city.ownerId];
-                const level = mark?.level ?? 1, color = seat?.color ?? '#9aa4a2';
-                return <g className="city-anchor art-city" data-level={level} data-fortification={mark?.fortification.level ?? 'NONE'}>
-                  <g dangerouslySetInnerHTML={svgFragment(cityArt(level, 50, { color, seed: seedOf(city.id) }) + (mark ? fortificationArt(mark.fortification.level, mark.fortification.state, 50) : '') + (seat?.mark ? `<g transform="translate(30 -5)">${bannerArt(seat.mark, color, 22)}</g>` : ''))} />
+                const level = mark?.level ?? 1, color = seat?.color ?? '#9aa4a2', harbor = mark?.harbor ? harborAngle(tile.id, mark.harbor) : null;
+                return <g className="city-anchor art-city" data-level={level} data-fortification={mark?.fortification.level ?? 'NONE'} data-culture={mark?.civilization ?? 'neutral'} data-work={mark?.work?.workId}>
+                  <g dangerouslySetInnerHTML={svgFragment(cityPieceArt({ level, color, seed: seedOf(city.id), civilization: mark?.civilization ?? null, lod, fortification: mark?.fortification ?? null, harbor, work: mark?.work ?? null, mark: seat?.mark ?? null, seat: seat?.seat ?? null }, 50))} />
                   {/* The seal reads N·Capacidade (canon §4): level built and the power of one activation. */}
                   <g transform="translate(-21 -23)"><rect x={mark?.capacity ? -15 : -9} y="-9" width={mark?.capacity ? 30 : 18} height="18" rx="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{mark?.capacity ? `${level}·${mark.capacity}` : level}</text></g>
                 </g>;
@@ -454,7 +513,7 @@ export const HexMap = memo(function HexMap({
                   const kinds = [...all.reduce((m, u) => m.set(u.kind, (m.get(u.kind) ?? 0) + 1), new Map<string, number>())].map(([k, n]) => `${label(k)} ×${n}`).join(', ');
                   return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={lead} style={own && onSelectPieces ? { cursor: 'pointer' } : undefined} onClick={own && onSelectPieces ? (e => { if (!moved) { e.stopPropagation(); onSelectPieces(tile.id); } }) : undefined}>
                     <title>{own ? 'Suas peças' : `Peças de ${data.players.find(p => p.id === ownerId)?.name ?? 'outra civilização'}`}: {kinds}</title>
-                    <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 26 : 34, count, art.seats[ownerId]?.signature === lead) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20, 0, art.seats[ownerId]?.signature === kind)}</g>`).join(''))} />
+                    <g dangerouslySetInnerHTML={svgFragment(pieceArt(lead, color, city ? 26 : 34, count, art.seats[ownerId]?.signature === lead, art.seats[ownerId]?.seat ?? null) + side.map((kind, i) => `<g transform="translate(${-19 - i * 17} -14)">${pieceArt(kind, color, 20, 0, art.seats[ownerId]?.signature === kind)}</g>`).join(''))} />
                     {cargo.length > 0 && <g transform="translate(0 -24)" className="art-cargo"><rect x="-22" y="-8" width="44" height="15" rx="7" /><text y="3">carga {cargo.length}</text></g>}
                   </g>;
                 });
@@ -479,6 +538,20 @@ export const HexMap = memo(function HexMap({
             </g>
           );
         })}
+        {/* Porto: the only urban piece that leaves the city hex — quay on the shared edge, pier into the navigable water. */}
+        {art && <g className="art-harbors" aria-hidden="true">{art.cityMarks.filter(m => m.harbor && tiles.some(t => t.id === m.hexId)).map(m => {
+          const [q, r] = m.hexId.split(',').map(Number), p = position(q ?? 0, r ?? 0);
+          return <g key={m.cityId} transform={`translate(${p.x} ${p.y})`} dangerouslySetInnerHTML={svgFragment(harborArt(m.civilization ?? null, harborAngle(m.hexId, m.harbor!), 50, lod))} />;
+        })}</g>}
+        {/* Descobertas: a small permanent marker near the Region's centre (Vestígio, Jazida, Passagem, Ancoradouro, Acampamento). */}
+        {art?.discoveries && <g className="art-discoveries" aria-hidden="true">{art.discoveries.filter(d => DISCOVERY_MARKERS.has(d.kind)).map(d => {
+          const here = d.hexIds.filter(id => tiles.some(t => t.id === id && t.terrain !== 'UNKNOWN'));
+          if (!here.length) return null;
+          const at = here.map(id => { const [q, r] = id.split(',').map(Number); return { id, ...position(q ?? 0, r ?? 0) }; });
+          const cx = at.reduce((n, c) => n + c.x, 0) / at.length, cy = at.reduce((n, c) => n + c.y, 0) / at.length;
+          const free = at.filter(c => !cities.some(city => city.hexId === c.id)), spot = (free.length ? free : at).sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy))[0]!;
+          return <g key={d.regionId} className={`discovery-marker kind-${d.kind}${d.resolved === false ? ' is-open' : ''}`} transform={`translate(${spot.x + 17} ${spot.y - 19})`} dangerouslySetInnerHTML={svgFragment(discoveryArt(d.kind, zoomed ? 14 : 12))} />;
+        })}</g>}
         {art && <g className="art-borders" aria-hidden="true">{(() => {
           // Territorial edges: seat color with the owner's civilization pattern, drawn once per edge between different owners.
           const byCoord = new Map(tiles.map(t => [`${t.q},${t.r}`, t]));
@@ -553,7 +626,7 @@ export const HexMap = memo(function HexMap({
           const bubble = plateBubble[region.homeOf!];
           return <li key={region.id} className={`seat-plate${mine ? ' is-mine' : ''}${plateTone[region.homeOf!] ? ` is-${plateTone[region.homeOf!]}` : ''}`} style={{ left, top, ['--seat' as string]: seat?.color ?? '#9aa4a2' }}
             {...(mine && onSelfPlate ? { role: 'button', tabIndex: 0, 'aria-label': 'Reagir', title: 'Reagir aos outros jogadores', onClick: (e: ReactMouseEvent<HTMLElement>) => onSelfPlate(e.currentTarget), onKeyDown: (e: ReactKeyEvent<HTMLElement>) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelfPlate(e.currentTarget); } } } : {})}>
-            <i aria-hidden="true" /><b>{who?.name ?? 'Pátria'}</b><small>{seatStatus[region.homeOf!] ?? ''}</small>
+            <i aria-hidden="true" className="seat-plate-seal" dangerouslySetInnerHTML={svgFragment(seatSealSvg(seat?.seat ?? Math.max(0, data.players.findIndex(player => player.id === region.homeOf)), seat?.color ?? '#9aa4a2', 18))} /><b>{who?.name ?? 'Pátria'}</b><small>{seatStatus[region.homeOf!] ?? ''}</small>
             {bubble && <span key={bubble.key} className="seat-bubble" role="status" aria-label={bubble.label}><span aria-hidden="true">{bubble.glyph}</span><em>{bubble.label}</em></span>}
           </li>;
         });

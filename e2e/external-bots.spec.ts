@@ -18,7 +18,7 @@ async function create(page: Page, seats: number) {
   return (await page.locator('.alpha-lobby-heading code').innerText()).trim();
 }
 async function join(page: Page, code: string, name: string) {
-  await page.goto(`/alpha/join/${code}`); await page.getByLabel('Seu nome', { exact: true }).fill(name); await unlock(page);
+  await page.goto(`/alpha/join/${code}`); await page.getByLabel('Seu nome', { exact: true }).fill(name); // joining never asks the access code
   await page.getByRole('button', { name: 'Entrar na partida', exact: true }).click(); await page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
 }
 async function pickAndReady(page: Page, index: number) {

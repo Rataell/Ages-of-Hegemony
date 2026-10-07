@@ -64,8 +64,8 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
   const sessions = new GuestSessions('shell-fullscreen-secret-'.repeat(4)), identity = sessions.issue(Date.now()), other = sessions.issue(Date.now());
   const http = new AlphaHttp(new AlphaGameService(repository), sessions, origin, false);
   await repository.create(AlphaRoomSchema.parse({
-    id: beforeAttack!.gameId, version: 0, name: 'Prova do shell', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: identity.principal.guestId, preset: 'EPIC', seed: 61, seatLimit: 2, planningSeconds: 0, deadline: null,
-    seats: beforeAttack!.players.map((p, i) => ({ guestId: (i === 0 ? identity : other).principal.guestId, playerId: p.playerId, name: i === 0 ? 'Aurélia' : 'Valgard', civilization: p.civilization, ready: true })), game: beforeAttack,
+    id: beforeAttack!.gameId, version: 0, contentVersion: 'v1.2', name: 'Prova do shell', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: identity.principal.guestId, preset: 'EPIC', seed: 61, seatLimit: 2, planningSeconds: 0, deadline: null,
+    seats: beforeAttack!.players.map((p, i) => ({ guestId: (i === 0 ? identity : other).principal.guestId, playerId: p.playerId, name: i === 0 ? 'Aurélia' : 'Valgard', civilization: p.civilization, figureId: p.leader?.leaderId ?? null, ready: true })), game: beforeAttack,
   }));
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await mkdir(shots, { recursive: true });

@@ -27,8 +27,8 @@ await B.page.goto(`${BASE}/alpha?join=${code}`);
 await B.page.getByLabel('Seu nome', { exact: true }).fill('Jogador B');
 await B.page.getByRole('button', { name: 'Entrar na partida', exact: true }).click();
 await B.page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
-await A.page.locator('.alpha-roster-row').filter({ hasText: 'Valgard' }).click(); await A.page.getByRole('button', { name: 'Estou pronto', exact: true }).click();
-await B.page.locator('.alpha-roster-row').filter({ hasText: 'Thalos' }).click(); await B.page.getByRole('button', { name: 'Estou pronto', exact: true }).click();
+await A.page.locator('.alpha-civilizations button').filter({ hasText: 'Helênicos' }).click(); await A.page.getByRole('button', { name: 'Estou pronto', exact: true }).click();
+await B.page.locator('.alpha-civilizations button').filter({ hasText: 'Nórdicos' }).click(); await B.page.getByRole('button', { name: 'Estou pronto', exact: true }).click();
 await A.page.getByRole('button', { name: 'Iniciar partida', exact: true }).click();
 await A.page.waitForSelector('.world-map'); await B.page.waitForSelector('.world-map');
 

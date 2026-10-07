@@ -63,7 +63,6 @@ export default function AlphaShell(){
       else if(['NOT_FOUND','FORBIDDEN','UNAUTHENTICATED'].includes(reply.error.code)){store.drop(ROOM_KEY);if(params.get('game'))history.replaceState(null,'','/alpha');}
       else setError(reply.error.message);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
   useEffect(()=>{
     if(theme===null)return;

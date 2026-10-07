@@ -19,9 +19,9 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
   const origin='http://127.0.0.1:3107',repository=new InMemoryAlphaRepository();
   const sessions=new GuestSessions('battle-browser-secret-'.repeat(4)),identities=[sessions.issue(Date.now()),sessions.issue(Date.now())];
   const service=new AlphaGameService(repository),http=new AlphaHttp(service,sessions,origin,false);
-  const room=AlphaRoomSchema.parse({id:beforeAttack!.gameId,version:0,name:'Prova de conflito',joinCode:'abcdefghijklmnopqrstuv',hostGuestId:identities[0]!.principal.guestId,
+  const room=AlphaRoomSchema.parse({id:beforeAttack!.gameId,version:0,contentVersion:'v1.2',name:'Prova de conflito',joinCode:'abcdefghijklmnopqrstuv',hostGuestId:identities[0]!.principal.guestId,
     preset:'EPIC',seed:61,seatLimit:2,planningSeconds:0,deadline:null,
-    seats:beforeAttack!.players.map((p,i)=>({guestId:identities[i]!.principal.guestId,playerId:p.playerId,name:i===0?'Aurélia':'Valgard',civilization:p.civilization,ready:true})),game:beforeAttack});
+    seats:beforeAttack!.players.map((p,i)=>({guestId:identities[i]!.principal.guestId,playerId:p.playerId,name:i===0?'Aurélia':'Valgard',civilization:p.civilization,figureId:p.leader?.leaderId??null,ready:true})),game:beforeAttack});
   await repository.create(room);
   const contexts=await Promise.all(identities.map(()=>browser.newContext({viewport:{width:1440,height:900}})));
   const pages:Page[]=[];

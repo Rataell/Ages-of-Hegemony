@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///Users/rafaelreina/VibeCoderSpace/Age%20of%20Hegemony/Ages-of-Hegemony/apps/web/app/alpha/join/[code]/page.tsx"],"sourcesContent":["import { redirect } from 'next/navigation';\n\n/** Invite link: /alpha/join/<code> opens the entry screen with the code already filled. */\nexport default async function JoinInvite({ params }: { params: Promise<{ code: string }> }) {\n  const { code } = await params;\n  redirect(`/alpha?join=${encodeURIComponent(code.slice(0, 22))}`);\n}\n"],"names":["JoinInvite","params","code","encodeURIComponent","slice"],"mappings":";;;;AAAA;AAAA;;AAGe,eAAeA,WAAW,EAAEC,MAAM,EAAyC;IACxF,MAAM,EAAEC,IAAI,EAAE,GAAG,MAAMD;IACvB,IAAA,iMAAQ,EAAC,CAAC,YAAY,EAAEE,mBAAmBD,KAAKE,KAAK,CAAC,GAAG,MAAM;AACjE"}}]
-}

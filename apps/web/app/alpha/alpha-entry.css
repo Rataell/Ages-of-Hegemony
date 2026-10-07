@@ -2,6 +2,9 @@
    Same glass-on-table language as the Mesa; tokens only, so the dark and light themes both hold. Loaded after table-cloud.css. ===== */
 .alpha-shell.alpha-front { height: 100vh; height: 100dvh; min-height: 0; display: flex; flex-direction: column; overflow: clip; }
 .alpha-front > * { min-width: 0; }
+/* The table ground of the light theme is light too (the shared --map-ground stays dark for the map itself). */
+:root[data-alpha-theme='LIGHT'] .alpha-shell.alpha-front { background: radial-gradient(ellipse at 50% 30%, var(--surface-elevated), var(--surface-highest) 78%); }
+:root[data-alpha-theme='LIGHT'] .alpha-shell.alpha-front::before { opacity: .28; }
 
 /* Masthead: one slim bar. */
 .alpha-front > .alpha-masthead { flex: none; flex-wrap: nowrap; gap: 14px; min-height: 48px; padding: 7px 20px; border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent); background: color-mix(in srgb, var(--surface) 72%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 2; }
@@ -31,6 +34,7 @@
 .alpha-front .has-options .alpha-entry-create { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); column-gap: 22px; }
 .alpha-front .has-options .alpha-entry-options { padding-left: 22px; border-left: 1px solid var(--border-subtle); }
 .alpha-front .has-options .alpha-entry-actions { grid-column: 1 / -1; }
+.alpha-front .has-options .alpha-entry-join { display: none; }
 .alpha-field { display: grid; gap: 5px; }
 .alpha-field-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .alpha-field-head label { font-size: 12.5px; color: var(--text-secondary); }
@@ -39,7 +43,9 @@
 .alpha-front .alpha-entry-card .alpha-check input { min-height: 0; width: 18px; height: 18px; padding: 0; }
 .alpha-entry-hint { margin-top: -6px; font-size: 11.5px; color: var(--text-muted); }
 .alpha-access input { letter-spacing: .1em; }
+.alpha-front .alpha-entry-card .alpha-form-row > * { min-width: 0; }
 .alpha-front .alpha-entry-main .alpha-form-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); }
+.alpha-front .alpha-entry.has-options .alpha-entry-hero h1 { font-size: clamp(30px, 3vw, 44px); }
 .alpha-front .alpha-entry .alpha-test-notice a { color: var(--accent-bright); }
 :root[data-alpha-theme='LIGHT'] .alpha-front .alpha-entry .alpha-test-notice a { color: var(--accent); }
 .alpha-entry-actions { display: flex; gap: 10px; align-items: center; }
@@ -132,6 +138,7 @@
 .alpha-figures .alpha-gcard-identity { font-size: 11.5px; line-height: 1.35; }
 .alpha-figures .alpha-gcard-effects { font-size: 12px; line-height: 1.35; }
 .alpha-figures .alpha-gcard-actions { margin-top: auto; }
+.alpha-figures .alpha-gcard.is-selected.is-disabled { opacity: 1; }
 .alpha-front .alpha-figure-star { color: var(--warning); font-size: 11px; font-weight: 600; letter-spacing: .02em; }
 
 /* The table (host settings; read-only for the others). */
@@ -153,6 +160,8 @@
 
 /* Footer: one line of status and the decisions. */
 .alpha-front .alpha-lobby-controls { display: flex; flex-wrap: nowrap; align-items: center; gap: 10px; padding: 10px 0 12px; border-top: 1px solid var(--border-subtle); }
+.alpha-lobby-aside { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.alpha-lobby-actions { flex: none; display: flex; align-items: center; gap: 10px; }
 .alpha-lobby-hint { flex: 1; min-width: 0; margin: 0; font-size: 13px; color: var(--text-secondary); }
 .alpha-front .alpha-lobby-controls .alpha-leave, .alpha-front .alpha-lobby-controls .alpha-leave-confirm { margin-left: 0; }
 .alpha-front .alpha-lobby-controls .alpha-leave { min-height: 34px; padding: 0 12px; border-radius: 999px; background: transparent; font-size: 12px; }
@@ -235,7 +244,7 @@
   .alpha-figures-head { display: grid; gap: 2px; }
   .alpha-figures { grid-template-columns: 1fr; }
   .alpha-seat-role { display: none; }
-  .alpha-lobby-civcard .alpha-gcard-icons { display: none; }
+  .alpha-lobby-civcard .alpha-gcard-icons, .alpha-lobby-civcard .alpha-gcard-identity { display: none; }
   .alpha-figures .alpha-gcard { display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: 'art name' 'effects effects' 'actions actions'; column-gap: 10px; row-gap: 6px; }
   .alpha-figures .alpha-gcard-art { grid-area: art; margin: 0; padding: 0; border: 0; background: none; min-height: 0; }
   .alpha-figures .alpha-gcard-art svg { width: 44px; height: 44px; }
@@ -243,13 +252,16 @@
   .alpha-figures .alpha-gcard-identity, .alpha-figures .alpha-gcard-icons { display: none; }
   .alpha-figures .alpha-gcard-effects { grid-area: effects; }
   .alpha-figures .alpha-gcard-actions { grid-area: actions; }
-  .alpha-front .alpha-lobby-controls { flex-wrap: wrap; gap: 6px 8px; padding: 8px 0 10px; }
-  .alpha-front .alpha-lobby-controls .alpha-ready, .alpha-front .alpha-lobby-controls .alpha-start { order: 1; flex: 1 1 40%; padding: 0 12px; }
-  .alpha-lobby-hint { order: 2; flex: 1 1 auto; font-size: 11.5px; line-height: 1.3; }
-  .alpha-front .alpha-lobby-controls .alpha-leave { order: 3; min-height: 28px; padding: 0 10px; font-size: 11px; }
+  .alpha-front .alpha-lobby-controls { display: grid; gap: 6px; padding: 6px 0 10px; }
+  .alpha-lobby-aside { gap: 6px; }
+  .alpha-lobby-hint { font-size: 11.5px; line-height: 1.3; }
+  .alpha-front .alpha-lobby-controls .alpha-leave { min-height: 28px; padding: 0 10px; font-size: 11px; white-space: nowrap; }
+  .alpha-lobby-actions { gap: 8px; }
+  .alpha-front .alpha-lobby-controls .alpha-ready, .alpha-front .alpha-lobby-controls .alpha-start { flex: 1; padding: 0 12px; }
 }
 @media (max-width: 420px) {
   .alpha-front .alpha-entry-card .alpha-form-row { grid-template-columns: 1fr 1fr; }
+  .alpha-front .alpha-entry-main .alpha-form-row { grid-template-columns: minmax(0, .75fr) minmax(0, 2fr); }
   .alpha-front .alpha-entry-join-row { grid-template-columns: 1fr auto; }
   .alpha-invite .aoh-btn { padding: 0 9px; font-size: 12px; }
   .alpha-invite-label { display: none; }

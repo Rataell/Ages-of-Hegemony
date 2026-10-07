@@ -17,8 +17,8 @@ for (const count of [2, 3, 4, 6]) test(`${count} seats: the Pátrias are spread 
   state.players.forEach(player => { player.pendingChoices = []; });
   const repository = new InMemoryAlphaRepository(), sessions = new GuestSessions('home-distribution-secret-'.repeat(3)), guests = state.players.map(() => sessions.issue(Date.now()));
   const http = new AlphaHttp(new AlphaGameService(repository), sessions, origin, false);
-  await repository.create(AlphaRoomSchema.parse({ id: state.gameId, version: 0, name: 'Mesa semeada', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: guests[0]!.principal.guestId, preset: 'QUICK', seed: 23, seatLimit: count, planningSeconds: 0, actionsPerRound: 5, worldPreset: 'MIXED', revealMap: false, deadline: null,
-    seats: state.players.map((p, i) => ({ guestId: guests[i]!.principal.guestId, playerId: p.playerId, name: `Jogador ${i + 1}`, civilization: p.civilization, ready: true })), game: AlphaStateSchema.parse(state) }));
+  await repository.create(AlphaRoomSchema.parse({ id: state.gameId, version: 0, contentVersion: 'v1.2', name: 'Mesa semeada', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: guests[0]!.principal.guestId, preset: 'QUICK', seed: 23, seatLimit: count, planningSeconds: 0, actionsPerRound: 5, worldPreset: 'MIXED', revealMap: false, deadline: null,
+    seats: state.players.map((p, i) => ({ guestId: guests[i]!.principal.guestId, playerId: p.playerId, name: `Jogador ${i + 1}`, civilization: p.civilization, figureId: p.leader?.leaderId ?? null, ready: true })), game: AlphaStateSchema.parse(state) }));
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   await connectAlphaContext(context, http); await muteTour(context);
   await context.addCookies([{ name: 'aoh_alpha_session', value: guests[0]!.token, url: origin, httpOnly: true, sameSite: 'Strict' }]);

@@ -20,7 +20,7 @@ const NEUTRAL = '#9fb0ad';
 /** Civilization seal from the shared table art; a drawing that has not landed yet simply renders as an empty seal. */
 export function CivSeal({ chassis, color, size = 34 }: { chassis: string | null; color: string; size?: number }) {
   const kit = civilizationKit(chassis);
-  let html = '';
+  let html: string;
   try { html = kit ? sealArt(kit.mark, color, 15) : ''; } catch { html = ''; }
   if (!html) return <svg className="alpha-seal is-empty" width={size} height={size} viewBox="-20 -20 40 40" aria-hidden="true"><circle r="15" fill="none" stroke={color} strokeWidth="2" strokeDasharray="3 3" /></svg>;
   return <svg className="alpha-seal" width={size} height={size} viewBox="-20 -20 40 40" aria-hidden="true" dangerouslySetInnerHTML={{ __html: html }} />;
@@ -178,11 +178,15 @@ export function AlphaLobby({ room, busy, lobby, copy, copied, onLeave }: { room:
       <TablePanel room={room} busy={busy} lobby={lobby} />
     </div>
     <footer className="alpha-lobby-controls">
-      <p className="alpha-lobby-hint" role="status">{hint}</p>
-      <LeaveGame joinCode={room.joinCode} onLeave={onLeave} />
-      {room.isHost && <button type="button" className="alpha-leave" disabled={busy} onClick={() => { if (confirm('Encerrar esta sala? Ninguém mais poderá entrar.')) void lobby({ type: 'CLOSE_ROOM' }); }}>Encerrar sala</button>}
+      <div className="alpha-lobby-aside">
+        <p className="alpha-lobby-hint" role="status">{hint}</p>
+        <LeaveGame joinCode={room.joinCode} onLeave={onLeave} />
+        {room.isHost && <button type="button" className="alpha-leave" disabled={busy} onClick={() => { if (confirm('Encerrar esta sala? Ninguém mais poderá entrar.')) void lobby({ type: 'CLOSE_ROOM' }); }}>Encerrar sala</button>}
+      </div>
+      <div className="alpha-lobby-actions">
       <button type="button" className={mine.ready ? 'alpha-ready is-ready' : 'primary alpha-ready'} disabled={busy || !mine.civilization} onClick={() => void lobby({ type: 'LOBBY_READY', ready: !mine.ready })}>{mine.ready ? 'Voltar à preparação' : 'Estou pronto'}</button>
       {room.isHost && <button type="button" className="primary alpha-start" disabled={busy || !startable} onClick={() => void lobby({ type: 'START' })}>Iniciar partida</button>}
+      </div>
     </footer>
   </section>;
 }

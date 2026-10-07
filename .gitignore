@@ -25,3 +25,4 @@ docs/evidence/v51b-ui-playtest/**/shots/friction-*.png
 # D-1..D-3 UI playtests: same rule
 docs/evidence/v51b-d1-d3/**/shots/friction-*.png
 apps/web/docs/
+.next-*/

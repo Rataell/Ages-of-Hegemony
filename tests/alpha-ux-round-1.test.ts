@@ -4,7 +4,7 @@ import { beginAlphaPlanning, createAlphaGame } from '@aoh/game-engine';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { CreateAlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
-import { PLANNING_OPTIONS, WORLD_OPTIONS } from '../apps/web/app/alpha/alpha-options.js';
+import { MAP_SIZES, PLANNING_OPTIONS, PRESET_OPTIONS, WORLD_OPTIONS, mapSizeChoice } from '../apps/web/app/alpha/alpha-options.js';
 import { HEX_HALF_HEIGHT, HEX_HALF_WIDTH, clampCentre, clampZoom, mapFrame, position, viewBoxOf } from '../apps/web/app/play/map-frame.js';
 
 const create = (extra: Record<string, unknown> = {}) => ({ name: 'Mesa', displayName: 'Ana', preset: 'QUICK', seatLimit: 2, seed: 7, planningSeconds: 0, ...extra });
@@ -40,6 +40,15 @@ describe('creation options match the schemas', () => {
       const started = await service.lobby(a, created.value.id, { type: 'START', expectedVersion: version }, 1000); if (!started.ok) throw new Error(started.error.message);
       expect((await repository.find(created.value.id))!.game!.rules.worldPreset).toBe(worldPreset);
     }
+  });
+
+  it('map sizes: Compacto only for 2-4 seats, one recommended size per table, durations are the domain presets', () => {
+    expect(MAP_SIZES.map(size => mapSizeChoice(size, 2)).map(c => [c.name, c.regions, c.allowed, c.recommended])).toEqual([['Compacto', 24, true, true], ['Padrão', 30, true, false], ['Amplo', 43, true, false]]);
+    expect(MAP_SIZES.map(size => mapSizeChoice(size, 4)).filter(c => c.recommended).map(c => c.name)).toEqual(['Padrão']);
+    const six = MAP_SIZES.map(size => mapSizeChoice(size, 6));
+    expect(six.filter(c => c.recommended).map(c => c.name)).toEqual(['Amplo']);
+    expect(six.find(c => c.size === 'COMPACT')).toMatchObject({ allowed: false, reason: 'Comporta 2 a 4 jogadores' });
+    for (const [preset] of PRESET_OPTIONS) expect(CreateAlphaRoomSchema.safeParse(create({ preset })).success, preset).toBe(true);
   });
 
   it('the world preset defaults to Misto when the client sends none', () => {

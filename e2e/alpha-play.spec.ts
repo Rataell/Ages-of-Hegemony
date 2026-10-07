@@ -10,7 +10,7 @@ import { connectAlphaContext, openArea, toMap, muteTour, cloudNode, touchPiece, 
 // Browser integration uses the real HTTP/service/engine code with the explicit test repository.
 // PostgreSQL durability and deployed-network E2E remain separate mandatory release gates.
 test('alpha: two browser identities, lobby, management, privacy, round and reconnect',async({browser})=>{
-  const origin='http://127.0.0.1:3107',repository=new InMemoryAlphaRepository(),service=new AlphaGameService(repository);
+  const origin=process.env.E2E_ORIGIN??'http://127.0.0.1:3107',repository=new InMemoryAlphaRepository(),service=new AlphaGameService(repository);
   const http=new AlphaHttp(service,new GuestSessions('browser-test-secret-'.repeat(4)),origin,false);
   const a=await browser.newContext({viewport:{width:1440,height:900}}),b=await browser.newContext({viewport:{width:1440,height:900}});
   await connectAlphaContext(a,http);await muteTour(a);await connectAlphaContext(b,http);await muteTour(b);const pa=await a.newPage(),pb=await b.newPage();
@@ -20,7 +20,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     new MutationObserver(()=>{document.querySelectorAll('.alpha-error').forEach(node=>{const text=node.textContent??'';if(text&&!w.__alphaErrors.includes(text))w.__alphaErrors.push(text);});}).observe(document,{childList:true,subtree:true,characterData:true});
   });
   const errors:string[]=[];pa.on('pageerror',e=>errors.push(e.message));pb.on('pageerror',e=>errors.push(e.message));
-  const evidence='docs/evidence/playable-alpha-v1',actionEvidence='docs/evidence/alpha-round-action-economy';await Promise.all([mkdir(evidence,{recursive:true}),mkdir(actionEvidence,{recursive:true})]);
+  const evidence=process.env.E2E_EVIDENCE_DIR??'docs/evidence/playable-alpha-v1',actionEvidence=process.env.E2E_EVIDENCE_DIR??'docs/evidence/alpha-round-action-economy';await Promise.all([mkdir(evidence,{recursive:true}),mkdir(actionEvidence,{recursive:true})]);
   try{
     await pa.goto('/alpha');await pa.getByLabel('Seu nome',{exact:true}).fill('Ana');await pa.getByRole('combobox',{name:'Tema',exact:true}).selectOption('DARK');await pa.screenshot({path:`${evidence}/1440-home.png`,caret:'initial'});
     await pa.getByText('Opções da mesa',{exact:true}).click();
@@ -33,14 +33,14 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await pb.goto(`/alpha?join=${code}`);await pb.getByLabel('Seu nome',{exact:true}).fill('Beto');await pb.getByRole('button',{name:'Entrar na partida',exact:true}).click();
     await expect(pb.getByRole('heading',{name:'Seu tabuleiro de civilização'})).toBeVisible();
     await expect(pa.locator('.alpha-seats').getByRole('heading',{name:'Beto',exact:true})).toBeVisible();
-    await pa.getByRole('button').filter({has:pa.getByRole('heading',{name:'Aurélia',exact:true})}).click();
+    await pa.getByRole('button').filter({has:pa.getByRole('heading',{name:'Incas (Tawantinsuyu)',exact:true})}).click();
     await pa.getByRole('button',{name:'Estou pronto',exact:true}).click();
     await expect(pb.locator('.alpha-seats article').filter({has:pb.getByRole('heading',{name:'Ana',exact:true})})).toContainText('Pronto');
-    await pb.getByRole('button').filter({has:pb.getByRole('heading',{name:'Valgard',exact:true})}).click();
+    await pb.getByRole('button').filter({has:pb.getByRole('heading',{name:'Helênicos',exact:true})}).click();
     await pb.getByRole('button',{name:'Estou pronto',exact:true}).click();
     await expect(pa.getByRole('button',{name:'Iniciar partida',exact:true})).toBeEnabled();
     await pa.screenshot({path:`${evidence}/1440-lobby.png`});await pa.getByRole('button',{name:'Iniciar partida',exact:true}).click();
-    await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');await expect(pb.locator('.alpha-player-board h1')).toHaveText('Valgard');
+    await expect(pa.locator('.alpha-player-board h1')).toHaveText(/Incas/);await expect(pb.locator('.alpha-player-board h1')).toHaveText(/Helênicos/);
     for(const page of [pa,pb]){
       const currentId=new URL(page.url()).searchParams.get('game')!;
       // Secret ambitions are the first decision: the board opens on them until both are chosen.
@@ -86,7 +86,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     const projected=await service.read({guestId:raw.seats[0]!.guestId},gameId,Date.now());
     expect(projected.ok).toBe(true);expect(JSON.stringify(projected)).not.toContain(raw.game!.privateRng.seed);
     if(projected.ok)expect(projected.value.game!.self.ambitions.some(id=>privateB.includes(id))).toBe(false);
-    await pa.reload();await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');
+    await pa.reload();await expect(pa.locator('.alpha-player-board h1')).toHaveText(/Incas/);
     await expect(pa.locator('html')).toHaveAttribute('data-alpha-theme','DARK');
     const phase=async(page:typeof pa,text:string)=>expect(page.locator('.alpha-strip-when')).toContainText(text);
     const game=async()=>(await repository.find(gameId))!.game!;
@@ -98,7 +98,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
       await confirm(pb,label);await phase(pa,next);await phase(pb,next);
     }
     // Round 1 - every strategic decision is private until both players close planning.
-    await pa.reload();await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');
+    await pa.reload();await expect(pa.locator('.alpha-player-board h1')).toHaveText(/Incas/);
     await toMap(pb);
     await phase(pa,'Planejamento');
     await openCatalog(pa);await openCatalog(pb);
@@ -147,7 +147,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await expect(pa.locator('.alpha-urban-detail')).toContainText('Custo:');await expect(pa.locator('.alpha-urban-detail')).toContainText('Efeito:');
     await pa.locator('.alpha-urban-detail').getByRole('button',{name:'Planejar ação urbana'}).click();
     await expect(urbanA).toContainText('Ações planejáveis da cidade: 1 / 2');
-    // Valgard's page is still on the old version here: the research recovers on its own and must not show a conflict. Districts need their Web advance (canon §5), so Beto opens the Teia first.
+    // Helênicos' page is still on the old version here: the research recovers on its own and must not show a conflict. Districts need their Web advance (canon §5), so Beto opens the Teia first.
     // The Teia is a glass layer over the Mesa (Tabuleiro da Civilização): pick the node, research it as the Ordem Avanço, back to the map.
     await openArea(pb,'Teia Civilizacional');
     const boardB=pb.getByRole('dialog',{name:'Tabuleiro da Civilização'});

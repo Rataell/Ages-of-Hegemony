@@ -28,9 +28,11 @@ async function create(page: Page, name: string, seats: number) {
 }
 async function joinByLink(page: Page, name: string, code: string) {
   await page.goto(`/alpha/join/${code}`);
-  await expect(page.getByLabel('Código de convite')).toHaveValue(code); // the link pre-fills the code
+  // A new device sees only the name card: the invite is a chip (never an input) and the Alpha access code is never asked on join.
+  await expect(page.locator('.alpha-invite-chip')).toHaveAttribute('data-code', code);
+  await expect(page.getByLabel('Código de convite')).toHaveCount(0);
+  await expect(page.getByLabel('Código de acesso do Alpha')).toHaveCount(0);
   await page.getByLabel('Seu nome', { exact: true }).fill(name);
-  await unlock(page);
   await page.getByRole('button', { name: 'Entrar na partida', exact: true }).click();
   await page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
 }
@@ -52,6 +54,35 @@ const livroTab = async (page: Page, tab: string) => {
   await livro.getByRole('button', { name: 'Conselho', exact: true }).click();
   await livro.getByRole('tab', { name: tab }).click();
 };
+
+test('invite link: a device that remembers a name enters without a click; a new device sees only the name card', async ({ browser }) => {
+  const a = await guest(browser, 'Ana'), b = await guest(browser, 'Caio'), c = await guest(browser, 'Dora');
+  try {
+    const code = await create(a.page, 'Ana', 3);
+    await b.context.addInitScript(() => { try { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('aoh-alpha-name', 'Caio'); sessionStorage.setItem('seeded', '1'); } } catch { /* */ } });
+    const joins: unknown[] = [];
+    b.page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/api/alpha')) joins.push(request.postDataJSON()); });
+    await b.page.goto(`/alpha/join/${code}`);
+    await b.page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor(); // no click: the remembered name joined
+    expect(joins).toEqual([{ operation: 'join', code, displayName: 'Caio' }]); // a client POST, never the GET, never an access code
+    await expect(a.page.locator('.alpha-seats article')).toHaveCount(2);
+    // Opening the link again on the seated device resumes the same seat.
+    await b.page.goto(`/alpha/join/${code}`); await b.page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
+    await expect(a.page.locator('.alpha-seats article')).toHaveCount(2);
+    await joinByLink(c.page, 'Dora', code);
+    await expect(a.page.locator('.alpha-seats article')).toHaveCount(3);
+    // A full table and an unknown invite answer with a controlled message and a way forward.
+    const d = await guest(browser, 'Eva');
+    try {
+      await d.page.goto(`/alpha/join/${code}`); await d.page.getByLabel('Seu nome', { exact: true }).fill('Eva'); await d.page.getByRole('button', { name: 'Entrar na partida', exact: true }).click();
+      await expect(d.page.getByRole('heading', { name: 'Esta mesa não aceita mais pessoas' })).toBeVisible();
+      await d.page.goto('/alpha/join/AAAAAAAAAAAAAAAAAAAAAA'); await d.page.getByLabel('Seu nome', { exact: true }).fill('Eva'); await d.page.getByRole('button', { name: 'Entrar na partida', exact: true }).click();
+      await expect(d.page.getByRole('heading', { name: 'Convite não encontrado' })).toBeVisible();
+      await d.page.getByRole('button', { name: 'Criar nova sala', exact: true }).click();
+      await expect(d.page.getByRole('button', { name: 'Criar partida', exact: true })).toBeVisible();
+    } finally { await d.context.close(); }
+  } finally { await Promise.allSettled([a.context.close(), b.context.close(), c.context.close()]); }
+});
 
 test('2 players: link, lobby, start, reaction, reconnect, host transfer, suspend/resume', async ({ browser }) => {
   const a = await guest(browser, 'Ana'), b = await guest(browser, 'Beto');

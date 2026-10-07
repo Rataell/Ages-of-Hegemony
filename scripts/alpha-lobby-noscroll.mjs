@@ -1,3 +1,4 @@
+/* global document, getComputedStyle, innerHeight, innerWidth, localStorage, sessionStorage, navigator */
 // DEV-ONLY: the entry and lobby screens must never scroll the document (RC 1.2). Opens every front-of-house state at 1280x720, 1440x900
 // and 390x844 and asserts document.scrollingElement.scrollHeight <= innerHeight (+1) and scrollWidth <= innerWidth (+1); prints which elements
 // stick out when it fails. Also checks the invite flow end to end: a device that remembers a name lands in the room from the link without a
@@ -57,8 +58,15 @@ async function createRoom(page, { name, seats }) {
   await page.goto(`${BASE}/alpha`);
   await page.getByLabel('Seu nome', { exact: true }).fill(name);
   await page.getByLabel('Lugares', { exact: false }).selectOption(String(seats));
-  await page.getByRole('button', { name: 'Criar partida', exact: true }).click();
-  await page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }).waitFor();
+  for (let attempt = 0; ; attempt++) {
+    await page.getByRole('button', { name: 'Criar partida', exact: true }).click();
+    const lobby = page.getByRole('heading', { name: 'Seu tabuleiro de civilização' }), limited = page.locator('.alpha-error').filter({ hasText: 'Aguarde um minuto' });
+    await lobby.or(limited).first().waitFor();
+    if (await lobby.isVisible()) break;
+    // The server allows 6 new rooms per minute per client: wait the window out instead of failing.
+    if (attempt > 1) throw new Error('rate limited twice');
+    console.log('     (rate limit on room creation: waiting 61 s)'); await page.waitForTimeout(61000);
+  }
   return (await page.locator('.alpha-lobby-heading code').innerText()).trim();
 }
 

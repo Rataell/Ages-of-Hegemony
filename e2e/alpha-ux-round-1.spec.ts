@@ -7,7 +7,7 @@ import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { connectAlphaContext, muteTour } from './alpha-fixture.js';
 
 const shots = process.env.UX_SHOTS_DIR ?? 'docs/evidence/alpha-ux-round-1/after';
-const origin = 'http://127.0.0.1:3107';
+const origin = process.env.E2E_ORIGIN ?? 'http://127.0.0.1:3107';
 
 test('lobby invites, creation options, leaving and returning, and the atlas at the start of a match', async ({ browser }) => {
   test.setTimeout(120000);
@@ -24,7 +24,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     await pa.getByText('Opções da mesa', { exact: true }).click(); // advanced table options are folded away
     const options = async (label: string) => pa.getByLabel(label, { exact: false }).first().locator('option').allTextContents();
     expect(await options('Prazo por fase')).toEqual(['Sem prazo', '3 minutos', '5 minutos', '8 minutos', '1 hora', '4 horas', '8 horas']);
-    expect(await options('Mundo')).toEqual(['Continental', 'Arquipélago', 'Mar Interior', 'Misto']);
+    expect(await options('Mundo')).toEqual(['Misto', 'Continental', 'Arquipélago', 'Mar Interior']);
     await pa.getByLabel('Mundo', { exact: false }).first().selectOption('INLAND_SEA');
     await pa.getByLabel('Prazo por fase', { exact: false }).selectOption('480');
     const created = pa.waitForRequest(request => request.url().includes('/api/alpha') && request.method() === 'POST');
@@ -53,7 +53,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     expect(seated.seats.map(seat => seat.name)).toEqual(['Ana', 'Beto']);
     await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click();
     await pb.getByRole('button', { name: 'Sair e poder voltar', exact: true }).click();
-    await expect(pb.getByRole('heading', { name: 'Preparar uma mesa' })).toBeVisible();
+    await expect(pb.getByRole('heading', { name: 'Nova mesa' })).toBeVisible();
     expect(new URL(pb.url()).search).toBe('');
     // Leaving only closes this session: the room is remembered and flagged as left (the entry offers "Voltar à minha partida").
     expect(await pb.evaluate(() => localStorage.getItem('aoh-alpha-left'))).toBe('1');
@@ -65,12 +65,12 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     expect((await repository.find(roomId))!.seats).toHaveLength(2);
 
     // Regression: two players reach a running match.
-    await pa.getByRole('button').filter({ has: pa.getByRole('heading', { name: 'Aurélia', exact: true }) }).click(); await pa.getByRole('button', { name: 'Estou pronto', exact: true }).click();
-    await pb.getByRole('button').filter({ has: pb.getByRole('heading', { name: 'Valgard', exact: true }) }).click(); await pb.getByRole('button', { name: 'Estou pronto', exact: true }).click();
+    await pa.getByRole('button').filter({ has: pa.getByRole('heading', { name: 'Incas (Tawantinsuyu)', exact: true }) }).click(); await pa.getByRole('button', { name: 'Estou pronto', exact: true }).click();
+    await pb.getByRole('button').filter({ has: pb.getByRole('heading', { name: 'Helênicos', exact: true }) }).click(); await pb.getByRole('button', { name: 'Estou pronto', exact: true }).click();
     await expect(pa.getByRole('button', { name: 'Iniciar partida', exact: true })).toBeEnabled();
     await pa.getByRole('button', { name: 'Iniciar partida', exact: true }).click();
-    await expect(pa.locator('.alpha-player-board h1')).toHaveText('Aurélia');
-    await expect(pb.locator('.alpha-player-board h1')).toHaveText('Valgard');
+    await expect(pa.locator('.alpha-player-board h1')).toHaveText(/Incas/);
+    await expect(pb.locator('.alpha-player-board h1')).toHaveText(/Helênicos/);
     expect((await repository.find(roomId))!.game!.rules.worldPreset).toBe('INLAND_SEA');
 
     // The atlas draws exactly the projected tiles and they fill the stage.
@@ -125,14 +125,14 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click();
     await expect(pb.getByRole('dialog', { name: 'SAIR DESTA SESSÃO?' })).toBeVisible();
     await pb.getByRole('button', { name: 'Cancelar', exact: true }).click();
-    await expect(pb.locator('.alpha-player-board h1')).toHaveText('Valgard');
+    await expect(pb.locator('.alpha-player-board h1')).toHaveText(/Helênicos/);
     await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click(); await pb.getByRole('button', { name: 'Sair e poder voltar', exact: true }).click();
-    await expect(pb.getByRole('heading', { name: 'Preparar uma mesa' })).toBeVisible();
+    await expect(pb.getByRole('heading', { name: 'Nova mesa' })).toBeVisible();
     expect(new URL(pb.url()).search).toBe('');
     const afterRunningLeave = (await repository.find(roomId))!;
     expect(afterRunningLeave.version).toBe(running.version); expect(afterRunningLeave.game).toEqual(running.game); expect(afterRunningLeave.seats).toEqual(running.seats);
     await pb.getByLabel('Seu nome', { exact: true }).fill('Beto');
     await pb.getByLabel('Código de convite', { exact: true }).fill(code); await pb.getByRole('button', { name: 'Entrar na partida', exact: true }).click();
-    await expect(pb.locator('.alpha-player-board h1')).toHaveText('Valgard');
+    await expect(pb.locator('.alpha-player-board h1')).toHaveText(/Helênicos/);
   } finally { await Promise.allSettled([a.close(), b.close()]); }
 });
