@@ -113,3 +113,70 @@ describe('Repercussão choices', () => {
     expect(new Set(REPERCUSSION_CARDS.map(card => card.id)).size).toBe(REPERCUSSION_CARDS.length);
   });
 });
+
+describe('Ressonância: marks permanentes × encaixes temporários (RC2)', () => {
+  const advances = ['web-writing', 'web-mathematics', 'web-natural-philosophy', 'web-agriculture', 'web-masonry'];
+  const reload = (state: AlphaState): AlphaState => AlphaStateSchema.parse(JSON.parse(JSON.stringify(state)));
+
+  it('one advance → 1/5, 2 → 2/5, 3 → 3/5, 4 → 4/5 with a mark each and no choice; the fifth → Repercussão pending', () => {
+    const state = fresh();
+    advances.slice(0, 4).forEach((id, index) => {
+      registerAdvance(state, p1, id);
+      expect(me(state).resonance.slots).toHaveLength(index + 1);
+      expect(me(state).resonance.marks.map(mark => mark.advancementId)).toEqual(advances.slice(0, index + 1));
+      expect(me(state).pendingChoices).toHaveLength(0);
+    });
+    registerAdvance(state, p1, advances[4]!);
+    const player = me(state);
+    expect(player.pendingChoices.filter(choice => choice.source === 'REPERCUSSION')).toHaveLength(1);
+    expect(player.resonance.cycles).toBe(1);
+    // The five sockets of the finished cycle are kept in the history so the table can show the tray as "ciclo completo" until the choice is resolved.
+    expect(player.resonance.history.at(-1)!.slots.map(slot => slot.advancementId)).toEqual(advances);
+    expect(player.resonance.history.at(-1)!.cardId).toBe(player.pendingChoices[0]!.cardId);
+  });
+
+  it('after the choice is resolved: sockets = 0 and the five permanent marks are still on the Teia', () => {
+    const state = fresh();
+    fill(state, advances);
+    const choice = me(state).pendingChoices[0]!;
+    const result = applyAlphaCommand(state, p1, { type: 'RESOLVE_CHOICE', expectedVersion: state.version, choiceId: choice.id, optionId: choice.options[0]!.id });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const player = result.value.players.find(item => item.playerId === p1)!;
+    expect(player.resonance.slots).toHaveLength(0);
+    expect(player.pendingChoices).toHaveLength(0);
+    expect(player.resonance.marks.map(mark => mark.advancementId)).toEqual(advances);
+    expect(player.resonance.marks.every(mark => mark.domains.length >= 1)).toBe(true);
+    // A new cycle starts empty while the marks stay.
+    registerAdvance(result.value, p1, 'web-exchange');
+    expect(result.value.players.find(item => item.playerId === p1)!.resonance.slots).toHaveLength(1);
+    expect(result.value.players.find(item => item.playerId === p1)!.resonance.marks).toHaveLength(6);
+  });
+
+  it('save/reload keeps 3/5 with its marks, the pending Repercussão, and the cleared sockets with their marks', () => {
+    const state = fresh();
+    fill(state, advances.slice(0, 3));
+    const mid = reload(state);
+    expect(me(mid).resonance.slots.map(slot => slot.advancementId)).toEqual(advances.slice(0, 3));
+    expect(me(mid).resonance.marks).toHaveLength(3);
+    fill(state, advances.slice(3));
+    const pending = reload(state);
+    expect(me(pending).pendingChoices).toEqual(me(state).pendingChoices);
+    expect(me(pending).resonance).toEqual(me(state).resonance);
+    const choice = me(pending).pendingChoices[0]!;
+    const resolved = applyAlphaCommand(pending, p1, { type: 'RESOLVE_CHOICE', expectedVersion: pending.version, choiceId: choice.id, optionId: choice.options[1]!.id });
+    expect(resolved.ok).toBe(true);
+    if (!resolved.ok) return;
+    const after = reload(resolved.value);
+    expect(me(after).resonance.slots).toHaveLength(0);
+    expect(me(after).resonance.marks.map(mark => mark.advancementId)).toEqual(advances);
+    expect(me(after).resonance.cycles).toBe(1);
+  });
+
+  it('registering the same advance twice never duplicates its permanent mark', () => {
+    const state = fresh();
+    fill(state, ['web-writing', 'web-writing']);
+    expect(me(state).resonance.marks).toHaveLength(1);
+    expect(me(state).resonance.slots).toHaveLength(2);
+  });
+});

@@ -136,7 +136,7 @@ describe('naval vertical slice (DEC-014)', () => {
     expect(AlphaStateSchema.safeParse(state).success).toBe(true);
   });
 
-  it('launches a coastal vessel from Era I: it carries one piece, explores from the sea and never blockades', () => {
+  it('launches the Barca de Patrulha from Era I: a light armed ship that carries one piece, fights at Força 1 and blockades like any warship', () => {
     const { state, capital } = harbour();
     state.players[0]!.era = 'FOUNDATION';
     expect(recruitBlock(state, p1, capital.id, 'FLEET')).toMatch(/era/);
@@ -150,8 +150,13 @@ describe('naval vertical slice (DEC-014)', () => {
     state.units.push({ id: 'second', ownerId: p1, kind: 'INFANTRY', hexId: capital.hexId, recruitedRound: 1, carrierId: null });
     expect(applyAlphaCommand(next, p1, { type: 'EMBARK', expectedVersion: next.version, unitIds: ['pioneer-1-1'], fleetId: boat.id }).ok).toBe(false);
     next.wars.push(['p1', 'p2'] as never);
-    expect(blockadedBy(next, next.core.players[1]!.civilization.cities[0]!.hexId, p2)).toBeNull();
     expect(AlphaStateSchema.safeParse(next).success).toBe(true);
+    expect(state.rules.units.COASTAL_VESSEL.strength).toBe(1);
+    expect(state.rules.units.COASTAL_VESSEL.strength).toBeLessThan(state.rules.units.FLEET.strength);
+    // Armed ships blockade a port at war: park the boat on the water next to the rival capital.
+    const rivalCity = next.core.players[1]!.civilization.cities[0]!, water = around(next, rivalCity.hexId)[0]!;
+    tile(next, water).terrain = 'SEA'; next.units.find(unit => unit.id === boat.id)!.hexId = water as never;
+    expect(blockadedBy(next, rivalCity.hexId, p2)).toBe(p1);
   });
 
   it('keeps matches saved before the coastal vessel valid', () => {

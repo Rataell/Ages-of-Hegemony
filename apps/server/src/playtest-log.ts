@@ -56,7 +56,7 @@ export function availableActions(state: AlphaState, seat: PlayerId) {
   const claims = Object.values(alphaClaimOptions(state, seat)).reduce((n, list) => n + list.length, 0);
   const usage = alphaActionUsage(state, seat);
   return {
-    cityActions, research: open(urban.research as { blocked?: unknown }[]), moves: units.reduce((n, u) => n + Object.keys(u.moves).length, 0), explore: units.reduce((n, u) => n + u.explore.length, 0),
+    cityActions, research: open(urban.research as { blocked?: unknown }[]), moves: units.reduce((n, u) => n + Object.keys(u.moves).length, 0), frontier: units.reduce((n, u) => n + u.frontier.length, 0),
     settle: units.filter(u => u.settleBlock === null).length, claims, orders: { limit: usage.limit, used: usage.used },
   };
 }

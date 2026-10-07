@@ -51,11 +51,14 @@ export function AlphaCompendium({ onClose, initial = 'civs' }: { onClose: () => 
       {tab === 'works' && <><p className="alpha-compendium-lead">Doze Obras, cada uma única no mundo e por cidade. Três passos (uma Ordem de Legado cada); ao concluir, +4 Prestígio e um efeito permanente.</p>
         <div className="alpha-gcard-row">{LEGACY_WORKS.map(w => <AlphaCard key={w.id} kind="work" compact art={workArtOf(w.id, 40, 3)} name={w.name} subtitle={text(w.path)} identity={LEGACY_WORK_IDENTITY[w.id]?.identity} effects={[{ key: 'e', label: 'Efeito', text: `+4 Prestígio · ${legacyWorkEffectText(w.id) ?? ''}` }, { key: 'c', label: 'Custo', text: Object.entries(w.cost).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${text(k)}`).join(' · ') }, { key: 'r', label: 'Exige', text: `Distrito ${text(w.requires.district)}${w.requires.fortification ? ' e Fortaleza' : ''}${w.requires.connectedCities ? `, ${w.requires.connectedCities} cidades ligadas por rota` : ''}` }]} />)}</div></>}
       {tab === 'explore' && <Rules>
-        <li><b>Pioneiro explora terra. Frota explora mar. Tropa militar não explora.</b> (A Embarcação Costeira também explora pelo mar.)</li>
-        <li>Escolha a Região fechada destacada junto à peça. A ordem é secreta: nada se revela antes da resolução da rodada.</li>
-        <li><b>Orientação:</b> se a Região ainda está intacta e mais de uma orientação dá entrada à peça, você escolhe uma (“Orientação 1 de N”). Com uma só, ela é aplicada sozinha. Depois da primeira exploração, a orientação fica fixa.</li>
-        <li><b>“Requer acesso naval.”</b> A Região não tem entrada por terra para o Pioneiro: só uma Frota ou Embarcação Costeira a explora. O inverso vale para navios (“Requer acesso por terra.”).</li>
-        <li>Revelar uma Região rende +1 Prestígio e pode trazer uma Descoberta, só para quem a revelou.</li>
+        <li><b>Mover é descobrir.</b> Não há uma Ordem de explorar: mover para uma Região fechada destacada a revela. Entrar custa 1 de movimento e é o <b>último passo</b> do Mover; o grupo para na entrada.</li>
+        <li><b>Quem abre uma Região:</b> o <b>Pioneiro</b> (por terra). Tropa só entra no desconhecido junto de um Pioneiro, como escolta, saindo do mesmo hex e seguindo o mesmo caminho (a peça mais lenta limita o grupo). Peças sozinhas: “Necessita de um Pioneiro para descobrir.”</li>
+        <li><b>No mar:</b> um navio abre uma Região levando um Pioneiro a bordo (ele continua embarcado). Depois de <b>Navegação Oceânica</b> (Teia), qualquer navio da civilização abre Regiões sozinho. Cartografia só informa antes; não abre.</li>
+        <li>A ordem é secreta: nada se revela antes da resolução da rodada.</li>
+        <li><b>Orientação:</b> se a Região ainda está intacta e mais de uma orientação dá entrada ao grupo, você escolhe uma (“Orientação 1 de N”). Com uma só, ela é aplicada sozinha. Depois da primeira abertura, a orientação fica fixa.</li>
+        <li><b>“Requer acesso naval.”</b> A Região não tem entrada por terra: só um navio a abre. O inverso vale para navios (“Requer acesso por terra.”).</li>
+        <li>Se outra civilização abrir a Região antes, o seu movimento é um movimento comum e a Descoberta não se repete.</li>
+        <li>Abrir uma Região rende +1 Prestígio e pode trazer uma Descoberta, só para quem a abriu.</li>
       </Rules>}
       {tab === 'discoveries' && <div className="alpha-gcard-row">{DISCOVERY_ORDER.map(kind => { const info = DISCOVERY_INFO[kind]; return <AlphaCard key={kind} kind="discovery" compact art={discoveryArtOf(kind, 40)} name={info.name} identity={info.identity} effects={[{ key: 'e', label: 'Efeito', text: info.effect }]} icons={<span>{info.marker ? 'Fica marcada no mapa' : 'Sem marco no mapa'}</span>} />; })}</div>}
       {tab === 'sizes' && <><p className="alpha-compendium-lead">Toda Região tem 7 hexes. O tamanho é escolhido no lobby.</p>

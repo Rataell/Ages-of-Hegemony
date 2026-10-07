@@ -1,4 +1,4 @@
-import { ADVANCEMENTS, ALPHA_RESOURCE_KEYS, heritageAdvance, type AlphaState, type PlannedAction, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_RESOURCE_KEYS, REGION_TEMPLATES, heritageAdvance, type AlphaState, type PlannedAction, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 
 /** Player-facing names for resolution messages. Events are read as written, so they never carry enum identifiers. */
 const RESOURCE_NAMES: Record<string, string> = { food: 'Alimento', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
@@ -50,6 +50,12 @@ export function orderMessage(before: AlphaState, actor: PlayerId, order: Strateg
     case 'INFLUENCE': return `${who}: missão de influência em ${order.target}.`;
     case 'TRADE': return `${who}: rota de comércio estabelecida${cityName ? ` até ${cityName}` : ''}.`;
   }
+}
+
+/** A Move that opened a Region: written for everyone who sees that hex. The Region's name is public once it is face up. */
+export function discoveryMessage(before: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>, templateId: string, entered: boolean): string {
+  const region = REGION_TEMPLATES.find(template => template.id === templateId)?.name ?? 'uma Região';
+  return `${playerName(before, actor)}: ${unitNames(before, order.unitIds)} ${entered ? 'entrou em' : 'chegou à fronteira de'} ${region} — Região revelada.`;
 }
 
 export const TREATY_NAMES: Record<string, string> = { TRADE_AGREEMENT: 'um acordo comercial', NON_AGGRESSION_PACT: 'um pacto de não agressão', OPEN_BORDERS: 'fronteiras abertas', DEFENSIVE_PACT: 'um pacto defensivo', ALLIANCE: 'uma aliança', EMBARGO: 'um embargo' };

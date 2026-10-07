@@ -71,6 +71,8 @@ Egípcios usam o chassi `nymara` (o plano B do documento de conceito) porque `is
 
 ## 6. Exploração
 
+> **Substituído no RC2** por *Mover é descobrir* (ver `docs/external-alpha-v1.2-rc2.md`): não existe mais uma Ordem de explorar para partidas novas; `EXPLORE` é somente leitura. O que segue descreve a regra de acesso/orientação, que o RC2 reaproveita como subfluxo do Mover.
+
 - **Quem explora**: só **Pioneiro** (terra) e **Frota / Embarcação Costeira** (mar). Peças militares terrestres, Enviados e peças embarcadas não recebem `EXPLORE` (a validação do servidor recusa; as opções da UI vêm vazias).
 - **Entrada terrestre** (`explorationAccess`, usa `rotatedRegionTiles`): terra = PLAINS, FOREST, HILLS, MOUNTAINS, COAST; SEA não é entrada. O conjunto V das orientações com ao menos um hex de entrada em terra: |V| = 1 → aplicada automaticamente (a ordem pode trazer qualquer rotação); |V| ≥ 2 → o jogador escolhe; |V| = 0 → **"Requer acesso naval."** e nenhuma exploração terrestre é oferecida. Orientações que alterariam terreno já observado por alguém são excluídas. Nunca se converte SEA em terra depois da revelação.
 - **Entrada naval**: mesma regra com a verdade canônica de água navegável (`isNavigableWater`: COAST ou SEA); o espelho da mensagem é "Requer acesso por terra.".
@@ -83,6 +85,8 @@ Egípcios usam o chassi `nymara` (o plano B do documento de conceito) porque `is
 `isNavigableWater` / `isCoastalCity` / `harborHex` (`alpha-water.ts`) são a **única** fonte para navios, Porto, Distrito Marítimo, exploração naval e auditoria do mundo. O **Distrito Marítimo inclui o Porto básico** (não se compra à parte); só pode ser construído em cidade com uma aresta compartilhada com água navegável; custa o preço de um distrito e rende +1 Alimento ao Produzir (já codificado em `cityYield`). Estaleiro e Farol continuam opcionais e **ainda sem efeito** (documentado). O recrutamento naval continua usando a regra geométrica `isPort` (comportamento inalterado). O cais é a única construção urbana que se projeta para fora da cidade (a projeção entrega `harbor` apenas com Distrito Marítimo).
 
 ## 8. Bots
+
+> RC2: bots pensam MOVE; ver `docs/external-alpha-v1.2-rc2.md` §8.
 
 Escolhem civilização do Core 10 e Figura (pela semente); usam o Poder da Figura só quando o motor diz que ele muda algo (nunca comando recusado); exploram com Pioneiro e, em mundos de água ou sem acesso por terra, constroem uma Embarcação Costeira/Frota e exploram por mar; nunca recebem `EXPLORE` para tropa militar; uma Região marcada "Requer acesso naval." deixa de ser objetivo de caminhada (sem travar). As opções de exploração dos bots vêm do estado real (como as de um humano), porque a cópia redigida esconde o conteúdo das Regiões.
 

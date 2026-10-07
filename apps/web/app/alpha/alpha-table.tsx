@@ -20,14 +20,12 @@ type Unit = Game['units'][number];
 type Tab = 'city' | 'territory' | 'military';
 type Ctx = { hexId: string; kind: 'city' | 'units' | 'hex' | 'people' | 'threat' | 'foreign'; cityId?: string; group?: string | null };
 type Step = { id: string; param?: string | undefined };
-type Mode = { kind: 'move' | 'explore' | 'attack' | 'mission' | 'disembark'; ids: string[]; origin: string; hexes: string[]; label: string };
+type Mode = { kind: 'move' | 'attack' | 'mission' | 'disembark'; ids: string[]; origin: string; hexes: string[]; label: string; /** Closed Regions this group can enter as the last step of the Move (Move + Discovery). */ frontier?: GroupFrontier[] };
 type Group = { key: string; kind: 'pioneer' | 'envoy' | 'army' | 'fleet'; label: string; ids: string[] };
-type ExploreRegion = Game['unitOptions'][string]['explore'][number];
-/** A Region chosen for exploration that admits several orientations: the explorer picks one of N abstract notches (no terrain is shown). */
-type Orient = { unitId: string; target: string; regionId: string | null; rotations: number[]; index: number };
-/** Only Pioneiros (land) and Frotas / Embarcações Costeiras (sea) explore; a military land piece never shows Explorar. */
-const EXPLORERS: ReadonlySet<string> = new Set(['PIONEER', 'FLEET', 'COASTAL_VESSEL']);
-const openRegions = (list: readonly ExploreRegion[]) => list.filter(r => r.block === null && r.rotations.length > 0);
+/** A closed Region the whole group can enter: each entry hex with the group's path (the slowest piece's) and the orientations that give every piece a way in. */
+type GroupFrontier = { regionId: string; hexIds: string[]; entries: { hexId: string; path: string[]; rotations: number[] }[] };
+/** A Region that admits several orientations: the group picks one of N abstract notches (no terrain is shown) and the Move goes with it. */
+type Orient = { ids: string[]; path: string[]; regionId: string | null; rotations: number[]; index: number };
 
 /** N notches on a ring and an arrow that turns to the chosen one. Abstract on purpose: it never hints at the terrain under the Region. */
 function OrientationRing({ count, index, onPick }: { count: number; index: number; onPick: (i: number) => void }) {
@@ -112,10 +110,24 @@ export function useTable(a: {
   };
 
   // ---------- spatial decisions: the map is the interface ----------
-  /** The piece of a group that can explore now: the Pioneiro itself, or the first free Frota / Embarcação Costeira of a fleet. */
-  const explorerOf = (group: Group): Unit | null => {
-    const units = group.ids.map(id => game.units.find(u => u.id === id)).filter((u): u is Unit => !!u && EXPLORERS.has(u.kind));
-    return units.find(u => !orderedIds.has(u.id) && (game.unitOptions[u.id]?.explore.length ?? 0) > 0) ?? units.find(u => !orderedIds.has(u.id)) ?? units[0] ?? null;
+  /**
+   * Discovery is a Move (canon 2026-10-07): the closed Regions the whole group can enter as the last step. The server answers per piece; the group keeps what every piece
+   * can do, walks the slowest piece's path, and needs at least one discoverer (Pioneiro; a ship with a Pioneiro aboard or Navegação Oceânica).
+   */
+  const frontierOfGroup = (ids: readonly string[]): { regions: GroupFrontier[]; block: string | null; note: string | null } => {
+    const opts = ids.map(id => game.unitOptions[id]).filter((o): o is NonNullable<typeof o> => o !== undefined);
+    if (!opts.length || opts.length !== ids.length) return { regions: [], block: null, note: null };
+    if (!opts.some(o => o.discoverer)) return { regions: [], block: null, note: opts.find(o => o.frontierNote)?.frontierNote ?? null };
+    const slow = opts.reduce((a, b) => (b.movement < a.movement ? b : a));
+    const regions: GroupFrontier[] = []; let block: string | null = null;
+    for (const region of slow.frontier) {
+      const lists = opts.map(o => o.frontier.find(x => x.regionId === region.regionId));
+      if (lists.some(l => !l)) continue;
+      const entries = region.entries.map(entry => ({ ...entry, rotations: entry.rotations.filter(k => lists.every(l => l!.entries.some(e => e.hexId === entry.hexId && e.rotations.includes(k)))) })).filter(entry => entry.rotations.length > 0);
+      if (entries.length) regions.push({ regionId: region.regionId, hexIds: region.hexIds, entries });
+      else block ??= region.block;
+    }
+    return { regions, block, note: null };
   };
   const startMode = (group: Group, kind: Mode['kind']) => {
     if (kind === 'disembark') {
@@ -128,13 +140,12 @@ export function useTable(a: {
     const opts = group.ids.map(id => game.unitOptions[id]).filter((o): o is NonNullable<typeof o> => o !== undefined);
     if (opts.length !== group.ids.length || !opts.length) return;
     let hexes: string[] = [], label = '';
-    if (kind === 'move') { hexes = Object.keys(opts[0]!.moves).filter(h => opts.every(o => o.moves[h])); label = `Mover ${group.label}: escolha o destino no mapa`; }
-    if (kind === 'explore') {
-      // Only Regions the piece can actually enter light up; one without a way in ("Requer acesso naval.") is named, never clickable.
-      const explorer = explorerOf(group), list = explorer ? game.unitOptions[explorer.id]?.explore ?? [] : [], blocked = list.filter(r => r.block !== null || !r.rotations.length);
-      if (!explorer) return;
-      setFlash(null); setMode({ kind, ids: [explorer.id], origin: explorer.hexId, hexes: [...new Set(openRegions(list).flatMap(r => r.hexIds))], label: `Explorar: escolha a Região destacada${blocked.length ? ` · outra: ${blocked[0]!.block ?? 'sem acesso'}` : ''}` });
-      return;
+    let frontier: GroupFrontier[] | undefined;
+    if (kind === 'move') {
+      hexes = Object.keys(opts[0]!.moves).filter(h => opts.every(o => o.moves[h]));
+      frontier = frontierOfGroup(group.ids).regions;
+      hexes = [...hexes, ...frontier.flatMap(r => r.hexIds)];
+      label = `Mover ${group.label}: escolha o destino no mapa${frontier.length ? ' · uma Região fechada destacada é descoberta' : ''}`;
     }
     if (kind === 'attack' || kind === 'mission') {
       const origin = ownUnits.find(u => u.id === group.ids[0])!.hexId;
@@ -143,7 +154,7 @@ export function useTable(a: {
       if (kind === 'mission') hexes = game.view.visibleCities.filter(c => c.ownerId !== selfId && distance(origin, c.hexId) <= 1).map(c => c.hexId);
       label = kind === 'attack' ? `Atacar (${postureText(posture)}): escolha o alvo no mapa` : 'Missão de influência: escolha a cidade';
     }
-    setFlash(null); setMode({ kind, ids: group.ids, origin: ownUnits.find(u => u.id === group.ids[0])!.hexId, hexes, label });
+    setFlash(null); setMode({ kind, ids: group.ids, origin: ownUnits.find(u => u.id === group.ids[0])!.hexId, hexes, label, ...(frontier ? { frontier } : {}) });
   };
   const hostileTo = (hexId: string) => {
     const city = game.view.visibleCities.find(c => c.hexId === hexId), other = city?.ownerId ?? game.units.find(u => u.hexId === hexId && u.ownerId !== selfId)?.ownerId;
@@ -156,18 +167,20 @@ export function useTable(a: {
     const opts = mode.ids.map(id => game.unitOptions[id]!);
     if (mode.kind === 'disembark') { void send({ type:'DISEMBARK', unitIds: mode.ids, hexId }).then(finish); return; }
     if (mode.kind === 'move') {
+      // The last step may enter a closed Region: the same Move, ending on an entry hex, carrying the orientation (Move + Discovery).
+      const region = (mode.frontier ?? []).find(r => r.hexIds.includes(hexId));
+      if (region) {
+        const entry = region.entries.find(e => e.hexId === hexId) ?? [...region.entries].sort((x, y) => x.path.length - y.path.length || x.hexId.localeCompare(y.hexId))[0]!;
+        if (entry.rotations.length === 1) { void queue({ type:'MOVE', unitIds: mode.ids, path: entry.path, rotation: entry.rotations[0] }).then(finish); return; }
+        setMode(null); setFlash(null);
+        setOrient({ ids: mode.ids, path: entry.path, regionId: game.board.find(r => (r.hexIds as readonly string[]).includes(entry.hexId))?.id ?? null, rotations: [...entry.rotations], index: 0 });
+        setSteps(old => [...old, { id: 'orient' }]);
+        return;
+      }
       const block = stackViewVerdict(game.stacks, mode.ids.map(id => stackCategory(rules[game.units.find(u => u.id === id)!.kind]!)), hexId);
       if (block) { setFlash(block); return; }
-      void queue({ type:'MOVE', unitIds: mode.ids, path: opts[0]!.moves[hexId] }).then(finish);
-    } else if (mode.kind === 'explore') {
-      const region = (opts[0]?.explore ?? []).find(r => r.hexIds.includes(hexId));
-      if (!region) return;
-      if (region.block !== null || !region.rotations.length) { setFlash(region.block ?? 'Esta peça não entra nesta Região.'); return; }
-      // One orientation gives a way in: it is the one the server applies, so the order goes at once. Several: the explorer chooses.
-      if (region.rotations.length === 1) { void queue({ type:'EXPLORE', unitId: mode.ids[0], target: region.target, rotation: region.rotations[0] }).then(finish); return; }
-      setMode(null); setFlash(null);
-      setOrient({ unitId: mode.ids[0]!, target: region.target, regionId: game.board.find(r => (r.hexIds as readonly string[]).includes(region.target))?.id ?? null, rotations: [...region.rotations], index: 0 });
-      setSteps(old => [...old, { id: 'orient' }]);
+      const slowest = opts.reduce((a, b) => (b.movement < a.movement ? b : a));
+      void queue({ type:'MOVE', unitIds: mode.ids, path: slowest.moves[hexId] }).then(finish);
     } else if (mode.kind === 'mission') {
       void queue({ type:'INFLUENCE', unitId: mode.ids[0], target: hexId }).then(finish);
     } else {
@@ -254,18 +267,17 @@ export function useTable(a: {
     const groups = groupsAt(c.hexId), group = groups.find(g => g.key === c.group) ?? groups[0];
     if (!group) return { id: 'empty', title: 'Sem peças', nodes: [] };
     const units = group.ids.map(id => game.units.find(u => u.id === id)!).filter(Boolean) as Unit[];
-    const subtitle = group.kind === 'army' || group.kind === 'fleet' ? compositionText(units) : group.kind === 'pioneer' ? 'Explora por terra ou funda · civil' : 'Missões de influência · civil';
+    const subtitle = group.kind === 'army' || group.kind === 'fleet' ? compositionText(units) : group.kind === 'pioneer' ? 'Descobre ao mover, ou funda · civil' : 'Missões de influência · civil';
     const tabs = groups.length > 1 ? groups.map(g => ({ id: g.key, label: g.label, active: g.key === group.key, onSelect: () => { setCtx({ ...c, group: g.key }); setSteps([{ id: 'root' }]); setMode(null); } })) : undefined;
     const opts = group.ids.map(id => game.unitOptions[id]).filter((o): o is NonNullable<typeof o> => o !== undefined);
     const ordered = group.ids.map(id => orderedIds.get(id)).find(Boolean);
     const busy = ordered ? 'Esta peça já tem ordem nesta rodada: troque a ordem para escolher outra.' : gate;
     const common = (key: 'moves') => opts.length === group.ids.length && opts.length ? Object.keys(opts[0]![key]).filter(h => opts.every(o => o[key][h])) : [];
-    const moveHexes = common('moves'), explorer = group.kind === 'pioneer' || group.kind === 'fleet' ? explorerOf(group) : null;
-    const exploreAll = explorer ? game.unitOptions[explorer.id]?.explore ?? [] : [], exploreOpen = openRegions(exploreAll);
-    const exploreWhy = exploreOpen.length ? null : exploreAll.length ? exploreAll.find(r => r.block)?.block ?? 'Nenhuma Região ao alcance desta peça.' : group.kind === 'fleet' ? 'Nenhuma Região fechada ao alcance: leve a Frota até a borda.' : 'Nenhuma Região fechada ao alcance: mova o Pioneiro até a borda.';
-    const exploreNode = (dominant: boolean): CloudNode => ({ id: 'explore', label: 'Explorar', icon: 'explore', tone: dominant && !exploreWhy && !busy ? 'dominant' : 'alt', badge: exploreOpen.length > 1 ? String(exploreOpen.length) : null, disabled: busy ?? exploreWhy, hint: group.kind === 'fleet' ? 'A Frota explora pelo mar' : 'O Pioneiro explora por terra', onSelect: () => (busy ? setFlash(busy) : exploreWhy ? setFlash(exploreWhy) : startMode(group, 'explore')) });
-    /** Shown in the cloud when the only Regions in reach have no way in for this piece (e.g. "Requer acesso naval."). */
-    const exploreNote = !busy && !exploreOpen.length && exploreAll.some(r => r.block) ? exploreWhy : null;
+    const moveHexes = common('moves'), frontier = frontierOfGroup(group.ids), canMove = moveHexes.length > 0 || frontier.regions.length > 0;
+    /** Pioneiro + military pieces on the same hex that are free this round: they can walk (and open a Region) together. */
+    const escortIds = group.kind === 'pioneer' ? ownUnits.filter(u => u.hexId === c.hexId && rules[u.kind]?.domain === 'LAND' && (rules[u.kind]?.strength ?? 0) > 0 && !orderedIds.has(u.id)).map(u => u.id) : [];
+    /** Shown in the cloud when the Regions in reach have no way in for this group ("Requer acesso naval.") or it lacks a discoverer. */
+    const frontierNote = !busy && !frontier.regions.length ? frontier.block ?? frontier.note : null;
     const settleBlock = group.kind === 'pioneer' && opts[0] ? opts[0].settleBlock : 'x';
     const origin = c.hexId;
     const attackable = [...new Set([...game.view.visibleCities.filter(x => x.ownerId !== selfId).map(x => x.hexId), ...game.units.filter(u => u.ownerId !== selfId && !u.carrierId).map(u => u.hexId)])].filter(h => distance(origin, h) === 1);
@@ -273,7 +285,8 @@ export function useTable(a: {
     const hostileNow = attackable.some(h => hostileTo(h).hostile);
     const missionTargets = game.view.visibleCities.filter(x => x.ownerId !== selfId && distance(origin, x.hexId) <= 1);
     const cancel = cancelNode(ordered);
-    const move: CloudNode = { id: 'move', label: 'Mover', icon: 'move', disabled: busy ?? (moveHexes.length ? null : 'Sem destino alcançável nesta rodada.'), onSelect: () => (busy ? setFlash(busy) : moveHexes.length ? startMode(group, 'move') : setFlash('Sem destino alcançável nesta rodada.')) };
+    const move: CloudNode = { id: 'move', label: 'Mover', icon: 'move', badge: frontier.regions.length ? '?' : null, hint: frontier.regions.length ? 'Inclui entrar numa Região fechada para descobri-la' : frontier.block ?? frontier.note ?? undefined, disabled: busy ?? (canMove ? null : 'Sem destino alcançável nesta rodada.'), onSelect: () => (busy ? setFlash(busy) : canMove ? startMode(group, 'move') : setFlash('Sem destino alcançável nesta rodada.')) };
+    const escort: CloudNode | null = escortIds.length && canMove ? { id: 'escort', label: 'Com escolta', icon: 'move', badge: String(escortIds.length), hint: 'Pioneiro e militares da mesma casa: movem e descobrem juntos', disabled: busy, onSelect: () => (busy ? setFlash(busy) : startMode({ ...group, ids: [...group.ids, ...escortIds], label: `${group.label} + escolta` }, 'move')) } : null;
     const detailsNode: CloudNode = { id: 'details', label: 'Ver detalhes', icon: 'details', onSelect: () => showDetails('military') };
     if (step.id === 'settle') {
       const reason = busy ?? (typeof settleBlock === 'string' ? settleBlock : null);
@@ -282,11 +295,11 @@ export function useTable(a: {
     }
     if (step.id === 'orient' && orient) {
       const n = orient.rotations.length, i = Math.min(orient.index, n - 1), turn = (d: number) => setOrient(o => o ? { ...o, index: (o.index + d + n) % n } : o);
-      return { id: 'orient', title: 'Orientação da Região', subtitle: group.label, nodes: [], note: flash, card: <div className="ctx-card ctx-orient" onKeyDown={e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); turn(e.key === 'ArrowRight' ? 1 : -1); } }}>
+      return { id: 'orient', title: 'Orientação da Região', subtitle: `${group.label} · mover para o desconhecido`, nodes: [], note: flash, card: <div className="ctx-card ctx-orient" onKeyDown={e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); turn(e.key === 'ArrowRight' ? 1 : -1); } }}>
         <div className="ctx-orient-head"><OrientationRing count={n} index={i} onPick={k => setOrient(o => o ? { ...o, index: k } : o)} />
           <div className="ctx-orient-pick"><button type="button" aria-label="Orientação anterior" onClick={() => turn(-1)}>‹</button><b role="status">Orientação {i + 1} de {n}</b><button type="button" aria-label="Próxima orientação" onClick={() => turn(1)}>›</button></div></div>
-        <p>A Região gira antes de virar. O terreno só aparece quando a rodada for resolvida.</p>
-        <button type="button" className="ctx-go" disabled={busy !== null} onClick={() => void queue({ type:'EXPLORE', unitId: orient.unitId, target: orient.target, rotation: orient.rotations[i] }).then(finish)}>Confirmar exploração</button></div> };
+        <p>A Região gira antes de virar. O terreno só aparece quando a rodada for resolvida; o movimento termina na entrada.</p>
+        <button type="button" className="ctx-go" disabled={busy !== null} onClick={() => void queue({ type:'MOVE', unitIds: orient.ids, path: orient.path, rotation: orient.rotations[i] }).then(finish)}>Confirmar movimento</button></div> };
     }
     if (step.id === 'posture') return { id: 'posture', title: 'Postura do ataque', subtitle: group.label, nodes: POSTURES.map(([key, label]) => ({ id: key, label, icon: 'posture' as const, active: posture === key, tone: posture === key ? 'dominant' as const : 'alt' as const, onSelect: () => { setPosture(key); setSteps([{ id: 'root' }]); } })), note: 'Vale para o próximo ataque deste grupo.' };
     if (step.id === 'peace') return { id: 'peace', title: 'Em paz', subtitle: step.param, nodes: [{ id: 'diplomacy', label: 'Abrir Diplomacia', icon: 'people', tone: 'dominant', onSelect: () => { close(); a.openBook('diplomacy'); } }], note: `Declare guerra em Diplomacia; a declaração é resolvida antes dos conflitos, então o ataque pode ser na mesma rodada.` };
@@ -301,23 +314,21 @@ export function useTable(a: {
     // root
     let nodes: CloudNode[];
     if (group.kind === 'pioneer') {
-      const settleOk = settleBlock === null, exploreOk = exploreOpen.length > 0;
+      const settleOk = settleBlock === null;
       nodes = [
-        exploreNode(true),
-        { ...move, tone: !exploreOk && !settleOk && !busy ? 'dominant' : 'alt' },
-        { id: 'found', label: 'Fundar', icon: 'found', tone: settleOk && !exploreOk && !busy ? 'dominant' : 'alt', disabled: busy, onSelect: () => (busy ? setFlash(busy) : push('settle')) },
+        { ...move, tone: canMove && !busy ? 'dominant' : 'alt' },
+        ...(escort ? [escort] : []),
+        { id: 'found', label: 'Fundar', icon: 'found', tone: settleOk && !canMove && !busy ? 'dominant' : 'alt', disabled: busy, onSelect: () => (busy ? setFlash(busy) : push('settle')) },
       ];
     } else if (group.kind === 'envoy') {
       nodes = [{ id: 'mission', label: 'Missão', icon: 'people', tone: missionTargets.length && !busy ? 'dominant' : 'alt', disabled: busy ?? (missionTargets.length ? null : 'Leve o Enviado a uma cidade estrangeira vizinha.'), onSelect: () => (busy ? setFlash(busy) : missionTargets.length ? startMode(group, 'mission') : setFlash('Leve o Enviado a uma cidade estrangeira vizinha.')) }, { ...move, tone: !missionTargets.length && !busy ? 'dominant' : 'alt' }];
     } else {
       const attackReason = busy ?? (!fighters ? 'Peças civis não atacam.' : attackable.length ? null : 'Nenhum alvo a 1 hex.');
-      // A fleet with a Frota or Embarcação Costeira also explores by sea; land military pieces never explore.
-      const seaExplore = group.kind === 'fleet' && explorer ? [exploreNode(!hostileNow && exploreOpen.length > 0)] : [];
-      nodes = [...seaExplore, { ...move, tone: hostileNow && !busy ? 'alt' : busy || (seaExplore[0]?.tone === 'dominant') ? 'alt' : 'dominant' },
+      nodes = [{ ...move, tone: hostileNow && !busy ? 'alt' : 'dominant' },
         { id: 'attack', label: 'Atacar', icon: 'attack', tone: hostileNow && !busy ? 'dominant' : 'alt', disabled: attackReason, badge: attackable.length ? String(attackable.length) : null, onSelect: () => (attackReason ? setFlash(attackReason) : startMode(group, 'attack')) },
         { id: 'posture', label: 'Postura', icon: 'posture', badge: postureText(posture), onSelect: () => push('posture') }];
     }
-    return { id: 'root', title: group.kind === 'army' || group.kind === 'fleet' ? group.label.toUpperCase() : group.label.toUpperCase(), subtitle, nodes: [...(cancel ? [cancel, ...nodes.map(n => ({ ...n, tone: n.tone === 'dominant' ? 'alt' as const : n.tone }))] : nodes), more()].slice(0, 5 + (cancel ? 1 : 0)), note: flash ?? (ordered ? `Ordem: ${a.describeOrder(ordered)}` : exploreNote), tabs };
+    return { id: 'root', title: group.kind === 'army' || group.kind === 'fleet' ? group.label.toUpperCase() : group.label.toUpperCase(), subtitle, nodes: [...(cancel ? [cancel, ...nodes.map(n => ({ ...n, tone: n.tone === 'dominant' ? 'alt' as const : n.tone }))] : nodes), more()].slice(0, 5 + (cancel ? 1 : 0)), note: flash ?? (ordered ? `Ordem: ${a.describeOrder(ordered)}` : frontierNote), tabs };
   };
 
   const hexLevel = (c: Ctx, step: Step): CloudLevel => {

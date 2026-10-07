@@ -184,8 +184,8 @@ export function candidates(box, id, persona) {
   const out = [], rand = ctx.rand[id];
   const add = (score, key, command) => out.push({ score: score + rand() * 4, key, command });
   const view = E.urbanOptions(state, id), unitOpts = E.alphaUnitOptions(state, id);
-  // Same exploration options a human receives (orientations, "Requer acesso naval."): computed on the real match because the redacted copy has hidden Regions.
-  if (box.real) { const realOpts = E.alphaUnitOptions(box.real(), id); for (const unitId of Object.keys(unitOpts)) if (realOpts[unitId]) unitOpts[unitId].explore = realOpts[unitId].explore; }
+  // Same Move-into-the-unknown options a human receives (entries, orientations, "Requer acesso naval."): computed on the real match because the redacted copy has hidden Regions.
+  if (box.real) { const realOpts = E.alphaUnitOptions(box.real(), id); for (const unitId of Object.keys(unitOpts)) if (realOpts[unitId]) Object.assign(unitOpts[unitId], { frontier: realOpts[unitId].frontier, discoverer: realOpts[unitId].discoverer, frontierNote: realOpts[unitId].frontierNote }); }
   const eraIndex = ERAS.indexOf(p.era);
   const cities = o.civilization.cities, nCities = cities.length;
   const w = persona.weights;
@@ -218,7 +218,11 @@ export function candidates(box, id, persona) {
   const dangers = threatsSeen.map(t => tileOf(state, t.hexId)).filter(Boolean);
   const safeHex = hex => !dangers.some(d => dist(tileOf(state, hex), d) <= 2);
   const closedRegions = state.regions.filter(r => r.revealedBy.length === 0);
+  const waterWorldNow = ['ARCHIPELAGO', 'INLAND_SEA'].includes(state.rules.worldPreset);
   const nearestClosed = (tile, skip = new Set()) => closedRegions.filter(r => !r.hexIds.some(h => skip.has(h))).map(r => ({ r, d: Math.min(...r.hexIds.map(h => dist(tile, tileOf(state, h)))) })).sort((a, b) => a.d - b.d || a.r.id.localeCompare(b.r.id))[0];
+  // Discovery is a MOVE (canon 2026-10-07): the order walks to an entry hex of a closed Region and carries the orientation. Nearest entry first.
+  const openFrontier = list => list.filter(e => e.block === null && e.entries.length > 0).map(e => ({ e, entry: [...e.entries].sort((a, b) => a.path.length - b.path.length || a.hexId.localeCompare(b.hexId))[0] })).sort((a, b) => a.entry.path.length - b.entry.path.length || a.e.regionId.localeCompare(b.e.regionId));
+  const frontierOrder = (unit, pick) => ({ type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: pick.entry.path, rotation: pick.entry.rotations[0] } });
   const goodTerrain = ['PLAINS', 'FOREST', 'COAST', 'HILLS'];
   const siteScore = (tile, minGap) => {
     const near = Math.min(...cityTiles.map(c => dist(c, tile)));
@@ -246,17 +250,26 @@ export function candidates(box, id, persona) {
     }
     // Explore: a closed Region within reach; otherwise walk toward the nearest closed Region (edge of the Pátria first). Single Pioneiros do it only without a site.
     const explorer = !wantFound || !founderRole || !walk;
-    const openExplore = uo.explore.filter(e => e.block === null && e.rotations.length > 0);
+    const openExplore = openFrontier(uo.frontier);
     if (explorer && (persona.explore ?? 1) > 0 && comp) {
-      if (openExplore.length) { add(95 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: openExplore[0]!.target, rotation: openExplore[0]!.rotations[0]! } }); return; }
+      if (openExplore.length) { add(95 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, frontierOrder(unit, openExplore[0])); return; }
+      // Nothing to enter by land: a Pioneiro next to an own ship boards it; the ship then carries the Discovery (water worlds, Regions "Requer acesso naval.").
+      if (uo.embark.length && (waterWorldNow || uo.frontier.some(e => e.block !== null))) { add(93, `embark:${unit.id}`, { type: 'EMBARK', unitIds: [unit.id], fleetId: uo.embark[0] }); return; }
+      // Water world (or a Region only a ship opens): walk to the nearest own ship that carries nothing yet, then board next round.
+      const emptyShip = myUnits.find(s2 => ['FLEET', 'COASTAL_VESSEL'].includes(s2.kind) && !s2.carrierId && !myUnits.some(c => c.carrierId === s2.id));
+      if (emptyShip && !uo.embark.length && (waterWorldNow || uo.frontier.some(e => e.block !== null))) {
+        const shipTile = tileOf(state, emptyShip.hexId), now = dist(here, shipTile);
+        const toShip = Object.keys(uo.moves).map(hex => ({ hex, d: dist(tileOf(state, hex), shipTile) })).filter(x => x.d < now).sort((a, b) => a.d - b.d || a.hex.localeCompare(b.hex))[0];
+        if (toShip) { add(92, `to-ship:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[toShip.hex] } }); return; }
+      }
       // A Region this Pioneiro cannot enter ("Requer acesso naval.") is not a goal: walking at it would stall the bot.
-      const goal = nearestClosed(here, new Set(uo.explore.filter(e => e.block !== null).flatMap(e => e.hexIds)));
+      const goal = nearestClosed(here, new Set(uo.frontier.filter(e => e.block !== null).flatMap(e => e.hexIds)));
       if (goal) {
         const goalTiles = goal.r.hexIds.map(h => tileOf(state, h));
         const step = Object.keys(uo.moves).filter(safeHex).map(hex => ({ hex, d: Math.min(...goalTiles.map(g => dist(tileOf(state, hex), g))) })).filter(x => x.d < goal.d).sort((a, b) => a.d - b.d || a.hex.localeCompare(b.hex))[0];
         if (step) { add(94, `scout:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[step.hex] } }); return; }
       }
-    } else if (!comp && openExplore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: openExplore[0]!.target, rotation: openExplore[0]!.rotations[0]! } });
+    } else if (!comp && openExplore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, frontierOrder(unit, openExplore[0]));
     if (walk) { ctx.siteWait.set(unit.id, waited + 1); add(walk.score, `pioneer:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[walk.hex] } }); return; }
     if (comp) {
       // D-1 measurement: with nothing left to open, competent players sweep the ring 3–5 hexes from their cities so a fresh Acampamento is seen.
@@ -269,17 +282,27 @@ export function candidates(box, id, persona) {
       if (far) add(60, `scout:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[far.hex] } });
     }
   });
-  // Naval explorers (Frota / Embarcação Costeira): explore through a navigable entry; otherwise sail toward the nearest closed Region over water. Military land pieces never explore.
-  myUnits.filter(u => (u.kind === 'FLEET' || u.kind === 'COASTAL_VESSEL') && !u.carrierId).sort((a, b) => a.id.localeCompare(b.id)).forEach(unit => {
+  // Ships discover only with a Pioneiro aboard or after Navegação Oceânica (`uo.discoverer`); otherwise they keep their naval work. A discovering ship enters a closed Region
+  // through a navigable entry, or sails toward the nearest one over water. A carried Pioneiro steps ashore on a legal city site (it founds next round).
+  myUnits.filter(u => ['FLEET', 'COASTAL_VESSEL'].includes(u.kind) && !u.carrierId).sort((a, b) => a.id.localeCompare(b.id)).forEach(unit => {
     const uo = unitOpts[unit.id];
-    if (!uo || (persona.explore ?? 1) <= 0) return;
-    const openNaval = uo.explore.filter(e => e.block === null && e.rotations.length > 0);
-    if (openNaval.length) { add(94 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: openNaval[0].target, rotation: openNaval[0].rotations[0] } }); return; }
-    const goal = nearestClosed(tileOf(state, unit.hexId), new Set(uo.explore.filter(e => e.block !== null).flatMap(e => e.hexIds)));
+    if (!uo || (persona.explore ?? 1) <= 0 || !uo.discoverer) return;
+    const openNaval = openFrontier(uo.frontier);
+    if (openNaval.length) { add(94 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, frontierOrder(unit, openNaval[0])); return; }
+    const goal = nearestClosed(tileOf(state, unit.hexId), new Set(uo.frontier.filter(e => e.block !== null).flatMap(e => e.hexIds)));
     if (!goal) return;
     const goalTiles = goal.r.hexIds.map(h => tileOf(state, h));
     const step = Object.keys(uo.moves).filter(hex => { const t = tileOf(state, hex); return t && ['COAST', 'SEA'].includes(t.terrain) && safeHex(hex); }).map(hex => ({ hex, d: Math.min(...goalTiles.map(g => dist(tileOf(state, hex), g))) })).filter(x => x.d < goal.d).sort((a, b) => a.d - b.d || a.hex.localeCompare(b.hex))[0];
     if (step) add(90, `sail:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[step.hex] } });
+  });
+  pioneers.filter(u => u.carrierId).forEach(unit => {
+    const uo = unitOpts[unit.id];
+    if (!uo || !comp || nCities >= Math.min(7, wantCities + 1)) return;
+    const ship = unitOpts[unit.carrierId];
+    // Keep exploring while the ship still has a Region to open; step ashore only when it has nothing left.
+    if (ship?.discoverer && (openFrontier(ship.frontier).length > 0)) return;
+    const site = uo.disembark.map(hex => ({ hex, score: siteScore(tileOf(state, hex), 3) })).filter(x => x.score !== null && safeHex(x.hex)).sort((a, b) => b.score - a.score || a.hex.localeCompare(b.hex))[0];
+    if (site) add(91, `disembark:${unit.id}`, { type: 'DISEMBARK', unitIds: [unit.id], hexId: site.hex });
   });
   // Cities.
   const reformCost = E.governmentOptions(state, id).cost, reserveInfluence = comp && eraIndex >= 1 && (round % state.rules.roundsPerEra === state.rules.roundsPerEra - 1 || E.isReformRound(state));
@@ -333,13 +356,15 @@ export function candidates(box, id, persona) {
     }
     if (nCities < wantCities && !myUnits.some(u => u.kind === 'PIONEER') && index === 0) if (pick('RECRUIT', x => x.unit === 'PIONEER').length) add(85, `recruit-pioneer`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'PIONEER' });
     if (eraIndex >= 1 && !myUnits.some(u => u.kind === 'PIONEER') && index === 0 && (persona.explore ?? 0) > 0) if (pick('RECRUIT', x => x.unit === 'PIONEER').length) add(60, 'recruit-explorer', { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'PIONEER' });
-    // Water worlds (Arquipélago, Mar Interior) and Regions only reachable by sea: a coastal city builds one vessel to keep exploring; it is cheap and the only piece that can.
-    const landExplore = pioneers.some(u => unitOpts[u.id]?.explore.some(e => e.block === null));
+    // Water worlds (Arquipélago, Mar Interior) and Regions only reachable by sea: a coastal city builds one vessel; a Pioneiro boards it and the ship carries the Discovery (only the ship can reach those Regions).
+    const landExplore = pioneers.some(u => unitOpts[u.id]?.frontier.some(e => e.block === null));
     const waterWorld = ['ARCHIPELAGO', 'INLAND_SEA'].includes(state.rules.worldPreset);
     if ((persona.explore ?? 0) > 0 && round >= 3 && closedRegions.length > 0 && (waterWorld || !landExplore) && !myUnits.some(u => u.kind === 'FLEET' || u.kind === 'COASTAL_VESSEL')) {
       const vessel = ['COASTAL_VESSEL', 'FLEET'].find(kind => pick('RECRUIT', x => x.unit === kind).length);
       if (vessel) add(waterWorld ? 88 : 62, `recruit-vessel:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: vessel });
     }
+    // A ship opens a Region only with a Pioneiro aboard (before Navegação Oceânica): an explorer persona with a ship and no Pioneiro left recruits one.
+    if (waterWorld && (persona.explore ?? 0) > 0 && round >= 3 && closedRegions.length > 0 && index === 0 && !pioneers.length && myUnits.some(u => ['FLEET', 'COASTAL_VESSEL'].includes(u.kind)) && pick('RECRUIT', x => x.unit === 'PIONEER').length) add(72, 'recruit-sea-pioneer', { type: 'URBAN_ACTION', cityId: city.id, action: 'RECRUIT', unit: 'PIONEER' });
     // The Distrito Marítimo (Porto included) for coastal cities of water worlds.
     for (const opt of pick('BUILD', x => x.build.kind === 'MARITIME')) add((waterWorld ? 66 : 48) * w.build * saving, `maritime:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build });
     if (state.routes.some(r => r.ownerId === id && r.fromCityId === city.id && !r.suspended)) if (pick('SUPPORT_TRADE').length) add(48, `trade:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'SUPPORT_TRADE' });

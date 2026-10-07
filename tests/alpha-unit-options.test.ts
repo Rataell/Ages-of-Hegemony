@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CIVILIZATIONS, PlayerIdSchema, REGION_TEMPLATES } from '@aoh/game-domain';
-import { alphaClaimOptions, alphaUnitOptions, applyAlphaCommand as apply, beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, hexId, hexNeighbors, orderMessage, settleWithPioneer, urbanActionMessage, validateExploration, validateMilitaryOrder } from '@aoh/game-engine';
+import { alphaClaimOptions, alphaUnitOptions, applyAlphaCommand as apply, beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, hexId, hexNeighbors, orderMessage, planFrontierMove, settleWithPioneer, urbanActionMessage, validateMilitaryOrder } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 
 function setup(count = 2, seed = 23) {
@@ -33,21 +33,23 @@ describe('per-piece order options', () => {
     }
   });
 
-  it('offers exploration only for adjacent unexplored regions, and every offer validates', () => {
+  it('offers entries into closed Regions only next to reachable hexes, and every offer validates as a MOVE', () => {
     const state = setup();
     const actor = state.players[0]!.playerId, unit = state.units.find(candidate => candidate.ownerId === actor)!;
     // Step the pioneer to the edge of its homeland so a neighbouring region is in reach.
     const closed = new Set(state.regions.filter(region => !region.revealedBy.includes(actor)).flatMap(region => region.hexIds as string[]));
     const edge = Object.keys(alphaUnitOptions(state, actor)[unit.id]!.moves).find(id => hexNeighbors(state.core.map.find(tile => tile.id === id)!).some(point => closed.has(`${point.q},${point.r}`)))!;
     unit.hexId = edge as never;
-    const offers = alphaUnitOptions(state, actor)[unit.id]!.explore;
+    const offers = alphaUnitOptions(state, actor)[unit.id]!.frontier;
     expect(offers.length).toBeGreaterThan(0);
     for (const offer of offers) {
-      expect(offer.hexIds).toContain(offer.target);
-      expect(() => validateExploration(state, actor, { id: 'probe', type: 'EXPLORE', unitId: unit.id, target: offer.target as never, rotation: 0 })).not.toThrow();
+      expect(offer.entries.every(entry => offer.hexIds.includes(entry.hexId))).toBe(true);
+      for (const entry of offer.entries.filter(candidate => candidate.rotations.length > 0)) {
+        expect(() => planFrontierMove(state, actor, { id: 'probe', type: 'MOVE', unitIds: [unit.id], path: entry.path as never, rotation: entry.rotations[0]! })).not.toThrow();
+      }
     }
     const revealed = new Set(state.regions.filter(region => region.revealedBy.includes(actor)).flatMap(region => region.hexIds));
-    expect(offers.every(offer => !revealed.has(offer.target as never))).toBe(true);
+    expect(offers.every(offer => offer.entries.every(entry => !revealed.has(entry.hexId as never)))).toBe(true);
   });
 
   it('reports founding blocks exactly as the action does, in Portuguese', () => {

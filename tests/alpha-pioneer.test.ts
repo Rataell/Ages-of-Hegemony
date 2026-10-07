@@ -26,17 +26,18 @@ describe('Pioneiro: the one civil piece that explores and founds', () => {
     expect(parsed.data.events.at(-1)).toMatchObject({ type: 'SAVE_UPGRADED' });
     expect(Object.keys(parsed.data.rules.units)).not.toContain('EXPLORER');
   });
-  it('a Pioneiro that has an Order this round (exploring) cannot found in the same round', () => {
+  it('a Pioneiro that has an Order this round (moving into the unknown) cannot found in the same round', () => {
     const state = game(), pioneer = state.units.find(unit => unit.ownerId === p1)!;
     const options = alphaUnitOptions(state, p1)[pioneer.id]!;
     expect(options.settleBlock === null || typeof options.settleBlock === 'string').toBe(true);
-    const target = options.explore[0];
-    if (!target) return;
-    const queued = applyAlphaCommand(state, p1, { type: 'QUEUE_ORDER', expectedVersion: state.version, order: { id: 'x1', type: 'EXPLORE', unitId: pioneer.id, target: target.target, rotation: 0 } });
+    const target = options.frontier.find(region => region.block === null)?.entries.find(entry => entry.rotations.length > 0);
+    // Not every homeland touches a closed Region the Pioneiro reaches; an ordinary move holds the same Order.
+    const path = target?.path ?? Object.values(options.moves)[0]!;
+    const queued = applyAlphaCommand(state, p1, { type: 'QUEUE_ORDER', expectedVersion: state.version, order: { id: 'x1', type: 'MOVE', unitIds: [pioneer.id], path, ...(target ? { rotation: target.rotations[0] } : {}) } });
     expect(queued.ok).toBe(true);
     if (!queued.ok) return;
     const settle = applyAlphaCommand(queued.value, p1, { type: 'SETTLE', expectedVersion: queued.value.version, unitId: pioneer.id, name: 'Nova' });
     expect(settle.ok).toBe(false);
-    if (!settle.ok) expect(settle.error.message).toContain('explorar e fundar são Ordens diferentes');
+    if (!settle.ok) expect(settle.error.message).toContain('mover (ou descobrir) e fundar são Ordens diferentes');
   });
 });

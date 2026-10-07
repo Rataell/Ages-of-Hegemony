@@ -242,7 +242,7 @@ describe('what each phase does', () => {
 describe('structured resolution visibility', () => {
   it('defines every result type required by the replay contract', () => {
     expect(ResolutionEventTypeSchema.options).toEqual([
-      'MOVEMENT', 'EXPLORATION', 'FOUNDATION', 'PRODUCTION', 'CONSTRUCTION', 'RECRUITMENT', 'RESEARCH',
+      'MOVEMENT', 'EXPLORATION', 'DISCOVERY', 'FOUNDATION', 'PRODUCTION', 'CONSTRUCTION', 'RECRUITMENT', 'RESEARCH',
       'TRADE', 'INFLUENCE', 'COMBAT', 'LOSSES', 'RETREAT', 'ADVANCE', 'FAILURE', 'ROUND_EVENT',
     ]);
   });

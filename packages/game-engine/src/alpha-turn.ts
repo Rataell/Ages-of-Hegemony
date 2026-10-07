@@ -7,7 +7,8 @@ import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { demobilize, mirrorDevelopment, refreshAlphaAdministration } from './alpha-city.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
-import { refreshKnowledge, validateExploration, visibleHexIds } from './alpha-world.js';
+import { refreshKnowledge, visibleHexIds } from './alpha-world.js';
+import { isFrontierMove, planFrontierMove } from './alpha-frontier.js';
 import { manageCard, playCivilizationCard, swapAmbition } from './alpha-cards.js';
 import { governmentReformBlock, isReformRound } from './alpha-era-turn.js';
 import { disembark, embark } from './alpha-naval.js';
@@ -141,9 +142,10 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
     } else if(command.type==='QUEUE_ORDER'||command.type==='CANCEL_ORDER') {
       if(command.type==='CANCEL_ORDER'){player.orders=player.orders.filter(o=>o.id!==command.orderId);player.plannedActions=player.plannedActions.filter(action=>action.id!==command.orderId);}
       else {
-        if(command.order.type==='EXPLORE')validateExploration(state,actor,command.order);
+        if(command.order.type==='EXPLORE')throw new Error('Explorar agora é Mover: escolha o destino numa Região fechada com um Pioneiro.');
         else if(command.order.type==='TRADE')tradePath(state,actor,command.order.fromCityId,command.order.toCityId);
         else if(command.order.type==='INFLUENCE')validateInfluence(state,actor,command.order);
+        else if(isFrontierMove(state,actor,command.order))planFrontierMove(state,actor,command.order);
         else validateMilitaryOrder(state,actor,command.order);
         if(command.order.type==='MOVE'&&command.order.path.length){
           const target=command.order.path.at(-1)!,moving=state.units.filter(u=>u.ownerId===actor&&(command.order as {unitIds:string[]}).unitIds.includes(u.id));

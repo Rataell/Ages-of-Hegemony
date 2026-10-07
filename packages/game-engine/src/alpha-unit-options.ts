@@ -1,6 +1,7 @@
 import { unitMovement } from './alpha-grades.js';
 import type { AlphaState, AlphaUnit, PlayerId } from '@aoh/game-domain';
-import { explorationAccess, explorerRole, regionOpenFor } from './alpha-world.js';
+import { regionOpenFor } from './alpha-world.js';
+import { discovererOf, entryRotations, frontierBlockText, frontierMode, newFrontierCache, FRONTIER_NEEDS_PIONEER, type FrontierCache } from './alpha-frontier.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { canEnter } from './alpha-military.js';
 import { enemyCityAt, movementOpen } from './alpha-diplomacy.js';
@@ -10,13 +11,23 @@ import { settleWithPioneer } from './alpha-cities.js';
 import { applyCommand } from './engine.js';
 import { alphaCanAfford } from './alpha-resources.js';
 import { disembarkBlock, embarkBlock, isCarried, isCarrierKind } from './alpha-naval.js';
-import { kitExplorationReach, kitMovement } from './alpha-kits.js';
+import { kitFrontierCost, kitMovement } from './alpha-kits.js';
 
 export interface AlphaUnitOptions {
   /** Cheapest legal MOVE path (origin excluded) to every hex the piece can reach this round. */
   moves: Record<string, string[]>;
-  /** Adjacent regions the player has not explored yet: the order target plus every hex of the region (geometry is public). */
-  explore: { target: string; hexIds: string[]; /** Orientations that give the piece a way in (one: applied automatically; several: the player chooses). */ rotations: number[]; /** Set when no orientation gives access, e.g. "Requer acesso naval." */ block: string | null }[];
+  /** MOVE budget of the piece this round (terrain costs, roads and bonuses already priced into `moves`): a group walks the path of its slowest piece. */
+  movement: number;
+  /**
+   * Moving into the unknown (Move + Discovery). Closed Regions this piece can enter as the LAST step of a MOVE: each entry is a hex of the Region next to a hex it
+   * can reach with at least the UNKNOWN cost left, with the cheapest path to it (entry included) and the orientations that give it a way in (one: applied
+   * automatically; several: the player chooses). `block` is set when no entry has an orientation ("Requer acesso naval.").
+   */
+  frontier: { regionId: string; hexIds: string[]; entries: { hexId: string; path: string[]; rotations: number[] }[]; block: string | null }[];
+  /** True when this piece can lead a Discovery by itself or as part of a group (Pioneiro; ship with a Pioneiro aboard; any ship after Navegação Oceânica). */
+  discoverer: boolean;
+  /** Why a closed Region next to the piece cannot be entered yet ("Necessita de um Pioneiro para descobrir."), or null. */
+  frontierNote: string | null;
   /** Pioneers only: null when founding here is allowed, otherwise the refusal the server would give. */
   settleBlock: string | null;
   /** Land pieces: own fleets on this hex or next to it that can take this piece now. */
@@ -35,17 +46,19 @@ export function alphaUnitOptions(state: AlphaState, actor: PlayerId): Record<str
   if (!progress) return {};
   const byId = new Map(state.core.map.map(tile => [tile.id, tile]));
   const known = new Set(progress.knownHexIds);
-  const options: Record<string, AlphaUnitOptions> = {};
+  const options: Record<string, AlphaUnitOptions> = {}, cache = newFrontierCache();
   for (const unit of state.units.filter(candidate => candidate.ownerId === actor)) {
     const carried = isCarried(unit);
     const embark = carried || state.rules.units[unit.kind].domain !== 'LAND' ? [] : state.units.filter(fleet => isCarrierKind(state, fleet.kind) && fleet.ownerId === actor && embarkBlock(state, actor, [unit.id], fleet.id) === null).map(fleet => fleet.id).sort();
     const disembark = carried ? hexNeighbors(byId.get(unit.hexId)!).map(hexId).filter(id => disembarkBlock(state, actor, [unit.id], id) === null).sort() : [];
-    options[unit.id] = { moves: carried ? {} : reachable(state, actor, unit, byId, known), explore: carried ? [] : explorable(state, actor, unit, byId), settleBlock: unit.kind === 'PIONEER' ? settleBlock(state, actor, unit) : 'Somente Pioneiros fundam cidades.', embark, disembark };
+    const walk = carried ? null : reachable(state, actor, unit, byId, known);
+    options[unit.id] = { moves: walk?.moves ?? {}, movement: walk?.budget ?? 0, ...(walk ? frontierOf(state, actor, unit, byId, walk, cache) : { frontier: [], discoverer: false, frontierNote: null }), settleBlock: unit.kind === 'PIONEER' ? settleBlock(state, actor, unit) : 'Somente Pioneiros fundam cidades.', embark, disembark };
   }
   return options;
 }
 
-function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>, known: Set<string>): Record<string, string[]> {
+interface Walk { moves: Record<string, string[]>; best: Map<string, { cost: number; path: string[] }>; budget: number }
+function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>, known: Set<string>): Walk {
   const budget = unitMovement(state, unit) + institutionBonus(state, actor, 'MOVEMENT') + kitMovement(state, actor, unit.kind);
   const land = state.rules.units[unit.kind].domain === 'LAND';
   const best = new Map<string, { cost: number; path: string[] }>([[unit.hexId, { cost: 0, path: [] }]]);
@@ -67,18 +80,33 @@ function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Ma
   for (const [id, node] of [...best.entries()].sort(([a], [b]) => a.localeCompare(b))) {
     if (id !== unit.hexId && stackBlock(state, actor, [unit], id) === null) moves[id] = node.path;
   }
-  return moves;
+  return { moves, best, budget };
 }
 
-function explorable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>): AlphaUnitOptions['explore'] {
-  if (explorerRole(state, unit) === null) return [];
-  const origin = byId.get(unit.hexId)!;
-  return state.regions.filter(region => !regionOpenFor(state, region, actor)).flatMap(region => {
-    const near = region.hexIds.map(id => byId.get(id)!).filter(tile => tile && hexDistance(origin, tile) <= kitExplorationReach(state, unit)).sort((a, b) => hexDistance(origin, a) - hexDistance(origin, b) || a.id.localeCompare(b.id));
-    if (!near[0]) return [];
-    const access = explorationAccess(state, unit, region);
-    return [{ target: near[0].id, hexIds: [...region.hexIds], rotations: access.rotations, block: access.block }];
-  }).sort((a, b) => a.target.localeCompare(b.target));
+function frontierOf(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>, walk: Walk, cache: FrontierCache): Pick<AlphaUnitOptions, 'frontier' | 'discoverer' | 'frontierNote'> {
+  const mode = frontierMode(state, [unit]);
+  if (!mode) return { frontier: [], discoverer: false, frontierNote: null };
+  // A ship's own answer counts the Pioneiro it carries; a land piece answers for itself (the group decides on the client by combining its pieces).
+  const discoverer = discovererOf(state, actor, [unit]) !== null;
+  const cost = kitFrontierCost(state, unit, state.rules.movementCosts.UNKNOWN);
+  const closed = state.regions.filter(region => !regionOpenFor(state, region, actor));
+  const frontier = closed.flatMap(region => {
+    const entries = region.hexIds.flatMap(id => {
+      const tile = byId.get(id);
+      if (!tile) return [];
+      let pick: { cost: number; path: string[] } | null = null;
+      for (const point of hexNeighbors(tile)) {
+        const from = walk.best.get(hexId(point));
+        if (from && from.cost + cost <= walk.budget && (pick === null || from.cost < pick.cost || (from.cost === pick.cost && from.path.length < pick.path.length))) pick = from;
+      }
+      if (!pick) return [];
+      return [{ hexId: id, path: [...pick.path, id], rotations: entryRotations(state, region, id, mode, cache) }];
+    });
+    if (!entries.length) return [];
+    const open = entries.some(entry => entry.rotations.length > 0);
+    return [{ regionId: region.id, hexIds: [...region.hexIds], entries: open ? entries.filter(entry => entry.rotations.length > 0) : entries, block: open ? null : frontierBlockText(mode) }];
+  }).sort((a, b) => a.regionId.localeCompare(b.regionId));
+  return { frontier, discoverer, frontierNote: !discoverer && frontier.length ? (mode === 'LAND' ? FRONTIER_NEEDS_PIONEER : 'Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.') : null };
 }
 
 /** Dry run on a copy: founding has several rules (spacing, terrain, cost) and only the real action knows all of them. */

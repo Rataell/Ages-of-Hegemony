@@ -24,9 +24,9 @@ function play(count, seed) {
       for (const unit of state.units.filter(piece => piece.ownerId === actor && state.rules.units[piece.kind].strength === 0)) {
         const option = options[unit.id]; if (!option) continue;
         const here = hexDistance(at(unit.hexId), target);
-        const explore = option.explore.map(region => ({ ...region, d: Math.min(...region.hexIds.map(id => hexDistance(at(id), target))) })).sort((a, b) => a.d - b.d)[0];
+        const explore = option.frontier.filter(region => region.block === null && region.entries.length).map(region => ({ ...region, d: Math.min(...region.hexIds.map(id => hexDistance(at(id), target))) })).sort((a, b) => a.d - b.d)[0];
         const move = Object.entries(option.moves).map(([id, path]) => ({ path, d: hexDistance(at(id), target) })).sort((a, b) => a.d - b.d)[0];
-        if (explore && explore.d < here) state = must(state, actor, { type: 'QUEUE_ORDER', order: { id: `x-${state.version}`, type: 'EXPLORE', unitId: unit.id, target: explore.target, rotation: 0 } });
+        if (explore && explore.d < here) { const entry = [...explore.entries].sort((a, b) => a.path.length - b.path.length)[0]; state = must(state, actor, { type: 'QUEUE_ORDER', order: { id: `x-${state.version}`, type: 'MOVE', unitIds: [unit.id], path: entry.path, rotation: entry.rotations[0] } }); }
         else if (move && move.d < here) state = must(state, actor, { type: 'QUEUE_ORDER', order: { id: `m-${state.version}`, type: 'MOVE', unitIds: [unit.id], path: move.path } });
       }
     }

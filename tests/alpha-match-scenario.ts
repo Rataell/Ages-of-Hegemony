@@ -75,10 +75,12 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   round();
   for(const treaty of [...state.treaties])submit(p2,{type:'RESPOND_TREATY',treatyId:treaty.id,accept:true});
   round();
-  perform({type:'QUEUE_ORDER',order:{id:'explore',type:'EXPLORE',unitId:'pioneer',target:'2,2',rotation:0}});
+  // Move + Discovery: the Pioneiro walks into the closed demonstration Region; the same Move reveals it and ends on the entry hex.
+  state.players.forEach(p=>{p.knownHexIds=p.knownHexIds.filter(id=>!state.regions[0]!.hexIds.includes(id));});// a face-down Region is unknown ground
+  perform({type:'QUEUE_ORDER',order:{id:'explore',type:'MOVE',unitIds:['pioneer'],path:['2,2'],rotation:0}});
   perform({type:'QUEUE_ORDER',order:{id:'route',type:'TRADE',fromCityId:'c1-0',toCityId:'c2-0'}});
   urbanAct('RESEARCH',{advancementId:'web-writing'});round();
-  perform({type:'QUEUE_ORDER',order:{id:'settler-move',type:'MOVE',unitIds:['pioneer'],path:['3,0']}});
+  perform({type:'QUEUE_ORDER',order:{id:'settler-move',type:'MOVE',unitIds:['pioneer'],path:['3,1','3,0']}});
   urbanAct('SUPPORT_TRADE',{},'c1-0');
   urbanAct('PRODUCE',{},'c1-1');
   urbanAct('RECRUIT',{unit:'INFANTRY'},'c1-0');round();

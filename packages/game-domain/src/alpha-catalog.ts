@@ -36,7 +36,11 @@ export function alphaUnitCatalog(): Record<z.infer<typeof AlphaUnitClassSchema>,
     /** Canon change (2026-10-05): Explorador and Pioneiro are one civil piece. It explores or founds, never both in the same Order; without combat. */
     PIONEER: make('Pioneiro', pool({ food: 3, materials: 2 }), 3, 0, 'Explora regiões e funda cidades. Civil, sem combate.'),
     ENVOY: { ...make('Enviado', pool({ wealth: 2, influence: 1 }), 3, 0, 'Diplomacia e presença cultural.'), upkeep: pool({ wealth: 1 }) },
-    /** First naval class (naval audit): Era I, explores and crosses the coast, carries one piece, never fights. */
-    COASTAL_VESSEL: { ...make('Embarcação Costeira', pool({ materials: 2, wealth: 1 }), 3, 0, 'Explora a costa e leva uma peça. Não combate.'), upkeep: pool({ wealth: 1 }), domain: 'SEA', transport: 1 },
+    /**
+     * The first, light warship (Era I): it patrols the coast, escorts and carries one piece, and fights at Força 1 (the Frota is the heavy ship, Força 3).
+     * Re-authored in the pre-frozen pass: it is a naval piece first and never "the exploring boat". It opens a closed Region only like any ship does
+     * (a Pioneiro aboard, or Navegação Oceânica). The id stays COASTAL_VESSEL so every save keeps parsing.
+     */
+    COASTAL_VESSEL: { ...make('Barca de Patrulha', pool({ materials: 2, wealth: 1 }), 3, 1, 'Navio leve: patrulha a costa, escolta, bloqueia e leva uma peça. Força 1.'), upkeep: pool({ wealth: 1 }), domain: 'SEA', transport: 1 },
   };
 }

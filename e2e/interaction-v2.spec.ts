@@ -85,14 +85,16 @@ test('city: the cloud is born on the city, morphs in place and acts without a si
   expect(await noGlobalScroll(page)).toBe(true);
 });
 
-test('Pioneiro: Explorar, Mover and Fundar answer on the map; clicking elsewhere closes, another piece swaps the context', async ({ browser }) => {
+test('Pioneiro: Mover (which also discovers) and Fundar answer on the map; clicking elsewhere closes, another piece swaps the context', async ({ browser }) => {
   const state = base();
   const near = neighbour(state, capital(state).hexId);
   const { page, repository, room } = await serve(browser, state);
   await touchPiece(page, 'g.hex.owner-1:has(.art-city)');
   const plate = page.locator('.table-cloud .ctx-plate');
   await expect(plate).toContainText('PIONEIRO');
-  for (const id of ['explore', 'move', 'found', 'more']) await expect(cloudNode(page, id)).toBeVisible();
+  for (const id of ['move', 'found', 'more']) await expect(cloudNode(page, id)).toBeVisible();
+  // Move + Discovery: there is no separate Explorar.
+  await expect(cloudNode(page, 'explore')).toHaveCount(0);
   await shot(page, 'B-pioneer-cloud');
   // Mover: the cloud folds into one pill and the MAP lights the legal destinations.
   await cloudNode(page, 'move').click();
@@ -117,7 +119,7 @@ test('Pioneiro: Explorar, Mover and Fundar answer on the map; clicking elsewhere
   expect(await noGlobalScroll(page)).toBe(true);
 });
 
-test('Pioneiro next to a closed Region: Explorar is dominant and the Region lights up on the map', async ({ browser }) => {
+test('Pioneiro next to a closed Region: Mover is dominant and the Region lights up on the map as a place to enter', async ({ browser }) => {
   const state = base();
   // Walk the second Pioneiro to the edge of the Pátria, beside a face-down Region (a legal hex of its own region).
   const own = state.regions.find(r => r.hexIds.includes(capital(state).hexId))!;
@@ -127,12 +129,12 @@ test('Pioneiro next to a closed Region: Explorar is dominant and the Region ligh
   scout.hexId = edge as never;
   const { page } = await serve(browser, state);
   await touchPiece(page, `g.hex[aria-label$=" ${edge}"], g.hex[aria-label$=" ${edge}, trabalhado"]`);
-  await expect(page.locator('.ctx-node.tone-dominant')).toHaveAttribute('data-node', 'explore');
-  await cloudNode(page, 'explore').click();
-  await expect(page.locator('.ctx-chip')).toContainText('Explorar');
-  expect(await page.locator('svg.world-map g.hex.target-explore').count()).toBeGreaterThanOrEqual(7);
+  await expect(page.locator('.ctx-node.tone-dominant')).toHaveAttribute('data-node', 'move');
+  await cloudNode(page, 'move').click();
+  await expect(page.locator('.ctx-chip')).toContainText('Mover');
+  await expect(page.locator('.ctx-chip')).toContainText('Região fechada');
   expect(await page.locator('svg.world-map .region-back.is-target').count()).toBeGreaterThanOrEqual(1);
-  await shot(page, 'E-explore-mode');
+  await shot(page, 'E-move-into-the-unknown-mode');
 });
 
 test('military stack: Mover, Atacar and Postura live on the stack; Atacar lights the adjacent target', async ({ browser }) => {

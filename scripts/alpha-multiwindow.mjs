@@ -117,10 +117,10 @@ async function run(count) {
   const planned = [];
   for (const p of players) {
     const { g, units } = await mine(p);
-    const unit = units.find(u => u.kind === 'PIONEER' && g.unitOptions[u.id]?.explore.length);
+    const unit = units.find(u => u.kind === 'PIONEER' && g.unitOptions[u.id]?.frontier.some(r => r.block === null && r.entries.length));
     if (!unit) { result.notes.push(`${p.letter}: no explore option at the start`); continue; }
-    const target = g.unitOptions[unit.id].explore[0];
-    const res = await cmd(p, { type: 'QUEUE_ORDER', order: { id: `explore-${p.letter}`, type: 'EXPLORE', unitId: unit.id, target: target.target, rotation: 0 } });
+    const region = g.unitOptions[unit.id].frontier.find(r => r.block === null && r.entries.length), target = [...region.entries].sort((a, b) => a.path.length - b.path.length)[0];
+    const res = await cmd(p, { type: 'QUEUE_ORDER', order: { id: `explore-${p.letter}`, type: 'MOVE', unitIds: [unit.id], path: target.path, rotation: target.rotations[0] } });
     planned.push({ p, unit, target, res });
   }
   const before = await Promise.all(players.map(regionBacks));
@@ -128,7 +128,7 @@ async function run(count) {
   // observers: every window waits for its own count of face-down pieces to drop by the number of explored Regions
   // Two seats can pick the same frontier Region (2p neighbours): only distinct Regions flip.
   const probe = (await room(host)).game;
-  const need = new Set(planned.filter(x => x.res.ok).map(x => probe.board.find(r => r.hexIds.includes(x.target.target))?.id)).size;
+  const need = new Set(planned.filter(x => x.res.ok).map(x => probe.board.find(r => r.hexIds.includes(x.target.hexId))?.id)).size;
   const watchers = players.map((p, i) => observe(p, '(()=>document.querySelectorAll("svg.world-map .region-back").length<=arg)()', before[i] - need));
   // all but the last confirm first; the last READY triggers the simultaneous resolution
   const readyAll = async () => { let last = null; for (const p of players) { last = await cmd(p, { type: 'READY' }); last.p = p; } return last; };

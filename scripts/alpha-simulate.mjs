@@ -68,7 +68,8 @@ async function plan(p, round) {
     const o = g3.unitOptions[u.id]; if (!o) continue;
     if (u.kind === 'PIONEER' && round >= 2 && o.settleBlock === null) { await cmd(p, { type: 'SETTLE', unitId: u.id, name: 'Nova ' + p.label }); continue; }
     if (u.kind === 'ENVOY' && round >= 4) { const near = g3.view.visibleCities.find(c => c.ownerId !== id); if (near) { await cmd(p, { type: 'QUEUE_ORDER', order: { id: `inf-${round}-${u.id}`, type: 'INFLUENCE', unitId: u.id, target: near.hexId } }); continue; } }
-    if (o.explore?.length) { await cmd(p, { type: 'QUEUE_ORDER', order: { id: `o-${round}-${u.id}`, type: 'EXPLORE', unitId: u.id, target: o.explore[0].hexIds[0], rotation: 0 } }); queued++; continue; }
+    const into = o.frontier?.find(r => r.block === null && r.entries.length);
+    if (into) { const e = [...into.entries].sort((a, b) => a.path.length - b.path.length)[0]; await cmd(p, { type: 'QUEUE_ORDER', order: { id: `o-${round}-${u.id}`, type: 'MOVE', unitIds: [u.id], path: e.path, rotation: e.rotations[0] } }); queued++; continue; }
     const enemy = g3.units.find(e => e.ownerId !== id && !e.carrierId); const atWar = g3.wars.length > 0;
     if (atWar && enemy && (g3.rules.units[u.kind].strength > 0)) { await cmd(p, { type: 'QUEUE_ORDER', order: { id: `atk-${round}-${u.id}`, type: 'ATTACK', unitIds: [u.id], target: enemy.hexId, posture: 'ASSAULT' } }); }
     const moves = Object.entries(o.moves); if (moves.length) { const [, path] = moves[moves.length - 1]; const res = await cmd(p, { type: 'QUEUE_ORDER', order: { id: `o-${round}-${u.id}`, type: 'MOVE', unitIds: [u.id], path } }); if (res === 'ok' && queued === 0 && round === 5) await cmd(p, { type: 'CANCEL_ORDER', orderId: `o-${round}-${u.id}` }); queued++; }

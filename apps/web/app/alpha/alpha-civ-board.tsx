@@ -10,6 +10,7 @@ import { GovernmentPanel } from './alpha-era-turn';
 import { StrategicSurface } from './strategic-surface';
 import { PanZoom } from './pan-zoom';
 import { CivilizationCard, FigureCard, StatusBadge, discoveryArtOf } from './alpha-card';
+import { ResonanceToken, advanceName, tokenLabel } from './resonance-parts';
 
 const COMPOSITION_NAME = { DOMINANT: 'Dominante', HYBRID: 'Híbrida', PAIR: 'Par', CONFLUENCE: 'Confluência' } as const;
 const DOMAIN_CLASS = (domains: readonly WebDomain[]) => `d-${domains[0]}${domains[1] ? ` d2-${domains[1]}` : ''}`;
@@ -79,6 +80,38 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
     return undefined;
   }, [self.resonance.marks]);
   const lastCycle = self.resonance.history.at(-1);
+  // The engine empties the five sockets the moment the fifth is placed and parks a Repercussão choice. On the table the five tokens stay in their cavities
+  // (as "ciclo completo") until that choice is resolved, then the tray clears; the permanent marks on the Teia never move.
+  const pendingRepercussion = self.pendingChoices.find(choice => choice.source === 'REPERCUSSION');
+  const completed = slots.length === 0 && pendingRepercussion && lastCycle && lastCycle.cardId === pendingRepercussion.cardId ? lastCycle.slots : null;
+  const tray: readonly { advancementId: string; source: 'WEB' | 'CONVERGENCE' | 'HERITAGE'; domains: readonly WebDomain[] }[] = completed ?? slots;
+  const shown = useRef<typeof tray>([]), ghostTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [ghost, setGhost] = useState<typeof tray | null>(null);
+  // The view is re-read on every poll, so `tray` is a new array each time: the clearing timer must outlive those re-renders.
+  useEffect(() => {
+    if (shown.current.length === 5 && tray.length === 0) { setGhost(shown.current); if (ghostTimer.current) clearTimeout(ghostTimer.current); ghostTimer.current = setTimeout(() => setGhost(null), 900); }
+    shown.current = tray;
+  }, [tray]);
+  useEffect(() => () => { if (ghostTimer.current) clearTimeout(ghostTimer.current); }, []);
+  const [spotlight, setSpotlight] = useState(true);
+  useEffect(() => { const timer = setTimeout(() => setSpotlight(false), 1600); return () => clearTimeout(timer); }, []);
+  // A new advance: its token lands on its node (CSS), then a copy of it travels from the node to its socket.
+  useEffect(() => {
+    if (fresh.size === 0 || typeof window === 'undefined' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const couriers: Animation[] = [], parts: HTMLElement[] = [];
+    [...fresh].forEach((id, order) => {
+      const from = document.querySelector<HTMLElement>(`[data-advance="${id}"] .aoh-token`), to = document.querySelector<HTMLElement>(`[data-cavity-of="${id}"] .aoh-token`);
+      if (!from || !to) return;
+      const a = from.getBoundingClientRect(), b = to.getBoundingClientRect(), ghostToken = from.cloneNode(true) as HTMLElement;
+      ghostToken.classList.add('aoh-courier'); Object.assign(ghostToken.style, { position: 'fixed', left: `${a.left}px`, top: `${a.top}px`, width: `${a.width}px`, height: `${a.height}px`, margin: '0', zIndex: '60', pointerEvents: 'none', opacity: '0' });
+      document.body.appendChild(ghostToken); parts.push(ghostToken);
+      const dx = b.left - a.left, dy = b.top - a.top, scale = b.width / Math.max(1, a.width);
+      const run = ghostToken.animate([{ opacity: 1, transform: 'translate(0,0) scale(1)', offset: 0 }, { opacity: 1, transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 36}px) scale(${1 + (scale - 1) * 0.5 + 0.35})`, offset: 0.55 }, { opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(${scale})`, offset: 1 }], { duration: 760, delay: 650 + order * 260, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'both' });
+      run.onfinish = () => ghostToken.remove();
+      couriers.push(run);
+    });
+    return () => { couriers.forEach(run => run.cancel()); parts.forEach(part => part.remove()); };
+  }, [fresh]);
   const reserve = WebDomainSchema.options.map(domain => ({ domain, left: ADVANCEMENTS.filter(n => !n.convergence && n.domain === domain && !self.research.includes(n.id)).length }));
   const node = selected ? ADVANCEMENTS.find(n => n.id === selected) ?? null : null;
   const heritage = heritageOf(self.civilization);
@@ -96,8 +129,8 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
     const done = self.research.includes(n.id), why = structuralBlock(self.research, self.era, n), reachable = !done && why === null;
     const mark = self.resonance.marks.find(m => m.advancementId === n.id);
     return <button key={n.id} type="button" className={`alpha-node ${DOMAIN_CLASS(mark?.domains ?? [n.domain])}${done ? ' is-done' : ''}${reachable ? ' is-reachable' : ''}${n.pair ? ' is-or' : ''}${fresh.has(n.id) ? ' is-fresh' : ''}${selected === n.id ? ' is-selected' : ''}${focusClass(n.id)}`}
-      aria-pressed={selected === n.id} onClick={() => setSelected(n.id)} title={`${n.name}${done ? ' · pesquisado' : reachable ? ' · ao alcance' : ` · ${why}`}`}>
-      <i className="alpha-cube" aria-hidden="true" />{n.milestone && <b className="alpha-node-star" aria-hidden="true">★</b>}<span>{n.name}</span></button>;
+      data-advance={n.id} aria-pressed={selected === n.id} onClick={() => setSelected(n.id)} title={`${n.name}${done ? ' · pesquisado' : reachable ? ' · ao alcance' : ` · ${why}`}`}>
+      {done ? <ResonanceToken domains={mark?.domains ?? [n.domain]} source="WEB" size={19} /> : <i className="alpha-cube" aria-hidden="true" />}{n.milestone && <b className="alpha-node-star" aria-hidden="true">★</b>}<span>{n.name}</span></button>;
   };
   return <StrategicSurface className="alpha-civ" label="Tabuleiro da Civilização" onClose={onClose}>
     <header className="alpha-civ-head">
@@ -112,18 +145,25 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
     <div className="alpha-civ-layout">
       <section className="alpha-civ-resonance" aria-label="Ressonância">
         <h3>A · Ressonância</h3>
-        <div className="alpha-big-sockets" role="group" aria-label={`${slots.length} de 5 encaixes`}>{Array.from({ length: 5 }, (_, i) => {
-          const slot = slots[i], isNew = !!slot && fresh.has(slot.advancementId);
-          return <button type="button" key={i} disabled={!slot} aria-label={slot ? `Encaixe ${i + 1}: ${ADVANCEMENTS.find(n => n.id === slot.advancementId)?.name ?? slot.advancementId}` : `Encaixe ${i + 1} livre`} onClick={() => { if (slot) { setSelected(slot.advancementId); setView('web'); } }} className={`alpha-socket is-big${slot ? ` is-full ${DOMAIN_CLASS(slot.domains)}` : ''}${!slot && i === slots.length && slots.length === 4 ? ' is-fifth' : ''}${isNew ? ' is-fresh' : ''}${linkedSlot === i ? ' is-linked' : ''}`} title={slot ? ADVANCEMENTS.find(n => n.id === slot.advancementId)?.name ?? slot.advancementId : i === 4 ? 'O quinto encaixe resolve uma Repercussão.' : 'Encaixe livre'}></button>;
+        <div className={`alpha-big-sockets aoh-tray${completed ? ' is-complete' : ''}${ghost ? ' is-clearing' : ''}${spotlight ? ' is-spotlight' : ''}`} role="group" aria-label={`${completed ? 5 : slots.length} de 5 encaixes${completed ? ': ciclo completo' : ''}`}>{Array.from({ length: 5 }, (_, i) => {
+          const slot = (ghost ?? tray)[i], isNew = !!slot && fresh.has(slot.advancementId);
+          return <button type="button" key={i} disabled={!slot || !!ghost} data-cavity-of={slot?.advancementId} style={{ ['--i' as string]: i, ['--drop-delay' as string]: view === 'web' ? '1.4s' : '0s' }}
+            aria-label={slot ? `Encaixe ${i + 1}: ${advanceName(slot.advancementId)} (${tokenLabel(slot.domains, slot.source)})` : `Encaixe ${i + 1} livre`}
+            onClick={() => { if (slot) { setSelected(slot.advancementId); setView(ADVANCEMENTS.some(n => n.id === slot.advancementId) ? 'web' : 'heritage'); } }}
+            className={`alpha-socket is-big aoh-cavity${slot ? ` is-full ${DOMAIN_CLASS(slot.domains)}` : ''}${!slot && i === slots.length && slots.length === 4 ? ' is-fifth' : ''}${isNew ? ' is-fresh' : ''}${linkedSlot === i ? ' is-linked' : ''}`}
+            title={slot ? `${advanceName(slot.advancementId)} · ${tokenLabel(slot.domains, slot.source)}` : i === 4 ? 'O quinto encaixe resolve uma Repercussão.' : 'Encaixe livre'}>
+            {slot ? <ResonanceToken domains={slot.domains} source={slot.source} size={34} /> : <span className="aoh-cavity-n" aria-hidden="true">{i + 1}</span>}
+          </button>;
         })}</div>
-        <p className="alpha-composition" role="status">{composition ? <>Leitura: <b>{COMPOSITION_NAME[composition.kind]}</b> · {composition.domains.map(d => WEB_DOMAIN_NAMES[d]).join(' + ')}</> : 'Nenhum avanço neste ciclo.'} · ciclos resolvidos: {self.resonance.cycles}</p>
-        {lastCycle && <p className="alpha-hint">Último ciclo (rodada {lastCycle.round}): {COMPOSITION_NAME[lastCycle.kind]} · {repercussionCard(lastCycle.cardId)?.name ?? lastCycle.cardId}.</p>}
-        <div className="alpha-reserve" aria-label="Reserva de Marcos"><small>Reserva de Marcos · visual, nunca um limite</small><div>{reserve.map(({ domain, left }) => <span key={domain} className={`alpha-reserve-stack d-${domain}`} title={`${WEB_DOMAIN_NAMES[domain]}: ${left} marcos ainda na reserva`}><i className="alpha-cube" aria-hidden="true" /><b>{left}</b></span>)}</div></div>
+        <p className="aoh-tray-count" aria-hidden="true"><b>{completed ? 5 : slots.length}</b> / 5{completed ? ' · ciclo completo' : ''}</p>
+        <p className="alpha-composition" role="status">{completed ? <>Ciclo completo: <b>{COMPOSITION_NAME[lastCycle!.kind]}</b>{lastCycle!.kind === 'CONFLUENCE' ? '' : ` · ${lastCycle!.domains.map(d => WEB_DOMAIN_NAMES[d]).join(' + ')}`}</> : composition ? <>Leitura: <b>{COMPOSITION_NAME[composition.kind]}</b> · {composition.domains.map(d => WEB_DOMAIN_NAMES[d]).join(' + ')}</> : 'Nenhum avanço neste ciclo.'} · ciclos resolvidos: {self.resonance.cycles}</p>
+        {lastCycle && !completed && <p className="alpha-hint">Último ciclo (rodada {lastCycle.round}): {COMPOSITION_NAME[lastCycle.kind]} · {repercussionCard(lastCycle.cardId)?.name ?? lastCycle.cardId}.</p>}
+        <div className="alpha-reserve" aria-label="Reserva de Marcos"><small>Reserva de Marcos · visual, nunca um limite</small><div>{reserve.map(({ domain, left }) => <span key={domain} className={`alpha-reserve-stack d-${domain}`} title={`${WEB_DOMAIN_NAMES[domain]}: ${left} marcos ainda na reserva`}><ResonanceToken domains={[domain]} size={18} /><b>{left}</b></span>)}</div></div>
       </section>
       <div className="alpha-civ-main">
       <div className="alpha-civ-tabs" role="tablist" aria-label="Áreas do Tabuleiro">{([['web', 'Teia Civilizacional'], ['heritage', 'Herança'], ['identity', 'Identidade e Governo']] as const).map(([key, title]) => <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)}>{title}</button>)}</div>
         {view === 'web' && <section className="alpha-civ-web alpha-civ-view" aria-label="Teia Civilizacional">
-        <h3>B · Teia Civilizacional <small>{self.research.filter(id => ADVANCEMENTS.some(n => n.id === id)).length} de 50 · cubo = marco permanente · losango = Convergência · borda tracejada = escolha OU</small></h3>
+        <h3>B · Teia Civilizacional <small>{self.research.filter(id => ADVANCEMENTS.some(n => n.id === id)).length} de 50 · ficha = marco permanente (glifo = domínio) · losango = Convergência · borda tracejada = escolha OU</small></h3>
         <PanZoom label="Teia Civilizacional: arraste para mover, role para aproximar" onBackground={() => setSelected(null)}><div className="alpha-web-grid" style={{ ['--tracks' as string]: WebDomainSchema.options.length }}>
           <div className="alpha-web-corner" aria-hidden="true" />
           {WebDomainSchema.options.map(domain => <b key={domain} className={`alpha-web-head d-${domain}`}>{WEB_DOMAIN_NAMES[domain]}</b>)}
@@ -134,7 +174,7 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
               ...WebDomainSchema.options.map(domain => <div key={`${era}-${domain}`} className={`alpha-web-cell${dim ? ' is-later' : ''}`}>{ADVANCEMENTS.filter(n => !n.convergence && n.domain === domain && n.era === era).map(nodeButton)}</div>),
               converge.length > 0 && <div key={`${era}-conv`} className={`alpha-web-convergences${dim ? ' is-later' : ''}`}><small>Convergências · {ALPHA_ERA_NUMERALS[index]}</small>{converge.map(n => {
                 const done = self.research.includes(n.id), why = structuralBlock(self.research, self.era, n), mark = self.resonance.marks.find(m => m.advancementId === n.id);
-                return <button key={n.id} type="button" className={`alpha-diamond ${DOMAIN_CLASS(mark?.domains ?? [n.domain])}${done ? ' is-done' : ''}${!done && why === null ? ' is-reachable' : ''}${n.pair ? ' is-or' : ''}${fresh.has(n.id) ? ' is-fresh' : ''}${selected === n.id ? ' is-selected' : ''}${focusClass(n.id)}`} aria-pressed={selected === n.id} onClick={() => setSelected(n.id)} title={n.name}><i aria-hidden="true" /><span>{n.name}</span></button>;
+                return <button key={n.id} type="button" className={`alpha-diamond ${DOMAIN_CLASS(mark?.domains ?? [n.domain])}${done ? ' is-done' : ''}${!done && why === null ? ' is-reachable' : ''}${n.pair ? ' is-or' : ''}${fresh.has(n.id) ? ' is-fresh' : ''}${selected === n.id ? ' is-selected' : ''}${focusClass(n.id)}`} data-advance={n.id} aria-pressed={selected === n.id} onClick={() => setSelected(n.id)} title={n.name}>{done ? <ResonanceToken domains={mark?.domains ?? [n.domain]} source="CONVERGENCE" size={19} /> : <i aria-hidden="true" />}<span>{n.name}</span></button>;
               })}</div>,
             ];
           })}
@@ -149,7 +189,7 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
           const state = done ? 'acquired' : gateOpen && eraOk ? 'available' : 'locked', opt = game.urban.research.find(o => o.advancementId === h.id);
           const reason = done ? null : !gateOpen ? `Falta o avanço universal ${gateNode.name}.` : !eraOk ? `Abre na Era ${ALPHA_ERA_NUMERALS[ERAS.indexOf(h.era)]}.` : gate ?? opt?.blocked ?? null;
           return <article key={h.id} className={`alpha-heritage is-${state}`}><small>{['I', 'II', 'III'][index]} · Era {ALPHA_ERA_NUMERALS[ERAS.indexOf(h.era)]}<StatusBadge status={h.status} feminine showActive /></small><h4>{h.name}</h4><p>{h.effect}</p>{h.status === 'PLANNED' && <p className="alpha-heritage-planned">Efeito ainda não aplicado nesta versão: pesquisar marca a Herança, sem mudar o jogo.</p>}
-            <p className="alpha-heritage-link"><i className={`alpha-cube d-${gateNode.domain}`} aria-hidden="true" /> abre por <button type="button" className="alpha-link" onClick={() => setSelected(gateNode.id)}>{gateNode.name}</button></p>
+            <p className="alpha-heritage-link"><ResonanceToken domains={[gateNode.domain]} source="HERITAGE" size={16} /> abre por <button type="button" className="alpha-link" onClick={() => setSelected(gateNode.id)}>{gateNode.name}</button></p>
             {state !== 'acquired' && <p className="alpha-heritage-cost">Custo: {Object.entries(game.costs.advancements[h.id] ?? {}).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${text(k)}`).join(' · ')}</p>}
             {reason && <small role="note">{reason}</small>}
             <button type="button" disabled={locked || done || reason !== null || !cityId} onClick={() => research(h.id)}>{done ? 'Adquirida' : 'Pesquisar Herança'}</button></article>;

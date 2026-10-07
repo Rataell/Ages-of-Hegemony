@@ -8,7 +8,7 @@ import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { initializeAlphaCards } from './alpha-cards.js';
 import { alphaRandomInteger, combineAlphaSeed, deterministicAlphaSeed } from './alpha-random.js';
-import { applyCivilizationHeritage, kitExplorationKnowledge, kitExplorationReach } from './alpha-kits.js';
+import { applyCivilizationHeritage, kitExplorationKnowledge } from './alpha-kits.js';
 import { alphaGainLegacy } from './alpha-resources.js';
 import { applyDiscovery, generateDiscoveries } from './alpha-discoveries.js';
 import { spawnThreat, threatIntent } from './alpha-threats.js';
@@ -149,7 +149,7 @@ export function explorationAccess(state:AlphaState,unit:AlphaUnit,region:AlphaSt
   if(role===null)return {rotations:[],block:'Esta peça não explora.'};
   // A seat-redacted copy (bots) hides the Region template: the caller reads the real match for this answer, here nothing can be computed.
   if(!REGION_TEMPLATES.some(t=>t.id===region.templateId))return {rotations:[0],block:null};
-  const origin=state.core.map.find(t=>t.id===unit.hexId)!,reach=kitExplorationReach(state,unit),enters=role==='LAND'?isLandTerrain:isNavigableTerrain;
+  const origin=state.core.map.find(t=>t.id===unit.hexId)!,reach=1,enters=role==='LAND'?isLandTerrain:isNavigableTerrain;
   const entry=region.hexIds.map((id,i)=>({id,i,tile:state.core.map.find(t=>t.id===id)!})).filter(x=>hexDistance(origin,x.tile)<=reach);
   if(!entry.length)return {rotations:[],block:'A região não está na fronteira desta peça.'};
   if(regionOrientationFixed(state,region)){
@@ -189,22 +189,33 @@ export function rotatedRegionTiles(state:AlphaState,region:AlphaState['regions']
     return {terrain,features:[...tile.features.filter(item=>!authored.has(item)),...(after[i]!.deposit&&holdsMetal(terrain)?['METAL' as const]:[]),...(feature&&featureFits(feature,terrain)?[feature]:[])]};
   });
 }
+/**
+ * Flips a Region face up under `rotation` for `actor`: terrain and deposits are written, the Region is marked revealed, knowledge and the reveal reward
+ * are credited. The Discovery (applyDiscovery) is a separate step because only the first revealer resolves it. Shared by the legacy EXPLORE resolver
+ * and by a MOVE that enters the unknown (alpha-frontier).
+ */
+export function revealRegion(state:AlphaState,actor:PlayerId,region:AlphaState['regions'][number],rotation:number):void {
+  const fixed=regionOrientationFixed(state,region);
+  if(!fixed){
+    const rotated=rotatedRegionTiles(state,region,rotation);
+    region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;tile.terrain=rotated[i]!.terrain;tile.features=rotated[i]!.features;});
+  }
+  if(!fixed)region.rotation=rotation;
+  if(!region.revealedBy.includes(actor))region.revealedBy.push(actor);
+  const player=state.players.find(p=>p.playerId===actor)!;player.knownHexIds=[...new Set([...player.knownHexIds,...region.hexIds])].sort();player.exploredRegions++;player.prestige++;
+  const knowledge=kitExplorationKnowledge(state,actor,region.hexIds);if(knowledge)alphaGainLegacy(state,actor,{knowledge});
+  refreshKnowledge(state);
+  const template=REGION_TEMPLATES.find(t=>t.id===region.templateId);
+  alphaEvent(state,'REGION_REVEALED',`${state.core.players.find(p=>p.id===actor)?.name??'Uma civilização'} revelou ${template?.name??'uma Região'}.`,null);
+}
+/** LEGACY (V1.1 and rooms planned before the Move+Discovery rule): a separate EXPLORE order. New clients and bots never create one; the resolver stays so old plans still resolve. */
 export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
   // Orders are planned in secret and resolved in turn: if an earlier order already flipped this Region, the table has it and this one only notes that.
   const already=state.regions.find(r=>r.hexIds.includes(order.target));
   if(already&&state.units.some(u=>u.id===order.unitId&&u.ownerId===actor)&&regionOpenFor(state,already,actor)){alphaEvent(state,'REGION_ALREADY_OPEN','A Região já tinha sido revelada por outra civilização.',[actor]);return;}
   validateExploration(state,actor,order);const region=state.regions.find(r=>r.hexIds.includes(order.target))!;
   const fixed=regionOrientationFixed(state,region),access=explorationAccess(state,state.units.find(u=>u.id===order.unitId)!,region),rotation=fixed?region.rotation:access.rotations.length===1?access.rotations[0]!:order.rotation;
-  if(!fixed){
-    const rotated=rotatedRegionTiles(state,region,rotation);
-    region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;tile.terrain=rotated[i]!.terrain;tile.features=rotated[i]!.features;});
-  }
-  region.rotation=rotation;if(!region.revealedBy.includes(actor))region.revealedBy.push(actor);
-  const player=state.players.find(p=>p.playerId===actor)!;player.knownHexIds=[...new Set([...player.knownHexIds,...region.hexIds])].sort();player.exploredRegions++;player.prestige++;
-  const knowledge=kitExplorationKnowledge(state,actor,region.hexIds);if(knowledge)alphaGainLegacy(state,actor,{knowledge});
-  refreshKnowledge(state);
-  const template=REGION_TEMPLATES.find(t=>t.id===region.templateId);
-  alphaEvent(state,'REGION_REVEALED',`${state.core.players.find(p=>p.id===actor)?.name??'Uma civilização'} revelou ${template?.name??'uma Região'}.`,null);
+  revealRegion(state,actor,region,rotation);
   applyDiscovery(state,actor,region,order.unitId);
 }
 

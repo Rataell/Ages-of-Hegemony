@@ -65,9 +65,13 @@ async function playRound(g) {
     g = (await read(id)).game; const o = g.unitOptions[u.id]; if (!o) continue;
     const founder = u.kind === 'PIONEER' && mine.filter(x => x.kind === 'PIONEER').indexOf(u) === 1;
     if (founder && o.settleBlock === null && g.cityStates.length < 4) { const x = await send(id, g, { type: 'SETTLE', unitId: u.id, name: `Colônia ${g.view.round}-${u.id.slice(-2)}` }); if (x.ok) { notes.push('SETTLE'); continue; } }
-    const open = o.explore.filter(e => e.block === null && e.rotations.length);
-    if (open.length) { const e = open[0]; const x = await send(id, g, { type: 'QUEUE_ORDER', order: { id: `pt-${++orderSeq}`, type: 'EXPLORE', unitId: u.id, target: e.target, rotation: e.rotations[0] } }, `${u.kind} explore (${e.rotations.length} orientations)`); if (x.ok) { notes.push(`EXPLORE ${u.kind}`); continue; } }
-    else if (o.explore.some(e => e.block)) notes.push(`${u.kind}: ${o.explore.find(e => e.block).block}`);
+    // Move + Discovery (RC2): discovery is a MOVE whose last step enters a closed Region and carries the orientation.
+    const open = (o.frontier ?? []).filter(r => r.block === null && r.entries.length).map(r => ({ r, e: [...r.entries].sort((a, b) => a.path.length - b.path.length || a.hexId.localeCompare(b.hexId))[0] })).sort((a, b) => a.e.path.length - b.e.path.length);
+    if (open.length) { const { e } = open[0]; const x = await send(id, g, { type: 'QUEUE_ORDER', order: { id: `pt-${++orderSeq}`, type: 'MOVE', unitIds: [u.id], path: e.path, rotation: e.rotations[0] } }, `${u.kind} move into the unknown (${e.rotations.length} orientations)`); if (x.ok) { notes.push(`DISCOVER ${u.kind}`); continue; } }
+    else if ((o.frontier ?? []).some(e => e.block)) notes.push(`${u.kind}: ${o.frontier.find(e => e.block).block}`);
+    else if (o.frontierNote) notes.push(`${u.kind}: ${o.frontierNote}`);
+    // A Pioneiro next to an own ship boards it when no Region is open to it on foot: the ship then carries the Discovery.
+    if (u.kind === 'PIONEER' && !open.length && o.embark?.length && (NAVAL || (o.frontier ?? []).some(e => e.block))) { const x = await send(id, g, { type: 'EMBARK', unitIds: [u.id], fleetId: o.embark[0] }, 'PIONEER boards a ship'); if (x.ok) { notes.push('EMBARK'); continue; } }
     if (u.kind === 'PIONEER' && o.settleBlock === null && g.cityStates.length < 5) { const x = await send(id, g, { type: 'SETTLE', unitId: u.id, name: `Colônia ${g.view.round}` }); if (x.ok) { notes.push('SETTLE'); continue; } }
     if (closedHexes.length) {
       const here = u.hexId, water = u.kind !== 'PIONEER', terrain = Object.fromEntries((g.view.visibleTerritory ?? []).map(t => [t.id, t.terrain]));

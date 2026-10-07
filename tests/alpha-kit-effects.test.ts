@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { drawWorldPulse } from '../packages/game-engine/src/alpha-phases.js';
 import { hexDistance, unitSupply, kitRoadSupply, kitSupplyBonus, kitDroughtRecovery, kitDroughtRelief, kitLegacyPrestige } from '@aoh/game-engine';
 import { ADVANCEMENTS, AlphaStateSchema, CIVILIZATION_KITS, PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
-import { beginAlphaPlanning, createAlphaGame, hexId, hexNeighbors, isSignature, kitExplorationReach, resolveBattleWithFaces, kitProduceBonus, kitTradeBonus, kitWorksCost, kitAdvancementCost, kitExplorationKnowledge, kitFoodUpkeep, kitFortificationBlock, kitMovement, kitTreatyRounds, kitUnitCost } from '@aoh/game-engine';
+import { beginAlphaPlanning, createAlphaGame, hexId, hexNeighbors, isSignature, kitFrontierCost, resolveBattleWithFaces, kitProduceBonus, kitTradeBonus, kitWorksCost, kitAdvancementCost, kitExplorationKnowledge, kitFoodUpkeep, kitFortificationBlock, kitMovement, kitTreatyRounds, kitUnitCost } from '@aoh/game-engine';
 
 const p1 = PlayerIdSchema.parse('p1'), p2 = PlayerIdSchema.parse('p2');
 const game = (civ: string, other = 'aurelia'): AlphaState => beginAlphaPlanning(createAlphaGame({ gameId: `kit-${civ}`, seed: 21, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um', civilization: civ }, { id: 'p2', name: 'Dois', civilization: other === civ ? 'valgard' : other }] }));
@@ -81,7 +81,8 @@ describe('civilization kits applied by the engine', () => {
     const state = game('aurelia', 'valgard');
     expect(isSignature(state, { ownerId: p2, kind: 'GUARD' })).toBe(true);
     expect(isSignature(state, { ownerId: p1, kind: 'GUARD' })).toBe(false);
-    expect(kitExplorationReach(game('elyra'), { id: 'x', ownerId: p1, kind: 'PIONEER', hexId: '0,0' as never, recruitedRound: 1, carrierId: null })).toBe(2);
+    expect(kitFrontierCost(game('elyra'), { ownerId: p1, kind: 'PIONEER' }, 1)).toBe(0);
+    expect(kitFrontierCost(game('elyra'), { ownerId: p1, kind: 'INFANTRY' }, 1)).toBe(1);
     const capital = state.core.players[1]!.civilization.cities[0]!;
     state.cities.find(city => city.cityId === capital.id)!.fortification = { level: 'PALISADE', state: 'INTACT' };
     const near = hexNeighbors(state.core.map.find(t => t.id === capital.hexId)!).map(hexId).find(id => state.core.map.some(t => t.id === id && !['SEA', 'UNKNOWN'].includes(t.terrain)))!;

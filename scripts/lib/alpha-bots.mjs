@@ -259,14 +259,16 @@ export function candidates(box, id, persona) {
     // Explore: a closed Region within reach; otherwise walk toward the nearest closed Region (edge of the Pátria first). Single Pioneiros do it only without a site.
     const explorer = !wantFound || !founderRole || !walk;
     if (explorer && (persona.explore ?? 1) > 0 && comp) {
-      if (uo.explore.length) { add(95 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } }); return; }
+      // Discovery is a MOVE (canon 2026-10-07): walk to an entry hex of a closed Region, carrying the orientation.
+      const entries = (uo.frontier ?? []).filter(e => e.block === null && e.entries.length > 0).map(e => ({ e, entry: [...e.entries].sort((a, b) => a.path.length - b.path.length || a.hexId.localeCompare(b.hexId))[0] })).sort((a, b) => a.entry.path.length - b.entry.path.length || a.e.regionId.localeCompare(b.e.regionId));
+      if (entries.length) { add(95 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: entries[0].entry.path, rotation: entries[0].entry.rotations[0] } }); return; }
       const goal = nearestClosed(here);
       if (goal) {
         const goalTiles = goal.r.hexIds.map(h => tileOf(state, h));
         const step = Object.keys(uo.moves).filter(safeHex).map(hex => ({ hex, d: Math.min(...goalTiles.map(g => dist(tileOf(state, hex), g))) })).filter(x => x.d < goal.d).sort((a, b) => a.d - b.d || a.hex.localeCompare(b.hex))[0];
         if (step) { add(94, `scout:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[step.hex] } }); return; }
       }
-    } else if (!comp && uo.explore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } });
+    }
     if (walk) { ctx.siteWait.set(unit.id, waited + 1); add(walk.score, `pioneer:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[walk.hex] } }); return; }
     if (comp) {
       // D-1 measurement: with nothing left to open, competent players sweep the ring 3–5 hexes from their cities so a fresh Acampamento is seen.

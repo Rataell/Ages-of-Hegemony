@@ -28,14 +28,14 @@ export function AlphaGuide({ game, onClose }: { game: AlphaPlayerView; onClose: 
       <h3>Cidades</h3>
       <p>Cada cidade faz <b>uma ação</b> por rodada: Produzir, Construir (distrito, edifício ou fortificação), Recrutar, Pesquisar, ou Ânimo/Comércio/Cívica. <b>Sem Produzir, a cidade não produz</b> naquela rodada. A barra do topo mostra os recursos e quanto cabe no armazém: o excedente é descartado.</p>
       <h3>Peças</h3>
-      <p>Clique na peça no mapa: as ações nascem ao redor dela. Ao escolher Mover, Explorar ou Atacar, o mapa destaca os destinos legais e você clica no hex. Cada peça recebe uma ordem por rodada.</p>
+      <p>Clique na peça no mapa: as ações nascem ao redor dela. Ao escolher Mover ou Atacar, o mapa destaca os destinos legais e você clica no hex. Cada peça recebe uma ordem por rodada.</p>
       <ul>
-        <li><b>{units.PIONEER.name}</b> — movimento {units.PIONEER.movement}; explora por terra uma Região vizinha e revela seus 7 hexes, ou funda uma cidade onde está e é consumido. Primeiro descobre, depois coloniza.</li>
-        <li><b>Frota</b> e <b>Embarcação Costeira</b> — navegam e exploram Regiões pelo mar.</li>
-        <li><b>Militares</b> — não exploram. Atacam peças ou cidades vizinhas de quem está em guerra com você. Longe das suas cidades e territórios ficam sem suprimento e lutam pior.</li>
+        <li><b>{units.PIONEER.name}</b> — movimento {units.PIONEER.movement}; ao Mover para uma Região fechada, revela seus 7 hexes; ou funda uma cidade onde está e é consumido. Primeiro descobre, depois coloniza.</li>
+        <li><b>Frota</b> e <b>Barca de Patrulha</b> — navios de guerra: combatem, escoltam e levam peças. Abrem uma Região do mar levando um Pioneiro a bordo (ou, depois de Navegação Oceânica, sozinhos).</li>
+        <li><b>Militares</b> — só entram no desconhecido junto de um Pioneiro. Atacam peças ou cidades vizinhas de quem está em guerra com você. Longe das suas cidades e territórios ficam sem suprimento e lutam pior.</li>
       </ul>
-      <h3>Exploração</h3>
-      <p><b>Pioneiro explora terra. Frota explora mar. Tropa militar não explora.</b> Se a Região intacta admite várias orientações, você escolhe uma (“Orientação 1 de N”); com uma só, ela é aplicada sozinha. “Requer acesso naval.” quer dizer que só um navio entra ali. A ordem é secreta: o terreno e a Descoberta aparecem na resolução, só para quem revelou.</p>
+      <h3>Descoberta</h3>
+      <p><b>Mover é descobrir.</b> Entrar numa Região fechada é o último passo de um Mover e custa 1 de movimento; o grupo (Pioneiro e escolta) para ali. Se a Região intacta admite várias orientações, você escolhe uma (“Orientação 1 de N”); com uma só, ela é aplicada sozinha. “Requer acesso naval.” quer dizer que só um navio a abre. A ordem é secreta: o terreno e a Descoberta aparecem na resolução, só para quem revelou.</p>
       <h3>Porto e Obras de Legado</h3>
       <p>O <b>Distrito Marítimo</b> inclui o Porto básico e exige borda d’água navegável; Estaleiro e Farol são opcionais e ainda sem efeito. Uma <b>Obra de Legado</b> é única no mundo: três passos (uma Ordem de Legado cada), +4 Prestígio e um efeito permanente.</p>
       <h3>Contato, diplomacia e guerra</h3>

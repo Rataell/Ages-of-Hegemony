@@ -147,7 +147,7 @@ const KITS: CivilizationKit[] = [
   { ...alpha('elyra'), affinity: 'SCIENTIFIC',
     trait: item('Revelar uma região rende +1 Conhecimento.', 'BIBLE', 'ACTIVE'),
     heritage: item('Começa com 1 Pioneiro extra.', 'BIBLE', 'ACTIVE'),
-    signature: { kind: 'UNIT', name: 'Cartógrafa', family: 'PIONEER', item: item('Seus Pioneiros revelam regiões a até 2 hexes (versão terrestre; a Cartógrafa naval da Bíblia espera as classes navais).', 'PROPOSAL', 'ACTIVE') },
+    signature: { kind: 'UNIT', name: 'Cartógrafa', family: 'PIONEER', item: item('Seus Pioneiros entram no desconhecido sem gastar movimento: descobrem uma Região a mais de distância (versão terrestre da Cartógrafa).', 'PROPOSAL', 'ACTIVE') },
     limitation: item('Cerco custa +1 Metal.', 'BIBLE', 'ACTIVE'),
     cards: cards('elyra', [['Aula ao Ar Livre', produce('knowledge', 2), '+2 Conhecimento.'], ['Mapa Noturno', round('MOVEMENT'), '+1 movimento nesta rodada.'], ['Vínculo de Saber', produce('knowledge', 4), '+4 Conhecimento.']]),
     mark: mark('chama', 'CIRCLE', 'PENNANT', 'DASHED') },

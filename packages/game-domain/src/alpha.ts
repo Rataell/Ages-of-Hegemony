@@ -99,8 +99,10 @@ export const UnitSchema = z.strictObject({ id: IdentifierSchema, ownerId: Player
   carrierId: IdentifierSchema.nullable().optional() });
 export type AlphaUnit = z.infer<typeof UnitSchema>;
 export const StrategicOrderSchema = z.discriminatedUnion('type', [
+  /** LEGACY (read-only since Move + Discovery): kept so V1.1 snapshots and plans made before the change still parse and resolve. New clients and bots never create it. */
   z.strictObject({ id: IdentifierSchema, type: z.literal('EXPLORE'), unitId: IdentifierSchema, target: HexIdSchema, rotation: z.number().int().min(0).max(5) }),
-  z.strictObject({ id: IdentifierSchema, type: z.literal('MOVE'), unitIds: z.array(IdentifierSchema).min(1).max(24), path: z.array(HexIdSchema).min(1).max(12) }),
+  /** `rotation` is the Discovery payload: when the last hex of `path` lies in a closed Region, the move enters the unknown, flips that Region under this orientation (ignored when only one orientation gives access) and ends there. */
+  z.strictObject({ id: IdentifierSchema, type: z.literal('MOVE'), unitIds: z.array(IdentifierSchema).min(1).max(24), path: z.array(HexIdSchema).min(1).max(12), rotation: z.number().int().min(0).max(5).optional() }),
   z.strictObject({ id: IdentifierSchema, type: z.literal('ATTACK'), unitIds: z.array(IdentifierSchema).min(1).max(24), target: HexIdSchema, posture: BattlePostureSchema.default('ASSAULT') }),
   z.strictObject({ id: IdentifierSchema, type: z.literal('TRADE'), fromCityId: CityIdSchema, toCityId: CityIdSchema }),
   z.strictObject({ id: IdentifierSchema, type: z.literal('INFLUENCE'), unitId: IdentifierSchema, target: HexIdSchema }),
@@ -149,7 +151,7 @@ export const AlphaEventSchema = z.strictObject({
   id: IdentifierSchema, round: P, type: IdentifierSchema,
   audience: z.array(PlayerIdSchema).nullable(), message: z.string().max(1000),
 });
-export const ResolutionEventTypeSchema = z.enum(['MOVEMENT','EXPLORATION','FOUNDATION','PRODUCTION','CONSTRUCTION','RECRUITMENT','RESEARCH','TRADE','INFLUENCE','COMBAT','LOSSES','RETREAT','ADVANCE','FAILURE','ROUND_EVENT']);
+export const ResolutionEventTypeSchema = z.enum(['MOVEMENT','EXPLORATION','DISCOVERY','FOUNDATION','PRODUCTION','CONSTRUCTION','RECRUITMENT','RESEARCH','TRADE','INFLUENCE','COMBAT','LOSSES','RETREAT','ADVANCE','FAILURE','ROUND_EVENT']);
 export const ResolutionEventSchema = z.strictObject({
   id: IdentifierSchema, round: P, type: ResolutionEventTypeSchema, actorId: PlayerIdSchema.nullable(),
   visibleTo: z.array(PlayerIdSchema).nullable(), message: z.string().max(1000),

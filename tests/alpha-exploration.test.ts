@@ -22,7 +22,8 @@ describe('exploration: who explores and how a Region is entered', () => {
     const target = hidden(state).find(r => rim(state, r).length)!;
     soldier.hexId = rim(state, target)[0] as typeof soldier.hexId;
     expect(() => validateExploration(state, 'p1' as never, { type: 'EXPLORE', id: 'x', unitId: soldier.id, target: target.hexIds[0]!, rotation: 0 })).toThrow('Somente Pioneiros e Frotas exploram.');
-    expect(alphaUnitOptions(state, 'p1' as never)[soldier.id]!.explore).toEqual([]);
+    // Move + Discovery: a soldier is never a discoverer, and the options say why.
+    expect(alphaUnitOptions(state, 'p1' as never)[soldier.id]!.discoverer).toBe(false);
   });
   it('a Pioneiro needs LAND at the entry hex: one orientation is applied automatically, several are chosen, none says "Requer acesso naval."', () => {
     let single = 0, several = 0, none = 0;
