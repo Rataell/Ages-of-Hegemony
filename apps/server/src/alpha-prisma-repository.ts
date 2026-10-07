@@ -34,8 +34,9 @@ export function encodeRoom(room:AlphaRoom):AlphaRoom {
   const parsed=AlphaRoomSchema.parse(room);
   const legacy=parsed.contentVersion!=='v1.2';
   // A room of the V1.1 generation keeps exactly the V1 shape on disk: no content version, no Figura, no map size (it is always the original Padrão).
-  const seats=parsed.seats.map(seat=>legacy?(seat.bot?(({figureId:_f,...rest})=>rest)(seat):{guestId:seat.guestId,playerId:seat.playerId,name:seat.name,civilization:seat.civilization,ready:seat.ready}) as typeof seat:seat);
-  if(legacy){const {contentVersion:_c,mapSize:_m,...rest}=parsed;return {...rest,seats} as AlphaRoom;}
+  const withoutFigure=(seat:typeof parsed.seats[number])=>{const copy:Record<string,unknown>={...seat};delete copy.figureId;return copy as typeof seat;};
+  const seats=parsed.seats.map(seat=>legacy?(seat.bot?withoutFigure(seat):{guestId:seat.guestId,playerId:seat.playerId,name:seat.name,civilization:seat.civilization,ready:seat.ready} as typeof seat):seat);
+  if(legacy){const copy:Record<string,unknown>={...parsed,seats};delete copy.contentVersion;delete copy.mapSize;return copy as AlphaRoom;}
   return {...parsed,seats};
 }
 class StaleWrite extends Error {}
