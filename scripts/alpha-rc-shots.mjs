@@ -1,4 +1,4 @@
-/* global document */
+/* global document, innerHeight, localStorage, setTimeout */
 // RC 1.2 visual gate: real tables per size/preset/seat count (1 human + bots), full map at 1280x720.
 //   BASE=http://127.0.0.1:3130 node scripts/alpha-rc-shots.mjs [outdir]
 import { chromium } from '@playwright/test';
@@ -26,7 +26,6 @@ for (const [name, seats, mapSize, worldPreset] of CASES) {
   r = await api({ operation: 'lobby', gameId: id, payload: { type: 'LOBBY_READY', expectedVersion: view.version, ready: true } }); view = r.value;
   r = await api({ operation: 'lobby', gameId: id, payload: { type: 'START', expectedVersion: view.version } }); if (!r.ok) throw new Error(JSON.stringify(r));
   // The mandatory first decisions, answered by API so the shot shows the table.
-  r = await api({ operation: 'lobby', gameId: id, payload: {} }).catch(() => null);
   const read = await context.request.get(`${BASE}/api/alpha?gameId=${id}`).then(x => x.json());
   const g = read.value.game;
   await api({ operation: 'command', gameId: id, payload: { type: 'CHOOSE_AMBITIONS', expectedVersion: g.version, cardIds: g.self.ambitions.slice(0, 2) } });

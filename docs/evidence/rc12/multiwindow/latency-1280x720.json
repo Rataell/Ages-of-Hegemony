@@ -1,0 +1,294 @@
+[
+ {
+  "players": 2,
+  "viewport": "1280x720",
+  "startedAfterMs": 415,
+  "events": [
+   {
+    "change": "2 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+    "observer": "A",
+    "validBaseline": true,
+    "sentToSeenMs": 161,
+    "serverSavedToPushMs": 13,
+    "serverSavedToSeenMs": 129,
+    "seen": "2/2"
+   },
+   {
+    "change": "2 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+    "observer": "B",
+    "validBaseline": true,
+    "sentToSeenMs": 201,
+    "serverSavedToPushMs": 13,
+    "serverSavedToSeenMs": 169,
+    "seen": "2/2"
+   },
+   {
+    "change": "2 Região(ões) virada(s) na resolução da rodada 2",
+    "observer": "A",
+    "sentToSeenMs": 161,
+    "serverSavedToPushMs": 8,
+    "pushToAppliedMs": 111,
+    "receivedPushToSeenMs": 127,
+    "serverSavedToSeenMs": 135
+   },
+   {
+    "change": "2 Região(ões) virada(s) na resolução da rodada 2",
+    "observer": "B",
+    "sentToSeenMs": 195,
+    "serverSavedToPushMs": 9,
+    "pushToAppliedMs": 143,
+    "receivedPushToSeenMs": 160,
+    "serverSavedToSeenMs": 169
+   },
+   {
+    "change": "2 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+    "observer": "A",
+    "validBaseline": true,
+    "sentToSeenMs": 150,
+    "serverSavedToPushMs": 7,
+    "serverSavedToSeenMs": 120,
+    "seen": "2/2"
+   },
+   {
+    "change": "2 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+    "observer": "B",
+    "validBaseline": true,
+    "sentToSeenMs": 163,
+    "serverSavedToPushMs": 7,
+    "serverSavedToSeenMs": 133,
+    "seen": "2/2"
+   },
+   {
+    "change": "A fundou um Posto",
+    "observer": "B",
+    "validBaseline": true,
+    "sentToSeenMs": 334,
+    "serverSavedToPushMs": 14,
+    "serverSavedToSeenMs": 283
+   }
+  ],
+  "notes": [],
+  "atStart": [
+   {
+    "openRegions": 2,
+    "closedRegions": 22,
+    "capitalsVisible": 2,
+    "contacts": 0
+   },
+   {
+    "openRegions": 2,
+    "closedRegions": 22,
+    "capitalsVisible": 2,
+    "contacts": 0
+   }
+  ],
+  "inspectorShift": 0.359344482421875,
+  "regionBacksBefore": [
+   22,
+   22
+  ],
+  "regionBacksAfter": [
+   20,
+   20
+  ],
+  "alertsOnScreen": [
+   0,
+   0
+  ],
+  "summary": {
+   "samples": 7,
+   "meanServerSavedToSeenMs": 163,
+   "maxServerSavedToSeenMs": 283
+  }
+ },
+ {
+  "players": 4,
+  "viewport": "1280x720",
+  "startedAfterMs": 622,
+  "events": [
+   {
+    "change": "4 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+    "observer": "A",
+    "validBaseline": true,
+    "sentToSeenMs": 285,
+    "serverSavedToPushMs": 10,
+    "serverSavedToSeenMs": 226,
+    "seen": "4/4"
+   },
+   {
+    "change": "4 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+    "observer": "B",
+    "validBaseline": true,
+    "sentToSeenMs": 180,
+    "serverSavedToPushMs": 10,
+    "serverSavedToSeenMs": 121,
+    "seen": "4/4"
+   },
+   {
+    "change": "4 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+    "observer": "C",
+    "validBaseline": true,
+    "sentToSeenMs": 254,
+    "serverSavedToPushMs": 10,
+    "serverSavedToSeenMs": 195,
+    "seen": "4/4"
+   },
+   {
+    "change": "4 Pioneiro(s) andaram dentro das Pátrias abertas (todos veem)",
+    "observer": "D",
+    "validBaseline": true,
+    "sentToSeenMs": 207,
+    "serverSavedToPushMs": 10,
+    "serverSavedToSeenMs": 148,
+    "seen": "4/4"
+   },
+   {
+    "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+    "observer": "A",
+    "sentToSeenMs": null,
+    "serverSavedToPushMs": 15,
+    "pushToAppliedMs": 83,
+    "receivedPushToSeenMs": null,
+    "serverSavedToSeenMs": null
+   },
+   {
+    "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+    "observer": "B",
+    "sentToSeenMs": null,
+    "serverSavedToPushMs": 15,
+    "pushToAppliedMs": 43,
+    "receivedPushToSeenMs": null,
+    "serverSavedToSeenMs": null
+   },
+   {
+    "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+    "observer": "C",
+    "sentToSeenMs": null,
+    "serverSavedToPushMs": 15,
+    "pushToAppliedMs": 22,
+    "receivedPushToSeenMs": null,
+    "serverSavedToSeenMs": null
+   },
+   {
+    "change": "4 Região(ões) virada(s) na resolução da rodada 2",
+    "observer": "D",
+    "sentToSeenMs": null,
+    "serverSavedToPushMs": 15,
+    "pushToAppliedMs": 142,
+    "receivedPushToSeenMs": null,
+    "serverSavedToSeenMs": null
+   },
+   {
+    "change": "4 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+    "observer": "A",
+    "validBaseline": true,
+    "sentToSeenMs": 249,
+    "serverSavedToPushMs": 12,
+    "serverSavedToSeenMs": 155,
+    "seen": "4/4"
+   },
+   {
+    "change": "4 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+    "observer": "B",
+    "validBaseline": true,
+    "sentToSeenMs": 154,
+    "serverSavedToPushMs": 10,
+    "serverSavedToSeenMs": 60,
+    "seen": "4/4"
+   },
+   {
+    "change": "4 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+    "observer": "C",
+    "validBaseline": true,
+    "sentToSeenMs": 197,
+    "serverSavedToPushMs": 16,
+    "serverSavedToSeenMs": 103,
+    "seen": "4/4"
+   },
+   {
+    "change": "4 Pioneiro(s) moveram para Regiões públicas (todos veem)",
+    "observer": "D",
+    "validBaseline": true,
+    "sentToSeenMs": 307,
+    "serverSavedToPushMs": 10,
+    "serverSavedToSeenMs": 213,
+    "seen": "4/4"
+   },
+   {
+    "change": "A fundou um Posto",
+    "observer": "B",
+    "validBaseline": true,
+    "sentToSeenMs": 110,
+    "serverSavedToPushMs": 22,
+    "serverSavedToSeenMs": 77
+   },
+   {
+    "change": "A fundou um Posto",
+    "observer": "C",
+    "validBaseline": true,
+    "sentToSeenMs": 197,
+    "serverSavedToPushMs": 22,
+    "serverSavedToSeenMs": 164
+   },
+   {
+    "change": "A fundou um Posto",
+    "observer": "D",
+    "validBaseline": true,
+    "sentToSeenMs": 168,
+    "serverSavedToPushMs": 22,
+    "serverSavedToSeenMs": 135
+   }
+  ],
+  "notes": [],
+  "atStart": [
+   {
+    "openRegions": 4,
+    "closedRegions": 26,
+    "capitalsVisible": 4,
+    "contacts": 0
+   },
+   {
+    "openRegions": 4,
+    "closedRegions": 26,
+    "capitalsVisible": 4,
+    "contacts": 0
+   },
+   {
+    "openRegions": 4,
+    "closedRegions": 26,
+    "capitalsVisible": 4,
+    "contacts": 0
+   },
+   {
+    "openRegions": 4,
+    "closedRegions": 26,
+    "capitalsVisible": 4,
+    "contacts": 0
+   }
+  ],
+  "inspectorShift": 0,
+  "regionBacksBefore": [
+   26,
+   26,
+   26,
+   26
+  ],
+  "regionBacksAfter": [
+   22,
+   22,
+   22,
+   22
+  ],
+  "alertsOnScreen": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "summary": {
+   "samples": 11,
+   "meanServerSavedToSeenMs": 145,
+   "maxServerSavedToSeenMs": 226
+  }
+ }
+]
