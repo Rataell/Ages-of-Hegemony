@@ -7,6 +7,7 @@ import { HERITAGE_ADVANCES, migrateResearch } from './alpha-web.js';
 import { ALPHA_CARDS } from './alpha-cards.js';
 import { LEGACY_WORKS, LEGACY_WORK_ID_ALIASES, LEGACY_WORK_STEPS, LegacyWorkProgressSchema } from './alpha-legacy-works.js';
 import { LEADERS, LeaderStateSchema } from './alpha-leaders.js';
+import { MapSizeSchema } from './alpha-topology.js';
 import { civilizationKit } from './alpha-civilization-kits.js';
 import { RegionDiscoverySchema, ThreatSchema, WORLD_ID, threatComposition } from './alpha-threats.js';
 import { PendingChoiceSchema, ResonanceStateSchema, advancementDomains, advancementSource, emptyResonance } from './alpha-resonance.js';
@@ -47,6 +48,8 @@ export const AlphaRulesSchema = z.strictObject({
   milestones:z.array(AlphaEraMilestoneSchema).min(1),
   planningSeconds: z.union([z.literal(0), z.literal(180), z.literal(300), z.literal(480), z.literal(3600), z.literal(14400), z.literal(28800)]),
   worldPreset: MapPresetSchema,
+  /** Footprint of the board (Regions of seven hexes). Older saves default to the original 30-Region Padrão. */
+  mapSize: MapSizeSchema.default('STANDARD'),
   /** Playtest only: the whole map and every piece are visible to everyone. Never on for a real match. */
   revealMap: z.boolean().default(false),
   balance: AlphaBalanceSchema,

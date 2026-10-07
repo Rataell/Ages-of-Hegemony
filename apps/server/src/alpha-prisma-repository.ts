@@ -26,7 +26,10 @@ function decode(row:{id:string;joinCode:string;version:bigint;status:string;snap
  */
 export function encodeRoom(room:AlphaRoom):AlphaRoom {
   const parsed=AlphaRoomSchema.parse(room);
-  return {...parsed,seats:parsed.seats.map(seat=>seat.bot?seat:{guestId:seat.guestId,playerId:seat.playerId,name:seat.name,civilization:seat.civilization,ready:seat.ready} as typeof seat)};
+  const seats=parsed.seats.map(seat=>seat.bot?seat:{guestId:seat.guestId,playerId:seat.playerId,name:seat.name,civilization:seat.civilization,ready:seat.ready} as typeof seat);
+  // `mapSize` is omitted while it is the original Padrão so a V1 reader (strict room schema) still opens the row.
+  if(parsed.mapSize==='STANDARD'){const {mapSize:_omit,...rest}=parsed;return {...rest,seats} as AlphaRoom;}
+  return {...parsed,seats};
 }
 class StaleWrite extends Error {}
 /** A stored payload that no longer parses as the current room is a legacy snapshot that this save is about to migrate. */

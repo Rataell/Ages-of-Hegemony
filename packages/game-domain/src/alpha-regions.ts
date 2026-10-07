@@ -17,11 +17,16 @@ const homeNames=['Bacia de Alvor','Altos de Vard','Estuário de Méria','Costa d
 const frontierNames=['Várzeas de Vidro','Espinha do Norte','Bosque Silente','Enseada das Agulhas','Escarpa de Cobre','Delta dos Ventos',
   'Campos da Aurora','Pedras da Vigília','Mata das Fontes','Baía do Retorno','Colinas de Âmbar','Praias da Bruma',
   'Planície das Linhas','Maciço do Eco','Floresta das Pontes','Costa das Marés','Serras da Travessia','Ilhas do Horizonte',
-  'Campinas do Arco','Altiplano da Cinza','Bosque das Veredas','Porto das Conchas','Cordilheira do Sol','Litoral das Dunas'];
+  'Campinas do Arco','Altiplano da Cinza','Bosque das Veredas','Porto das Conchas','Cordilheira do Sol','Litoral das Dunas',
+  // Thirteen more frontier Regions for the Amplo footprint (43 Regions = 6 Pátrias + 37 frontier).
+  'Campos do Meio','Garganta Rubra','Mata do Cedro','Angra das Gaivotas','Cordão de Pedra','Estreito das Aves','Clareiras Longas',
+  'Terraços do Vento','Ilhotas do Norte','Planalto de Ouro','Encosta da Neblina','Foz das Salinas','Mirante do Delta'];
 const frontierPatterns=['PPPFHHF','PHMMHFP','PFFFHHP','PCCSCPF','PHHMFPP','PPCSSCP',
   'PPPPFHC','PMHMHFP','PFFPFHF','PCSSCCP','PHFHMHP','PCPCCSP',
   'PPHPPFF','PHMMMPF','PFFFFPH','PCSCCFP','PHMFMHP','PSSCCCP',
-  'PPFPFHH','PMMHHFP','PFPFFHH','PCCCSSP','PHMMFHP','PPCSCCP'];
+  'PPFPFHH','PMMHHFP','PFPFFHH','PCCCSSP','PHMMFHP','PPCSCCP',
+  'PPFHPPC','PHMHHPF','PFHFFPP','PCCSPCP','PMMHPFH','PPCCPSC','PFPPHFF',
+  'PHPHPHM','PSCSCPP','PPHHFFC','PFFHMPP','PCPPFHC','PHFPPCS'];
 const terrainCode:Record<string,TerrainType>={P:'PLAINS',F:'FOREST',H:'HILLS',M:'MOUNTAINS',C:'COAST',S:'SEA'};
 export const REGION_TEMPLATES:readonly RegionTemplate[]=[
   ...homeNames.map((name,i)=>({id:`homeland-${i+1}`,name,kind:'HOMELAND' as const,terrain:patterns[i]!})),

@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { AxialCoordinates } from './core.js';
 
 /**
@@ -10,6 +11,22 @@ import type { AxialCoordinates } from './core.js';
  */
 export const REGION_COUNT = 30;
 export const HOME_SLOTS = 6;
+/**
+ * Map footprints (External Alpha RC). One Region is always seven hexes. The sizes were measured against the real homeland
+ * placement: Compacto keeps the Pátrias two or more Regions apart for 2-4 seats (it is not offered to 5-6: they would sit
+ * next to each other), Padrão is the original 30, Amplo (43) is the smallest footprint that gives six seats three Regions.
+ */
+export const MapSizeSchema = z.enum(['COMPACT', 'STANDARD', 'WIDE']);
+export type MapSize = z.infer<typeof MapSizeSchema>;
+export const MAP_FOOTPRINT: Record<MapSize, { regions: number; hexes: number; minPlayers: number; maxPlayers: number }> = {
+  COMPACT: { regions: 24, hexes: 168, minPlayers: 2, maxPlayers: 4 },
+  STANDARD: { regions: REGION_COUNT, hexes: REGION_COUNT * 7, minPlayers: 2, maxPlayers: 6 },
+  WIDE: { regions: 43, hexes: 301, minPlayers: 2, maxPlayers: 6 },
+};
+export const MAP_SIZE_NAMES: Record<MapSize, string> = { COMPACT: 'Compacto', STANDARD: 'Padrão', WIDE: 'Amplo' };
+export const mapSizeAllows = (size: MapSize, players: number) => players >= MAP_FOOTPRINT[size].minPlayers && players <= MAP_FOOTPRINT[size].maxPlayers;
+/** Suggested footprint per table size (the lobby lets the host override it within `mapSizeAllows`). */
+export const recommendedMapSize = (players: number): MapSize => (players <= 2 ? 'COMPACT' : players <= 4 ? 'STANDARD' : 'WIDE');
 /** Region centre offsets of the six neighbouring cells: (i,j) ± (1,0), (0,1), (-1,1). */
 const CELL_STEP: readonly (readonly [number, number])[] = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
 /** Hex positions of a Region: centre, E, NE, NW, W, SW, SE (the order of every authored template). */
@@ -24,10 +41,11 @@ export interface BoardLayout {
 const centerOf = (i: number, j: number): AxialCoordinates => ({ q: 2 * i - j, r: i + 3 * j });
 const pixel = ({ q, r }: AxialCoordinates) => ({ x: Math.sqrt(3) * (q + r / 2), y: 1.5 * r });
 const cellKey = (i: number, j: number) => `${i}_${j}`;
-export function layoutBoard(playerCount: number, seed = 0): BoardLayout {
+export function layoutBoard(playerCount: number, seed = 0, size: MapSize = 'STANDARD'): BoardLayout {
+  const regionCount = MAP_FOOTPRINT[size].regions;
   const candidates: { i: number; j: number; d: number }[] = [];
-  for (let i = -4; i <= 4; i++) for (let j = -4; j <= 4; j++) { const p = pixel(centerOf(i, j)); candidates.push({ i, j, d: Math.hypot(p.x, p.y) }); }
-  const chosen = candidates.sort((a, b) => a.d - b.d || a.i - b.i || a.j - b.j).slice(0, REGION_COUNT).sort((a, b) => a.i - b.i || a.j - b.j);
+  for (let i = -7; i <= 7; i++) for (let j = -7; j <= 7; j++) { const p = pixel(centerOf(i, j)); candidates.push({ i, j, d: Math.hypot(p.x, p.y) }); }
+  const chosen = candidates.sort((a, b) => a.d - b.d || a.i - b.i || a.j - b.j).slice(0, regionCount).sort((a, b) => a.i - b.i || a.j - b.j);
   // Ids are the reading order of the lattice: region-1 … region-30.
   const ids = new Map(chosen.map((c, index) => [cellKey(c.i, c.j), `region-${index + 1}`]));
   const cells: BoardCell[] = chosen.map(({ i, j }) => {
@@ -46,12 +64,6 @@ export function regionDistances(cells: readonly BoardCell[], from: string): Map<
   return dist;
 }
 const hashOf = (text: string) => { let h = 2166136261; for (let k = 0; k < text.length; k++) { h ^= text.charCodeAt(k); h = Math.imul(h, 16777619); } return h >>> 0; };
-const combinations = <T,>(items: readonly T[], size: number): T[][] => {
-  const out: T[][] = [], pick: T[] = [];
-  const walk = (start: number) => { if (pick.length === size) { out.push([...pick]); return; } for (let k = start; k <= items.length - (size - pick.length); k++) { pick.push(items[k]!); walk(k + 1); pick.pop(); } };
-  walk(0);
-  return out;
-};
 
 /**
  * Where the Pátrias go (canon 2026-10): the seats' homeland Regions MAXIMISE the smallest Region-graph distance between any two of them;
@@ -60,7 +72,8 @@ const combinations = <T,>(items: readonly T[], size: number): T[][] => {
  * middle of the table. No fixed distance anywhere: it is whatever the footprint allows.
  * The six slots: the first `count` are the active seats (in a seed-rotated angular order); the rest are dormant homelands, spread greedily.
  */
-const tiesCache = new Map<number, string[][]>();
+/** Optimal layouts depend on the footprint, not only on the seat count: the cache key carries both. */
+const tiesCache = new Map<string, string[][]>();
 export function chooseHomelands(cells: readonly BoardCell[], playerCount: number, seed: number): string[] {
   const count = Math.max(2, Math.min(HOME_SLOTS, playerCount));
   const distance = new Map(cells.map(cell => [cell.id, regionDistances(cells, cell.id)]));
@@ -77,13 +90,29 @@ export function chooseHomelands(cells: readonly BoardCell[], playerCount: number
     return [min, total, -(Math.max(...shares) - Math.min(...shares))] as const;
   };
   // The footprint is fixed, so the optimal layouts per table size are computed once; the seed only picks among them.
-  let best: readonly [number, number, number] | null = null, ties: string[][] = tiesCache.get(count) ?? [];
-  if (!ties.length) for (const set of combinations(eligible, count)) {
-    const score = scoreOf(set);
-    const cmp = best === null ? 1 : score[0] - best[0] || score[1] - best[1] || score[2] - best[2] || 0;
-    if (cmp > 0) { best = score; ties = [set]; } else if (cmp === 0) ties.push(set);
+  const cacheKey = `${cells.length}:${cells.map(cell => cell.id).join(',')}:${count}`;
+  let best: readonly [number, number, number] | null = null, ties: string[][] = tiesCache.get(cacheKey) ?? [];
+  if (!ties.length) {
+    // Depth-first over the same lexicographic combinations, pruned as soon as the smallest pairwise distance can no longer reach the best one.
+    const pick: string[] = [];
+    const walk = (start: number, runningMin: number) => {
+      if (best !== null && runningMin < best[0]) return;
+      if (pick.length === count) {
+        const score = scoreOf(pick);
+        const cmp = best === null ? 1 : score[0] - best[0] || score[1] - best[1] || score[2] - best[2] || 0;
+        if (cmp > 0) { best = score; ties = [[...pick]]; } else if (cmp === 0) ties.push([...pick]);
+        return;
+      }
+      for (let k = start; k <= eligible.length - (count - pick.length); k++) {
+        const next = eligible[k]!;
+        let min = runningMin;
+        for (const other of pick) min = Math.min(min, d(other, next));
+        pick.push(next); walk(k + 1, min); pick.pop();
+      }
+    };
+    walk(0, Infinity);
   }
-  tiesCache.set(count, ties);
+  tiesCache.set(cacheKey, ties);
   const chosen = ties[hashOf(`${seed}:${count}`) % ties.length]!;
   // Seats in angular order around the table, rotated by the seed so seat 1 is not always on the same side.
   const angle = (id: string) => { const cell = cells.find(c => c.id === id)!, p = pixel(cell.center); return Math.atan2(p.y, p.x); };

@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { GameIdSchema, PlayerIdSchema, type AlphaError } from '@aoh/game-domain';
+import { GameIdSchema, PlayerIdSchema, mapSizeAllows, recommendedMapSize, type AlphaError } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, forceContactSetup } from '@aoh/game-engine';
 import { err, ok, type Result } from '@aoh/shared';
 import { AlphaRoomSchema, CreateAlphaRoomSchema, LobbyActionSchema, RoomActionSchema, lifecycleOf, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
@@ -16,7 +16,7 @@ import { playtestEnabled, playtestRecorderFor, UI_KINDS, type UiKind } from './p
 export function roomView(room:AlphaRoom,principal:GuestPrincipal,now=Date.now()){
   const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return null;
   const lifecycle=lifecycleOf(room),safe=room.game?safePoint(room):null;
-  return {playtest:playtestEnabled(),id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,seed:room.seed,seatLimit:room.seatLimit,maxSeats:maxSeats(),actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,planningSeconds:room.planningSeconds,deadline:room.deadline,
+  return {playtest:playtestEnabled(),id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,seed:room.seed,seatLimit:room.seatLimit,maxSeats:maxSeats(),actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,planningSeconds:room.planningSeconds,deadline:room.deadline,
     selfPlayerId:seat.playerId,isHost:room.hostGuestId===principal.guestId,
     lifecycle,suspended:room.suspended,closedReason:room.closedReason,selfOnGuard:room.onGuard.includes(seat.playerId),
     canSuspend:lifecycle==='ACTIVE'&&room.hostGuestId===principal.guestId&&safe?.ok===true,suspendBlock:safe&&!safe.ok?safe.reason:null,
@@ -111,8 +111,10 @@ export class AlphaGameService {
   async create(principal:GuestPrincipal,raw:unknown):Promise<Response>{
     const input=CreateAlphaRoomSchema.safeParse(raw);if(!input.success)return err({code:'INVALID_INPUT',message:'Revise nome, jogadores, duração e semente da partida.'});
     if(input.data.seatLimit>maxSeats())return err({code:'INVALID_INPUT',message:`Neste Alpha a partida comporta de 2 a ${maxSeats()} jogadores.`});
-    const {displayName,...options}=input.data;
-    const room=AlphaRoomSchema.parse({...options,id:GameIdSchema.parse(randomUUID()),joinCode:randomBytes(16).toString('base64url'),version:0,hostGuestId:principal.guestId,deadline:null,game:null,
+    const {displayName,mapSize:askedSize,...options}=input.data;
+    const mapSize=askedSize??recommendedMapSize(options.seatLimit);
+    if(!mapSizeAllows(mapSize,options.seatLimit))return err({code:'INVALID_INPUT',message:'Este tamanho de mapa não comporta esse número de jogadores.'});
+    const room=AlphaRoomSchema.parse({...options,mapSize,id:GameIdSchema.parse(randomUUID()),joinCode:randomBytes(16).toString('base64url'),version:0,hostGuestId:principal.guestId,deadline:null,game:null,
       seats:[{guestId:principal.guestId,playerId:PlayerIdSchema.parse('player-1'),name:displayName,civilization:null,ready:false,bot:false,botPersona:null}]});
     if(!await this.repository.create(room))return err({code:'ALREADY_EXISTS',message:'Não foi possível criar a partida. Tente novamente.'});
     presenceTouch(room.id,principal.guestId,Date.now());
@@ -208,6 +210,12 @@ export class AlphaGameService {
       if(!isHost)return forbidden();
       if(command.seatLimit>maxSeats()||command.seatLimit<Math.max(2,room.seats.length))return err({code:'INVALID_INPUT',message:`Escolha entre ${Math.max(2,room.seats.length)} e ${maxSeats()} lugares.`});
       room.seatLimit=command.seatLimit;
+      if(!mapSizeAllows(room.mapSize,room.seatLimit))room.mapSize=recommendedMapSize(room.seatLimit);
+    }else if(command.type==='SET_WORLD'){
+      if(!isHost)return forbidden();
+      const size=command.mapSize??room.mapSize;
+      if(!mapSizeAllows(size,room.seatLimit))return err({code:'INVALID_INPUT',message:'Este tamanho de mapa não comporta esse número de lugares.'});
+      room.mapSize=size;if(command.worldPreset)room.worldPreset=command.worldPreset;
     }else if(command.type==='ADD_BOT'){
       if(!isHost)return forbidden();
       if(room.seats.length>=Math.min(room.seatLimit,maxSeats()))return err({code:'LOBBY_FULL',message:'Não há lugar vazio para um bot.'});
@@ -227,7 +235,7 @@ export class AlphaGameService {
     }else {
       if(!isHost)return forbidden();
       if(room.seats.length<2||room.seats.length>maxSeats()||room.seats.every(s=>s.bot)||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
-      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))});
+      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!}))});
       // Dev-only test scenario (never in production): a legal Contact between the two nearest Pátrias, from the real proximity rule.
       if(process.env.ALPHA_FORCE_CONTACT==='1'&&process.env.NODE_ENV!=='production')forceContactSetup(created);
       room.game=beginAlphaPlanning(created);

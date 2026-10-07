@@ -4,10 +4,10 @@ import { beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, hexId,
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 function setup(count=2) {return beginAlphaPlanning(createAlphaGame({gameId:'world-alpha',seed:23,preset:'QUICK',players:Array.from({length:count},(_,i)=>({id:`p${i+1}`,name:`Pessoa ${i+1}`}))}));}
 describe('modular regions and fog of war',()=>{
-  it('contains thirty original authored templates and reproducible seeded layouts',()=>{
+  it('contains forty-three original authored templates and reproducible seeded layouts',()=>{
     expect(REGION_TEMPLATES.filter(r=>r.kind==='HOMELAND')).toHaveLength(6);
-    expect(REGION_TEMPLATES.filter(r=>r.kind==='FRONTIER')).toHaveLength(24);
-    expect(new Set(REGION_TEMPLATES.map(r=>r.id)).size).toBe(30);
+    expect(REGION_TEMPLATES.filter(r=>r.kind==='FRONTIER')).toHaveLength(37);
+    expect(new Set(REGION_TEMPLATES.map(r=>r.id)).size).toBe(43);
     expect(serializeAlphaState(setup())).toBe(serializeAlphaState(setup()));
   });
   it.each([2,4,6])('supports %i players on a 210-hex modular board: Pátrias open, frontier closed',count=>{
