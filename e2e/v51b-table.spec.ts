@@ -59,7 +59,7 @@ test('Mesa with the Faixa, the Tabuleiro da Civilização, the Teia, Herança, c
   await expect(board.locator('.alpha-big-sockets .alpha-socket')).toHaveCount(5);
   await expect(board.locator('.alpha-big-sockets .alpha-socket.is-full')).toHaveCount(4);
   await expect(board.locator('.alpha-big-sockets .alpha-socket.is-fifth')).toHaveCount(1);
-  await expect(board.getByLabel('Reserva de Marcos')).toBeVisible();
+  await expect(board.getByLabel('Reserva', { exact: true })).toBeVisible();
   await expect(board.locator('.alpha-node.is-done')).toHaveCount(4);
   await page.screenshot({ path: `${evidence}/02-tabuleiro-1366.png` });
   // Teia detail of a reachable node (the Teia is the first view of the Tabuleiro).

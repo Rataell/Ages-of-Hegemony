@@ -1,33 +1,44 @@
-/* Ressonância física: fichas (token) na Teia e bandeja de cinco encaixes. Forma = origem, glifo = domínio, cor = reforço (nunca a única pista). */
-.aoh-token { display: inline-block; flex: none; line-height: 0; vertical-align: middle; filter: drop-shadow(0 1px 1.5px #0007); }
-.aoh-token svg { display: block; overflow: visible; }
-.aoh-token-body { fill: var(--c1, #8a7f6a); stroke: color-mix(in srgb, var(--c1, #8a7f6a) 45%, #000); stroke-width: 1.2; }
-.aoh-token-bevel { fill: none; stroke: #fff; stroke-opacity: .28; stroke-width: 1; transform: scale(.88); transform-origin: 12px 12px; }
-.aoh-glyph-halo { stroke: #14100a; stroke-opacity: .6; stroke-width: 2.8; }
-.aoh-glyph-line { stroke: #fff8e8; stroke-width: 1.35; }
-.src-CONVERGENCE .aoh-token-bevel { transform: scale(.82); }
+/* Cubos de avanço (RC4). O cubo é do JOGADOR (--seat); o domínio é só um glifo gravado na face de cima. */
+.aoh-cube { display: inline-block; flex: none; line-height: 0; vertical-align: middle; --top: color-mix(in srgb, var(--seat, #8a7f6a) 80%, #fff); --left: color-mix(in srgb, var(--seat, #8a7f6a) 80%, #000); --right: color-mix(in srgb, var(--seat, #8a7f6a) 56%, #000); --edge: color-mix(in srgb, var(--seat, #8a7f6a) 40%, #000); }
+.aoh-cube svg { display: block; overflow: visible; }
+.aoh-cube-top { fill: var(--top); stroke: var(--edge); stroke-width: .8; stroke-linejoin: round; }
+.aoh-cube-left { fill: var(--left); stroke: var(--edge); stroke-width: .8; stroke-linejoin: round; }
+.aoh-cube-right { fill: var(--right); stroke: var(--edge); stroke-width: .8; stroke-linejoin: round; }
+.aoh-cube-bevel { fill: none; stroke: #fff; stroke-opacity: .42; stroke-width: .7; transform: scale(.82); transform-origin: 12px 7.5px; }
+.aoh-glyph-halo { stroke: #0b0906; stroke-opacity: .7; stroke-width: 3.4; }
+.aoh-glyph-line { stroke: #fffaf0; stroke-opacity: 1; stroke-width: 1.8; }
+.aoh-domain-glyph { vertical-align: -2px; } .aoh-domain-glyph .aoh-glyph-halo { stroke: none; } .aoh-domain-glyph .aoh-glyph-line { stroke: currentColor; stroke-opacity: .85; }
+.aoh-cube.is-placed, .aoh-cube.is-echo { filter: drop-shadow(0 1.5px 1px #000a); }
+.aoh-cube.is-pile { margin-left: -9px; filter: drop-shadow(0 1px 1px #0008); } .aoh-cube.is-pile:first-child { margin-left: 0; }
 
-/* Marcas permanentes na Teia: o nó ativo mostra a ficha; o nó pesquisado ganha um fundo discreto. */
-.alpha-node.is-done, .alpha-diamond.is-done { background: color-mix(in srgb, var(--c1) 14%, transparent); }
-.alpha-node.is-fresh .aoh-token, .alpha-diamond.is-fresh .aoh-token { animation: aoh-token-in 1.5s cubic-bezier(.2,.8,.2,1) both; }
-.alpha-node.is-fresh, .alpha-diamond.is-fresh { animation: aoh-node-wake 1.6s ease-out both; }
-@keyframes aoh-token-in { 0% { transform: translate(-90px, -120px) scale(2.4) rotate(-18deg); opacity: 0 } 30% { opacity: 1 } 70% { transform: translateY(2px) scale(1.12) } 100% { transform: none; opacity: 1 } }
-@keyframes aoh-node-wake { 0%, 35% { box-shadow: 0 0 0 0 transparent } 55% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--c1) 55%, transparent), 0 0 18px var(--c1) } 100% { box-shadow: 0 0 0 0 transparent } }
-.alpha-reserve-stack .aoh-token { filter: none; }
+/* A casa do cubo no nó: uma cavidade rasa onde a peça é colocada; vazia enquanto o avanço não foi pesquisado. */
+.aoh-seat { flex: none; display: grid; place-items: center; width: 28px; height: 29px; border-radius: 6px; background: color-mix(in srgb, #000 28%, transparent); box-shadow: inset 0 1px 3px #0009, 0 1px 0 #fff1; }
+.alpha-node.is-done .aoh-seat, .alpha-diamond.is-done .aoh-seat { background: radial-gradient(circle at 50% 35%, #0c0b0a, #1a1713 80%); box-shadow: inset 0 2px 4px #000b, 0 1px 0 #fff1; }
+.alpha-node.is-done, .alpha-diamond.is-done { background: color-mix(in srgb, var(--surface-highest) 70%, transparent); border-color: var(--border); }
+.alpha-diamond .aoh-seat { margin-left: auto; }
+.alpha-node.is-fresh .aoh-cube.is-placed, .alpha-diamond.is-fresh .aoh-cube.is-placed { animation: aoh-cube-drop .38s cubic-bezier(.2,.9,.3,1.25) both; }
+@keyframes aoh-cube-drop { 0% { transform: translateY(-22px) scale(1.5); opacity: 0 } 60% { opacity: 1 } 80% { transform: translateY(1.5px) scale(.96) } 100% { transform: none; opacity: 1 } }
+.alpha-node.is-fresh, .alpha-diamond.is-fresh { animation: aoh-node-wake .8s ease-out both; }
+@keyframes aoh-node-wake { 0%, 40% { box-shadow: 0 0 0 0 transparent } 60% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--seat, var(--mark)) 50%, transparent) } 100% { box-shadow: 0 0 0 0 transparent } }
+.aoh-courier { filter: drop-shadow(0 3px 3px #000a); }
+
+/* Reserva: uma pequena pilha dos cubos do jogador. Só imagem; nenhum número, nenhum limite. */
+.alpha-reserve { display: flex; align-items: center; gap: 10px; } .alpha-reserve small { color: var(--text-muted); }
+.aoh-pile { display: inline-flex; align-items: flex-end; }
 
 /* A bandeja: cinco cavidades escavadas numa prancha; cada ficha repousa no seu encaixe. */
 .alpha-big-sockets.aoh-tray { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 10px; margin: 2px 0 4px; border-radius: 10px;
   background: linear-gradient(180deg, color-mix(in srgb, var(--surface-highest) 88%, #000), color-mix(in srgb, var(--surface-elevated) 80%, #000)); border: 1px solid var(--border); box-shadow: inset 0 3px 8px #0008, inset 0 -1px 0 #fff1; }
-.aoh-tray .alpha-socket.is-big.aoh-cavity { position: relative; width: auto; height: auto; aspect-ratio: 1; min-height: 40px; display: grid; place-items: center; padding: 0; border-radius: 50%; transform: none;
+.aoh-tray .alpha-socket.is-big.aoh-cavity { position: relative; width: auto; height: auto; aspect-ratio: 1; min-height: 40px; display: grid; place-items: center; padding: 0; border-radius: 9px; transform: none;
   background: radial-gradient(circle at 50% 38%, #0a0a0a 0%, #151311 60%, #24201a 100%); border: 1px solid #3a3326; box-shadow: inset 0 3px 6px #000c, 0 1px 0 #fff2; }
-.aoh-tray .alpha-socket.is-big.aoh-cavity.is-full { background: radial-gradient(circle at 50% 38%, #12100d 0%, #1b1813 70%); border-color: color-mix(in srgb, var(--c1, #8a7f6a) 60%, #3a3326); }
+.aoh-tray .alpha-socket.is-big.aoh-cavity.is-full { background: radial-gradient(circle at 50% 38%, #12100d 0%, #1b1813 70%); border-color: color-mix(in srgb, var(--seat, #8a7f6a) 45%, #3a3326); }
 .aoh-cavity-n { font-family: var(--serif, serif); font-size: 15px; color: #6c6250; }
 .aoh-tray .alpha-socket.is-fifth { border-color: var(--mark); animation: alpha-glow 1.8s ease-in-out infinite; box-shadow: inset 0 3px 6px #000c, 0 0 0 3px color-mix(in srgb, var(--mark) 30%, transparent), 0 0 16px var(--mark); }
 .aoh-tray .alpha-socket.is-fifth .aoh-cavity-n { color: var(--mark); }
 .aoh-tray .alpha-socket.is-big.is-linked { transform: translateY(-2px); box-shadow: inset 0 3px 6px #000c, 0 0 0 3px var(--mark), 0 0 16px var(--mark); }
 .aoh-tray .alpha-socket.is-fresh { animation: none; }
-.aoh-tray .alpha-socket.is-fresh .aoh-token { animation: aoh-token-drop .55s var(--drop-delay, 1.4s) cubic-bezier(.2,.9,.3,1.2) both; }
-@keyframes aoh-token-drop { 0% { transform: translateY(-34px) scale(1.7); opacity: 0 } 55% { opacity: 1 } 78% { transform: translateY(2px) scale(.94) } 100% { transform: none; opacity: 1 } }
+.aoh-tray .alpha-socket.is-fresh .aoh-cube { animation: aoh-echo-in .22s var(--drop-delay, .86s) ease-out both; }
+@keyframes aoh-echo-in { 0% { transform: scale(.8); opacity: 0 } 100% { transform: none; opacity: 1 } }
 .aoh-tray.is-spotlight { animation: aoh-spotlight 1.4s ease-out 1; }
 @keyframes aoh-spotlight { 0% { box-shadow: inset 0 3px 8px #0008, 0 0 0 0 color-mix(in srgb, var(--mark) 0%, transparent) } 40% { box-shadow: inset 0 3px 8px #0008, 0 0 0 4px color-mix(in srgb, var(--mark) 50%, transparent), 0 0 22px var(--mark) } 100% { box-shadow: inset 0 3px 8px #0008, 0 0 0 0 transparent } }
 .aoh-tray-count { margin: 0 0 6px; text-align: center; font-size: 12px; color: var(--text-muted); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
@@ -35,18 +46,18 @@
 
 /* Quinto encaixe: os cinco respondem em onda, o cartão de Repercussão aparece; ao resolver, a bandeja esvazia. */
 .aoh-tray.is-complete { border-color: var(--mark); box-shadow: inset 0 3px 8px #0008, 0 0 0 2px color-mix(in srgb, var(--mark) 45%, transparent), 0 0 26px color-mix(in srgb, var(--mark) 45%, transparent); }
-.aoh-tray.is-complete .aoh-cavity .aoh-token { animation: aoh-wave 1.2s calc(var(--i) * 110ms + 1.9s) ease-in-out 2 both; }
-.aoh-tray.is-complete .aoh-cavity.is-fresh .aoh-token { animation: aoh-token-drop .55s var(--drop-delay, 1.4s) cubic-bezier(.2,.9,.3,1.2) both, aoh-wave 1.2s calc(var(--i) * 110ms + 2.2s) ease-in-out 2; }
+.aoh-tray.is-complete .aoh-cavity .aoh-cube { animation: aoh-wave 1.2s calc(var(--i) * 110ms + 1.2s) ease-in-out 2 both; }
+.aoh-tray.is-complete .aoh-cavity.is-fresh .aoh-cube { animation: aoh-echo-in .22s var(--drop-delay, .86s) ease-out both, aoh-wave 1.2s calc(var(--i) * 110ms + 1.4s) ease-in-out 2; }
 @keyframes aoh-wave { 0%, 100% { transform: none } 40% { transform: translateY(-6px) scale(1.14) } }
-.aoh-tray.is-clearing .aoh-cavity .aoh-token { animation: aoh-token-out .8s calc(var(--i) * 70ms) ease-in both; }
+.aoh-tray.is-clearing .aoh-cavity .aoh-cube { animation: aoh-token-out .8s calc(var(--i) * 70ms) ease-in both; }
 @keyframes aoh-token-out { to { transform: translateY(18px) scale(.4); opacity: 0 } }
 
 @media (prefers-reduced-motion: reduce) {
-  .alpha-node.is-fresh, .alpha-diamond.is-fresh, .alpha-node.is-fresh .aoh-token, .alpha-diamond.is-fresh .aoh-token, .aoh-tray .alpha-socket.is-fresh .aoh-token, .aoh-tray.is-complete .aoh-cavity .aoh-token, .aoh-tray.is-clearing .aoh-cavity .aoh-token, .aoh-tray.is-spotlight, .aoh-tray .alpha-socket.is-fifth { animation: none; }
-  .aoh-tray.is-clearing .aoh-cavity .aoh-token { opacity: 0; }
+  .alpha-node.is-fresh, .alpha-diamond.is-fresh, .alpha-node.is-fresh .aoh-cube, .alpha-diamond.is-fresh .aoh-cube, .aoh-tray .alpha-socket.is-fresh .aoh-cube, .aoh-tray.is-complete .aoh-cavity .aoh-cube, .aoh-tray.is-clearing .aoh-cavity .aoh-cube, .aoh-tray.is-spotlight, .aoh-tray .alpha-socket.is-fifth { animation: none; }
+  .aoh-tray.is-clearing .aoh-cavity .aoh-cube { opacity: 0; }
 }
-/* Escala de cinza e daltonismo: a forma e o glifo já carregam a informação; o contorno claro garante contraste. */
-@media (forced-colors: active) { .aoh-token-body { fill: Canvas; stroke: CanvasText; } .aoh-glyph-line { stroke: CanvasText; } .aoh-glyph-halo { stroke: Canvas; } }
+/* Escala de cinza e daltonismo: o glifo gravado carrega o domínio; a cor só diz de quem é o cubo. */
+@media (forced-colors: active) { .aoh-cube-body { fill: Canvas; stroke: CanvasText; } .aoh-glyph-line { stroke: CanvasText; } .aoh-glyph-halo { stroke: Canvas; } }
 @media (max-width: 900px) { .alpha-big-sockets.aoh-tray { gap: 6px; padding: 6px; } .aoh-tray .alpha-socket.is-big.aoh-cavity { min-height: 34px; } }
 
 /* Faixa superior: contagem compacta ao lado dos cinco losangos. */

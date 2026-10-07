@@ -241,7 +241,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
         </div>
       </aside>:<button type="button" className="aoh-btn is-sm alpha-context-open" onClick={()=>togglePanel('inspector')}>Detalhes</button>}
     </div>
-    {civOpen&&tab==='world'&&<AlphaCivBoard initialView={civView} game={game} selfName={player.name} cityId={city?.id??null} locked={locked} send={send} manage={manage} onClose={()=>setCivOpen(false)}/>}
+    {civOpen&&tab==='world'&&<AlphaCivBoard initialView={civView} game={game} selfName={player.name} seatColor={seatOf(room.selfPlayerId).color} cityId={city?.id??null} locked={locked} send={send} manage={manage} onClose={()=>setCivOpen(false)}/>}
     {!civOpen&&game.phase!=='ERA_TURN'&&!replay&&tab==='world'&&!compendiumOpen&&<RegionRevealed reveal={reveal} game={game} locked={locked} send={send}/>}
     {compendiumOpen&&<AlphaCompendium onClose={()=>setCompendiumOpen(false)}/>}
     {!civOpen&&game.phase!=='ERA_TURN'&&!replay&&!(reveal.current&&reveal.current.kind!=='NONE'&&tab==='world'&&!compendiumOpen)&&game.self.pendingChoices[0]&&tab==='world'&&<div className="alpha-parchment-pop"><ChoiceParchment choice={game.self.pendingChoices[0]} locked={locked} send={send}/></div>}
