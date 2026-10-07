@@ -216,7 +216,7 @@ export function candidates(box, id, persona) {
   const dangers = threatsSeen.map(t => tileOf(state, t.hexId)).filter(Boolean);
   const safeHex = hex => !dangers.some(d => dist(tileOf(state, hex), d) <= 2);
   const closedRegions = state.regions.filter(r => r.revealedBy.length === 0);
-  const nearestClosed = tile => closedRegions.map(r => ({ r, d: Math.min(...r.hexIds.map(h => dist(tile, tileOf(state, h)))) })).sort((a, b) => a.d - b.d || a.r.id.localeCompare(b.r.id))[0];
+  const nearestClosed = (tile, skip = new Set()) => closedRegions.filter(r => !r.hexIds.some(h => skip.has(h))).map(r => ({ r, d: Math.min(...r.hexIds.map(h => dist(tile, tileOf(state, h)))) })).sort((a, b) => a.d - b.d || a.r.id.localeCompare(b.r.id))[0];
   const goodTerrain = ['PLAINS', 'FOREST', 'COAST', 'HILLS'];
   const siteScore = (tile, minGap) => {
     const near = Math.min(...cityTiles.map(c => dist(c, tile)));
@@ -244,15 +244,17 @@ export function candidates(box, id, persona) {
     }
     // Explore: a closed Region within reach; otherwise walk toward the nearest closed Region (edge of the Pátria first). Single Pioneiros do it only without a site.
     const explorer = !wantFound || !founderRole || !walk;
+    const openExplore = uo.explore.filter(e => e.block === null && e.rotations.length > 0);
     if (explorer && (persona.explore ?? 1) > 0 && comp) {
-      if (uo.explore.length) { add(95 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } }); return; }
-      const goal = nearestClosed(here);
+      if (openExplore.length) { add(95 * Math.min(1.1, persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: openExplore[0]!.target, rotation: openExplore[0]!.rotations[0]! } }); return; }
+      // A Region this Pioneiro cannot enter ("Requer acesso naval.") is not a goal: walking at it would stall the bot.
+      const goal = nearestClosed(here, new Set(uo.explore.filter(e => e.block !== null).flatMap(e => e.hexIds)));
       if (goal) {
         const goalTiles = goal.r.hexIds.map(h => tileOf(state, h));
         const step = Object.keys(uo.moves).filter(safeHex).map(hex => ({ hex, d: Math.min(...goalTiles.map(g => dist(tileOf(state, hex), g))) })).filter(x => x.d < goal.d).sort((a, b) => a.d - b.d || a.hex.localeCompare(b.hex))[0];
         if (step) { add(94, `scout:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[step.hex] } }); return; }
       }
-    } else if (!comp && uo.explore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: uo.explore[0].target, rotation: 0 } });
+    } else if (!comp && openExplore.length) add(58 * (persona.explore ?? 1), `explore:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'EXPLORE', unitId: unit.id, target: openExplore[0]!.target, rotation: openExplore[0]!.rotations[0]! } });
     if (walk) { ctx.siteWait.set(unit.id, waited + 1); add(walk.score, `pioneer:${unit.id}`, { type: 'QUEUE_ORDER', order: { id: nextOrderId(box, id), type: 'MOVE', unitIds: [unit.id], path: uo.moves[walk.hex] } }); return; }
     if (comp) {
       // D-1 measurement: with nothing left to open, competent players sweep the ring 3–5 hexes from their cities so a fresh Acampamento is seen.

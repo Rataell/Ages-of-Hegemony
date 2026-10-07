@@ -1,7 +1,8 @@
 import { liftLegacyCityCaps } from './alpha-turn.js';
-import { layoutBoard, HOME_SLOTS, MAP_FOOTPRINT, featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaRules, type MapPreset, type MapSize, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
+import { layoutBoard, HOME_SLOTS, MAP_FOOTPRINT, featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaUnit, type AlphaRules, type MapPreset, type MapSize, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { presetTerrain, worldShape } from './alpha-presets.js';
+import { isLandTerrain, isNavigableTerrain } from './alpha-world-audit.js';
 import { alphaEvent } from './alpha-events.js';
 import { migrateSnapshotV3ToV4 } from './alpha-migration.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
@@ -121,18 +122,53 @@ export function refreshKnowledge(state:AlphaState):void {
 export function regionOrientationFixed(state:AlphaState,region:AlphaState['regions'][number]):boolean {
   return region.revealedBy.length>0||region.hexIds.some(id=>state.core.map.find(t=>t.id===id)?.ownerId!==null||state.units.some(u=>u.hexId===id));
 }
+/** Who may explore: Pioneiros on land, Frotas (and the coastal vessel) on water. Military land pieces never explore. */
+export type ExplorerRole='LAND'|'NAVAL';
+export function explorerRole(state:AlphaState,unit:AlphaUnit):ExplorerRole|null {
+  if(unit.carrierId)return null;
+  if(unit.kind==='PIONEER')return 'LAND';
+  const domain=state.rules.units[unit.kind].domain;
+  return (unit.kind==='FLEET'||unit.kind==='COASTAL_VESSEL')&&domain!=='LAND'?'NAVAL':null;
+}
+export const EXPLORE_NEEDS_NAVAL='Requer acesso naval.';
+export const EXPLORE_NEEDS_LAND='Requer acesso por terra.';
+export interface ExplorationAccess {
+  /** Orientations (sixth-turns) under which the piece can enter the Region; the single one when the orientation is already fixed. */
+  rotations:number[];
+  /** Why the Region cannot be explored by this piece at all (no orientation gives it a way in); null when it can. */
+  block:string|null;
+}
+/**
+ * Entry rule. A Pioneiro walks in, so at least one Region hex within its reach must be LAND (plains, forest, hills, mountains or coast) once the
+ * Region is turned; a Frota sails in, so one must be navigable water (coast or sea) by the same canonical truth the naval rules use. Orientations that
+ * would change terrain somebody already knows are excluded. With one orientation left it is applied automatically; with several the explorer chooses;
+ * with none the piece cannot do it ("Requer acesso naval." for land, the mirror for fleets).
+ */
+export function explorationAccess(state:AlphaState,unit:AlphaUnit,region:AlphaState['regions'][number]):ExplorationAccess {
+  const role=explorerRole(state,unit),blocked=role==='NAVAL'?EXPLORE_NEEDS_LAND:EXPLORE_NEEDS_NAVAL;
+  if(role===null)return {rotations:[],block:'Esta peça não explora.'};
+  const origin=state.core.map.find(t=>t.id===unit.hexId)!,reach=kitExplorationReach(state,unit),enters=role==='LAND'?isLandTerrain:isNavigableTerrain;
+  const entry=region.hexIds.map((id,i)=>({id,i,tile:state.core.map.find(t=>t.id===id)!})).filter(x=>hexDistance(origin,x.tile)<=reach);
+  if(!entry.length)return {rotations:[],block:'A região não está na fronteira desta peça.'};
+  if(regionOrientationFixed(state,region)){
+    const ok=entry.some(x=>enters(x.tile.terrain));
+    return {rotations:ok?[region.rotation]:[],block:ok?null:blocked};
+  }
+  const observed=new Set(state.players.flatMap(p=>[...p.knownHexIds,...visibleHexIds(state,p.playerId)]));
+  const rotations=[0,1,2,3,4,5].filter(rotation=>{
+    const tiles=rotatedRegionTiles(state,region,rotation);
+    const keepsKnown=region.hexIds.every((id,i)=>{if(!observed.has(id))return true;const tile=state.core.map.find(t=>t.id===id)!;return tile.terrain===tiles[i]!.terrain&&tile.features.join()===tiles[i]!.features.join();});
+    return keepsKnown&&entry.some(x=>enters(tiles[x.i]!.terrain));
+  });
+  return {rotations,block:rotations.length?null:blocked};
+}
 export function validateExploration(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
   const unit=state.units.find(u=>u.id===order.unitId&&u.ownerId===actor);const region=state.regions.find(r=>r.hexIds.includes(order.target));
   if(!unit||!region||regionOpenFor(state,region,actor))throw new Error('Escolha uma peça própria junto a uma região ainda não explorada.');
-  const origin=state.core.map.find(t=>t.id===unit.hexId)!;
-  const reach=kitExplorationReach(state,unit);
-  if(!region.hexIds.some(id=>{const tile=state.core.map.find(t=>t.id===id)!;return hexDistance(origin,tile)<=reach;}))throw new Error('A região não está na fronteira desta peça.');
-  if(!regionOrientationFixed(state,region)&&order.rotation!==region.rotation){
-    const observed=new Set(state.players.flatMap(p=>[...p.knownHexIds,...visibleHexIds(state,p.playerId)]));
-    const rotated=rotatedRegionTiles(state,region,order.rotation);
-    const changesKnownTerrain=region.hexIds.some((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;return observed.has(id)&&(tile.terrain!==rotated[i]!.terrain||tile.features.join()!==rotated[i]!.features.join());});
-    if(changesKnownTerrain)throw new Error('A orientação não pode alterar terrenos já conhecidos.');
-  }
+  if(explorerRole(state,unit)===null)throw new Error('Somente Pioneiros e Frotas exploram.');
+  const access=explorationAccess(state,unit,region);
+  if(access.block!==null)throw new Error(access.block);
+  if(!regionOrientationFixed(state,region)&&access.rotations.length>1&&!access.rotations.includes(order.rotation))throw new Error('Essa orientação não dá acesso à região.');
 }
 const holdsMetal=(terrain:TerrainType)=>terrain==='HILLS'||terrain==='MOUNTAINS';
 /**
@@ -156,7 +192,7 @@ export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<Stra
   const already=state.regions.find(r=>r.hexIds.includes(order.target));
   if(already&&state.units.some(u=>u.id===order.unitId&&u.ownerId===actor)&&regionOpenFor(state,already,actor)){alphaEvent(state,'REGION_ALREADY_OPEN','A Região já tinha sido revelada por outra civilização.',[actor]);return;}
   validateExploration(state,actor,order);const region=state.regions.find(r=>r.hexIds.includes(order.target))!;
-  const fixed=regionOrientationFixed(state,region),rotation=fixed?region.rotation:order.rotation;
+  const fixed=regionOrientationFixed(state,region),access=explorationAccess(state,state.units.find(u=>u.id===order.unitId)!,region),rotation=fixed?region.rotation:access.rotations.length===1?access.rotations[0]!:order.rotation;
   if(!fixed){
     const rotated=rotatedRegionTiles(state,region,rotation);
     region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;tile.terrain=rotated[i]!.terrain;tile.features=rotated[i]!.features;});

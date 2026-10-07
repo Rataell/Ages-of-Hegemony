@@ -1,6 +1,6 @@
 import { unitMovement } from './alpha-grades.js';
 import type { AlphaState, AlphaUnit, PlayerId } from '@aoh/game-domain';
-import { regionOpenFor } from './alpha-world.js';
+import { explorationAccess, explorerRole, regionOpenFor } from './alpha-world.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { canEnter } from './alpha-military.js';
 import { enemyCityAt, movementOpen } from './alpha-diplomacy.js';
@@ -16,7 +16,7 @@ export interface AlphaUnitOptions {
   /** Cheapest legal MOVE path (origin excluded) to every hex the piece can reach this round. */
   moves: Record<string, string[]>;
   /** Adjacent regions the player has not explored yet: the order target plus every hex of the region (geometry is public). */
-  explore: { target: string; hexIds: string[] }[];
+  explore: { target: string; hexIds: string[]; /** Orientations that give the piece a way in (one: applied automatically; several: the player chooses). */ rotations: number[]; /** Set when no orientation gives access, e.g. "Requer acesso naval." */ block: string | null }[];
   /** Pioneers only: null when founding here is allowed, otherwise the refusal the server would give. */
   settleBlock: string | null;
   /** Land pieces: own fleets on this hex or next to it that can take this piece now. */
@@ -71,10 +71,13 @@ function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Ma
 }
 
 function explorable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>): AlphaUnitOptions['explore'] {
+  if (explorerRole(state, unit) === null) return [];
   const origin = byId.get(unit.hexId)!;
   return state.regions.filter(region => !regionOpenFor(state, region, actor)).flatMap(region => {
     const near = region.hexIds.map(id => byId.get(id)!).filter(tile => tile && hexDistance(origin, tile) <= kitExplorationReach(state, unit)).sort((a, b) => hexDistance(origin, a) - hexDistance(origin, b) || a.id.localeCompare(b.id));
-    return near[0] ? [{ target: near[0].id, hexIds: [...region.hexIds] }] : [];
+    if (!near[0]) return [];
+    const access = explorationAccess(state, unit, region);
+    return [{ target: near[0].id, hexIds: [...region.hexIds], rotations: access.rotations, block: access.block }];
   }).sort((a, b) => a.target.localeCompare(b.target));
 }
 
