@@ -1,3 +1,4 @@
+/* global window */
 // RC 1.2 table art sheets. Renders the pure SVG factories of apps/web/app/alpha/table-art.ts into standalone pages and
 // screenshots them at 1280x720 into docs/evidence/rc12/art/ (no server needed).
 //   node scripts/alpha-art-shots.mjs            -> every sheet

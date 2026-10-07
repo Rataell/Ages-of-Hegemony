@@ -25,7 +25,7 @@ async function play(worldPreset: string, mapSize: string, rounds: number) {
   for (let step = 0; step < rounds * 6; step++) {
     const view = await service.read(human, id, 1); if (!view.ok) throw new Error('read');
     const g = view.value.game!;
-    if (g.core?.round !== undefined && g.core.round >= rounds) break;
+    if (g.view.round >= rounds) break;
     const me = g.self;
     if (!me.ambitionsChosen) { await service.command(human, id, { type: 'CHOOSE_AMBITIONS', expectedVersion: g.version, cardIds: me.ambitions.slice(0, 2) }, 1); continue; }
     const choice = me.pendingChoices[0]; if (choice) { await service.command(human, id, { type: 'RESOLVE_CHOICE', expectedVersion: g.version, choiceId: choice.id, optionId: choice.options[0]!.id }, 1); continue; }
