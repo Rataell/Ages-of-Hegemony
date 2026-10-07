@@ -41,7 +41,7 @@ function SeatCard({ room, seat, index, busy, lobby }: { room: AlphaRoomView; sea
     <div className="alpha-seat-text">
       <h3>{seat.name}{self && <small className="alpha-seat-you"> · você</small>}</h3>
       <p>{figureLine(seat)}</p>
-      <small className="alpha-seat-meta">{presence ? <i className={`presence-dot is-${seat.presence.toLowerCase()}`} title={presence} aria-label={presence} /> : <i className="presence-dot is-bot" aria-hidden="true" />}{role} · <b className="alpha-seat-state">{seat.ready ? 'Pronto' : 'Preparando'}</b></small>
+      <small className="alpha-seat-meta">{presence ? <i className={`presence-dot is-${seat.presence.toLowerCase()}`} title={presence} aria-label={presence} /> : <i className="presence-dot is-bot" aria-hidden="true" />}<span className="alpha-seat-role">{role} · </span><b className="alpha-seat-state">{seat.ready ? 'Pronto' : 'Preparando'}</b></small>
     </div>
     {room.isHost && seat.bot && <button type="button" className="alpha-seat-remove" disabled={busy} aria-label="Remover bot" title="Remover bot" onClick={() => void lobby({ type: 'REMOVE_BOT', playerId: seat.playerId })}>×</button>}
     {room.isHost && !seat.bot && !self && <button type="button" className="alpha-seat-remove" disabled={busy} aria-label="Remover da sala" title="Remover da sala" onClick={() => { if (confirm(`Remover ${seat.name} da sala?`)) void lobby({ type: 'KICK', playerId: seat.playerId }); }}>×</button>}
@@ -50,7 +50,7 @@ function SeatCard({ room, seat, index, busy, lobby }: { room: AlphaRoomView; sea
 
 function SeatStrip({ room, busy, lobby }: { room: AlphaRoomView; busy: boolean; lobby: LobbySend }) {
   const empty = Math.max(0, room.seatLimit - room.seats.length);
-  return <div className="alpha-seats" role="group" aria-label="Lugares da mesa" style={{ '--seat-count': room.seatLimit } as CSSProperties}>
+  return <div className="alpha-seats" role="group" aria-label="Lugares da mesa" style={{ '--seat-count': Math.max(4, room.seatLimit) } as CSSProperties}>
     {room.seats.map((seat, i) => <SeatCard key={seat.playerId} room={room} seat={seat} index={i} busy={busy} lobby={lobby} />)}
     {Array.from({ length: empty }, (_, i) => <div key={`free-${i}`} className="alpha-seat-free" style={{ '--seat': seatColor(room.seats.length + i) } as CSSProperties}>
       {i === 0 && room.isHost
@@ -95,10 +95,10 @@ function FigurePicker({ room, mine, shown, locked, onFigure }: { room: AlphaRoom
   </section>;
 }
 
-function Segments<T extends string | number>({ label, value, options, disabled, onPick }: { label: string; value: T; options: readonly { value: T; title: string; detail?: string; tip?: string; tag?: string | null; reason?: string | null }[]; disabled: boolean; onPick: (value: T) => void }) {
+function Segments<T extends string | number>({ label, value, options, disabled, onPick, columns }: { label: string; value: T; columns?: number; options: readonly { value: T; title: string; detail?: string; tip?: string; tag?: string | null; reason?: string | null }[]; disabled: boolean; onPick: (value: T) => void }) {
   return <div className="alpha-segment-field">
-    <span className="alpha-segment-label" id={`seg-${label}`}>{label}</span>
-    <div className="alpha-segments" role="radiogroup" aria-labelledby={`seg-${label}`}>
+    <span className="alpha-segment-label" id={`seg-${label.replace(/\s+/g, '-')}`}>{label}</span>
+    <div className="alpha-segments" role="radiogroup" aria-labelledby={`seg-${label.replace(/\s+/g, '-')}`} data-columns={columns}>
       {options.map(option => <button key={String(option.value)} type="button" role="radio" aria-checked={option.value === value} className={option.value === value ? 'is-on' : ''}
         disabled={disabled || Boolean(option.reason)} title={option.reason ?? option.tip ?? option.detail ?? undefined} onClick={() => { if (option.value !== value) onPick(option.value); }}>
         <b>{option.title}</b>{option.detail && <small>{option.detail}</small>}{option.tag && <em>{option.tag}</em>}
@@ -120,7 +120,7 @@ function TablePanel({ room, busy, lobby }: { room: AlphaRoomView; busy: boolean;
     <Segments<MapSize> label="Tamanho do mapa" value={room.mapSize as MapSize} disabled={locked} onPick={size => void lobby({ type: 'SET_WORLD', mapSize: size })}
       options={sizes.map(s => ({ value: s.size, title: s.name, detail: `${s.regions} Regiões`, tag: s.recommended ? 'recomendado' : null, reason: s.reason }))} />
     <p className="alpha-segment-note">{blocked ? `${blocked.name}: só de ${blocked.reason!.replace('Comporta ', '')}.` : current?.recommended ? 'Tamanho recomendado para esta mesa.' : `Recomendado: ${sizes.find(s => s.recommended)?.name}.`}</p>
-    <Segments label="Mundo" value={room.worldPreset} disabled={locked} onPick={preset => void lobby({ type: 'SET_WORLD', worldPreset: preset })}
+    <Segments label="Mundo" columns={2} value={room.worldPreset} disabled={locked} onPick={preset => void lobby({ type: 'SET_WORLD', worldPreset: preset })}
       options={WORLD_OPTIONS.map(([value, title, tip]) => ({ value, title, tip }))} />
     <p className="alpha-segment-note">{world?.[2]}</p>
     <dl className="alpha-lobby-rules">

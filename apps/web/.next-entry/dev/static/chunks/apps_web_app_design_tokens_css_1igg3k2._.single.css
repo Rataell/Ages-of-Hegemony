@@ -1,0 +1,187 @@
+/* [project]/apps/web/app/design/tokens.css [app-client] (css) */
+:root {
+  --lightningcss-light: ;
+  --lightningcss-dark: initial;
+  color-scheme: dark;
+  --background: #0b1114;
+  --surface: #121b20;
+  --surface-elevated: #19252b;
+  --surface-highest: #22323a;
+  --border: #33474f;
+  --border-subtle: #22323a;
+  --border-accent: #e7c98a;
+  --text-primary: #eee8da;
+  --text-secondary: #b3c0bd;
+  --text-muted: #93a3a0;
+  --accent: #c9a45c;
+  --accent-hover: #e2bf78;
+  --accent-bright: #e7c98a;
+  --on-accent: #1a1206;
+  --well: #0f181c;
+  --mark: #f4ecd8;
+  --danger: #e59a86;
+  --danger-bg: #401f19;
+  --success: #9ec4a2;
+  --warning: #e5bf72;
+  --warning-bg: #3d3118;
+  --parchment: #e8dbbb;
+  --parchment-ink: #2a2116;
+  --bronze: #7d5c33;
+  --ink: #0b1114;
+  --family-strategy: #2e4a5a;
+  --family-civilization: #3c3550;
+  --family-advisor: #4b3d5c;
+  --food: #b2cf87;
+  --materials: #cbb69a;
+  --wood: #c69a68;
+  --stone: #aeb7b8;
+  --metal: #9fb7c5;
+  --wealth: #e6c173;
+  --knowledge: #94bed2;
+  --influence: #c4a7d4;
+  --civ-1: #6ca7d9;
+  --civ-2: #d48a6a;
+  --civ-3: #5cb3a5;
+  --civ-4: #a691d6;
+  --civ-5: #a9bf6a;
+  --civ-6: #c9889f;
+  --plains: #71844f;
+  --forest: #3f6148;
+  --hills: #857c68;
+  --mountains: #646d69;
+  --coast: #3f6d7c;
+  --sea: #264a5c;
+  --unknown: #37413f;
+  --map-ground: #0b1114;
+  --map-ink: #f2e8cf;
+  --shadow: 0 16px 48px #00000080;
+  --shadow-sm: 0 4px 12px #00000050;
+  --shadow-lg: 0 24px 64px #000000a0;
+}
+
+:root[data-alpha-theme="LIGHT"] {
+  --lightningcss-light: initial;
+  --lightningcss-dark: ;
+  color-scheme: light;
+  --background: #e9e7df;
+  --surface: #f3f1e9;
+  --surface-elevated: #fcfaf2;
+  --surface-highest: #dddacb;
+  --border: #b0afa1;
+  --border-subtle: #cccabe;
+  --border-accent: #85602c;
+  --text-primary: #24322f;
+  --text-secondary: #4d5e58;
+  --text-muted: #60746b;
+  --accent: #85602c;
+  --accent-hover: #c5a46a;
+  --on-accent: #fcfaf2;
+  --well: #e9e7df;
+  --mark: #24322f;
+  --danger: #9a3527;
+  --danger-bg: #f2d9d2;
+  --success: #305f3c;
+  --warning: #805900;
+  --warning-bg: #f0e1b8;
+  --food: #3f6622;
+  --materials: #715c39;
+  --wood: #80562f;
+  --stone: #596566;
+  --metal: #456475;
+  --wealth: #825d12;
+  --knowledge: #285b75;
+  --influence: #735681;
+  --shadow: 0 12px 30px #24322f20;
+  --shadow-sm: 0 2px 8px #24322f18;
+  --shadow-lg: 0 16px 40px #24322f30;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --radius: 5px;
+  --radius-card: 9px;
+  --radius-panel: 12px;
+  --radius-pill: 999px;
+  --strip-height: 52px;
+  --tray-height: 72px;
+  --piece-min: 28px;
+  --font-display: Cinzel, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-chronicle: "Cormorant Garamond", Georgia, serif;
+  --serif: var(--font-display);
+  --sans: var(--font-body);
+  --seat-1: var(--civ-1);
+  --seat-2: var(--civ-2);
+  --seat-3: var(--civ-3);
+  --seat-4: var(--civ-4);
+  --seat-5: var(--civ-5);
+  --seat-6: var(--civ-6);
+}
+
+.t-title-xl {
+  font-family: var(--font-display);
+  letter-spacing: .03em;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 36px;
+}
+
+.t-title {
+  font-family: var(--font-display);
+  letter-spacing: .03em;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.t-heading {
+  font-family: var(--font-display);
+  letter-spacing: .04em;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.t-body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+}
+
+.t-body-strong {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 21px;
+}
+
+.t-small {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 17px;
+}
+
+.t-eyebrow {
+  font-family: var(--font-body);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+}
+
+.t-chronicle {
+  font-family: var(--font-chronicle);
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+/*# sourceMappingURL=apps_web_app_design_tokens_css_1igg3k2._.single.css.map*/

@@ -62,7 +62,7 @@ export function RegionRevealed({ reveal, game, locked, send }: { reveal: RevealS
   const choice = current.kind === 'RUIN' ? game.self.pendingChoices.find(c => c.source === 'ENCOUNTER') : undefined;
   return <section className="alpha-discovery aoh-glass" role="dialog" aria-modal="false" aria-label="Região revelada">
     <p className="aoh-eyebrow">Região revelada</p>
-    <AlphaCard kind="discovery" art={discoveryArtOf(current.kind, 56)} name={info.name} subtitle={current.name} identity={info.identity}
+    <AlphaCard kind="discovery" compact={!!choice} art={discoveryArtOf(current.kind, 56)} name={info.name} subtitle={current.name} identity={info.identity}
       effects={[{ key: 'effect', label: 'Efeito', text: info.effect }]} />
     {choice && <ChoiceParchment choice={choice} locked={locked} send={send} />}
     <div className="alpha-discovery-actions">{choice && <small>Sem escolher agora, o pergaminho fica à espera no mapa.</small>}<button type="button" className={choice ? 'aoh-btn is-sm' : 'aoh-btn is-sm primary'} onClick={dismiss}>Continuar</button></div>

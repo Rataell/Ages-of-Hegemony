@@ -254,7 +254,7 @@ export function useTable(a: {
     const groups = groupsAt(c.hexId), group = groups.find(g => g.key === c.group) ?? groups[0];
     if (!group) return { id: 'empty', title: 'Sem peças', nodes: [] };
     const units = group.ids.map(id => game.units.find(u => u.id === id)!).filter(Boolean) as Unit[];
-    const subtitle = group.kind === 'army' || group.kind === 'fleet' ? compositionText(units) : group.kind === 'pioneer' ? 'Explora ou funda · civil' : 'Missões de influência · civil';
+    const subtitle = group.kind === 'army' || group.kind === 'fleet' ? compositionText(units) : group.kind === 'pioneer' ? 'Explora por terra ou funda · civil' : 'Missões de influência · civil';
     const tabs = groups.length > 1 ? groups.map(g => ({ id: g.key, label: g.label, active: g.key === group.key, onSelect: () => { setCtx({ ...c, group: g.key }); setSteps([{ id: 'root' }]); setMode(null); } })) : undefined;
     const opts = group.ids.map(id => game.unitOptions[id]).filter((o): o is NonNullable<typeof o> => o !== undefined);
     const ordered = group.ids.map(id => orderedIds.get(id)).find(Boolean);

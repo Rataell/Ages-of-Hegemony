@@ -1,0 +1,148 @@
+/* [project]/apps/web/app/alpha/audio/audio.css [app-client] (css) */
+.audio-controls {
+  align-items: center;
+  gap: 6px;
+  display: inline-flex;
+  position: relative;
+}
+
+.audio-toggle {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.audio-music-hint {
+  color: var(--text-secondary, inherit);
+  font: 500 11px var(--font-body, inherit);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  opacity: .75;
+  background: none;
+  border: 0;
+  padding: 4px;
+  -webkit-text-decoration: underline dotted;
+  text-decoration: underline dotted;
+}
+
+.audio-music-hint:hover {
+  opacity: 1;
+}
+
+.audio-music-hint:focus-visible, .audio-switch:focus-visible, .audio-popover input[type="range"]:focus-visible {
+  outline: 2px solid var(--mark, #e6c36a);
+  outline-offset: 2px;
+}
+
+.audio-popover {
+  z-index: 40;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  backdrop-filter: blur(10px) saturate(1.1);
+  width: 244px;
+  color: var(--text-primary);
+  border-radius: 12px;
+  gap: 10px;
+  padding: 12px;
+  display: grid;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  box-shadow: 0 8px 22px #0007;
+}
+
+.audio-popover h3 {
+  font: 700 11px var(--font-body, inherit);
+  letter-spacing: .12em;
+  opacity: .8;
+  margin: 0;
+}
+
+.audio-row {
+  gap: 6px;
+  display: grid;
+}
+
+.audio-switch {
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border);
+  background: var(--surface-elevated, transparent);
+  min-height: 32px;
+  color: inherit;
+  font: 600 13px var(--font-body, inherit);
+  cursor: pointer;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  display: flex;
+}
+
+.audio-switch.on {
+  border-color: var(--mark, #e6c36a);
+}
+
+.audio-switch b {
+  opacity: .8;
+  font-weight: 500;
+}
+
+.audio-popover input[type="range"] {
+  width: 100%;
+  accent-color: var(--mark, #e6c36a);
+}
+
+.audio-mute {
+  height: 32px;
+  font-size: 12px;
+}
+
+.dice-roll {
+  flex-wrap: wrap;
+  gap: 6px;
+  display: inline-flex;
+}
+
+.dice-face {
+  border: 1px solid var(--border);
+  background: var(--surface-elevated, transparent);
+  border-radius: 6px;
+  align-items: center;
+  gap: 4px;
+  min-width: 84px;
+  padding: 2px 8px;
+  display: inline-flex;
+}
+
+.dice-roll.is-rolling .dice-face {
+  animation: .12s linear infinite dice-shake;
+}
+
+@keyframes dice-shake {
+  0% {
+    transform: translateY(0)rotate(-3deg);
+  }
+
+  50% {
+    transform: translateY(-2px)rotate(3deg);
+  }
+
+  100% {
+    transform: translateY(0)rotate(-3deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-roll.is-rolling .dice-face {
+    animation: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .audio-popover {
+    left: 0;
+    right: auto;
+  }
+}
+
+/*# sourceMappingURL=apps_web_app_alpha_audio_audio_css_1igg3k2._.single.css.map*/

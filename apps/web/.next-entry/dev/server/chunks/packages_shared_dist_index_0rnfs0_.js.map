@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"file":"turbopack:///[project]/packages/shared/dist/index.js","sources":["file:///Users/rafaelreina/VibeCoderSpace/Age%20of%20Hegemony/Ages-of-Hegemony/packages/shared/src/index.ts"],"sourcesContent":["export type Result<T, E> =\n  | { readonly ok: true; readonly value: T }\n  | { readonly ok: false; readonly error: E };\n\nexport const ok = <T>(value: T): Result<T, never> => ({ ok: true, value });\nexport const err = <E>(error: E): Result<never, E> => ({ ok: false, error });\n"],"names":[],"mappings":";;;;;;AAIO,MAAM,EAAE,GAAG,CAAI,KAAQ,EAAoB,CAAG,CAAD,AAAE;QAAE,EAAE,EAAE,IAAI;QAAE,KAAK;IAAA,CAAE,CAAC,CAAC;AACpE,MAAM,GAAG,GAAG,CAAI,KAAQ,EAAoB,CAAG,CAAD,AAAE;QAAE,EAAE,EAAE,KAAK;QAAE,KAAK;IAAA,CAAE,CAAC,CAAC"}}]
+}

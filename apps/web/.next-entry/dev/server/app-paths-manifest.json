@@ -1,1 +1,5 @@
-{}
+{
+  "/alpha/join/[code]/page": "app/alpha/join/[code]/page.js",
+  "/alpha/page": "app/alpha/page.js",
+  "/api/alpha/route": "app/api/alpha/route.js"
+}
