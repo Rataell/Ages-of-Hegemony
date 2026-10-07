@@ -9,6 +9,7 @@ import { timingSafeEqual } from 'node:crypto';
 
 const envelope=z.discriminatedUnion('operation',[
   z.strictObject({operation:z.literal('create'),payload:z.unknown(),accessCode:z.string().max(80).optional()}),
+  // The invite code is the credential of a join: no Alpha access code is asked of someone who was invited.
   z.strictObject({operation:z.literal('join'),code:z.string().max(22),displayName:z.string().max(80),accessCode:z.string().max(80).optional()}),
   z.strictObject({operation:z.literal('room'),gameId:z.string().uuid(),payload:z.unknown()}),
   z.strictObject({operation:z.literal('lobby'),gameId:z.string().uuid(),payload:z.unknown()}),
@@ -67,6 +68,11 @@ export class AlphaHttp {
     // Pasted codes often carry a trailing space or the wrong case: both are forgiven.
     const a=Buffer.from((given??'').trim().toUpperCase()),b=Buffer.from(required.trim().toUpperCase());return a.length===b.length&&timingSafeEqual(a,b);
   }
+  /** Who is asking, for rate limits that must not let one noisy client block everyone: the first hop of X-Forwarded-For (behind the platform proxy), else a shared bucket. */
+  private clientKey(request:Request):string{
+    const forwarded=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+    return forwarded&&/^[0-9a-fA-F:.]{3,45}$/.test(forwarded)?forwarded:'local';
+  }
   async handle(request:Request,now=Date.now()):Promise<Response>{
     const respond=(body:unknown,status=200,cookie?:string)=>{
       const headers=new Headers({'Cache-Control':'no-store','Vary':'Cookie','X-Content-Type-Options':'nosniff'});
@@ -82,7 +88,7 @@ export class AlphaHttp {
     let principal=this.sessions.resolve(cookie,now);
     // Reads (the push-driven refreshes of a busy table) have their own, larger allowance; writes keep the tight one.
     const reads=request.method==='GET'||request.headers.get('x-aoh-telemetry')==='1';
-    if(!this.rate.allow(principal?`guest:${principal.guestId}${reads?':read':''}`:'anonymous',principal?(reads?600:120):30,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
+    if(!this.rate.allow(principal?`guest:${principal.guestId}${reads?':read':''}`:`anonymous:${this.clientKey(request)}`,principal?(reads?600:120):30,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
     try{
       if(request.method==='GET'){
         // Public: what the entry screen needs before anyone has a session.
@@ -101,13 +107,15 @@ export class AlphaHttp {
       let raw:unknown;try{raw=await readBody(request);}catch{return error('INVALID_INPUT','Envie JSON válido com até 16 KiB.',400);}
       const parsed=envelope.safeParse(raw);if(!parsed.success)return error('INVALID_INPUT','Solicitação inválida.',400);
       const action=parsed.data;
-      if((action.operation==='create'||action.operation==='join')&&!this.rate.allow('new-or-join',20,now))return error('RATE_LIMIT','Muitos convites processados. Aguarde um minuto.',429);
+      // Per client, never global: creating rooms is the scarce one; joining with an invite is cheap but still bounded per client and per invite.
+      if(action.operation==='create'&&!this.rate.allow(`create:${this.clientKey(request)}`,6,now))return error('RATE_LIMIT','Muitas salas criadas. Aguarde um minuto.',429);
+      if(action.operation==='join'&&(!this.rate.allow(`join:${this.clientKey(request)}`,20,now)||!this.rate.allow(`invite:${action.code}`,40,now)))return error('RATE_LIMIT','Muitas entradas. Aguarde um minuto.',429);
       if(action.operation==='telemetry'){
         if(!principal)return error('UNAUTHENTICATED','Sua sessão expirou. Entre novamente.',401);
         if(!this.rate.allow(`guest:${principal.guestId}:telemetry`,600,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
         return respond(await this.service.telemetry(principal,action.gameId,action.kind,action.detail));
       }
-      if((action.operation==='create'||action.operation==='join')&&!this.accessOk(action.accessCode))return error('ACCESS_CODE','Código de acesso do Alpha incorreto.',403);
+      if(action.operation==='create'&&!this.accessOk(action.accessCode))return error('ACCESS_CODE','Código de acesso do Alpha incorreto.',403);
       let setCookie:string|undefined;
       if(!principal){
         if(action.operation!=='create'&&action.operation!=='join')return error('UNAUTHENTICATED','Sua sessão expirou. Entre novamente.',401);
@@ -115,7 +123,7 @@ export class AlphaHttp {
         setCookie=`${this.cookieName}=${issued.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${issued.maxAge}${this.production||this.origin.startsWith('https:')?'; Secure':''}`;
       }
       const result=action.operation==='create'?await this.service.create(principal,action.payload):action.operation==='join'?await this.service.join(principal,action.code,action.displayName,now):action.operation==='room'?await this.service.roomAction(principal,action.gameId,action.payload,now):action.operation==='lobby'?await this.service.lobby(principal,action.gameId,action.payload,now):await this.service.command(principal,action.gameId,action.payload,now);
-      const status=result.ok?200:result.error.code==='FORBIDDEN'?403:result.error.code==='NOT_FOUND'?404:result.error.code==='VERSION_CONFLICT'?409:400;
+      const status=result.ok?200:result.error.code==='FORBIDDEN'?403:result.error.code==='NOT_FOUND'?404:result.error.code==='VERSION_CONFLICT'||result.error.code==='LEGACY_ROOM'?409:400;
       return respond(result,status,result.ok?setCookie:undefined);
     }catch(cause:unknown){
       console.error('Alpha request failed',{name:cause instanceof Error?cause.name:'UnknownError'});
