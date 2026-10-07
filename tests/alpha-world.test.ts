@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PlayerIdSchema, REGION_TEMPLATES, rotatedTemplateIndex, templateMetalDeposit } from '@aoh/game-domain';
-import { beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, hexId, hexNeighbors, regionOrientationFixed, rotatedRegionTiles, serializeAlphaState } from '@aoh/game-engine';
+import { beginAlphaPlanning, createAlphaGame, exploreRegion, hexDistance, regionOrientationFixed, rotatedRegionTiles, serializeAlphaState } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
 function setup(count=2) {return beginAlphaPlanning(createAlphaGame({gameId:'world-alpha',seed:23,preset:'QUICK',players:Array.from({length:count},(_,i)=>({id:`p${i+1}`,name:`Pessoa ${i+1}`}))}));}
 describe('modular regions and fog of war',()=>{

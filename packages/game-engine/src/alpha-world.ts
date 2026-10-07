@@ -13,7 +13,7 @@ import { alphaGainLegacy } from './alpha-resources.js';
 import { applyDiscovery, generateDiscoveries } from './alpha-discoveries.js';
 import { spawnThreat, threatIntent } from './alpha-threats.js';
 
-export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string;figureId?:string|null}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;mapSize?:MapSize;actionsPerRound?:number;revealMap?:boolean;startingPioneers?:number}):AlphaState {
+export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string;figureId?:string|null|undefined}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;mapSize?:MapSize;actionsPerRound?:number;revealMap?:boolean;startingPioneers?:number}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
   const random:Pick<AlphaState,'privateRng'>={privateRng:{algorithm:'hmac-sha256-counter-v1',seed:input.privateSeed?combineAlphaSeed(input.seed,input.privateSeed):deterministicAlphaSeed(input.seed,input.gameId),counter:0}};
   const mapSizeIn:MapSize=input.mapSize??'STANDARD';

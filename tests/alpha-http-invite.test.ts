@@ -16,7 +16,7 @@ describe('invite-only joining (no Alpha access code for the invited)', () => {
   it('asks the access code to create a room, never to join one with the invite code', async () => {
     process.env.ALPHA_ACCESS_CODE = 'SEGREDO';
     const server = http();
-    expect((await server.handle(post(create()), '10.0.0.1')).status).toBe(403);
+    expect((await server.handle(post(create(), '10.0.0.1'))).status).toBe(403);
     const made = await server.handle(post(create('segredo ')));
     expect(made.status).toBe(200);
     const room = await value(made);
