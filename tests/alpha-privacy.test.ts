@@ -127,7 +127,7 @@ describe('V5.1b privacy walk (4 players: planning, conflicts, Era turn)', () => 
       for (const region of view.regions) expect(view.board.find(item => item.id === region.id)!.closed).toBe(false);
       // Rival cargo and the other players' summaries.
       expect(view.units.filter(unit => unit.ownerId !== viewer).every(unit => !unit.carrierId)).toBe(true);
-      for (const summary of view.players) expect(Object.keys(summary).sort()).toEqual(['civilization', 'era', 'id', 'name', 'prestige', 'ready', 'resonanceCycles', 'resonanceFilled']);
+      for (const summary of view.players) expect(Object.keys(summary).sort()).toEqual(['civilization', 'era', 'figureId', 'id', 'name', 'prestige', 'ready', 'resonanceCycles', 'resonanceFilled']);
       expect(view.self.playerId).toBe(viewer);
       expect(view.government.current).toBeDefined();
     }
