@@ -11,8 +11,10 @@ const create = (extra: Record<string, unknown> = {}) => ({ name: 'Mesa', display
 
 describe('creation options match the schemas', () => {
   it('offers exactly the world presets the domain knows, in Portuguese', () => {
-    expect(WORLD_OPTIONS.map(([value]) => value)).toEqual([...MapPresetSchema.options]);
-    expect(WORLD_OPTIONS.map(([, text]) => text)).toEqual(['Continental', 'Arquipélago', 'Mar Interior', 'Misto']);
+    // Misto (the default) comes first in the UI; the set of values is exactly the domain's.
+    expect(WORLD_OPTIONS.map(([value]) => value).sort()).toEqual([...MapPresetSchema.options].sort());
+    expect(WORLD_OPTIONS.map(([, text]) => text)).toEqual(['Misto', 'Continental', 'Arquipélago', 'Mar Interior']);
+    for (const [, , description] of WORLD_OPTIONS) expect(description.length).toBeGreaterThan(10);
   });
 
   it('offers only planning deadlines the room schema accepts, and none it rejects', () => {

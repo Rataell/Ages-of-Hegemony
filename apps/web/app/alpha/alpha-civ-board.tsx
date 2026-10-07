@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { ADVANCEMENTS, AlphaEraSchema, ALPHA_ERA_NUMERALS, CIVILIZATIONS, LEADERS, WEB_DOMAIN_NAMES, WebDomainSchema, civilizationKit, classifyResonance, heritageOf, repercussionCard, type WebDomain } from '@aoh/game-domain';
+import { ADVANCEMENTS, AlphaEraSchema, ALPHA_ERA_NUMERALS, LEADERS, WEB_DOMAIN_NAMES, WebDomainSchema, civilizationDisplayName, civilizationKit, classifyResonance, heritageOf, repercussionCard, type WebDomain } from '@aoh/game-domain';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 import { sealArt } from './table-art';
 import { alphaLabel as text } from './alpha-copy';
@@ -9,6 +9,7 @@ import type { AlphaSend } from './alpha-board';
 import { GovernmentPanel } from './alpha-era-turn';
 import { StrategicSurface } from './strategic-surface';
 import { PanZoom } from './pan-zoom';
+import { CivilizationCard, FigureCard, StatusBadge, discoveryArtOf } from './alpha-card';
 
 const COMPOSITION_NAME = { DOMINANT: 'Dominante', HYBRID: 'Híbrida', PAIR: 'Par', CONFLUENCE: 'Confluência' } as const;
 const DOMAIN_CLASS = (domains: readonly WebDomain[]) => `d-${domains[0]}${domains[1] ? ` d2-${domains[1]}` : ''}`;
@@ -29,7 +30,9 @@ function structuralBlock(research: readonly string[], era: string, node: (typeof
 export function ChoiceParchment({ choice, locked, send }: { choice: AlphaPlayerView['self']['pendingChoices'][number]; locked: boolean; send: AlphaSend }) {
   const card = repercussionCard(choice.cardId);
   const mitigators = (card?.mitigatedBy ?? []).map(id => ADVANCEMENTS.find(n => n.id === id)?.name ?? id);
-  return <article className="alpha-parchment" aria-label={choice.title}>
+  const encounter = choice.source === 'ENCOUNTER';
+  return <article className={`alpha-parchment${encounter ? ' is-encounter' : ''}`} aria-label={choice.title}>
+    {encounter && <span className="alpha-parchment-art" aria-hidden="true" dangerouslySetInnerHTML={{ __html: discoveryArtOf(choice.cardId?.startsWith('enc-ruin-') ? 'RUIN' : 'NONE', 30) }} />}
     <small>{choice.source === 'REPERCUSSION' ? 'REPERCUSSÃO' : choice.source === 'ENCOUNTER' ? 'ENCONTRO' : 'PULSO'}{card ? ` · ${COMPOSITION_NAME[card.kind]}${card.domains.length ? ` · ${card.domains.map(d => WEB_DOMAIN_NAMES[d]).join(' + ')}` : ''}` : ''}</small>
     <h3>{choice.title}</h3><p>{choice.text}</p>
     {card && card.price.length > 0 && <p className="alpha-parchment-price">{choice.mitigated ? 'Preço evitado: mitigado por sua Teia.' : 'Há um preço, aplicado já.'}{mitigators.length > 0 && <> Mitigado por <b>{mitigators.join(', ')}</b>.</>}</p>}
@@ -57,7 +60,7 @@ function NodeDetail({ node, done, why, opt, gate, cost, unlocks, locked, cityId,
 export type CivView = 'web' | 'heritage' | 'identity';
 export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, onClose, initialView = 'web' }: { game: AlphaPlayerView; selfName: string; cityId: string | null; locked: boolean; send: AlphaSend; manage: AlphaSend; onClose: () => void; initialView?: CivView }) {
   const self = game.self;
-  const identity = CIVILIZATIONS.find(c => c.id === self.civilization), kit = civilizationKit(self.civilization);
+  const kit = civilizationKit(self.civilization);
   const leader = LEADERS.find(l => l.id === self.leader?.leaderId);
   const gov = game.government.current;
   const eraIndex = ERAS.indexOf(self.era);
@@ -99,8 +102,8 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
   return <StrategicSurface className="alpha-civ" label="Tabuleiro da Civilização" onClose={onClose}>
     <header className="alpha-civ-head">
       {kit && <svg width="44" height="44" viewBox="-22 -22 44 44" aria-hidden="true" dangerouslySetInnerHTML={{ __html: sealArt(kit.mark, 'currentColor', 17) }} />}
-      <div><p className="aoh-eyebrow">TABULEIRO DA CIVILIZAÇÃO</p><h2>{identity?.name ?? selfName}</h2></div>
-      <dl className="alpha-civ-facts"><div><dt>Era</dt><dd>{ALPHA_ERA_NUMERALS[eraIndex]} · {text(self.era)}</dd></div><div><dt>Líder</dt><dd>{leader?.name ?? '—'}</dd></div><div><dt>Governo</dt><dd>{gov.name}</dd></div></dl>
+      <div><p className="aoh-eyebrow">TABULEIRO DA CIVILIZAÇÃO</p><h2>{self.civilization ? civilizationDisplayName(self.civilization) : selfName}</h2></div>
+      <dl className="alpha-civ-facts"><div><dt>Era</dt><dd>{ALPHA_ERA_NUMERALS[eraIndex]} · {text(self.era)}</dd></div><div><dt>Figura</dt><dd>{leader?.name ?? '—'}</dd></div><div><dt>Governo</dt><dd>{gov.name}</dd></div></dl>
       <button type="button" className="aoh-btn is-sm alpha-civ-close" onClick={onClose}>Voltar ao mapa</button>
     </header>
       {self.pendingChoices.length > 0 && <div className="alpha-civ-choices is-compact">{self.pendingChoices.map(choice => choice.source === 'PULSE'
@@ -145,7 +148,7 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
           const done = self.research.includes(h.id), gateNode = ADVANCEMENTS.find(n => n.id === h.prerequisite)!, gateOpen = self.research.includes(h.prerequisite), eraOk = eraIndex >= ERAS.indexOf(h.era);
           const state = done ? 'acquired' : gateOpen && eraOk ? 'available' : 'locked', opt = game.urban.research.find(o => o.advancementId === h.id);
           const reason = done ? null : !gateOpen ? `Falta o avanço universal ${gateNode.name}.` : !eraOk ? `Abre na Era ${ALPHA_ERA_NUMERALS[ERAS.indexOf(h.era)]}.` : gate ?? opt?.blocked ?? null;
-          return <article key={h.id} className={`alpha-heritage is-${state}`}><small>{['I', 'II', 'III'][index]} · Era {ALPHA_ERA_NUMERALS[ERAS.indexOf(h.era)]}</small><h4>{h.name}</h4><p>{h.effect}</p>
+          return <article key={h.id} className={`alpha-heritage is-${state}`}><small>{['I', 'II', 'III'][index]} · Era {ALPHA_ERA_NUMERALS[ERAS.indexOf(h.era)]}<StatusBadge status={h.status} feminine showActive /></small><h4>{h.name}</h4><p>{h.effect}</p>{h.status === 'PLANNED' && <p className="alpha-heritage-planned">Efeito ainda não aplicado nesta versão: pesquisar marca a Herança, sem mudar o jogo.</p>}
             <p className="alpha-heritage-link"><i className={`alpha-cube d-${gateNode.domain}`} aria-hidden="true" /> abre por <button type="button" className="alpha-link" onClick={() => setSelected(gateNode.id)}>{gateNode.name}</button></p>
             {state !== 'acquired' && <p className="alpha-heritage-cost">Custo: {Object.entries(game.costs.advancements[h.id] ?? {}).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${text(k)}`).join(' · ')}</p>}
             {reason && <small role="note">{reason}</small>}
@@ -153,10 +156,10 @@ export function AlphaCivBoard({ game, selfName, cityId, locked, send, manage, on
         })}</div>
       </section>}
         {view === 'identity' && <section className="alpha-civ-identity alpha-civ-view" aria-label="Identidade">
-        <div className="alpha-seg is-sub" role="tablist" aria-label="Identidade e Governo">{([['identity', 'Identidade'], ['leader', 'Líder'], ['government', 'Governo']] as const).map(([key, title]) => <button key={key} type="button" role="tab" aria-selected={idPage === key} onClick={() => setIdPage(key)}>{title}</button>)}</div>
+        <div className="alpha-seg is-sub" role="tablist" aria-label="Identidade e Governo">{([['identity', 'Identidade'], ['leader', 'Figura'], ['government', 'Governo']] as const).map(([key, title]) => <button key={key} type="button" role="tab" aria-selected={idPage === key} onClick={() => setIdPage(key)}>{title}</button>)}</div>
         <div className="alpha-page" key={idPage} role="tabpanel">
-          {idPage === 'identity' && (kit ? <ul className="alpha-civ-facts-list"><li><b>Traço</b> {kit.trait.text}</li><li><b>Assinatura</b> {kit.signature.name} · {kit.signature.item.text}</li><li><b>Limitação</b> {kit.limitation.text}</li></ul> : <p>Escolha uma civilização.</p>)}
-          {idPage === 'leader' && <article className="alpha-civ-leader"><small>Líder</small><h4>{leader?.name ?? '—'}</h4>{leader && <><p>{leader.passiveAbility.name}: {leader.passiveAbility.description}</p><p><b>{self.leader?.eraAbilityUsed ? 'Poder usado nesta Era' : 'Poder disponível'}</b> · {leader.eraAbility.name}</p></>}</article>}
+          {idPage === 'identity' && (kit && self.civilization ? <CivilizationCard chassis={self.civilization} /> : <p>Escolha uma civilização.</p>)}
+          {idPage === 'leader' && (self.leader ? <FigureCard figureId={self.leader.leaderId} used={self.leader.eraAbilityUsed} /> : <p>Sem Figura.</p>)}
           {idPage === 'government' && <article className="alpha-civ-government"><GovernmentPanel game={game} locked={locked} manage={manage} /></article>}
         </div>
       </section>}

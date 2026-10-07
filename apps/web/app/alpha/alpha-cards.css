@@ -1,0 +1,50 @@
+/* Common card grammar (alpha-card.tsx): ARTE → NOME → IDENTIDADE → EFEITO → ÍCONES. Tokens only, so dark and light themes both work. */
+.alpha-gcard { --gc-pad: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: var(--gc-pad); border: 1px solid var(--border); border-radius: 8px; background: linear-gradient(160deg, var(--surface-elevated), var(--surface)); color: var(--text-primary); box-shadow: var(--shadow-sm); overflow-wrap: anywhere; text-align: left; position: relative; }
+.alpha-gcard.is-interactive { cursor: pointer; transition: border-color .15s, transform .15s; }
+.alpha-gcard.is-interactive:hover { border-color: var(--accent); transform: translateY(-1px); }
+.alpha-gcard.is-interactive:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+.alpha-gcard.is-selected { border-color: var(--accent); box-shadow: inset 0 3px var(--accent), var(--shadow-sm); }
+.alpha-gcard.is-disabled { opacity: .62; }
+.alpha-gcard-art { display: grid; place-items: center; min-height: 72px; margin: calc(var(--gc-pad) * -1) calc(var(--gc-pad) * -1) 0; padding: 10px; border-radius: 8px 8px 0 0; border-bottom: 1px solid var(--border-subtle); background: radial-gradient(circle at 50% 40%, var(--surface-highest), var(--well)); color: var(--accent-bright); }
+.alpha-gcard-art-svg, .alpha-gcard-art > svg { display: block; width: 100%; max-width: 132px; height: auto; max-height: 96px; }
+.alpha-gcard-art-svg > svg { width: 100%; height: 100%; display: block; }
+.alpha-gcard-name { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: baseline; }
+.alpha-gcard-name h4 { margin: 0; font: 600 17px/1.2 var(--font-display, Georgia, serif); color: var(--accent-bright); letter-spacing: .02em; }
+.alpha-gcard-sub { grid-column: 1 / -1; color: var(--text-muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.alpha-gcard-badges { display: inline-flex; gap: 4px; align-items: center; justify-self: end; }
+.alpha-gcard-badge { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); white-space: nowrap; }
+.alpha-gcard-star { margin-left: 6px; color: var(--warning); font-size: 14px; }
+.alpha-gcard-identity { margin: 0; font-size: 13px; line-height: 1.45; color: var(--text-secondary); font-style: italic; }
+.alpha-gcard-effects { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 13px; line-height: 1.4; color: var(--text-primary); }
+.alpha-gcard-effects > li { padding-left: 10px; border-left: 2px solid var(--border-accent); }
+.alpha-gcard-effects b { color: var(--accent-bright); font-weight: 600; }
+.alpha-gcard-effects p { margin: 0; }
+.alpha-gcard-icons { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 6px; border-top: 1px solid var(--border-subtle); font-size: 12px; color: var(--text-secondary); }
+.alpha-gcard-icons > span { display: inline-flex; align-items: center; gap: 4px; }
+.alpha-gcard-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.alpha-gcard-actions small { color: var(--text-muted); font-size: 11px; }
+.alpha-gcard-status { font-style: normal; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; margin-left: 6px; padding: 0 6px; border-radius: 999px; border: 1px dashed var(--warning); color: var(--warning); white-space: nowrap; }
+.alpha-gcard-status.is-active { border-style: solid; border-color: var(--success); color: var(--success); }
+.alpha-gcard-seal { display: block; }
+.alpha-gcard.is-compact { --gc-pad: 10px; gap: 5px; }
+.alpha-gcard.is-compact .alpha-gcard-art { min-height: 52px; padding: 6px; }
+.alpha-gcard.is-compact .alpha-gcard-art-svg, .alpha-gcard.is-compact .alpha-gcard-art > svg { max-height: 60px; max-width: 84px; }
+.alpha-gcard.is-compact .alpha-gcard-name h4 { font-size: 15px; }
+.alpha-gcard.is-compact .alpha-gcard-identity, .alpha-gcard.is-compact .alpha-gcard-effects { font-size: 12px; }
+.alpha-gcard-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; padding: 8px 2px; }
+/* Three-step progress of an Obra. */
+.alpha-gcard-steps { display: inline-flex; gap: 3px; }
+.alpha-gcard-steps i { width: 14px; height: 6px; border-radius: 2px; border: 1px solid var(--accent); }
+.alpha-gcard-steps i.is-done { background: var(--accent); }
+.alpha-gcard-palette { display: inline-flex; gap: 2px; margin-left: auto; }
+.alpha-gcard-palette i { width: 10px; height: 10px; border-radius: 2px; border: 1px solid var(--border-subtle); }
+.alpha-gcard-solo { display: grid; gap: 8px; max-width: 440px; }
+/* Encontro (Vestígio): the parchment keeps its look and gains the Descoberta art at its corner. */
+.alpha-parchment.is-encounter { position: relative; padding-left: 64px; }
+.alpha-parchment-art { position: absolute; left: 10px; top: 12px; width: 44px; height: 40px; color: #6b5226; }
+.alpha-parchment-art > svg { width: 100%; height: 100%; display: block; }
+.alpha-civ-choices.is-compact .alpha-parchment.is-encounter { padding-left: 12px; }
+.alpha-civ-choices.is-compact .alpha-parchment-art { display: none; }
+.alpha-heritage .alpha-gcard-status { vertical-align: 1px; }
+.alpha-heritage-planned { margin: 4px 0 0; font-size: 11px; color: var(--text-muted); font-style: italic; }
+.alpha-civ-identity .alpha-gcard, .alpha-civ-identity > .alpha-page > .alpha-gcard { max-width: 520px; }

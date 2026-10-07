@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from './generated/prisma/client.js';
 import { AlphaRoomSchema, roomStatus, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
 import { migrateSnapshotV4ToV5 } from '@aoh/game-engine';
 const status=roomStatus;
-function decode(row:{id:string;joinCode:string;version:bigint;status:string;snapshot:unknown}|null):AlphaRoom|null {
+export function decode(row:{id:string;joinCode:string;version:bigint;status:string;snapshot:unknown}|null):AlphaRoom|null {
   if(!row)return null;
   let parsed=AlphaRoomSchema.safeParse(row.snapshot);
   if(!parsed.success&&row.snapshot&&typeof row.snapshot==='object'){
@@ -13,6 +13,12 @@ function decode(row:{id:string;joinCode:string;version:bigint;status:string;snap
       raw.planningSeconds=[0,180,300,480,3600,14400,28800].includes(oldTimer)?oldTimer:oldTimer<=900?480:28800;
       raw.worldPreset='MIXED';raw.game=game.value;parsed=AlphaRoomSchema.safeParse(raw);
     }
+  }
+  // A V1.1 match whose content no longer parses against the current catalogs is NOT an error: it is shown as a legacy table without its game (controlled message,
+  // read-only, never deleted or rewritten). Only snapshots that do not look like a V1.1 room at all fail like before.
+  if(!parsed.success&&row.snapshot&&typeof row.snapshot==='object'&&(row.snapshot as Record<string,unknown>).contentVersion===undefined){
+    const stub=AlphaRoomSchema.safeParse({...structuredClone(row.snapshot) as Record<string,unknown>,game:null});
+    if(stub.success&&stub.data.id===row.id&&stub.data.joinCode===row.joinCode&&BigInt(stub.data.version)===row.version)return stub.data;
   }
   if(!parsed.success)throw new Error('Invalid alpha match snapshot');
   const room=parsed.data;
