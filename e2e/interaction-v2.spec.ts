@@ -53,7 +53,7 @@ test('city: the cloud is born on the city, morphs in place and acts without a si
   await expect(page.locator('.alpha-inspector')).toHaveCount(0);
   await city(page).click({ force: true });
   const cloud = page.locator('.table-cloud');
-  await expect(cloud.locator('.ctx-plate')).toContainText('Celeiro Áureo');
+  await expect(cloud.locator('.ctx-plate')).toContainText('Cusco');
   // Revolta: GOVERNAR is the dominant node (ordered visually, nothing hidden).
   await expect(page.locator('.ctx-node.tone-dominant')).toHaveAttribute('data-node', 'PROMOTE_MOOD');
   for (const id of ['PRODUCE', 'BUILD', 'RECRUIT', 'more']) await expect(cloudNode(page, id)).toBeVisible();

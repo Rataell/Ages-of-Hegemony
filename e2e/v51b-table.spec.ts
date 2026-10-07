@@ -123,7 +123,7 @@ test('combat: preview with Δ thresholds and the result card with outcome, losse
   const repository = new InMemoryAlphaRepository(), sessions = new GuestSessions('v51b-battle-secret-'.repeat(4)), identities = [sessions.issue(Date.now()), sessions.issue(Date.now())];
   const http = new AlphaHttp(new AlphaGameService(repository), sessions, origin, false);
   const room = AlphaRoomSchema.parse({ id: beforeAttack!.gameId, version: 0, contentVersion: 'v1.2', name: 'Prova de combate', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: identities[0]!.principal.guestId, preset: 'EPIC', seed: 61, seatLimit: 2, planningSeconds: 0, deadline: null,
-    seats: beforeAttack!.players.map((p, i) => ({ guestId: identities[i]!.principal.guestId, playerId: p.playerId, name: i === 0 ? 'Aurélia' : 'Valgard', civilization: p.civilization, figureId: p.leader?.leaderId ?? null, ready: true })), game: beforeAttack });
+    seats: beforeAttack!.players.map((p, i) => ({ guestId: identities[i]!.principal.guestId, playerId: p.playerId, name: i === 0 ? 'Incas (Tawantinsuyu)' : 'Helênicos', civilization: p.civilization, figureId: p.leader?.leaderId ?? null, ready: true })), game: beforeAttack });
   await repository.create(room);
   const pages: Page[] = [];
   for (const [i, identity] of identities.entries()) {
@@ -132,7 +132,7 @@ test('combat: preview with Δ thresholds and the result card with outcome, losse
     await context.addCookies([{ name: 'aoh_alpha_session', value: identity.token, url: origin, httpOnly: true, sameSite: 'Strict' }]);
     const page = await context.newPage(); page.setDefaultTimeout(15000); pages.push(page);
     await page.goto(`/alpha?game=${room.id}`);
-    await expect(page.getByRole('heading', { name: i === 0 ? 'Aurélia' : 'Valgard', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: i === 0 ? 'Incas (Tawantinsuyu)' : 'Helênicos', exact: true })).toBeVisible();
   }
   const a = pages[0]!, b = pages[1]!;
   await a.getByRole('status', { name: 'Resolvendo a rodada' }).getByRole('button', { name: 'Continuar' }).click();

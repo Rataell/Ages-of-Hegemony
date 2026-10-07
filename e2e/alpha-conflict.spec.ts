@@ -21,7 +21,7 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
   const service=new AlphaGameService(repository),http=new AlphaHttp(service,sessions,origin,false);
   const room=AlphaRoomSchema.parse({id:beforeAttack!.gameId,version:0,contentVersion:'v1.2',name:'Prova de conflito',joinCode:'abcdefghijklmnopqrstuv',hostGuestId:identities[0]!.principal.guestId,
     preset:'EPIC',seed:61,seatLimit:2,planningSeconds:0,deadline:null,
-    seats:beforeAttack!.players.map((p,i)=>({guestId:identities[i]!.principal.guestId,playerId:p.playerId,name:i===0?'Aurélia':'Valgard',civilization:p.civilization,figureId:p.leader?.leaderId??null,ready:true})),game:beforeAttack});
+    seats:beforeAttack!.players.map((p,i)=>({guestId:identities[i]!.principal.guestId,playerId:p.playerId,name:i===0?'Incas (Tawantinsuyu)':'Helênicos',civilization:p.civilization,figureId:p.leader?.leaderId??null,ready:true})),game:beforeAttack});
   await repository.create(room);
   const contexts=await Promise.all(identities.map(()=>browser.newContext({viewport:{width:1440,height:900}})));
   const pages:Page[]=[];
@@ -32,7 +32,7 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
       await context.addCookies([{name:'aoh_alpha_session',value:identities[i]!.token,url:origin,httpOnly:true,sameSite:'Strict'}]);
       const page=await context.newPage();page.setDefaultTimeout(15000);pages.push(page);
       await page.goto(`/alpha?game=${room.id}`);
-      await expect(page.getByRole('heading',{name:i===0?'Aurélia':'Valgard',exact:true})).toBeVisible();
+      await expect(page.getByRole('heading',{name:i===0?'Incas (Tawantinsuyu)':'Helênicos',exact:true})).toBeVisible();
     }
     const a=pages[0]!,b=pages[1]!;
     // The previous round's results open first; the atlas is usable once they are dismissed.

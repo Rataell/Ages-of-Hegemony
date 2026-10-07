@@ -65,7 +65,7 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
   const http = new AlphaHttp(new AlphaGameService(repository), sessions, origin, false);
   await repository.create(AlphaRoomSchema.parse({
     id: beforeAttack!.gameId, version: 0, contentVersion: 'v1.2', name: 'Prova do shell', joinCode: 'abcdefghijklmnopqrstuv', hostGuestId: identity.principal.guestId, preset: 'EPIC', seed: 61, seatLimit: 2, planningSeconds: 0, deadline: null,
-    seats: beforeAttack!.players.map((p, i) => ({ guestId: (i === 0 ? identity : other).principal.guestId, playerId: p.playerId, name: i === 0 ? 'Aurélia' : 'Valgard', civilization: p.civilization, figureId: p.leader?.leaderId ?? null, ready: true })), game: beforeAttack,
+    seats: beforeAttack!.players.map((p, i) => ({ guestId: (i === 0 ? identity : other).principal.guestId, playerId: p.playerId, name: i === 0 ? 'Incas (Tawantinsuyu)' : 'Helênicos', civilization: p.civilization, figureId: p.leader?.leaderId ?? null, ready: true })), game: beforeAttack,
   }));
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await mkdir(shots, { recursive: true });
@@ -74,7 +74,7 @@ test('mesa: map-first table, strip and tray sizes, one gold, card and Livro scro
     await context.addCookies([{ name: 'aoh_alpha_session', value: identity.token, url: origin, httpOnly: true, sameSite: 'Strict' }]);
     const page = await context.newPage(); page.setDefaultTimeout(15000);
     await page.goto(`/alpha?game=${beforeAttack!.gameId}`);
-    await expect.soft(page.getByRole('heading', { name: 'Aurélia', exact: true })).toBeVisible();
+    await expect.soft(page.getByRole('heading', { name: 'Incas (Tawantinsuyu)', exact: true })).toBeVisible();
     // Give the table its longest realistic content: the results panel dismissed, every piece listed in Detalhes, the army's cloud open and target mode lit.
     await page.getByRole('status', { name: 'Resolvendo a rodada' }).getByRole('button', { name: 'Continuar' }).click();
     await page.locator('svg.world-map g.hex[aria-label$=" 8,0"], svg.world-map g.hex[aria-label$=" 8,0, trabalhado"]').first().click();
