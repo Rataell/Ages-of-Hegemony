@@ -57,7 +57,7 @@ describe('public city marks', () => {
   it('show a visible rival city only by size and walls, and never a city out of sight', () => {
     const state = midRound(), view = alphaPlayerView(state, p2)!;
     for (const mark of view.cityMarks) {
-      expect(Object.keys(mark).sort()).toEqual(['blockaded', 'capacity', 'capital', 'cityId', 'fortification', 'hexId', 'level', 'ownerId']);
+      expect(Object.keys(mark).sort()).toEqual(['blockaded', 'capacity', 'capital', 'cityId', 'civilization', 'fortification', 'harbor', 'hexId', 'level', 'ownerId', 'work']);
       if (mark.ownerId !== p2) expect(mark.blockaded).toBeNull();
       expect(mark.level).toBeGreaterThanOrEqual(1);
       expect(mark.level).toBeLessThanOrEqual(7);

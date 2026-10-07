@@ -43,6 +43,19 @@ export type DiscoveryKind = z.infer<typeof DiscoveryKindSchema>;
 export const RegionDiscoverySchema = z.strictObject({ kind: DiscoveryKindSchema, resolved: z.boolean(), resolvedBy: PlayerIdSchema.nullable().default(null) });
 export type RegionDiscovery = z.infer<typeof RegionDiscoverySchema>;
 export const DISCOVERY_WEIGHTS: readonly (readonly [DiscoveryKind, number])[] = [['NONE', 25], ['RUIN', 20], ['DEPOSIT', 15], ['PASSAGE', 10], ['ANCHORAGE', 10], ['DANGER', 10], ['CAMP', 10]];
+/**
+ * What the REGIÃO REVELADA panel and the Compêndio say about each Descoberta (card grammar: name, identity, effect). `marker` says whether the map keeps
+ * a permanent 3D marker on the Region (Perigo is a one-off effect; Terra comum has nothing to mark).
+ */
+export const DISCOVERY_INFO: Record<DiscoveryKind, { name: string; identity: string; effect: string; marker: boolean }> = {
+  RUIN: { name: 'Vestígio', identity: 'Restos de pedra lavrada de um povo que passou por aqui antes de todos.', effect: 'Os exploradores encontram algo que pede uma escolha.', marker: true },
+  DEPOSIT: { name: 'Jazida', identity: 'Um afloramento de rocha rara aparece entre as colinas.', effect: '+2 Pedra e +1 Metal; a rocha passa a ter Metal.', marker: true },
+  PASSAGE: { name: 'Passagem', identity: 'Um caminho natural já aberto liga a região ao resto do mapa.', effect: 'Abre até 3 hexes de Estrada na região.', marker: true },
+  ANCHORAGE: { name: 'Ancoradouro', identity: 'Uma enseada protegida, boa para fundear e pescar.', effect: '+1 Riqueza; a primeira costa da região ganha boa pesca.', marker: true },
+  DANGER: { name: 'Perigo', identity: 'O terreno esconde armadilhas que só se percebem tarde.', effect: 'Metade das expedições perde a peça que explorava; o Método Experimental evita o pior.', marker: false },
+  CAMP: { name: 'Acampamento', identity: 'Fogueiras e tendas: alguém já ocupou esta região.', effect: 'Surge um acampamento bárbaro na região.', marker: true },
+  NONE: { name: 'Terra comum', identity: 'Nada de extraordinário: boa terra para quem chegar.', effect: 'Sem efeito.', marker: false },
+};
 export const DISCOVERY_NAMES: Record<DiscoveryKind, string> = { RUIN: 'Vestígio', DEPOSIT: 'Jazida', PASSAGE: 'Passagem', ANCHORAGE: 'Ancoradouro', DANGER: 'Perigo', CAMP: 'Acampamento Bárbaro', NONE: 'Terra comum' };
 
 /** Encounter cards: a scroll with two choices. Delivered as a PendingChoice of source ENCOUNTER (I-25). */

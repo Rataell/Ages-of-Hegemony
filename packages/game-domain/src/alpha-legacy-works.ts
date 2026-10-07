@@ -40,6 +40,21 @@ export const LEGACY_WORKS: readonly LegacyWork[] = [
   { id: 'terraced-reserves', name: 'Reservas dos Terraços', path: 'TERRITORIAL', source: 'CONVERTED', cost: cost({ wood: 4, stone: 5, food: 3 }), requires: { district: 'AGRARIAN' }, effect: produce('food', 'ON_PRODUCE') },
   { id: 'shared-foundry', name: 'Fundição Compartilhada', path: 'ECONOMIC', source: 'CONVERTED', cost: cost({ stone: 5, metal: 4, wood: 3 }), requires: { district: 'INDUSTRIAL' }, effect: produce('materials', 'ON_PRODUCE') },
 ];
+/** IDENTIDADE line of each Obra card (common card grammar) and the silhouette the 3D piece follows. Names are AoH's own; they remit to a kind of monument, never to a real one. */
+export const LEGACY_WORK_IDENTITY: Readonly<Record<string, { identity: string; silhouette: string }>> = {
+  'archive-of-horizons': { identity: 'Uma biblioteca-farol onde cada rolo aponta para um horizonte ainda por visitar.', silhouette: 'torre baixa com lanterna e galerias de rolos' },
+  'house-of-accord': { identity: 'Salão de pedra onde adversários sentam-se à mesma mesa para ratificar acordos.', silhouette: 'salão largo de colunas curtas e frontão' },
+  'tidal-exchange': { identity: 'Um entreposto que sobe e desce com a maré: o comércio vem com a água.', silhouette: 'cais coberto sobre arcos, com guindastes' },
+  'monument-of-voices': { identity: 'Um anel de colunas cantantes que guarda a memória das comunidades.', silhouette: 'anel de colunas ao redor de um monólito' },
+  'watch-citadel': { identity: 'Cidadela de vigília: quem a vê sabe que a fronteira tem olhos.', silhouette: 'torre-mestra com quatro torres de canto' },
+  'road-of-communities': { identity: 'A estrada que costura cidades distantes numa só gente.', silhouette: 'marco de estrada com arco e pavimento em fuga' },
+  'sky-instrument': { identity: 'Um grande círculo de bronze que mede o céu e ensina o calendário.', silhouette: 'anel armilar de bronze sobre pedestal' },
+  'inquiry-campus': { identity: 'Pátio de pedra onde mestres e aprendizes discutem em círculos.', silhouette: 'pátio quadrado de claustro com fonte' },
+  'world-council': { identity: 'Uma sala de assembleia aberta ao mundo, com um assento para cada povo.', silhouette: 'rotunda com cúpula rasa e degraus em anel' },
+  'common-mint': { identity: 'A casa onde pesos e medidas são fixados para todos.', silhouette: 'prédio compacto com balança sobre a porta' },
+  'terraced-reserves': { identity: 'Terraços de pedra que guardam a colheita contra os anos magros.', silhouette: 'terraços escalonados com depósitos' },
+  'shared-foundry': { identity: 'Um forno comum onde todas as oficinas fundem juntas.', silhouette: 'forja de chaminé alta com telhado de duas águas' },
+};
 export const legacyWork = (id: string): LegacyWork | undefined => LEGACY_WORKS.find(work => work.id === id);
 export const totalOf = (pool: AlphaResourcePool): number => Object.values(pool).reduce((sum, value) => sum + value, 0);
 /** What one step costs: each resource splits across the steps, the remainder going to the first ones (6 → 2/2/2, 4 → 2/1/1, 3 → 1/1/1, 2 → 1/1/0). */

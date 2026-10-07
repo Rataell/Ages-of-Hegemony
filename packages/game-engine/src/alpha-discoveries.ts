@@ -4,6 +4,7 @@ import { regionOpenFor } from './alpha-world.js';
 import { alphaRandomInteger } from './alpha-random.js';
 import { alphaGain } from './alpha-resources.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
+import { isNavigableWater } from './alpha-water.js';
 import { addPendingChoice } from './alpha-resonance.js';
 import { applyThreatCommand } from './alpha-threats.js';
 
@@ -13,7 +14,7 @@ import { applyThreatCommand } from './alpha-threats.js';
  */
 type Region = AlphaState['regions'][number];
 const tileOf = (state: AlphaState, id: string) => state.core.map.find(tile => tile.id === id);
-const hasWater = (state: AlphaState, region: Region) => region.hexIds.some(id => ['COAST', 'SEA'].includes(tileOf(state, id)?.terrain ?? ''));
+const hasWater = (state: AlphaState, region: Region) => region.hexIds.some(id => isNavigableWater(tileOf(state, id)));
 
 /** Draws each frontier region's hidden content. Homelands hold nothing to find. Call after every other creation draw. */
 export function generateDiscoveries(state: AlphaState): void {
