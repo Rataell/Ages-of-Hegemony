@@ -7,7 +7,7 @@ import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
 import { governmentEffects } from './alpha-government.js';
-import { activationsAllowed, administration, recruitLimit, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilizationBlock, mobilize, moodBand } from './alpha-city.js';
+import { REVOLT_EMERGENCY_MOOD, activationsAllowed, administration, emergencyGovern, emergencyGovernBlock, recruitLimit, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilizationBlock, mobilize, moodBand } from './alpha-city.js';
 import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
@@ -70,7 +70,7 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
   const occupied = meta.status === 'OCCUPIED' || state.occupations.some(occupation => occupation.cityId === cityId);
   if (occupied && action !== 'CIVIC_ACTION') return 'Cidade ocupada: apenas a Ação Cívica de integração está disponível.';
   const activations = cityActivations(state, actor, cityId)!;
-  if(moodBand(meta.mood)==='REVOLT'&&action!=='PROMOTE_MOOD'&&action!=='CIVIC_ACTION')return 'Cidade em Revolta: só Governar (Ânimo e integração) está disponível.';
+  if(moodBand(meta.mood)==='REVOLT'&&action!=='PROMOTE_MOOD'&&action!=='EMERGENCY_GOVERN'&&action!=='CIVIC_ACTION')return 'Cidade em Revolta: só Governar (Ânimo e integração) está disponível.';
   if(activations.councilBlocked)return 'Conselho: no máximo uma segunda ativação por rodada em toda a civilização.';
   if(state.phase==='PLANNING'&&activations.left===0)return activations.allowed===1?'Esta cidade já possui sua ação planejada para esta rodada.':'Esta cidade já tem as duas ativações planejadas nesta rodada.';
   if (state.phase==='URBAN_ACTIONS'&&activations.left===0) return 'Esta cidade já usou suas ativações nesta rodada.';
@@ -148,6 +148,7 @@ export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, a
       return reserved ? 'Este avanço já está planejado em outra cidade nesta rodada.' : researchBlock(state, actor, params.advancementId);
     }
     case 'PROMOTE_MOOD': return governBlock(state, actor, cityId);
+    case 'EMERGENCY_GOVERN': return emergencyGovernBlock(state, actor, cityId);
     case 'SUPPORT_TRADE':
       return state.routes.some(route => route.ownerId === actor && route.fromCityId === cityId && !route.suspended) ? null : 'A cidade não origina nenhuma rota comercial ativa.';
     case 'MOVE_CAPITAL':
@@ -221,6 +222,7 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     list.push(option(state, actor, id, 'BUILD', { build: { kind: 'FORTIFICATION' } }, next ? `Fortificação ${next}` : 'Fortificação máxima'));
     for (const unit of AlphaUnitClassSchema.options) list.push(option(state, actor, id, 'RECRUIT', { unit }, `Força ${state.rules.units[unit].strength} · Movimento ${state.rules.units[unit].movement} · até ${recruitLimit(state, actor, id)} peça(s) por ativação`));
     list.push(option(state, actor, id, 'PROMOTE_MOOD', {}, `Governar: +1 Ânimo por nível pago (1 Cultura ou 2 Riqueza), até ${produced.capacity} nível(is); repara 1 passo de fortificação por 1 Pedra`));
+    list.push(option(state, actor, id, 'EMERGENCY_GOVERN', {}, `Recuperação emergencial: só em Revolta, uma vez por episódio, sem Cultura nem Riqueza. Leva o Ânimo a ${REVOLT_EMERGENCY_MOOD}; não produz nem alimenta — Produza na rodada seguinte.`));
     list.push(option(state, actor, id, 'SUPPORT_TRADE', {}, `Renda de rota: +${state.rules.routeIncome + governmentEffects(state, actor).routeWealth + webRouteIncome(state, actor)} Riqueza por rota originada`));
     list.push(option(state, actor, id, 'MOVE_CAPITAL', {}, `Mover a capital para cá (${governmentEffects(state, actor).moveCapitalOrders} Ordem(ns)); a Administração, a Capacidade da capital e a guarnição acompanham`));
     list.push(option(state, actor, id, 'CIVIC_ACTION', {}, occupied ? `Integração +${balance.integrationPerAction + leaderIntegrationBonus(state, actor)}%` : `+${balance.civicInfluence} Influência e coesão local`));
@@ -340,6 +342,12 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       rejectExtras(command, []);
       const governed = governCity(state, actor, city.id);
       message = `${city.name} foi governada: Ânimo +${governed.moodGained}${governed.repaired ? ', fortificação reparada' : ''}.`;
+      break;
+    }
+    case 'EMERGENCY_GOVERN': {
+      rejectExtras(command, []);
+      const gained = emergencyGovern(state, actor, city.id);
+      message = `${city.name} saiu da Revolta por recuperação emergencial: Ânimo +${gained}.`;
       break;
     }
     case 'SUPPORT_TRADE': {

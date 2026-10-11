@@ -295,6 +295,35 @@ export function governBlock(state: AlphaState, actor: PlayerId, cityId: string):
   if (pair.meta.mood < 6 && governmentEffects(state, actor).governFreeLevels === 0 && !alphaCanAfford(state, actor, governCost(state, actor))) return 'Governar custa 1 Cultura ou 2 Riqueza por nível de Ânimo.';
   return null;
 }
+/**
+ * Recuperação emergencial de Revolta (E-1). A city in Revolta cannot produce, and Governar needs Cultura or Riqueza that only producing brings, so a city
+ * that fell during a famine could not climb back. Once per episode of Revolta, one Ordem and one activation, no Cultura or Riqueza, take the city to Ânimo 4
+ * (Estável): the target survives a hungry round with unpaid pieces (-2) and still leaves the city Abalada, with the Capacity to Produzir the next round.
+ * It does not produce, feed or repair anything. The episode ends when the city closes a LATER round Estável or better (`rearmRevoltEmergency`), so leaving
+ * Revolta for an instant and falling back never gives a second benefit.
+ */
+export const REVOLT_EMERGENCY_MOOD = 4;
+export function emergencyGovernBlock(state: AlphaState, actor: PlayerId, cityId: string): string | null {
+  const pair = cityPair(state, cityId);
+  if (!pair || pair.ownerId !== actor) return 'Escolha uma cidade própria.';
+  if (moodBand(pair.meta.mood) !== 'REVOLT') return 'A recuperação emergencial só existe para uma cidade em Revolta.';
+  if (pair.meta.revoltEmergencyRound !== null) return 'A recuperação emergencial já foi usada neste episódio de Revolta: Governe pagando Cultura ou Riqueza.';
+  return null;
+}
+export function emergencyGovern(state: AlphaState, actor: PlayerId, cityId: string): number {
+  const blocked = emergencyGovernBlock(state, actor, cityId);
+  if (blocked) throw new Error(blocked);
+  const pair = cityPair(state, cityId)!;
+  const gained = REVOLT_EMERGENCY_MOOD - pair.meta.mood;
+  pair.meta.mood = REVOLT_EMERGENCY_MOOD;
+  pair.meta.revoltEmergencyRound = state.core.round;
+  return gained;
+}
+/** End-of-round: a city that closes a round after the one it used the emergency in with Ânimo Estável or better has left the episode; the recovery is available again. */
+export function rearmRevoltEmergency(state: AlphaState): void {
+  for (const meta of state.cities) if (meta.revoltEmergencyRound !== null && state.core.round > meta.revoltEmergencyRound && meta.mood >= REVOLT_EMERGENCY_MOOD) meta.revoltEmergencyRound = null;
+}
+
 /** Applies Governar: pays level by level while there is Capacity and Ânimo to recover; repairs one fortification step (1 Pedra, free with Fortificação). Returns what happened. */
 export function governCity(state: AlphaState, actor: PlayerId, cityId: string): { moodGained: number; repaired: boolean } {
   const blocked = governBlock(state, actor, cityId);

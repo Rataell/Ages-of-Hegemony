@@ -72,7 +72,7 @@ export const alphaToLegacyResources = (pool: AlphaResourcePool): ResourcePool =>
 });
 
 /** Actions of the Cidade Order (canon §2) plus the legacy ones still routed through it until their own slices land. */
-export const UrbanActionTypeSchema = z.enum(['PRODUCE', 'BUILD', 'RECRUIT', 'RESEARCH', 'ELEVATE', 'PROMOTE_MOOD', 'SUPPORT_TRADE', 'CIVIC_ACTION', 'MOVE_CAPITAL']);
+export const UrbanActionTypeSchema = z.enum(['PRODUCE', 'BUILD', 'RECRUIT', 'RESEARCH', 'ELEVATE', 'PROMOTE_MOOD', 'EMERGENCY_GOVERN', 'SUPPORT_TRADE', 'CIVIC_ACTION', 'MOVE_CAPITAL']);
 export const MoodStateSchema = z.enum(['REVOLTING', 'DESPONDENT', 'RESTLESS', 'SERENE', 'SATISFIED', 'PROSPEROUS', 'EXULTANT']);
 export const CityLevelSchema = z.enum(['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS']);
 export type CityLevel = z.infer<typeof CityLevelSchema>;
@@ -125,6 +125,8 @@ export const AlphaCitySchema = z.strictObject({
   /** Frota Abordagem (V5.1b): the port stays blockaded through this round. */
   portBlockedUntil: N.default(0),
   portBlockedBy: PlayerIdSchema.nullable().default(null),
+  /** E-1: round in which the emergency recovery from Revolta was used in the current episode; null when it is available. Re-armed once the city ends a later round Estável. */
+  revoltEmergencyRound: N.nullable().default(null),
 });
 export type AlphaCity = z.infer<typeof AlphaCitySchema>;
 

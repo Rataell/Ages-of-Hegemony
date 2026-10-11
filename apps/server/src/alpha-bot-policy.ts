@@ -323,6 +323,8 @@ export function candidates(box, id, persona) {
     if (pick('ELEVATE').length) add((comp ? 140 : 90) * w.elevate, `elevate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'ELEVATE' });
     const governNow = comp ? mood <= 3 : (mood <= 1 || (mood <= 2 && round % 3 === 0));
     if (governNow) if (pick('PROMOTE_MOOD').length) add(comp ? (mood <= 1 ? 121 : mood <= 2 ? 108 : 71) : (mood === 0 ? 95 : 70), `govern:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PROMOTE_MOOD' });
+    // E-1: a city in Revolta cannot produce; the free recovery goes first, once per episode.
+    if (mood <= 1) if (pick('EMERGENCY_GOVERN').length) add(comp ? 200 : 130, `emergency:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'EMERGENCY_GOVERN' });
     if (meta.status === 'OCCUPIED') if (pick('CIVIC_ACTION').length) add(80, `integrate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'CIVIC_ACTION' });
     // Districts and buildings by persona priority; competent play puts food, storage and learning first.
     for (const opt of pick('BUILD', x => x.build.kind === 'DISTRICT')) { const rank = persona.districts.indexOf(opt.build.district); if (rank >= 0) add((72 - rank * 4 + (comp && opt.build.district === 'AGRARIAN' ? (foodLow ? 24 : 10) : comp && opt.build.district === 'INDUSTRIAL' ? Math.min(26, miss.stone * 5) : comp && opt.build.district === 'COMMERCIAL' ? Math.min(24, miss.wealth * 4) : comp && opt.build.district === 'ACADEMIC' ? Math.min(20, miss.knowledge * 3) : 0)) * w.build * saving, `district:${city.id}:${opt.build.district}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build }); }

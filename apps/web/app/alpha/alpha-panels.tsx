@@ -43,7 +43,7 @@ export function AlphaUrban({game,locked,send,cityId}:Panel&{cityId:string}){
   const researchable=game.urban.research.filter(o=>o.blocked===null||!o.blocked.startsWith('Complete')&&!o.blocked.includes('era posterior'));
   const groups:[string,UrbanOption[]][]=[
     ['Construir',options.filter(o=>o.action==='BUILD')],['Elevar',options.filter(o=>o.action==='ELEVATE')],['Recrutar',options.filter(o=>o.action==='RECRUIT')],['Pesquisar',researchable],
-    ['Governar, comércio e cívica',options.filter(o=>['PROMOTE_MOOD','SUPPORT_TRADE','CIVIC_ACTION','MOVE_CAPITAL'].includes(o.action))],
+    ['Governar, comércio e cívica',options.filter(o=>['EMERGENCY_GOVERN','PROMOTE_MOOD','SUPPORT_TRADE','CIVIC_ACTION','MOVE_CAPITAL'].includes(o.action))],
   ];
   const all=[...options,...game.urban.research];
   const selected=all.find(o=>optionKey(o)===picked)??null,recruitMax=Math.max(1,Math.min(6,game.recruitLimits[cityId]??1)),recruitCount=Math.min(count,recruitMax);

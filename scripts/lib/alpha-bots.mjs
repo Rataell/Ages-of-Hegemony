@@ -299,6 +299,7 @@ export function candidates(box, id, persona) {
     if (pick('PRODUCE').length) add(comp ? (baseFood && baseFood.mustProduce.has(city.id) ? 200 : foodLow && !baseFood ? 112 : 98) - index : (index === 0 ? 86 : 78), `produce:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PRODUCE' });
     if (pick('ELEVATE').length) add((comp ? 140 : 90) * w.elevate, `elevate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'ELEVATE' });
     const governNow = comp ? mood <= 3 : (mood <= 1 || (mood <= 2 && round % 3 === 0));
+    if (mood <= 1) if (pick('EMERGENCY_GOVERN').length) add(comp ? 200 : 130, `emergency:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'EMERGENCY_GOVERN' });
     if (governNow) if (pick('PROMOTE_MOOD').length) add(comp ? (mood <= 1 ? 121 : mood <= 2 ? 108 : 71) : (mood === 0 ? 95 : 70), `govern:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PROMOTE_MOOD' });
     if (meta.status === 'OCCUPIED') if (pick('CIVIC_ACTION').length) add(80, `integrate:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'CIVIC_ACTION' });
     // Districts and buildings by persona priority; competent play puts food, storage and learning first.

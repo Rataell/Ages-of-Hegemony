@@ -254,10 +254,13 @@ export function useTable(a: {
       const recruit: CloudNode = { id: 'RECRUIT', label: 'Recrutar', icon: 'recruit', badge: String(open(byAction('RECRUIT'))), disabled: byAction('RECRUIT').length ? gate ?? cityActionGate(game, city.id, 'RECRUIT') : 'Nenhuma peça disponível.', onSelect: () => push('recruit') };
       const govern = direct('PROMOTE_MOOD', 'Governar', 'govern', revolt ? 'dominant' : 'alt');
       const elevate = elevateOpen ? direct('ELEVATE', 'Elevar', 'elevate', 'alt') : null;
-      const list = [produce, build, recruit, govern, elevate].filter((n): n is CloudNode => n !== null);
+      // E-1: in Revolta the one way out that costs nothing leads the cloud; Produzir/Construir/Recrutar are closed to the city until it leaves Revolta.
+      const emergency = revolt && byAction('EMERGENCY_GOVERN').some(o => reasonOf(o) === null) ? direct('EMERGENCY_GOVERN', 'Recuperação emergencial', 'govern', 'dominant') : null;
+      if (emergency && govern) govern.tone = 'alt';
+      const list = [emergency, produce, build, recruit, govern, elevate].filter((n): n is CloudNode => n !== null);
       if (!list.some(n => n.tone === 'dominant')) { const first = list.find(n => !n.disabled) ?? list[0]; if (first) first.tone = 'dominant'; }
       // Four at most: the opportunity (Elevar) displaces Governar while the city is calm.
-      const limited = list.length > 4 ? list.filter(n => n.id !== (revolt ? 'ELEVATE' : 'PROMOTE_MOOD')) : list;
+      const limited = list.length > 4 ? list.filter(n => n.id !== (revolt ? 'ELEVATE' : 'PROMOTE_MOOD') && !(emergency && (n.id === 'BUILD' || n.id === 'RECRUIT'))) : list;
       return [...(cancel ? [cancel] : []), ...limited.slice(0, cancel ? 3 : 4), more()];
     }
     void back0;

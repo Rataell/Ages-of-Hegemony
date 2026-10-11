@@ -33,6 +33,7 @@ export function urbanActionMessage(before: AlphaState, after: AlphaState, actor:
     case 'RECRUIT': return `${cityName} recrutou ${action.unit ? before.rules.units[action.unit].name : 'uma peça'}.`;
     case 'RESEARCH': return `${cityName} concluiu a pesquisa ${(ADVANCEMENTS.find(advancement => advancement.id === action.advancementId) ?? heritageAdvance(action.advancementId ?? ''))?.name ?? ''}.`.replace(' .', '.');
     case 'PROMOTE_MOOD': return `${cityName} investiu no ânimo da população.`;
+    case 'EMERGENCY_GOVERN': return `${cityName} saiu da Revolta por recuperação emergencial.`;
     case 'SUPPORT_TRADE': return `${cityName} sustentou o comércio.`;
     case 'CIVIC_ACTION': return `${cityName} realizou uma ação cívica.`;
     case 'MOVE_CAPITAL': return `${cityName} tornou-se a capital.`;

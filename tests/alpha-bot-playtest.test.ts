@@ -43,8 +43,9 @@ describe('headless bot playtest (V5.1b)', () => {
 
   it('a full 35-round 2-player match finishes and reaches the cheap coverage subset', async () => {
     const { playMatch, COVERAGE_FLAGS } = await driver();
-    // Seed 1: coverage of the incidental flags (famine, battle, band, fortification) depends on the seed; Move + Discovery changed the opening order of exploration, so seed 5 no longer meets a Bando.
-    const run = playMatch({ seed: 1, players: 2 });
+    // Seed 2: coverage of the incidental flags (famine, battle, band, fortification) depends on the seed; Move + Discovery changed the opening order of exploration, so seed 5 no longer meets a Bando.
+    // V1.2 E-1: the bots now use the emergency recovery from Revolta, which shifts seed 1 (no famine, no fortification); seed 2 covers all four.
+    const run = playMatch({ seed: 2, players: 2 });
     expect(run.ctx.crashes).toEqual([]);
     expect(run.ctx.violations).toEqual([]);
     expect(run.state.core.status).toBe('FINISHED');

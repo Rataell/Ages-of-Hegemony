@@ -1,5 +1,5 @@
 import { settleTradeOffers } from './alpha-trade.js';
-import { administration, canGrow, citySustenance, growCost, militaryUpkeep, refreshAlphaAdministration, replaceCity } from './alpha-city.js';
+import { administration, canGrow, citySustenance, growCost, militaryUpkeep, refreshAlphaAdministration, rearmRevoltEmergency, replaceCity } from './alpha-city.js';
 import { TREATY_NAMES, battleMessage, discoveryMessage, lossesMessage, orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
   ALPHA_CARDS, emptyOrderCount, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources,
@@ -189,7 +189,7 @@ function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['ty
         performUrbanAction(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'URBAN_ACTION'}>);
         alphaEvent(candidate,action.action,`Ação planejada executada: ${action.action}.`,[actor]);
         const city=candidate.core.players.flatMap(player=>player.civilization.cities).find(item=>item.id===action.cityId)!;
-        const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',ELEVATE:'CONSTRUCTION',PROMOTE_MOOD:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT',MOVE_CAPITAL:'ROUND_EVENT'} as const)[action.action];
+        const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',ELEVATE:'CONSTRUCTION',PROMOTE_MOOD:'ROUND_EVENT',EMERGENCY_GOVERN:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT',MOVE_CAPITAL:'ROUND_EVENT'} as const)[action.action];
         const visibleTo=action.action==='BUILD'?viewersAt(candidate,city.hexId,[actor]):[actor];
         resolutionEvent(candidate,{type,actorId:actor,visibleTo,message:urbanActionMessage(state,candidate,actor,action,city.name),hexId:city.hexId,cityId:city.id,unitIds:[]});
       }else{
@@ -289,6 +289,7 @@ function runMaintenance(state: AlphaState): void {
   suspendThreatenedRoutes(state);
   for (const player of state.players) applyRecurringEffects(state, player.playerId, 'MAINTENANCE', { enforceStorage: false });
   maintainCivilizations(state);
+  rearmRevoltEmergency(state);
   for (const player of state.players) enforceStorageRecorded(state, player.playerId);
   state.players.forEach(player => { player.ready = false; });
   refreshKnowledge(state);
