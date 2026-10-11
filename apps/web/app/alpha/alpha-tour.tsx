@@ -70,7 +70,7 @@ function Callout({ step, index, total, onNext, onClose, onTips, mode }: { step: 
   </div>;
 }
 
-export function AlphaTour({ game, roomId, open, onOpenChange }: { game: Game; roomId: string; open: 'tour' | 'tips' | null; onOpenChange: (open: 'tour' | 'tips' | null) => void }) {
+export function AlphaTour({ game, roomId, open, onOpenChange, suspended = false }: { game: Game; roomId: string; open: 'tour' | 'tips' | null; onOpenChange: (open: 'tour' | 'tips' | null) => void; suspended?: boolean }) {
   const [progress, setProgress] = useState<Progress>(() => load(roomId));
   const [step, setStep] = useState(0), [tip, setTip] = useState<TourStep | null>(null);
   const update = (next: Progress) => { setProgress(next); save(roomId, next); };
@@ -80,10 +80,10 @@ export function AlphaTour({ game, roomId, open, onOpenChange }: { game: Game; ro
   useEffect(() => { const off = typeof location !== 'undefined' && new URLSearchParams(location.search).get('aoh-tour') === 'off'; if (off) { try { localStorage.setItem('aoh-tour-off', '1'); } catch { /* no storage */ } } let muted = off; try { muted ||= localStorage.getItem('aoh-tour-off') === '1'; } catch { /* no storage */ } if (!muted && !progress.tourDone && open === null && game.view.round === 1) onOpenChange('tour'); }, []);
   useEffect(() => {
     let muted = false; try { muted = localStorage.getItem('aoh-tour-off') === '1'; } catch { /* no storage */ }
-    if (open || tip || progress.tipsOff || !progress.tourDone || muted) return;
+    if (open || tip || suspended || progress.tipsOff || !progress.tourDone || muted) return;
     const due = TOUR_STEPS.find(s => s.when && !progress.done.includes(s.id) && s.when(game));
     if (due) setTip(due);
-  }, [game, open, tip, progress]);
+  }, [game, open, tip, progress, suspended]);
   const finishTour = () => { update({ ...progress, tourDone: true, done: [...new Set([...progress.done, ...basics.map(s => s.id)])] }); setStep(0); onOpenChange(null); };
   const closeTip = () => { if (tip) update({ ...progress, done: [...new Set([...progress.done, tip.id])] }); setTip(null); };
   if (open === 'tour') { const current = basics[step]!; return <Callout step={current} index={step} total={basics.length} mode="tour" onNext={() => step + 1 < basics.length ? setStep(step + 1) : finishTour()} onClose={finishTour} onTips={() => onOpenChange('tips')} />; }
@@ -98,6 +98,6 @@ export function AlphaTour({ game, roomId, open, onOpenChange }: { game: Game; ro
       </div>
     </section>
   </div>;
-  if (tip) return <Callout step={tip} index={0} total={1} mode="tip" onNext={closeTip} onClose={closeTip} onTips={() => { closeTip(); onOpenChange('tips'); }} />;
+  if (tip && !suspended) return <Callout step={tip} index={0} total={1} mode="tip" onNext={closeTip} onClose={closeTip} onTips={() => { closeTip(); onOpenChange('tips'); }} />;
   return null;
 }

@@ -70,7 +70,7 @@ describe('V1.2 lane C: no unembarked land piece ever stands on SEA (scanned afte
       expect(run.violations.filter(v => pieceCodes.includes(v.code))).toEqual([]);
       expect(run.counters.commands).toBeGreaterThan(40);
     }
-    expect(runs[0]!.counters.frontier + runs[0]!.counters.embark + runs[0]!.counters.group).toBeGreaterThan(0); // the wanderer really moved pieces
+    expect(runs[0]!.counters.frontier! + runs[0]!.counters.embark! + runs[0]!.counters.group!).toBeGreaterThan(0); // the wanderer really moved pieces
   }, 600_000);
 
   it.each(PRESETS)('%s: every closed Region x hex x legal rotation: the discoverer ends on a hex it can stand on, the Region keeps its rotation, deposits and observed terrain', async preset => {

@@ -59,7 +59,7 @@ export function CityDetails({ game, city, locked, send, manage, page, onPage }: 
     { key: 'pop', label: 'Habitantes', value: `${city.population} / ${meta.ceiling}` },
     { key: 'mood', label: `Ânimo ${meta.mood}/6`, value: MOOD_BAND[meta.moodBand] ?? meta.mood, warn: meta.moodBand === 'REVOLT' || meta.moodBand === 'SHAKEN' },
     { key: 'cap', label: 'Capacidade', value: meta.degraded ? `${meta.capacity}/${meta.baseCapacity}` : meta.capacity, warn: meta.degraded },
-    { key: 'act', label: 'Ativações', value: meta.activationsAllowed },
+    { key: 'act', label: 'Ativações restantes', value: `${game.cityStates.find(c => c.cityId === city.id)!.activations.left}/${meta.activationsAllowed}` },
   ] : [];
   return <Frame title={city.name} subtitle={meta ? <><b className="alpha-city-seal" title="Nível construído · Capacidade da ativação">N{level}</b> {CITY_LEVEL[meta.level] ?? meta.level}{meta.degraded ? ` (opera como ${CITY_LEVEL[meta.effectiveLevel]})` : ''} · {city.population} hab.{meta.status === 'OCCUPIED' ? ` · Integração ${meta.integration}%` : ''}</> : undefined}
     stats={stats} page={`city-${page}`} segments={<Segments label="Detalhes da cidade" value={page} onChange={onPage} items={CITY_PAGES} />}>

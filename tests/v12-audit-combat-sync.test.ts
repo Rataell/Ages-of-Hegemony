@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ALPHA_CARDS, AlphaStateSchema } from '@aoh/game-domain';
 import { applyAlphaCommand, pendingAttacks, setAlphaPhase } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
-import { atWarWith } from '../apps/web/app/alpha/war-relation';
+import { atWarWith } from '../apps/web/app/alpha/war-relation.js';
 import { completeRound, must } from './alpha-rounds.js';
 import { P1, P2, P3, attackOrder, line, put } from './v12-audit-combat-helpers.js';
 

@@ -30,7 +30,8 @@ export function cityActionGate(game:AlphaPlayerView,cityId:string|null,action:st
   // Canon §2 (E-1): pesquisar é a Ordem Avanço; a cidade só a carrega e não gasta ativação.
   if(action==='RESEARCH')return null;
   if(state.status==='OCCUPIED'&&action!=='CIVIC_ACTION')return 'Cidade ocupada: só a Ação cívica está disponível.';
-  if(state.plannedUrbanActions>=game.rules.balance.cityActions)return 'Esta cidade já possui sua ação planejada nesta rodada.';
+  // F-14: the engine says how many activations the city has left (Ânimo, Sobre-extensão, Conselho; Avanço is not one). The client does not recompute it.
+  if(state.activations.left<=0)return state.activations.allowed>1?'Esta cidade já tem as duas ativações planejadas nesta rodada.':'Esta cidade já possui sua ação planejada nesta rodada.';
   return null;
 }
 /** The only place a city acts: one action per city per round. PRODUCE is a choice, not a default. */
@@ -38,7 +39,7 @@ export function AlphaUrban({game,locked,send,cityId}:Panel&{cityId:string}){
   const [picked,setPicked]=useState<string|null>(null),[count,setCount]=useState(1),[group,setGroup]=useState('Produzir'),[pageNo,setPageNo]=useState(0);
   const state=game.cityStates.find(c=>c.cityId===cityId),options=game.urban.cities[cityId];
   if(!state||!options)return null;
-  const left=Math.max(0,game.rules.balance.cityActions-state.plannedUrbanActions),acting=game.phase==='PLANNING';
+  const left=state.activations.left,acting=game.phase==='PLANNING';
   const researchable=game.urban.research.filter(o=>o.blocked===null||!o.blocked.startsWith('Complete')&&!o.blocked.includes('era posterior'));
   const groups:[string,UrbanOption[]][]=[
     ['Construir',options.filter(o=>o.action==='BUILD')],['Elevar',options.filter(o=>o.action==='ELEVATE')],['Recrutar',options.filter(o=>o.action==='RECRUIT')],['Pesquisar',researchable],
@@ -56,7 +57,7 @@ export function AlphaUrban({game,locked,send,cityId}:Panel&{cityId:string}){
   if(selected)return <section className="alpha-panel alpha-urban is-detail" aria-label="Ações urbanas"><button type="button" className="aoh-btn is-sm is-ghost alpha-back" onClick={()=>{setPicked(null);setCount(1);}}>← Voltar às ações</button>
     <article className="alpha-urban-detail" aria-live="polite"><h4>{optionTitle(selected)}</h4><p><strong>Custo:</strong> {costText(selected.cost)}</p><p><strong>Efeito:</strong> {selected.effect}</p>{selected.action==='RECRUIT'&&recruitMax>1&&<label className="alpha-recruit-count"><strong>Quantidade:</strong> <select value={recruitCount} onChange={e=>setCount(Number(e.target.value))} aria-label="Quantidade de peças">{Array.from({length:recruitMax},(_,i)=><option key={i+1} value={i+1}>{i+1}</option>)}</select> <small>até {recruitMax} (Capacidade, distrito Militar, governo; 1 Soldado por peça)</small></label>}{selected.action==='MOVE_CAPITAL'&&<p className="alpha-hint">Custa {game.government.current.government==='MONARCHY'?'2 Ordens':'1 Ordem'} Cidade{game.government.current.government==='MONARCHY'?' (limitação da Monarquia)':''}.</p>}<p><strong>Ações planejáveis da cidade:</strong> {left}</p>{reason?<p className="alpha-warning" role="alert"><strong>Indisponível:</strong> {reason}</p>:<p><strong>Requisitos:</strong> atendidos.</p>}<button type="button" className="alpha-recommended" disabled={locked||reason!==null} onClick={()=>{void send({type:'URBAN_ACTION',cityId,action:selected.action,...(selected.build?{build:selected.build}:{}),...(selected.unit?{unit:selected.unit}:{}),...(selected.action==='RECRUIT'&&recruitCount>1?{count:recruitCount}:{}),...(selected.advancementId?{advancementId:selected.advancementId}:{})});setPicked(null);setCount(1);}}>Planejar ação urbana</button></article></section>;
   return <section className="alpha-panel alpha-urban" aria-label="Ações urbanas">
-    <p role="status" className="alpha-line">{acting?'':'Ações da cidade são planejadas no Planejamento · '}Ações planejáveis da cidade: <strong>{left}</strong> / {game.rules.balance.cityActions}{state.status==='OCCUPIED'?` · Ocupada, integração ${state.integration}%`:''}</p>
+    <p role="status" className="alpha-line">{acting?'':'Ações da cidade são planejadas no Planejamento · '}Ações planejáveis da cidade: <strong>{left}</strong> / {state.activations.allowed}{state.status==='OCCUPIED'?` · Ocupada, integração ${state.integration}%`:''}</p>
     {plannedHere&&<article className="alpha-produce alpha-urban-planned" aria-label="Ação planejada"><p><b>Nesta rodada: {plannedOption?optionTitle(plannedOption):text(plannedHere.action)}</b> · resolvida quando todos confirmarem.</p><button type="button" disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:plannedHere.id})}>Trocar ação</button></article>}
     {!(plannedHere&&left===0)&&<>
       <div className="alpha-seg is-sub" role="tablist" aria-label="Tipo de ação">{tabs.map(([title,items])=><button key={title} type="button" role="tab" aria-selected={activeGroup===title} onClick={()=>{setGroup(title);setPageNo(0);}}>{title} <small>{items.filter(o=>o.blocked===null).length}</small></button>)}</div>

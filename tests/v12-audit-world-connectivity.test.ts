@@ -98,7 +98,7 @@ describe('V1.2 lane C: REPRO of world findings (it.fails = the defect exists tod
     const t = await topology();
     const state = t.makeWorld({ preset: 'MIXED', seed: 1, players: 2 });
     const tiles = new Map(state.core.map.map(tile => [tile.id, tile]));
-    const lonely = state.core.map.find(tile => tile.terrain === 'COAST' && [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].every(([a, b]) => !['SEA', 'COAST'].includes(tiles.get(`${tile.q + a!},${tile.r + b!}`)?.terrain ?? 'UNKNOWN')));
+    const lonely = state.core.map.find(tile => tile.terrain === 'COAST' && [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]].every(([a, b]) => !['SEA', 'COAST'].includes(tiles.get(`${tile.q + a!},${tile.r + b!}` as never)?.terrain ?? 'UNKNOWN')));
     expect(lonely).toBeDefined();
     expect(isPort(state, lonely!.id)).toBe(true); // ships may be recruited here (alpha-naval.ts isPort: terrain === COAST)
     expect(harborHex(state, lonely!.id)).toBeNull(); // but the Distrito Marítimo is refused (alpha-water.ts harborHex needs a shared water edge)

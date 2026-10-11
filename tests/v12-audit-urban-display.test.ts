@@ -65,10 +65,12 @@ describe('D-02 · the effect text of Construir (core catalog) against what Produ
   });
 });
 
+const buildingOf = (option: { build?: { kind: string } }): string => (option.build as { building?: string } | undefined)?.building ?? '';
+
 describe('D-03 · buildings the Web unlocks but the Construir action never offers', () => {
   it.fails('REPRO D-03 (BUG): every building a Web advance unlocks ("building:X") is offered as a Construir option', () => {
     const state = unlockedGame();
-    const offered = new Set(urbanOptions(state, P1).cities[meta(state).cityId]!.filter(option => option.build?.kind === 'BUILDING').map(option => option.build!.kind === 'BUILDING' ? option.build.building : ''));
+    const offered = new Set(urbanOptions(state, P1).cities[meta(state).cityId]!.filter(option => option.build?.kind === 'BUILDING').map(option => buildingOf(option)));
     const unlocked = new Set(ADVANCEMENTS.flatMap(node => node.unlocks.filter(tag => tag.startsWith('building:')).map(tag => tag.slice('building:'.length))));
     // PORT arrives with the Marítimo district (alpha-urban.ts:285); the rest has no way in.
     const missing = [...unlocked].filter(building => !offered.has(building) && building !== 'PORT').sort();
@@ -76,9 +78,9 @@ describe('D-03 · buildings the Web unlocks but the Construir action never offer
   });
   it('CHARACTERIZATION D-03: only the 7 buildings of the legacy core catalog are buildable (GRANARY MARKET LIBRARY ARCHIVE BARRACKS WORKSHOP CULTURAL_CENTER)', () => {
     const state = unlockedGame();
-    const offered = urbanOptions(state, P1).cities[meta(state).cityId]!.filter(option => option.build?.kind === 'BUILDING').map(option => option.build!.kind === 'BUILDING' ? option.build.building : '').sort();
+    const offered = urbanOptions(state, P1).cities[meta(state).cityId]!.filter(option => option.build?.kind === 'BUILDING').map(option => buildingOf(option)).sort();
     expect(offered).toEqual(['ARCHIVE', 'BARRACKS', 'CULTURAL_CENTER', 'GRANARY', 'LIBRARY', 'MARKET', 'WORKSHOP']);
-    expect(AlphaBuildingSchema.options.filter(building => !offered.includes(building))).toContain('TEMPLE');
+    expect(AlphaBuildingSchema.options.filter(building => !(offered as string[]).includes(building))).toContain('TEMPLE');
   });
 });
 

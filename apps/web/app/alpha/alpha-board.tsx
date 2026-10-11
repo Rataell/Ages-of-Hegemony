@@ -16,6 +16,7 @@ import { AlphaGuide } from './alpha-guide';
 import { POSTURES } from './alpha-combat';
 import { AlphaHand } from './alpha-hand';
 import { AlphaTour } from './alpha-tour';
+import { tipsSuspended } from './tour-gate';
 import { AlphaEraTurn } from './alpha-era-turn';
 import { AlphaCivBoard, ChoiceParchment, type CivView } from './alpha-civ-board';
 import { StrategicSurface } from './strategic-surface';
@@ -203,7 +204,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
     {replay&&<section className="alpha-resolution-phase" role="status" aria-label="Resolvendo a rodada"><p className="eyebrow">RESOLVENDO A RODADA {replay.round}</p><h2>Resultados autorizados</h2><ol>{replay.resolution.map(event=><li key={event.id}><b>{text(event.type)}</b><span>{event.message}</span></li>)}</ol><button className="primary" onClick={()=>setDismissedResolution(replay.round)}>Continuar</button></section>}
     {ambitionsPending&&!ambitionsLater&&!replay&&<div className="alpha-modal-backdrop"><section className="alpha-modal" role="dialog" aria-modal="true" aria-labelledby="alpha-ambitions-title"><p className="eyebrow">ANTES DO PRIMEIRO PLANEJAMENTO</p><AmbitionChooser game={game} locked={locked} send={send}/><button type="button" onClick={()=>setAmbitionsLater(true)}>Ver o mapa primeiro</button><button type="button" onClick={()=>{setAmbitionsLater(true);setGuideOpen(true);}}>Como jogar</button></section></div>}
     {guideOpen&&<AlphaGuide game={game} onClose={()=>setGuideOpen(false)}/>}
-    {!game.winner&&!(ambitionsPending&&!ambitionsLater)&&<AlphaTour game={game} roomId={room.id} open={tour} onOpenChange={setTour}/>}
+    {!game.winner&&!(ambitionsPending&&!ambitionsLater)&&<AlphaTour game={game} roomId={room.id} open={tour} onOpenChange={setTour} suspended={tipsSuspended({phase:game.phase,conflictCall,replay:!!replay,winner:!!game.winner})}/>}
     {conflictCall&&<section className="alpha-conflict-call" role="alert" aria-label="Conflitos da rodada"><p className="eyebrow">CONFLITOS DA RODADA {game.view.round}</p><h2>{game.incomingAttacks.length?'Sua civilização está sendo atacada':'Seu ataque aguarda reações'}</h2>
       {game.incomingAttacks.map(a=><p key={`${a.attackerId}-${a.target}`}><b>{game.players.find(p=>p.id===a.attackerId)?.name}</b> ataca suas posições em <b>{a.target}</b>.</p>)}
       {game.self.orders.filter(o=>o.type==='ATTACK').map(o=><p key={o.id}>Seu ataque em <b>{o.type==='ATTACK'?o.target:''}</b> é resolvido depois das reações.</p>)}

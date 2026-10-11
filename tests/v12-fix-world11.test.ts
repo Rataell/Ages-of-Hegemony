@@ -13,7 +13,7 @@ interface Lib {
   entitySweep(state: AlphaState): { regionsWithEntities: number; violations: { code: string }[] };
   frontierSweep(state: AlphaState, o?: { mode?: 'LAND' | 'NAVAL' }): { entityViolations: unknown[] };
 }
-const lib = async (): Promise<Lib> => (await import('../scripts/lib/alpha-world-invariants.mjs')) as unknown as Lib;
+const lib = async (): Promise<Lib> => (await import(/* @vite-ignore */ ['..', 'scripts', 'lib', 'alpha-world-invariants.mjs'].join('/'))) as Lib;
 const PRESETS = ['MIXED', 'ARCHIPELAGO', 'INLAND_SEA', 'CONTINENTAL'];
 
 describe('WORLD-11 · the legal orientations never put a people or a camp on SEA', () => {

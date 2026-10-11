@@ -33,6 +33,29 @@ type UrbanAction = UrbanCommand['action'];
 type BuildTarget = NonNullable<UrbanCommand['build']>;
 interface UrbanParams { build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string; count?: number }
 
+/**
+ * Activations of one city this round (F-14): the single place that knows how many a city may still take. `count` is what the city already has
+ * (planned non-Avanço actions while planning, activations used while resolving); `allowed` is two when Estável or Próspera, one when Abalada or in Revolta
+ * (canon §10) and one in Sobre-extensão (canon §4); the Conselho lets only one city of the civilization take a second (canon §16). Avanço is its own Order
+ * and is not an activation (E-1). `cityGate`, the options' `blocked` and the projection read this, so what the client shows is what the engine enforces.
+ */
+export interface CityActivations { allowed: number; count: number; left: number; councilBlocked: boolean }
+export function cityActivations(state: AlphaState, actor: PlayerId, cityId: string): CityActivations | null {
+  const meta = state.cities.find(candidate => candidate.cityId === cityId);
+  if (!meta || meta.currentOwnerId !== actor) return null;
+  const planning = state.phase === 'PLANNING';
+  const plannedIn = (id: string) => state.players.find(player => player.playerId === actor)?.plannedActions.filter(candidate => candidate.type === 'URBAN_ACTION' && candidate.action !== 'RESEARCH' && candidate.cityId === id).length ?? 0;
+  const count = planning ? plannedIn(cityId) : meta.urbanActionsUsed;
+  const allowed = Math.min(state.rules.balance.cityActions, activationsAllowed(meta), administration(state, actor).overextended ? 1 : 2);
+  const secondLimit = governmentEffects(state, actor).secondActivationsPerRound;
+  let councilBlocked = false;
+  if (secondLimit !== null && count >= 1) {
+    const seconds = state.cities.filter(other => other.currentOwnerId === actor && other.cityId !== cityId).filter(other => (planning ? plannedIn(other.cityId) : other.urbanActionsUsed) >= 2).length;
+    councilBlocked = seconds >= secondLimit;
+  }
+  return { allowed, count, left: councilBlocked ? 0 : Math.max(0, allowed - count), councilBlocked };
+}
+
 /** Gates every urban action shares: phase, readiness, ownership, occupation and remaining city actions. */
 function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction): string | null {
   if (state.phase !== 'PLANNING'&&state.phase !== 'URBAN_ACTIONS') return 'Disponível apenas no Planejamento.';
@@ -46,20 +69,11 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
   if (action === 'RESEARCH') return null;
   const occupied = meta.status === 'OCCUPIED' || state.occupations.some(occupation => occupation.cityId === cityId);
   if (occupied && action !== 'CIVIC_ACTION') return 'Cidade ocupada: apenas a Ação Cívica de integração está disponível.';
-  const planned=state.players.find(player=>player.playerId===actor)?.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.action!=='RESEARCH'&&candidate.cityId===cityId).length??0;
-  // Two activations per round when Estável or Próspera, one when Abalada (canon §10); the second costs one Ânimo when it resolves.
-  // Sobre-extensão (canon §4): no second activation anywhere.
-  const allowed=Math.min(state.rules.balance.cityActions,activationsAllowed(meta),administration(state,actor).overextended?1:2);
+  const activations = cityActivations(state, actor, cityId)!;
   if(moodBand(meta.mood)==='REVOLT'&&action!=='PROMOTE_MOOD'&&action!=='CIVIC_ACTION')return 'Cidade em Revolta: só Governar (Ânimo e integração) está disponível.';
-  // Conselho (canon §16): at most one second activation per round in the whole civilization.
-  const secondLimit=governmentEffects(state,actor).secondActivationsPerRound;
-  if(secondLimit!==null&&(state.phase==='PLANNING'?planned>=1:meta.urbanActionsUsed>=1)){
-    const others=state.cities.filter(other=>other.currentOwnerId===actor&&other.cityId!==cityId);
-    const seconds=others.filter(other=>(state.phase==='PLANNING'?state.players.find(player=>player.playerId===actor)!.plannedActions.filter(candidate=>candidate.type==='URBAN_ACTION'&&candidate.action!=='RESEARCH'&&candidate.cityId===other.cityId).length:other.urbanActionsUsed)>=2).length;
-    if(seconds>=secondLimit)return 'Conselho: no máximo uma segunda ativação por rodada em toda a civilização.';
-  }
-  if(state.phase==='PLANNING'&&planned>=allowed)return allowed===1?'Esta cidade já possui sua ação planejada para esta rodada.':'Esta cidade já tem as duas ativações planejadas nesta rodada.';
-  if (state.phase==='URBAN_ACTIONS'&&meta.urbanActionsUsed >= allowed) return 'Esta cidade já usou suas ativações nesta rodada.';
+  if(activations.councilBlocked)return 'Conselho: no máximo uma segunda ativação por rodada em toda a civilização.';
+  if(state.phase==='PLANNING'&&activations.left===0)return activations.allowed===1?'Esta cidade já possui sua ação planejada para esta rodada.':'Esta cidade já tem as duas ativações planejadas nesta rodada.';
+  if (state.phase==='URBAN_ACTIONS'&&activations.left===0) return 'Esta cidade já usou suas ativações nesta rodada.';
   return null;
 }
 
