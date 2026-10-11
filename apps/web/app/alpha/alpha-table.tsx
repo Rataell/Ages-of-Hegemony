@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useState, type ReactNode, type RefObject } from 'react';
+import { atWarWith } from './war-relation';
 import { civilizationDisplayName, stackCategory, stackViewVerdict } from '@aoh/game-domain';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 import { alphaLabel as text } from './alpha-copy';
@@ -159,7 +160,7 @@ export function useTable(a: {
   const hostileTo = (hexId: string) => {
     const city = game.view.visibleCities.find(c => c.hexId === hexId), other = city?.ownerId ?? game.units.find(u => u.hexId === hexId && u.ownerId !== selfId)?.ownerId;
     if (!other) return { other: null as string | null, hostile: false, name: '' };
-    const hostile = game.wars.some(pair => pair.includes(other)) || game.self.plannedActions.some(p => p.type === 'DECLARE_WAR' && p.targetId === other);
+    const hostile = atWarWith(game.wars, selfId, other) || game.self.plannedActions.some(p => p.type === 'DECLARE_WAR' && p.targetId === other);
     return { other, hostile, name: game.players.find(p => p.id === other)?.name ?? 'esta civilização' };
   };
   const commit = (hexId: string) => {

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { atWarWith } from './war-relation';
 import { ADVANCEMENTS, ALPHA_CARDS, AlphaEraSchema, WEB_DOMAIN_NAMES, WebDomainSchema, heritageOf, civilizationKit, civilizationDisplayName, LEGACY_WORK_IDENTITY, ALPHA_RESOURCE_KEYS, RESOURCE_KEYS, TreatyTypeSchema, alphaGainOf, emptyAlphaResourcePool, type AlphaResourcePool, type AlphaEffect } from '@aoh/game-domain';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 import { ResourceDisplay } from '../play/resource-display';
@@ -155,7 +156,7 @@ function TradePanel({game,locked,send,otherId}:Panel&{otherId:string}){
 function RelationCard({game,locked,send,otherId}:Panel&{otherId:AlphaPlayerView['self']['playerId']}){
   const [sub,setSub]=useState<'status'|'treaty'|'trade'>('status'),[kind,setKind]=useState('TRADE_AGREEMENT'),[withDeal,setWithDeal]=useState(false),[give,setGive]=useState(emptyAlphaResourcePool()),[receive,setReceive]=useState(emptyAlphaResourcePool()),[confirmWar,setConfirmWar]=useState(false);
   const self=game.self.playerId,name=game.players.find(p=>p.id===otherId)?.name??'Civilização';
-  const contact=game.self.contacts.includes(otherId),war=game.wars.some(pair=>pair.includes(otherId));
+  const contact=game.self.contacts.includes(otherId),war=atWarWith(game.wars,self,otherId);
   const between=game.treaties.filter(t=>[t.proposerId,t.recipientId].includes(otherId));
   const active=between.filter(t=>t.status==='ACTIVE'),incoming=between.filter(t=>t.status==='PROPOSED'&&t.recipientId===self),outgoing=between.filter(t=>['PROPOSED','ACCEPTED'].includes(t.status)&&t.proposerId===self);
   const planned=game.self.plannedActions.filter(a=>(a.type==='PROPOSE_TREATY'&&a.recipientId===otherId)||(a.type==='DECLARE_WAR'&&a.targetId===otherId));

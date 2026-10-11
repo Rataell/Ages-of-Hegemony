@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ALPHA_CARDS, AlphaStateSchema } from '@aoh/game-domain';
 import { applyAlphaCommand, pendingAttacks, setAlphaPhase } from '@aoh/game-engine';
 import { alphaPlayerView } from '../apps/server/src/alpha-projection.js';
+import { atWarWith } from '../apps/web/app/alpha/war-relation';
 import { completeRound, must } from './alpha-rounds.js';
 import { P1, P2, P3, attackOrder, line, put } from './v12-audit-combat-helpers.js';
 
@@ -12,9 +13,6 @@ import { P1, P2, P3, attackOrder, line, put } from './v12-audit-combat-helpers.j
  */
 const web = (file: string) => readFileSync(new URL(`../apps/web/app/alpha/${file}`, import.meta.url), 'utf8');
 const reactions = ALPHA_CARDS.filter(card => card.timing === 'REACTION').map(card => card.id);
-
-/** The `game.wars.some(...)` call (up to the closing paren of the predicate) as written in the source. */
-const warExpression = (source: string) => { const at = source.indexOf('game.wars.some('); return source.slice(at, source.indexOf(')', source.indexOf('=>', at) + 2) + 2); };
 
 /** Every key path in `value` named `key`. */
 function paths(value: unknown, key: string, prefix = ''): string[] {
@@ -33,13 +31,38 @@ describe('B-12 · "at war" is a relation between two civilizations, but the clie
     const state = threeSeats(); state.wars = [[P2, P3]];
     for (const seat of [P1, P2, P3]) expect(alphaPlayerView(state, seat)!.wars).toEqual([[P2, P3]]);
   });
-  it.fails('REPRO: alpha-table.tsx hostileTo() checks the war against the viewer (pair must contain self AND the other civilization)', () => {
-    const source = web('alpha-table.tsx');
-    expect(warExpression(source)).toMatch(/selfId|self\.playerId/); // today: game.wars.some(pair => pair.includes(other)) → B looks "em guerra" with A when B fights C
+  it('B-12 fixed: atWarWith is the relation between the viewer and the other civilization, for 2, 3, 4 and 6 seats with parallel wars', () => {
+    const seats = (n: number) => Array.from({ length: n }, (_, index) => `p${index + 1}`);
+    // 2 seats: the only war is between them.
+    expect(atWarWith([['p1', 'p2']], 'p1', 'p2')).toBe(true);
+    expect(atWarWith([['p1', 'p2']], 'p2', 'p1')).toBe(true);
+    expect(atWarWith([], 'p1', 'p2')).toBe(false);
+    // 3 seats: p2 fights p3 — p1 is at peace with both.
+    expect(atWarWith([['p2', 'p3']], 'p1', 'p2')).toBe(false);
+    expect(atWarWith([['p2', 'p3']], 'p1', 'p3')).toBe(false);
+    expect(atWarWith([['p2', 'p3']], 'p2', 'p3')).toBe(true);
+    // 4 seats, two parallel wars: p1-p2 and p3-p4. Each viewer sees exactly its own enemy.
+    const four: [string, string][] = [['p1', 'p2'], ['p3', 'p4']];
+    for (const [self, other] of [['p1', 'p2'], ['p2', 'p1'], ['p3', 'p4'], ['p4', 'p3']] as const) expect(atWarWith(four, self, other)).toBe(true);
+    for (const [self, other] of [['p1', 'p3'], ['p1', 'p4'], ['p2', 'p3'], ['p2', 'p4'], ['p3', 'p1'], ['p4', 'p2']] as const) expect(atWarWith(four, self, other)).toBe(false);
+    // 6 seats, a chain p1-p2, p2-p3, p4-p5 and one civilization (p6) at peace with everyone.
+    const six: [string, string][] = [['p1', 'p2'], ['p2', 'p3'], ['p4', 'p5']];
+    const enemiesOf = (self: string) => seats(6).filter(other => atWarWith(six, self, other));
+    expect(enemiesOf('p1')).toEqual(['p2']);
+    expect(enemiesOf('p2')).toEqual(['p1', 'p3']);
+    expect(enemiesOf('p3')).toEqual(['p2']);
+    expect(enemiesOf('p4')).toEqual(['p5']);
+    expect(enemiesOf('p6')).toEqual([]);
+    expect(atWarWith(six, 'p1', 'p1')).toBe(false);
   });
-  it.fails('REPRO: alpha-panels.tsx RelationCard computes war against the viewer (otherwise "Declarar guerra…" disappears for a civilization that fights someone else)', () => {
-    const source = web('alpha-panels.tsx');
-    expect(warExpression(source)).toMatch(/selfId|self\.playerId|\bself\b/); // today: war=game.wars.some(pair=>pair.includes(otherId))
+  it('B-12 fixed: both client views read the relation through atWarWith(viewer, other), never "some pair contains the other"', () => {
+    for (const file of ['alpha-table.tsx', 'alpha-panels.tsx']) {
+      const source = web(file);
+      expect(source).toContain("from './war-relation'");
+      expect(source).not.toMatch(/game\.wars\.some\(/);
+    }
+    expect(web('alpha-table.tsx')).toMatch(/atWarWith\(game\.wars,\s*selfId,\s*other\)/);
+    expect(web('alpha-panels.tsx')).toMatch(/atWarWith\(game\.wars,\s*self,\s*otherId\)/);
   });
 });
 
