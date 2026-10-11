@@ -2,7 +2,7 @@ import type { AlphaState, AlphaUnit, HexId, PlayerId, StrategicOrder } from '@ao
 import { REGION_TEMPLATES } from '@aoh/game-domain';
 import { hexDistance } from './hex.js';
 import { isLandTerrain, isNavigableTerrain } from './alpha-water.js';
-import { regionOpenFor, regionOrientationFixed, revealRegion, rotatedRegionTiles, visibleHexIds } from './alpha-world.js';
+import { regionOpenFor, regionOrientationFixed, revealRegion, rotatedRegionTiles, rotationKeepsOccupants, visibleHexIds } from './alpha-world.js';
 import { applyDiscovery } from './alpha-discoveries.js';
 import { canEnter } from './alpha-military.js';
 import { enemyCityAt, movementOpen } from './alpha-diplomacy.js';
@@ -82,11 +82,14 @@ function profileOf(state: AlphaState, region: AlphaState['regions'][number], cac
   if (hit) return hit;
   cache.observed ??= new Set(state.players.flatMap(player => [...player.knownHexIds, ...visibleHexIds(state, player.playerId)]));
   const observed = cache.observed;
-  const profile = [0, 1, 2, 3, 4, 5].flatMap(rotation => {
+  const known = [0, 1, 2, 3, 4, 5].flatMap(rotation => {
     const tiles = rotatedRegionTiles(state, region, rotation);
     const keepsKnown = region.hexIds.every((id, i) => { if (!observed.has(id)) return true; const tile = tileOf(state, id)!; return tile.terrain === tiles[i]!.terrain && tile.features.join() === tiles[i]!.features.join(); });
     return keepsKnown ? [{ rotation, terrains: tiles.map(tile => tile.terrain as string) }] : [];
   });
+  // WORLD-11: prefer turns that leave every people, camp and pirate on terrain that suits it; if every turn breaks one, keep them all (revealRegion settles the occupant).
+  const safe = known.filter(entry => rotationKeepsOccupants(state, region, entry.terrains.map(terrain => ({ terrain }))));
+  const profile = safe.length ? safe : known;
   cache.profiles.set(region.id, profile);
   return profile;
 }

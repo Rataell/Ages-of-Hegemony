@@ -112,7 +112,7 @@ describe('V1.2 lane C: no unembarked land piece ever stands on SEA (scanned afte
   }, 120_000);
 });
 
-describe('V1.2 lane C: REPRO of Pioneiro / water findings (it.fails = the defect exists today; flip to it() when fixed)', () => {
+describe('V1.2 lane C: REPRO of Pioneiro / water findings (it.fails = the defect exists today; flip to it() when fixed; WORLD-11 is fixed)', () => {
   it.fails('RULE-3 REPRO naufrágio on a COAST hex (land) loses a piece that could simply stay: 2 Pioneiros aboard, fleet sunk on COAST, only one survives', async () => {
     const { makeGame, cargoScenarios } = await lib();
     const sunk = cargoScenarios(makeGame({ preset: 'ARCHIPELAGO', seed: 2, players: 4 })).find(r => r.name === 'sunk-on-coast-with-land')!;
@@ -120,7 +120,7 @@ describe('V1.2 lane C: REPRO of Pioneiro / water findings (it.fails = the defect
     expect(sunk.lost).toBe(0); // COAST is walkable: settleCargo should unembark in place instead of choosing one shore piece and dropping the rest
   });
 
-  it.fails('WORLD-11 REPRO an independent people (or an Acampamento) placed on face-down terrain ends ON SEA when the Region is turned (MIXED seed 1, 4 seats: Região 11, rotation 2, entry -3,1)', async () => {
+  it('WORLD-11 fixed: an independent people (or an Acampamento) placed on face-down terrain is never left on SEA when the Region is turned (MIXED seed 1, 4 seats: Região 11, rotation 2, entry -3,1)', async () => {
     const { makeGame, frontierSweep, entitySweep, ENTITY_CODES } = await lib();
     const state = makeGame({ preset: 'MIXED', seed: 1, players: 4 });
     expect(frontierSweep(state, { mode: 'LAND' }).entityViolations).toEqual([]); // the real resolveFrontierMove path: today it puts independent-2 (-2,2) in the sea

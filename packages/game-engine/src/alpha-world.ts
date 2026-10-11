@@ -139,6 +139,38 @@ export interface ExplorationAccess {
   block:string|null;
 }
 /**
+ * WORLD-11. Independent peoples, Acampamentos and Piratas are placed while a Region is still face down, on its provisional (rotation 0) terrain. The terrain
+ * only becomes definite when the Region is turned, so a turn must not drown a people or a camp, nor strand a pirate on land. `regionOccupants` lists what
+ * stands in the Region and the terrain each one needs; `rotationKeepsOccupants` is the legality test that `explorationAccess` and the frontier profile apply
+ * on top of "keeps observed terrain"; `settleOccupants` is the safety net after a reveal (a Region whose every turn would break an occupant).
+ */
+export type OccupantNeed='LAND'|'SEA';
+export interface RegionOccupant { kind:'independent'|'threat'; id:string; hexId:string; need:OccupantNeed }
+export function regionOccupants(state:AlphaState,region:AlphaState['regions'][number]):RegionOccupant[] {
+  const inside=new Set<string>(region.hexIds);
+  return [
+    ...state.independents.filter(people=>inside.has(people.hexId)).map(people=>({kind:'independent' as const,id:people.id,hexId:people.hexId as string,need:'LAND' as const})),
+    ...state.threats.filter(threat=>inside.has(threat.hexId)).map(threat=>({kind:'threat' as const,id:threat.id,hexId:threat.hexId as string,need:threat.kind==='PIRATE'?'SEA' as const:'LAND' as const})),
+  ];
+}
+export const occupantFits=(need:OccupantNeed,terrain:string):boolean=>need==='SEA'?terrain==='SEA':terrain!=='SEA'&&terrain!=='UNKNOWN';
+export function rotationKeepsOccupants(state:AlphaState,region:AlphaState['regions'][number],tiles:readonly {terrain:string}[]):boolean {
+  return regionOccupants(state,region).every(occupant=>{const index=region.hexIds.findIndex(id=>id===occupant.hexId);return index<0||occupantFits(occupant.need,tiles[index]!.terrain);});
+}
+/** After a Region is turned, anything that still stands on terrain it cannot stand on moves to the nearest free hex that suits it (deterministic: distance, then hex id). */
+export function settleOccupants(state:AlphaState,region:AlphaState['regions'][number]):void {
+  const taken=new Set<string>([...state.units.map(unit=>unit.hexId as string),...state.independents.map(people=>people.hexId as string),...state.threats.map(threat=>threat.hexId as string),...state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId as string))]);
+  for(const occupant of regionOccupants(state,region)){
+    const here=state.core.map.find(tile=>tile.id===occupant.hexId);
+    if(!here||occupantFits(occupant.need,here.terrain))continue;
+    const target=state.core.map.filter(tile=>occupantFits(occupant.need,tile.terrain)&&tile.ownerId===null&&!taken.has(tile.id)).sort((a,b)=>hexDistance(here,a)-hexDistance(here,b)||a.id.localeCompare(b.id))[0];
+    if(!target)continue;
+    taken.delete(occupant.hexId);taken.add(target.id);
+    if(occupant.kind==='independent'){const people=state.independents.find(item=>item.id===occupant.id);if(people)people.hexId=target.id;}
+    else{const threat=state.threats.find(item=>item.id===occupant.id);if(threat){threat.hexId=target.id;threat.homeHexId=target.id;}}
+  }
+}
+/**
  * Entry rule. A Pioneiro walks in, so at least one Region hex within its reach must be LAND (plains, forest, hills, mountains or coast) once the
  * Region is turned; a Frota sails in, so one must be navigable water (coast or sea) by the same canonical truth the naval rules use. Orientations that
  * would change terrain somebody already knows are excluded. With one orientation left it is applied automatically; with several the explorer chooses;
@@ -157,11 +189,14 @@ export function explorationAccess(state:AlphaState,unit:AlphaUnit,region:AlphaSt
     return {rotations:ok?[region.rotation]:[],block:ok?null:blocked};
   }
   const observed=new Set(state.players.flatMap(p=>[...p.knownHexIds,...visibleHexIds(state,p.playerId)]));
-  const rotations=[0,1,2,3,4,5].filter(rotation=>{
+  const reachable=[0,1,2,3,4,5].filter(rotation=>{
     const tiles=rotatedRegionTiles(state,region,rotation);
     const keepsKnown=region.hexIds.every((id,i)=>{if(!observed.has(id))return true;const tile=state.core.map.find(t=>t.id===id)!;return tile.terrain===tiles[i]!.terrain&&tile.features.join()===tiles[i]!.features.join();});
     return keepsKnown&&entry.some(x=>enters(tiles[x.i]!.terrain));
   });
+  // WORLD-11: prefer the turns that leave every people, camp and pirate on terrain that suits it. If every turn would break one, the Region stays enterable and settleOccupants moves it on reveal.
+  const safe=reachable.filter(rotation=>rotationKeepsOccupants(state,region,rotatedRegionTiles(state,region,rotation)));
+  const rotations=safe.length?safe:reachable;
   return {rotations,block:rotations.length?null:blocked};
 }
 export function validateExploration(state:AlphaState,actor:PlayerId,order:Extract<StrategicOrder,{type:'EXPLORE'}>):void {
@@ -199,6 +234,7 @@ export function revealRegion(state:AlphaState,actor:PlayerId,region:AlphaState['
   if(!fixed){
     const rotated=rotatedRegionTiles(state,region,rotation);
     region.hexIds.forEach((id,i)=>{const tile=state.core.map.find(t=>t.id===id)!;tile.terrain=rotated[i]!.terrain;tile.features=rotated[i]!.features;});
+    settleOccupants(state,region);
   }
   if(!fixed)region.rotation=rotation;
   if(!region.revealedBy.includes(actor))region.revealedBy.push(actor);
