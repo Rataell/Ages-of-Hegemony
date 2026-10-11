@@ -77,7 +77,7 @@ export function classifyFlow(f) {
     if (f.category === 'production' || f.category === 'mining') return 'PRODUCE';
     if (cur.action === 'PRODUCE' && f.category === 'institutions') return 'PRODUCE_BONUS';
     if (cur.action === 'BUILD') return 'BUILD';
-    if (['ELEVATE', 'RESEARCH', 'PROMOTE_MOOD', 'CIVIC_ACTION', 'SUPPORT_TRADE'].includes(cur.action)) return cur.action;
+    if (['ELEVATE', 'RESEARCH', 'PROMOTE_MOOD', 'EMERGENCY_GOVERN', 'CIVIC_ACTION', 'SUPPORT_TRADE'].includes(cur.action)) return cur.action;
     if (cur.action === 'RECRUIT') return 'RECRUIT';
   }
   if (frames.includes('maintainCivilizations')) {
@@ -110,6 +110,10 @@ export const VARIANTS = {
   startvillage: 'capital starts as a Vila (N3) with 6 inhabitants, web-agriculture and web-masonry researched',
   combo: 'orders6 + yield150 + starthamlet',
   sprint: 'Elevar and the city ladder need 25% fewer inhabitants (rounded up): 4,6,8,11,14,18 become 3,5,6,9,11,14',
+  // V1.2 phase 2 candidates (measurement only). M1 = `starthamlet`: the capital starts as a Povoado (HAMLET, N2) with 4 inhabitants (2 Produtores, 2 Eruditos),
+  // Agricultura researched, development 1, nothing else (stocks, Figura, other cities unchanged).
+  candA: 'M1 + M4 moderate: the ladder needs 15% fewer inhabitants (Math.round, never below the previous level + 1): 2,4,6,8,11,14,18 become 2,3,5,7,9,12,15',
+  candB: 'M1 + M2b: a fed city that grew this round may grow a SECOND inhabitant when it is below its ceiling, the civilization has the Alimento and no famine hit the owner (same cost per inhabitant)',
 };
 function applyVariant(state, variant, D = null) {
   const up = (v, k) => Math.ceil(v * k);
@@ -127,10 +131,11 @@ function applyVariant(state, variant, D = null) {
     scalePool(t.foundingCost, 0.6);
     for (const u of Object.values(state.rules.units)) scalePool(u.cost, 0.6);
   }
-  if (variant === 'sprint' && D) {
+  if (['sprint', 'candA'].includes(variant) && D) {
     // The tables are shared by the engine and the policies in this process only; each match runs in its own child process, so nothing leaks.
     let previous = D.CITY_LADDER[0].minPopulation;
-    for (const step of D.CITY_LADDER.slice(1)) { step.minPopulation = Math.max(previous + 1, Math.ceil(step.minPopulation * 0.75)); previous = step.minPopulation; }
+    const factor = variant === 'candA' ? 0.85 : 0.75, round = variant === 'candA' ? Math.round : Math.ceil;
+    for (const step of D.CITY_LADDER.slice(1)) { step.minPopulation = Math.max(previous + 1, round(step.minPopulation * factor)); previous = step.minPopulation; }
     for (const entry of D.ELEVATE_TABLE) entry.minPopulation = D.ladderStep(entry.to).minPopulation;
   }
   if (variant === 'stock150') for (const p of state.players) for (const k of Object.keys(p.resources)) p.resources[k] = up(p.resources[k], 1.5);
@@ -142,7 +147,7 @@ function applyVariant(state, variant, D = null) {
       o.civilization = { ...o.civilization, cities: o.civilization.cities.map(c => c.id === city.id ? { ...c, population: 6, development: 3, workers: { producers: 3, artisans: 0, merchants: 0, scholars: 3, soldiers: 0, unassigned: 0 } } : c) };
     }
   }
-  if (['starthamlet', 'combo'].includes(variant)) {
+  if (['starthamlet', 'combo', 'candA', 'candB'].includes(variant)) {
     for (const p of state.players) { if (!p.research.includes('web-agriculture')) p.research.push('web-agriculture'); }
     for (const o of state.core.players) {
       const city = o.civilization.cities[0];
@@ -426,6 +431,9 @@ function candidates(box, id, P) {
     else if (row && /Recursos/.test(row.blocked ?? '')) for (const [k, v] of Object.entries(row.cost)) if (v > 0) savingFor[k] = Math.max(savingFor[k] ?? 0, v);
     const capNow = E.operatingCapacity(state, city.id);
     const govUsed = usedBy.get(city.id) ?? 0;
+    // E-1 (opt-in so earlier measurements stay comparable): a city in Revolta takes the free emergency recovery first, once per episode.
+    const emergency = process.env.AOH_POLICY_EMERGENCY === '1' ? list.find(r => r.action === 'EMERGENCY_GOVERN') : null;
+    if (meta && meta.mood <= 1 && govUsed === 0 && emergency && emergency.blocked === null) add(P.w.govern + 80, `emergency:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'EMERGENCY_GOVERN' }, 'EMERGENCY_GOVERN');
     if (meta && meta.mood <= 3 && govUsed === 0 && (list.find(r => r.action === 'PROMOTE_MOOD') ?? {}).blocked === null && (meta.mood <= 1 || (meta.mood === 2 && capNow >= 2) || (meta.mood === 3 && capNow >= 3))) add(meta.mood <= 1 ? P.w.govern + 60 : P.w.govern - 15, `govern:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'PROMOTE_MOOD' }, 'PROMOTE_MOOD');
   });
   const respectSaving = cost => !Object.entries(savingFor).some(([k, v]) => (cost[k] ?? 0) > 0 && stock[k] - cost[k] < v);
@@ -686,6 +694,26 @@ function snapshotSeat(box, id) {
 }
 
 /** Plays the whole match with the scripted policy. Returns rows (one per seat-round) plus reconciliation data. */
+/** candB (M2b), measurement only: a city that grew in the round just resolved may grow once more if it is below its ceiling, was not starved and the Alimento is there. */
+function extraGrowth(box) {
+  const { E } = box, s = box.state;
+  box.extraGrowth ??= { prev: new Map(), grown: 0 };
+  for (const owner of s.core.players) {
+    const progress = me(s, owner.id);
+    const starved = s.events.some(e => e.round === s.core.round - 1 && e.type === 'FOOD_SHORTAGE' && e.audience?.includes(owner.id));
+    for (const city of owner.civilization.cities) {
+      const meta = s.cities.find(c => c.cityId === city.id), before = box.extraGrowth.prev.get(city.id);
+      if (before === undefined || city.population <= before || !meta || meta.status === 'OCCUPIED' || starved || !E.canGrow(meta, city)) continue;
+      const cost = E.growCost(s, city.id);
+      if (progress.resources.food < cost) continue;
+      E.alphaDrain(s, owner.id, { food: cost, materials: 0, wealth: 0, knowledge: 0, influence: 0 }, 'expenses');
+      E.replaceCity(s, city.id, { ...city, population: city.population + 1, workers: { ...city.workers, unassigned: city.workers.unassigned + 1 } });
+      box.extraGrowth.grown++;
+    }
+  }
+  for (const owner of s.core.players) for (const city of owner.civilization.cities) box.extraGrowth.prev.set(city.id, s.core.players.find(p => p.id === owner.id).civilization.cities.find(c => c.id === city.id).population);
+}
+
 export function playPolicyMatch(box, { maxRounds = Infinity, onRound = null } = {}) {
   const { E } = box;
   const t0 = performance.now();
@@ -697,6 +725,7 @@ export function playPolicyMatch(box, { maxRounds = Infinity, onRound = null } = 
     // `--world` keeps them: it is the second matrix that shows what the Threats add (Ânimo lost to assaults, pillage).
     if (box.peace && box.state.threats.length) box.state.threats = [];
     if (phase === 'PLANNING') {
+      if (box.variant === 'candB') extraGrowth(box);
       // Snapshot at the opening of PLANNING (after the previous round's resolution and this round's ROUND_START).
       const open = Object.fromEntries(box.seats.map(s => [s.id, snapshotSeat(box, s.id)]));
       const flowMark = flows().length;
