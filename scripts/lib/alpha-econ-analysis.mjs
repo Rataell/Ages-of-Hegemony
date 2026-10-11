@@ -117,8 +117,8 @@ export function runChecks(box) {
     // Growth: each POPULATION_GROWN costs 3 (2 with Celeiro)
     const grown = eventsOf(id, r, 'POPULATION_GROWN');
     const names = new Map(box.state.core.players.find(o => o.id === id).civilization.cities.map(c => [c.name, c.id]));
-    let lo = 0, hi = 0;
-    for (const e of grown) { const city = p.cities.find(c => names.get(e.message.split(' cresceu')[0]) === c.id); const cost = city?.granary ? 2 : 3; lo += cost; hi += cost; }
+    let lo = 0;
+    for (const e of grown) { const city = p.cities.find(c => names.get(e.message.split(' cresceu')[0]) === c.id); const cost = city?.granary ? 2 : 3; lo += cost; }
     checks.formulas.growth.n++;
     if (spent !== lo) checks.formulas.growth.mismatches.push({ seat: id, round: r, grown: grown.length, expectedFood: lo, spent });
   }

@@ -7,7 +7,6 @@
 import { mkdirSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
 import { playMatch } from './lib/alpha-bots.mjs';
 import * as E from '../packages/game-engine/dist/index.js';
-import * as D from '../packages/game-domain/dist/index.js';
 
 const mode = process.argv[2];
 const arg = (n, f) => (process.argv.find(a => a.startsWith(`--${n}=`)) ?? `--${n}=${f}`).split('=')[1];

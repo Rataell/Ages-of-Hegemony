@@ -16,7 +16,6 @@ for (const seat of ctx.seats) {
   console.log(`\n== ${owner.name} (${seat.id}) ==`);
   console.log('rnd era  | ' + KEYS.map(k => `${k.slice(0, 4)} open prod +oth exp upk dis close`).join(' | ') + ' | cit pop pcs');
   for (const r of state.roundReports.filter(x => x.playerId === seat.id)) {
-    const progress = state.players.find(p => p.playerId === seat.id);
     const cols = KEYS.map(k => `${f(r.opening, k)} ${String(prodOnly(r, k)).padStart(3)} ${String(gain(r, k) - prodOnly(r, k)).padStart(3)} ${String(out(r, k)).padStart(3)} ${f(r.upkeepPaid, k)} ${f(r.discarded, k)} ${f(r.closing, k)}`).join(' | ');
     for (const k of KEYS) if ((r.opening[k] ?? 0) + gain(r, k) - out(r, k) - (r.upkeepPaid[k] ?? 0) - (r.discarded[k] ?? 0) !== (r.closing[k] ?? 0)) broken++;
     const pop = r.cities.reduce((n, c) => n + c.populationAfter, 0);

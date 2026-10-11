@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global structuredClone */
 // Lane A1 (Alpha V1.2 audit): deterministic micro-repros, one per finding. Each probe edits a throw-away state (scenario set-up, the way the lab
 // tools do), then uses ONLY the public command surface (applyAlphaCommand) and the real round pipeline. Nothing under packages/ or apps/ is touched.
 //   node scripts/alpha-economy-probes.mjs [--only=P1,P2] [--out=docs/evidence/v12-audit/lane-a1/probes]
@@ -46,7 +47,6 @@ const edit = (s, fn) => {
 function cmd(s, id, command) { const r = E.applyAlphaCommand(s, id, { ...command, expectedVersion: s.version }); return r; }
 function must(s, id, command) { const r = cmd(s, id, command); if (!r.ok) throw new Error(`${command.type} rejected: ${r.error.message}`); return r.value; }
 function chooseAmbitions(s) { for (const p of s.players) if (!p.ambitionsChosen) s = must(s, p.playerId, { type: 'CHOOSE_AMBITIONS', cardIds: p.ambitions.slice(0, 2) }); return s; }
-function readyAll(s) { for (const p of s.players) if (s.core.status === 'ACTIVE' && !me(s, p.playerId).ready && s.phase === 'PLANNING') s = must(s, p.playerId, { type: 'READY' }); return s; }
 function finishRound(s) {
   s = chooseAmbitions(s);
   let guard = 0;
@@ -64,7 +64,6 @@ const labelAll = list => {
   list.forEach((f, i) => { if (f.kind === 'alphaDrain' && f.category === 'upkeepPaid' && f.frames.includes('maintainCivilizations')) lastMil.set(`${f.round}:${f.actor}`, i); });
   return list.map((f, i) => ({ round: f.round, phase: f.phase, label: classifyFlow({ ...f, upkeepIndex: lastMil.get(`${f.round}:${f.actor}`) === i ? 'military' : 'sustenance' }), delta: nz(f.delta) }));
 };
-const label = f => labelAll([f])[0];
 
 const probes = {};
 
@@ -142,7 +141,7 @@ probes.P3 = () => {
   s = chooseAmbitions(s);
   const yieldFood = E.productionOutput(s, 'p1', city0(s, 'p1').id).output.food;
   s = must(s, 'p1', { type: 'URBAN_ACTION', cityId: city0(s, 'p1').id, action: 'PRODUCE' });
-  const round = s.core.round, mark = flows().length;
+  const mark = flows().length;
   s = finishRound(s);
   const fl = labelAll(flows().slice(mark).filter(f => f.actor === 'p1'));
   const final = me(s, 'p1').resources.food;
@@ -229,7 +228,7 @@ probes.P8 = () => {
   const row = E.urbanOptions(s, 'p1').cities[city0(s, 'p1').id].find(o => o.action === 'ELEVATE');
   s = must(s, 'p1', { type: 'URBAN_ACTION', cityId: city0(s, 'p1').id, action: 'ELEVATE' });
   const mark = flows().length;
-  s = finishRound(s);
+  finishRound(s);
   return {
     classification: 'UX (custo exibido ≠ custo pago quando falta material e a Riqueza cobre 2:1)',
     displayedCost: nz(row.cost), displayedBlocked: row.blocked,

@@ -1,3 +1,4 @@
+/* global structuredClone */
 // Revolta recovery probe (Alpha V1.2, decision A / E-1). Drives the REAL engine: a city in Revolta uses the emergency Governar (EMERGENCY_GOVERN) in the
 // URBAN phase, the REAL maintenance of that round runs with the faults listed, and the NEXT round the city plans Produzir.
 // Usage: npm run compile && node scripts/alpha-revolt-recovery.mjs        (reads the built packages, changes nothing)

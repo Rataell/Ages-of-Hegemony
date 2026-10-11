@@ -197,7 +197,7 @@ export function send(box, id, command, tag = null) {
   const after = Object.fromEntries(result.value.players.map(p => [p.playerId, { ...p.resources }]));
   const traced = Object.fromEntries(result.value.players.map(p => [p.playerId, ZERO8()]));
   const fresh = flows().slice(mark);
-  labelFlows(box, fresh, before, state, result.value);
+  labelFlows(box, fresh);
   for (const f of fresh) add8(traced[f.actor], f.delta);
   for (const pid of Object.keys(after)) {
     const actual = sub8(after[pid], before[pid]);
@@ -213,7 +213,7 @@ export function send(box, id, command, tag = null) {
 const rejectKind = message => /Recursos insuficientes/.test(message) ? 'RESOURCES' : /Sem ações principais/.test(message) ? 'ORDERS' : /exige .* habitantes/.test(message) ? 'POP' : /Era posterior/.test(message) ? 'ERA' : /avanço/.test(message) ? 'ADVANCE' : /vagas de distrito/.test(message) ? 'SLOTS' : /Revolta/.test(message) ? 'REVOLT' : /ativações|ação planejada/.test(message) ? 'ACTIVATIONS' : 'OTHER';
 
 /** Names the sustenance / military drains: sequence index inside the maintenance of one civilization. */
-function labelFlows(box, fresh, before, stateBefore, stateAfter) {
+function labelFlows(box, fresh) {
   const seen = new Map();
   for (const f of fresh) {
     if (f.kind === 'alphaDrain' && f.category === 'upkeepPaid' && f.frames.includes('maintainCivilizations')) {
@@ -697,7 +697,6 @@ export function playPolicyMatch(box, { maxRounds = Infinity, onRound = null } = 
       const infos = {};
       for (const id of [...box.state.initiative]) infos[id] = planSeat(box, id);
       const preReady = Object.fromEntries(box.seats.map(s => [s.id, { resources: { ...me(box.state, s.id).resources }, usage: E.alphaActionUsage(box.state, s.id), kinds: [...(box.orderKinds.get(s.id) ?? [])], planned: me(box.state, s.id).plannedActions.map(a => ({ ...a })), growth: E.growthForecast(box.state, s.id) }]));
-      const stateBeforeReady = box.state;
       const ledgersBefore = null;
       for (const s of box.seats) if (box.state.core.status === 'ACTIVE' && !me(box.state, s.id).ready) send(box, s.id, { type: 'READY' });
       box.roundLog.push({ round, open, preReady, infos, flowMark, eventsMark, stateBeforeReady: null, ledgersBefore });
