@@ -24,7 +24,7 @@ export * from './alpha-independents.js';
 export * from './alpha-resources.js';
 export * from './alpha-urban.js';
 export * from './alpha-city.js';
-export { CORE_PHASE_MIRROR, INTERACTIVE_PHASES, LEGAL_COMMANDS, advanceAfterReady, openRound, pendingAttacks, prestigeRanking, setAlphaPhase } from './alpha-phases.js';
+export { CORE_PHASE_MIRROR, INTERACTIVE_PHASES, LEGAL_COMMANDS, advanceAfterReady, openRound, pendingAttacks, prestigeRanking, resolveOrders, setAlphaPhase } from './alpha-phases.js';
 export * from './alpha-leaders.js';
 export * from './alpha-combat.js';
 export * from './alpha-stack.js';

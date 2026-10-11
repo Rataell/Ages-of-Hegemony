@@ -1,7 +1,7 @@
 import { ADVANCEMENTS, legacyWork, HegemonyPathSchema, type AlphaState, type HegemonyMetric, type HegemonyPath, type PlayerId } from '@aoh/game-domain';
 import { tradePath } from './alpha-diplomacy.js';
 import { culturalPresenceCount } from './alpha-culture.js';
-import { alphaStorageCapacity } from './alpha-resources.js';
+import { alphaStorageCeiling } from './alpha-resources.js';
 
 /** All requirements are evaluated against authority, including current access to trade routes. */
 export function hegemonyProgress(state:AlphaState,actor:PlayerId) {
@@ -30,10 +30,10 @@ export function hegemonyProgress(state:AlphaState,actor:PlayerId) {
     developedCities:state.cities.filter(m=>m.currentOwnerId===actor&&['GREAT_CITY','METROPOLIS','IMPERIAL_METROPOLIS'].includes(m.level)).length,
     withinCapacity:Number(core.civilization.administrativeLoad<=core.civilization.administrativeCapacity),
   };
-  // V1.2: a stock requirement cannot ask for more than the civilization can ever store (canon §23 says "Riqueza no limite", not an absolute number): Influência 25 was
-  // above the hard cap 20 and Riqueza 30 reachable only with a Figura that raises Riqueza. The effective minimum is the declared one or the storage limit, whichever is lower.
-  const capacity=alphaStorageCapacity(state,actor);
-  const effective=(r:{metric:HegemonyMetric;minimum:number}):number=>r.metric==='wealth'?Math.min(r.minimum,capacity.wealth):r.metric==='influence'?Math.min(r.minimum,capacity.influence):r.minimum;
+  // V1.2: a stock requirement cannot ask for more than the rules let anyone store (Influência 25 was above the hard cap 20; Riqueza 30 needs a Figura that raises Riqueza).
+  // The bar is min(declared, static ceiling): it never depends on the player's own storage, so building less storage cannot make a Hegemonia easier.
+  const ceiling=alphaStorageCeiling(state);
+  const effective=(r:{metric:HegemonyMetric;minimum:number}):number=>r.metric==='wealth'?Math.min(r.minimum,ceiling.wealth):r.metric==='influence'?Math.min(r.minimum,ceiling.influence):r.minimum;
   return HegemonyPathSchema.options.map(path=>({path,requirements:state.rules.hegemonyRequirements[path].map(r=>{const minimum=effective(r);return {...r,minimum,declaredMinimum:r.minimum,current:metrics[r.metric],met:metrics[r.metric]>=minimum};})}));
 }
 

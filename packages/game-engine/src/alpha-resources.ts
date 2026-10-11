@@ -144,6 +144,23 @@ export function alphaStorageCapacity(state: AlphaState, actor: PlayerId): Record
   return capacity;
 }
 
+/**
+ * The most a civilization can store from the rules alone: base + one of every storage building + the Metrópole bonus, never above the hard cap. It does not depend on
+ * the player (no leader, no buildings built so far), so a requirement derived from it cannot be made easier by building less storage.
+ */
+export function alphaStorageCeiling(state: AlphaState): Record<AlphaResourceKey, number> {
+  const { base, hardCap, metropolisBonus } = state.rules.balance.limits;
+  const ceiling = Object.fromEntries(ALPHA_RESOURCE_KEYS.map(key => [key, base[TYPE_OF[key]] + metropolisBonus])) as Record<AlphaResourceKey, number>;
+  for (const [building, bonus] of Object.entries(state.rules.balance.storagePerBuilding)) {
+    if (!bonus) continue;
+    const key = ALPHA_RESOURCE_KEYS.find(candidate => TYPE_OF[candidate] === bonus.resource)!;
+    ceiling[key] += bonus.amount;
+    if (building === 'WAREHOUSE') ceiling.stone += bonus.amount;
+  }
+  for (const key of ALPHA_RESOURCE_KEYS) ceiling[key] = Math.min(hardCap[TYPE_OF[key]], ceiling[key]);
+  return ceiling;
+}
+
 export function enforceStorage(state: AlphaState, actor: PlayerId): AlphaResourcePool {
   const player = state.players.find(candidate => candidate.playerId === actor);
   if (!player) return emptyAlphaResourcePool();

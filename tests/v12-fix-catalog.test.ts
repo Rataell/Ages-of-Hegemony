@@ -3,7 +3,7 @@ import {
   ADVANCEMENTS, ALPHA_BUILDING_CATALOG, AlphaBuildingSchema, AlphaEraSchema, AlphaStateSchema, DISTRICT_CATALOG, OFFERED_BUILDINGS, alphaRules, buildingSpec,
   type AlphaResourcePool, type AlphaState, type BuildingId,
 } from '@aoh/game-domain';
-import { administration, alphaStorageCapacity, cityYield, hegemonyProgress, urbanBlock, urbanCost, urbanOptions } from '@aoh/game-engine';
+import { administration, alphaStorageCapacity, alphaStorageCeiling, cityYield, hegemonyProgress, urbanBlock, urbanCost, urbanOptions } from '@aoh/game-engine';
 import { apply, coreCity, freshGame, meta, plan, seat, shape, urban, P1 } from './v12-audit-urban-helpers.js';
 
 /**
@@ -157,23 +157,35 @@ describe('what is not for sale', () => {
 
 describe('Hegemonia: no requirement depends on something that cannot be acquired', () => {
   const requirements = (state: AlphaState, path: string) => hegemonyProgress(state, P1).find(entry => entry.path === path)!.requirements;
-  it('the declared stock requirements are capped at the storage limit of the civilization (Riqueza no limite, canon §23)', () => {
+  const stock = (state: AlphaState, path: string, metric: string) => requirements(state, path).find(r => r.metric === metric)!;
+  it('the stock bar is the declared value capped at the rules\' static ceiling: Riqueza 28 (30 asked), Influência 18 (25 asked)', () => {
     const state = freshGame();
-    const wealth = requirements(state, 'ECONOMIC').find(r => r.metric === 'wealth')!, influence = requirements(state, 'CULTURAL').find(r => r.metric === 'influence')!;
-    expect([wealth.declaredMinimum, wealth.minimum]).toEqual([30, 15]);        // base Riqueza limit 15
-    expect([influence.declaredMinimum, influence.minimum]).toEqual([25, 10]);  // base Influência limit 10 (hard cap 20 < 25: the declared value could never be met)
+    expect([stock(state, 'ECONOMIC', 'wealth').declaredMinimum, stock(state, 'ECONOMIC', 'wealth').minimum]).toEqual([30, 28]);      // 15 base + Tesouro 5 + Banco 5 + Metrópole 3
+    expect([stock(state, 'CULTURAL', 'influence').declaredMinimum, stock(state, 'CULTURAL', 'influence').minimum]).toEqual([25, 18]); // 10 base + Chancelaria 5 + Metrópole 3
   });
-  it('a civilization that fills its stores meets the stock requirement; one that does not, does not', () => {
+  it('building less storage never lowers the bar: it is the same with no storage building, with all of them, and with a Metrópole', () => {
+    const bare = freshGame(), built = cityFor('TREASURY'); meta(built).buildings.push('TREASURY', 'BANK', 'CHANCELLERY');
+    for (const state of [bare, built]) {
+      expect(stock(state, 'ECONOMIC', 'wealth').minimum).toBe(28);
+      expect(stock(state, 'CULTURAL', 'influence').minimum).toBe(18);
+    }
+  });
+  it('a civilization at its base limit does not qualify; one that stores everything it can does, without any Figura', () => {
     const state = freshGame();
-    seat(state).resources.wealth = 15; seat(state).resources.influence = 9;
-    expect(requirements(state, 'ECONOMIC').find(r => r.metric === 'wealth')!.met).toBe(true);
-    expect(requirements(state, 'CULTURAL').find(r => r.metric === 'influence')!.met).toBe(false);
-    seat(state).resources.influence = 10;
-    expect(requirements(state, 'CULTURAL').find(r => r.metric === 'influence')!.met).toBe(true);
+    seat(state).resources.wealth = 15; seat(state).resources.influence = 10;   // exactly the base limits: was enough under the first V1.2 rule
+    expect(stock(state, 'ECONOMIC', 'wealth').met).toBe(false);
+    expect(stock(state, 'CULTURAL', 'influence').met).toBe(false);
+    const full = cityFor('TREASURY'); meta(full).buildings.push('TREASURY', 'BANK', 'CHANCELLERY');
+    expect(alphaStorageCapacity(full, P1).wealth).toBe(28);
+    expect(alphaStorageCapacity(full, P1).influence).toBe(18);
+    seat(full).resources.wealth = 28; seat(full).resources.influence = 18;
+    expect(stock(full, 'ECONOMIC', 'wealth').met).toBe(true);
+    expect(stock(full, 'CULTURAL', 'influence').met).toBe(true);
   });
-  it('the minimum follows the buildings: with Tesouro, Banco and a Metrópole the bar rises to 28, still below the hard cap 30', () => {
-    const state = cityFor('TREASURY'); meta(state).buildings.push('TREASURY', 'BANK');
-    expect(requirements(state, 'ECONOMIC').find(r => r.metric === 'wealth')!.minimum).toBe(28);
+  it('the ceiling never exceeds what the player can hold: capacity without a Figura reaches it', () => {
+    const full = cityFor('TREASURY'); meta(full).buildings.push('TREASURY', 'BANK', 'CHANCELLERY');
+    const capacity = alphaStorageCapacity(full, P1), ceiling = alphaStorageCeiling(full);
+    for (const key of ['wealth', 'influence'] as const) expect(capacity[key], key).toBe(ceiling[key]);
   });
   it('no stock requirement of any path exceeds a hard cap, and no path asks for a building', () => {
     const rules = alphaRules();
