@@ -132,7 +132,7 @@ Testes previstos: S0–S3 acima viram teste de integração (Ânimo 4 → ≥ 2 
 
 ## 3. Economia: ritmo de 21/35/49 rodadas
 
-Fonte: 75 partidas de política (Crescimento, Pesquisa, Expansão, Militarização, Equilibrada; 5 por política e perfil) × perfis 21/35/49, em 2 e 4 jogadores com 2 seeds e 6 jogadores com 1 seed; `docs/evidence/v12-audit/lane-a1/summary/tables.md` (regerado por mim com `node scripts/alpha-economy-report.mjs` depois que os processos terminaram; a versão que a lane A1 deixou cobria só 51). As 9 partidas restantes são de uma política auxiliar `metalculture`, só para sondar Cultura e Metal. A execução foi interrompida por carga de CPU, então **as diferenças entre perfis são indicativas, não estatísticas**.
+Fonte: 75 partidas de política (Crescimento, Pesquisa, Expansão, Militarização, Equilibrada; 5 por política e perfil) × perfis 21/35/49, em 2 e 4 jogadores com 2 seeds e 6 jogadores com 1 seed; `docs/evidence/v12-audit/lane-a1/summary/tables.md` (regerado por mim com `node scripts/alpha-economy-report.mjs` depois que os processos terminaram; a versão que a lane A1 deixou cobria só 51). As 9 partidas restantes são de uma política auxiliar `metalculture`, só para sondar Cultura e Metal (conciliação completa em `alpha-v1.2-lane-a1-data-reconciliation.md`). **Todas as tabelas de A1 são em modo *peace*: as Ameaças do Mundo são removidas entre as rodadas, então medem só a economia.** Em 7 pares peace × world (4 jogadores, seed 1, indicativo) a Revolta sobe de 3,8% para 25,5% das rodadas-assento quando as Ameaças existem. A execução foi interrompida por carga de CPU, então **as diferenças entre perfis são indicativas, não estatísticas**.
 
 ### 3.1 Geometria do calendário
 | Perfil | Rodadas/Era | Ordens totais (×5) | Início das Eras |

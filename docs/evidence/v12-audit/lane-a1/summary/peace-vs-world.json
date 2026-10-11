@@ -1,0 +1,121 @@
+[
+ {
+  "run": "balanced-35-p4-s1",
+  "peace": {
+   "seatRounds": 140,
+   "revoltPct": 20,
+   "hungerPct": 21.4,
+   "finalPop": 19.8,
+   "finalMaxLevel": 4.75
+  },
+  "world": {
+   "seatRounds": 140,
+   "revoltPct": 36.4,
+   "hungerPct": 30.7,
+   "finalPop": 12.5,
+   "finalMaxLevel": 4.25
+  }
+ },
+ {
+  "run": "expansion-35-p4-s1",
+  "peace": {
+   "seatRounds": 140,
+   "revoltPct": 0.7,
+   "hungerPct": 0.7,
+   "finalPop": 21.8,
+   "finalMaxLevel": 3.25
+  },
+  "world": {
+   "seatRounds": 140,
+   "revoltPct": 28.6,
+   "hungerPct": 0,
+   "finalPop": 22,
+   "finalMaxLevel": 3.5
+  }
+ },
+ {
+  "run": "growth-21-p4-s1",
+  "peace": {
+   "seatRounds": 84,
+   "revoltPct": 0,
+   "hungerPct": 0,
+   "finalPop": 19.3,
+   "finalMaxLevel": 4
+  },
+  "world": {
+   "seatRounds": 84,
+   "revoltPct": 19,
+   "hungerPct": 10.7,
+   "finalPop": 13.8,
+   "finalMaxLevel": 3.75
+  }
+ },
+ {
+  "run": "growth-35-p4-s1",
+  "peace": {
+   "seatRounds": 140,
+   "revoltPct": 5,
+   "hungerPct": 7.1,
+   "finalPop": 25.3,
+   "finalMaxLevel": 5
+  },
+  "world": {
+   "seatRounds": 140,
+   "revoltPct": 29.3,
+   "hungerPct": 18.6,
+   "finalPop": 16,
+   "finalMaxLevel": 4.5
+  }
+ },
+ {
+  "run": "military-35-p4-s1",
+  "peace": {
+   "seatRounds": 140,
+   "revoltPct": 0,
+   "hungerPct": 0,
+   "finalPop": 15,
+   "finalMaxLevel": 3.25
+  },
+  "world": {
+   "seatRounds": 140,
+   "revoltPct": 32.1,
+   "hungerPct": 12.9,
+   "finalPop": 12.5,
+   "finalMaxLevel": 3.25
+  }
+ },
+ {
+  "run": "research-21-p4-s1",
+  "peace": {
+   "seatRounds": 84,
+   "revoltPct": 1.2,
+   "hungerPct": 4.8,
+   "finalPop": 17.3,
+   "finalMaxLevel": 3.75
+  },
+  "world": {
+   "seatRounds": 84,
+   "revoltPct": 9.5,
+   "hungerPct": 2.4,
+   "finalPop": 15.8,
+   "finalMaxLevel": 3.5
+  }
+ },
+ {
+  "run": "research-35-p4-s1",
+  "peace": {
+   "seatRounds": 140,
+   "revoltPct": 0,
+   "hungerPct": 0,
+   "finalPop": 22,
+   "finalMaxLevel": 5
+  },
+  "world": {
+   "seatRounds": 140,
+   "revoltPct": 23.6,
+   "hungerPct": 2.9,
+   "finalPop": 17.5,
+   "finalMaxLevel": 4
+  }
+ }
+]
