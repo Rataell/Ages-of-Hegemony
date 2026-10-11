@@ -109,7 +109,7 @@ describe('B-02 · attack on a hex shared by an enemy and a third party', () => {
 });
 
 describe('B-03 · retreat destination', () => {
-  const threat = (hex: string): Threat => ({ id: 'camp-x', kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false });
+  const threat = (hex: string): Threat => ({ id: 'camp-x', kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false, withdrawing: false, readyRound: 0 });
   it.fails('REPRO: a beaten defender never retreats onto a hex that holds a world threat', () => {
     const state = line(); state.wars = [[P1, P2]];
     const atk = Array.from({ length: 6 }, (_, i) => put(state, P1, 'INFANTRY', 3, `a${i + 1}`)), def = Array.from({ length: 5 }, (_, i) => put(state, P2, 'INFANTRY', 4, `d${i + 1}`));

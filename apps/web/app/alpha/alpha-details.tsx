@@ -101,7 +101,7 @@ function Defense({ game, city, fortification, garrison }: { game: Game; city: Ci
   const threats = game.threatAlerts.filter(alert => alert.cityId === city.id);
   return <div className="alpha-defense">
     <dl className="alpha-kv"><div><dt>Fortificação</dt><dd>{fortification}</dd></div><div><dt>Guarnição</dt><dd>{garrison.length ? compositionText(garrison) : 'nenhuma peça'}</dd></div><div><dt>Suprimento</dt><dd>{garrison.length ? (unsupplied ? `${unsupplied} sem suprimento` : 'abastecida') : '—'}</dd></div></dl>
-    {threats.map(alert => <p key={`${alert.kind}-${alert.distance}`} className="alpha-warning">{alert.kind === 'PIRATE' ? 'Piratas' : 'Um bando'} a {alert.distance} hex(es).</p>)}
+    {threats.map(alert => <p key={`${alert.kind}-${alert.distance}`} className="alpha-warning">{alert.kind === 'PIRATE' ? 'Piratas' : 'Um bando de saqueadores'} a {alert.distance} hex(es).</p>)}
     <p className="alpha-line is-muted">Ordens de defesa (reforçar, atacar) saem da nuvem da cidade e das peças no mapa.</p>
   </div>;
 }

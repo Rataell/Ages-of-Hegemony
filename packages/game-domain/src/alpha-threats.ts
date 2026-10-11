@@ -20,6 +20,10 @@ export const ThreatSchema = z.strictObject({
   rewardPaid: z.boolean().default(false),
   /** RECÉM-SURGIDO (D-1): a camp stays vulnerable until one full Planning round has passed; it cannot launch a Bando while fresh. */
   fresh: z.boolean().default(false),
+  /** R1 (V1.2): after an assault on a city a Bando walks back to its Acampamento (`homeHexId`) instead of besieging the city; it is in the field, visible and attackable, and does not assault while it walks. */
+  withdrawing: z.boolean().default(false),
+  /** R1: a Bando that came home reorganizes; it cannot be launched again before this round (one full round after arrival). */
+  readyRound: N.default(0),
 });
 export type Threat = z.infer<typeof ThreatSchema>;
 
@@ -35,7 +39,8 @@ export function threatComposition(kind: ThreatKind, level: ThreatLevel, eraIndex
 }
 export const threatPieceIds = (threat: Pick<Threat, 'id' | 'composition'>): { id: string; kind: z.infer<typeof AlphaUnitClassSchema> }[] =>
   threat.composition.flatMap(entry => Array.from({ length: entry.count }, (_, index) => ({ id: `${threat.id}:${entry.kind}:${index + 1}`, kind: entry.kind })));
-export const THREAT_NAMES: Record<ThreatKind, { camp: string; band: string }> = { CAMP: { camp: 'Acampamento', band: 'Bando' }, PIRATE: { camp: 'Ancoradouro pirata', band: 'Piratas' } };
+/** Visible names (V1.2: "Bárbaros" is gone; internal ids CAMP/BAND/camp-r… stay). The single source of every label of a threat. */
+export const THREAT_NAMES: Record<ThreatKind, { camp: string; band: string; short: string }> = { CAMP: { camp: 'Acampamento de Saqueadores', band: 'Bando de Saqueadores', short: 'Saqueadores' }, PIRATE: { camp: 'Ancoradouro pirata', band: 'Piratas', short: 'Piratas' } };
 
 /** Hidden region content, decided at match creation (canon §21). */
 export const DiscoveryKindSchema = z.enum(['RUIN', 'DEPOSIT', 'PASSAGE', 'ANCHORAGE', 'DANGER', 'CAMP', 'NONE']);
@@ -53,10 +58,10 @@ export const DISCOVERY_INFO: Record<DiscoveryKind, { name: string; identity: str
   PASSAGE: { name: 'Passagem', identity: 'Um caminho natural já aberto liga a região ao resto do mapa.', effect: 'Abre até 3 hexes de Estrada na região.', marker: true },
   ANCHORAGE: { name: 'Ancoradouro', identity: 'Uma enseada protegida, boa para fundear e pescar.', effect: '+1 Riqueza; a primeira costa da região ganha boa pesca.', marker: true },
   DANGER: { name: 'Perigo', identity: 'O terreno esconde armadilhas que só se percebem tarde.', effect: 'Metade das expedições perde a peça que explorava; o Método Experimental evita o pior.', marker: false },
-  CAMP: { name: 'Acampamento', identity: 'Fogueiras e tendas: alguém já ocupou esta região.', effect: 'Surge um acampamento bárbaro na região.', marker: true },
+  CAMP: { name: 'Acampamento de Saqueadores', identity: 'Fogueiras e tendas: alguém já ocupou esta região.', effect: 'Surge um acampamento de saqueadores na região.', marker: true },
   NONE: { name: 'Terra comum', identity: 'Nada de extraordinário: boa terra para quem chegar.', effect: 'Sem efeito.', marker: false },
 };
-export const DISCOVERY_NAMES: Record<DiscoveryKind, string> = { RUIN: 'Vestígio', DEPOSIT: 'Jazida', PASSAGE: 'Passagem', ANCHORAGE: 'Ancoradouro', DANGER: 'Perigo', CAMP: 'Acampamento Bárbaro', NONE: 'Terra comum' };
+export const DISCOVERY_NAMES: Record<DiscoveryKind, string> = { RUIN: 'Vestígio', DEPOSIT: 'Jazida', PASSAGE: 'Passagem', ANCHORAGE: 'Ancoradouro', DANGER: 'Perigo', CAMP: 'Acampamento de Saqueadores', NONE: 'Terra comum' };
 
 /** Encounter cards: a scroll with two choices. Delivered as a PendingChoice of source ENCOUNTER (I-25). */
 export interface EncounterCard { id: string; title: string; text: string; options: [ChoiceOption, ChoiceOption] }
@@ -65,6 +70,6 @@ export const ENCOUNTER_CARDS: readonly EncounterCard[] = [
   { id: 'enc-ruin-archive', title: 'Arquivo soterrado', text: 'Entre as pedras há tabuletas legíveis e uma galeria de estátuas.', options: [{ id: 'read', label: 'Copiar as tabuletas: +2 Conhecimento', ops: [gain('knowledge', 2)] }, { id: 'honour', label: 'Honrar as estátuas: +2 Cultura', ops: [gain('culture', 2)] }] },
   { id: 'enc-ruin-shrine', title: 'Santuário esquecido', text: 'Um santuário de caminhantes guarda oferendas antigas.', options: [{ id: 'offer', label: 'Levar as oferendas: +2 Riqueza', ops: [gain('wealth', 2)] }, { id: 'rite', label: 'Cumprir o rito: +1 Cultura e +1 Influência', ops: [gain('culture', 1), gain('influence', 1)] }] },
   { id: 'enc-ruin-map', title: 'Mapa nas paredes', text: 'Uma parede inteira mostra rotas que ninguém lembrava.', options: [{ id: 'chart', label: 'Copiar o mapa: +1 Conhecimento e +1 Madeira', ops: [gain('knowledge', 1), gain('wood', 1)] }, { id: 'trade', label: 'Vender a cópia: +2 Riqueza', ops: [gain('wealth', 2)] }] },
-  { id: 'enc-camp-spoils', title: 'Despojos do acampamento', text: 'O acampamento caído deixou provisões e um prisioneiro que fala.', options: [{ id: 'loot', label: 'Dividir os despojos: +2 Alimento e +1 Metal', ops: [gain('food', 2), gain('metal', 1)] }, { id: 'ransom', label: 'Negociar o prisioneiro: +2 Influência', ops: [gain('influence', 2)] }] },
+  { id: 'enc-camp-spoils', title: 'Despojos do acampamento de saqueadores', text: 'O acampamento de saqueadores caído deixou provisões e um prisioneiro que fala.', options: [{ id: 'loot', label: 'Dividir os despojos: +2 Alimento e +1 Metal', ops: [gain('food', 2), gain('metal', 1)] }, { id: 'ransom', label: 'Negociar o prisioneiro: +2 Influência', ops: [gain('influence', 2)] }] },
 ];
 export const encounterCard = (id: string): EncounterCard | undefined => ENCOUNTER_CARDS.find(card => card.id === id);

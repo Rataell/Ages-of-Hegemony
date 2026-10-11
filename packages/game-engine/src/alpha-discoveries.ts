@@ -69,7 +69,7 @@ export function applyDiscovery(state: AlphaState, actor: PlayerId, region: Regio
       break;
     }
     case 'CAMP': {
-      say('um acampamento bárbaro se esconde na região.');
+      say('um acampamento de saqueadores se esconde na região.');
       applyThreatCommand(state, actor, { op: 'THREAT', command: 'SPAWN', kind: 'LAND' }, region.hexIds); break;
     }
     case 'NONE': break;

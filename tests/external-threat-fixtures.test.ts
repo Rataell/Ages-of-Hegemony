@@ -19,7 +19,7 @@ const capitalTile = (state: AlphaState, index = 0) => tile(state, state.core.pla
 const nbrs = (state: AlphaState, from: { q: number; r: number }) => hexNeighbors(from).map(hexId).map(id => state.core.map.find(t => t.id === id)).filter((t): t is NonNullable<typeof t> => t !== undefined);
 const land = (state: AlphaState) => state.core.map.filter(candidate => !['SEA', 'UNKNOWN', 'MOUNTAINS'].includes(candidate.terrain));
 function camp(state: AlphaState, hex: string, over: Partial<Threat> = {}): Threat {
-  const threat: Threat = { id: over.id ?? `camp-t${state.threats.length + 1}`, kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false, ...over };
+  const threat: Threat = { id: over.id ?? `camp-t${state.threats.length + 1}`, kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false, withdrawing: false, readyRound: 0, ...over };
   state.threats.push(threat);
   return threat;
 }

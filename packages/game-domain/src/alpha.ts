@@ -357,7 +357,7 @@ function migrateRaidBands(input: Record<string, unknown>): Record<string, unknow
     return { id: `camp-${band.id ?? index + 1}`, kind: 'CAMP', hexId: band.hexId, homeHexId: band.hexId, level, status: 'CAMPED', composition: threatComposition('CAMP', level, 0), createdRound: 0, lastActedRound: round, rewardPaid: false, fresh: false };
   });
   const events = Array.isArray(rest.events) ? rest.events as unknown[] : [];
-  return { ...rest, threats: [...existing, ...threats], events: threats.length ? [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Os bandos de fronteira agora são Acampamentos com Ameaça I–III (regras V5.1b).' }] : events };
+  return { ...rest, threats: [...existing, ...threats], events: threats.length ? [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Os bandos de saqueadores de fronteira agora são Acampamentos de Saqueadores com Ameaça I–III (regras V5.1b).' }] : events };
 }
 /** I-13: saves whose combat config lacks the V5.1b `shock` marker get the V5.1b unit and combat catalogs, with a public event. */
 function refreshCombatCatalog(input: Record<string, unknown>): Record<string, unknown> {

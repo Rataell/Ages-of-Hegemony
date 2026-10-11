@@ -398,10 +398,10 @@ export function useTable(a: {
   const threatLevel = (c: Ctx, step: Step): CloudLevel => {
     const t = game.threats.find(r => r.hexId === c.hexId);
     if (!t) return { id: 'gone', title: 'Ameaça', nodes: [] };
-    const camped = t.status === 'CAMPED', title = t.kind === 'PIRATE' ? (camped ? 'Ancoradouro pirata' : 'Piratas') : camped ? 'Acampamento' : 'Bando em marcha';
+    const camped = t.status === 'CAMPED', title = t.kind === 'PIRATE' ? (camped ? 'Ancoradouro pirata' : 'Piratas') : camped ? 'Acampamento de Saqueadores' : 'Saqueadores em marcha';
     const subtitle = `Ameaça ${['I', 'II', 'III'][t.level - 1]} · ${t.composition.map(e => `${game.rules.units[e.kind]?.name ?? e.kind}${e.count > 1 ? ` ×${e.count}` : ''}`).join(', ')}`;
     const note = camped ? (t.fresh ? 'Recém-surgido: ainda não pode partir. Destruído no acampamento, paga recompensa uma única vez.' : 'Destruído no acampamento, paga recompensa uma única vez; se partir, derrotá-lo em campo não rende nada.')
-      : t.intent.targetKnown ? `Alvo: ${t.intent.targetKind === 'CITY' ? 'cidade' : t.intent.targetKind === 'PORT' ? 'porto' : 'rota'} ${t.intent.targetId} · ${t.intent.distance} hex(es).` : t.intent.state === 'IDLE' ? 'Sem alvo alcançável.' : 'Alvo além da névoa.';
+      : t.intent.state === 'WITHDRAWING' ? 'Recuando ao acampamento: não ataca enquanto volta e pode ser atacado em campo (sem recompensa).' : t.intent.targetKnown ? `Alvo: ${t.intent.targetKind === 'CITY' ? 'cidade' : t.intent.targetKind === 'PORT' ? 'porto' : 'rota'} ${t.intent.targetId} · ${t.intent.distance} hex(es).` : t.intent.state === 'IDLE' ? 'Sem alvo alcançável.' : 'Alvo além da névoa.';
     const shared = sharedStep(step, title);
     if (shared) return shared;
     return { id: 'root', title, subtitle, nodes: [attackOn(c.hexId, false), { id: 'more', label: '', icon: 'more', tone: 'quiet', hint: 'Ver detalhes', onSelect: () => showDetails('territory') }], note: flash ?? note };

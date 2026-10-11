@@ -120,7 +120,7 @@ describe('amphibious attack and naval combat', () => {
 });
 
 describe('world threats as the other side of the shock', () => {
-  const camp = (hex: string): Threat => ({ id: 'camp-1', kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false });
+  const camp = (hex: string): Threat => ({ id: 'camp-1', kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false, withdrawing: false, readyRound: 0 });
   it('guard: a camp can be attacked with no war, from an adjacent hex only; a farther hex gets the generic path error', () => {
     const state = line({ march: true }); state.threats.push(camp('5,0'));
     const near = put(state, P1, 'INFANTRY', 4, 'near'), far = put(state, P1, 'INFANTRY', 3, 'far');

@@ -102,7 +102,7 @@ export function enterEraTurn(state: AlphaState): void {
   state.eraTurn.step = 3; drawWorldPulse(state);
   log(state, 3, state.worldPulse.current ? `${state.worldPulse.current.name}.` : 'Sem Pulso.');
   state.eraTurn.step = 4; const grown = growThreats(state); activateThreats(state, { launch: true });
-  log(state, 4, `${grown} Acampamento(s) cresceram; as Ameaças agiram.`);
+  log(state, 4, `${grown} Acampamento(s) de Saqueadores cresceram; as Ameaças agiram.`);
   state.eraTurn.step = 5; log(state, 5, reforms(state));
   state.eraTurn.step = 6;
   for (const player of state.players) if (player.leader) player.leader.eraAbilityUsed = false;

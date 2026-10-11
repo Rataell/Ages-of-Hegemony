@@ -1,5 +1,5 @@
 import {
-  AlphaEraSchema, ENCOUNTER_CARDS, WORLD_ID, eraForRound, threatComposition, threatPieceIds,
+  AlphaEraSchema, ENCOUNTER_CARDS, THREAT_NAMES, WORLD_ID, eraForRound, threatComposition, threatPieceIds,
   type AlphaState, type AlphaUnit, type HexId, type HexTile, type PlayerId, type RepercussionOp, type Threat, type ThreatKind, type ThreatLevel,
 } from '@aoh/game-domain';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
@@ -24,7 +24,7 @@ const tileMap = (state: AlphaState) => new Map(state.core.map.map(tile => [tile.
 export const eraIndexOf = (state: AlphaState): number => AlphaEraSchema.options.indexOf(eraForRound(state.core.round, state.rules.roundsPerEra));
 export const threatCap = (state: AlphaState, kind: ThreatKind): number => kind === 'CAMP' ? state.players.length + 2 : Math.ceil(state.players.length / 2) + 1;
 export const threatAt = (state: AlphaState, hex: string): Threat | undefined => state.threats.find(threat => threat.hexId === hex);
-export const threatName = (threat: Pick<Threat, 'kind' | 'status'>): string => threat.kind === 'PIRATE' ? (threat.status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : (threat.status === 'CAMPED' ? 'Acampamento' : 'Bando');
+export const threatName = (threat: Pick<Threat, 'kind' | 'status'>): string => threat.status === 'CAMPED' ? THREAT_NAMES[threat.kind].camp : THREAT_NAMES[threat.kind].band;
 const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 const levelOf = (value: number): ThreatLevel => (Math.max(1, Math.min(3, value)) as ThreatLevel);
 const allCities = (state: AlphaState) => state.core.players.flatMap(player => player.civilization.cities);
@@ -68,7 +68,7 @@ function sitesFor(state: AlphaState, kind: ThreatKind, within?: readonly string[
 function newThreat(state: AlphaState, kind: ThreatKind, tile: HexTile): Threat {
   const threat: Threat = {
     id: `${kind === 'CAMP' ? 'camp' : 'pirate'}-r${state.core.round}-e${state.events.length}-n${state.threats.length + 1}`, kind, hexId: tile.id, homeHexId: tile.id, level: 1, status: 'CAMPED',
-    composition: threatComposition(kind, 1, eraIndexOf(state)), createdRound: state.core.round, lastActedRound: state.core.round, rewardPaid: false, fresh: true,
+    composition: threatComposition(kind, 1, eraIndexOf(state)), createdRound: state.core.round, lastActedRound: state.core.round, rewardPaid: false, fresh: true, withdrawing: false, readyRound: 0,
   };
   state.threats.push(threat); state.telemetry.threatsSpawned++;
   return threat;
@@ -100,7 +100,7 @@ export function reinforceThreat(state: AlphaState, kind: ThreatKind): Threat | n
  */
 export function applyThreatCommand(state: AlphaState, source: PlayerId | null, op: Extract<RepercussionOp, { op: 'THREAT' }>, within?: readonly string[]): void {
   const kind: ThreatKind = op.kind === 'PIRATE' ? 'PIRATE' : 'CAMP';
-  const label = kind === 'PIRATE' ? 'pirata' : 'de fronteira';
+  const label = kind === 'PIRATE' ? 'pirata' : 'de saqueadores';
   if (op.command === 'ACTIVATE') { activateThreats(state, { launch: true }); return; }
   if (op.command === 'SPAWN') {
     const count = state.threats.filter(threat => threat.kind === kind).length;
@@ -132,7 +132,7 @@ export function matureThreats(state: AlphaState): void {
 
 const passable = (tile: HexTile | undefined, kind: ThreatKind): boolean => !!tile && (kind === 'PIRATE' ? tile.terrain === 'SEA' : !IMPASSABLE_LAND.has(tile.terrain));
 /** BFS over passable hexes; `goal` may be impassable (a city or a port-adjacent hex). Returns the path (excluding the start), or null. */
-function pathTo(state: AlphaState, threat: Threat, goals: ReadonlySet<string>, map = tileMap(state)): string[] | null {
+function pathTo(state: AlphaState, threat: Threat, goals: ReadonlySet<string>, map = tileMap(state), avoid: ReadonlySet<string> = new Set()): string[] | null {
   const start = map.get(threat.hexId)!, prev = new Map<string, string | null>([[start.id, null]]), queue = [start.id];
   const blocked = new Set(state.threats.filter(other => other.id !== threat.id).map(other => other.hexId as string));
   for (let i = 0; i < queue.length; i++) {
@@ -142,6 +142,7 @@ function pathTo(state: AlphaState, threat: Threat, goals: ReadonlySet<string>, m
     for (const next of hexNeighbors(tile).map(hexId).sort()) {
       const target = map.get(next);
       if (prev.has(next) || !target) continue;
+      if (avoid.has(next)) continue;
       if (!(passable(target, threat.kind) && !blocked.has(next)) && !goals.has(next)) continue;
       prev.set(next, current); queue.push(next);
     }
@@ -190,10 +191,11 @@ export function seaTarget(state: AlphaState, threat: Threat): { hex: string; pat
  * The authoritative intention of a threat (V51B-05): what the engine will do with it, computed by the very functions `actThreat`
  * uses, so the client never estimates. Unfiltered: the projection decides what a viewer may see.
  */
-export interface ThreatIntent { state: 'FRESH' | 'WAITING' | 'MARCHING' | 'IDLE'; targetKind: 'CITY' | 'ROUTE' | 'PORT' | null; targetId: string | null; targetHexId: string | null; nextHexId: string | null; distance: number | null }
+export interface ThreatIntent { state: 'FRESH' | 'WAITING' | 'MARCHING' | 'WITHDRAWING' | 'IDLE'; targetKind: 'CITY' | 'ROUTE' | 'PORT' | null; targetId: string | null; targetHexId: string | null; nextHexId: string | null; distance: number | null }
 export function threatIntent(state: AlphaState, threat: Threat): ThreatIntent {
   const none = { targetKind: null, targetId: null, targetHexId: null, nextHexId: null, distance: null };
   if (threat.status === 'CAMPED') return { state: threat.fresh ? 'FRESH' : 'WAITING', ...none };
+  if (threat.withdrawing) return { state: 'WITHDRAWING', ...none };
   const sea = threat.kind === 'PIRATE' ? seaTarget(state, threat) : null, land = threat.kind === 'PIRATE' ? null : landTarget(state, threat);
   const target = sea ?? land;
   if (!target) return { state: 'IDLE', ...none };
@@ -210,16 +212,65 @@ export function activateThreats(state: AlphaState, options: { launch: boolean })
   for (const id of state.threats.map(threat => threat.id).sort()) {
     const threat = state.threats.find(candidate => candidate.id === id);
     if (!threat) continue;
-    if (threat.status === 'CAMPED') { if (!options.launch || threat.fresh) continue; } else if (threat.lastActedRound >= state.core.round) continue;
+    // R1: a Bando that came home reorganizes for one full round before it can be launched again.
+    if (threat.status === 'CAMPED') { if (!options.launch || threat.fresh || state.core.round < threat.readyRound) continue; } else if (threat.lastActedRound >= state.core.round) continue;
     actThreat(state, threat);
   }
 }
 
+// ---- R1: withdrawal and reorganization of the Bandos --------------------------------------------------------------------------------------------------
+// Cycle: Acampamento -> approach -> assault on a city -> result -> withdrawal (legal steps back to the Acampamento, in the field, attackable, no assault) -> reorganization
+// (camped, one full round) -> a new incursion only when it is launched again (Era turn or ATIVAR AMEAÇAS). Nothing teleports; Piratas are not touched.
+
+/** The Acampamento is still a place a Bando can come back to: unclaimed, free of pieces, cities and other threats. */
+function homeIsValid(state: AlphaState, threat: Threat, map = tileMap(state)): boolean {
+  const tile = map.get(threat.homeHexId);
+  if (!tile || tile.ownerId !== null || IMPASSABLE_LAND.has(tile.terrain)) return false;
+  return !allCities(state).some(city => city.hexId === tile.id) && !state.units.some(unit => unit.hexId === tile.id && !unit.carrierId) && !state.threats.some(other => other.id !== threat.id && other.hexId === tile.id);
+}
+/** A new Acampamento for a Bando whose home was overrun: the nearest unclaimed, unoccupied land at least 3 hexes from every city (deterministic). Null: nowhere to camp. */
+function rehomeSite(state: AlphaState, threat: Threat, map = tileMap(state)): HexTile | null {
+  const from = map.get(threat.hexId)!, cities = allCities(state).map(city => map.get(city.hexId)).filter((tile): tile is HexTile => tile !== undefined);
+  const taken = new Set([...state.units.map(unit => unit.hexId as string), ...state.threats.filter(other => other.id !== threat.id).flatMap(other => [other.hexId as string, other.homeHexId as string]), ...state.independents.map(people => people.hexId as string)]);
+  const candidates = state.core.map.filter(tile => !IMPASSABLE_LAND.has(tile.terrain) && tile.terrain !== 'MOUNTAINS' && tile.ownerId === null && !taken.has(tile.id) && cities.every(city => hexDistance(city, tile) >= 3));
+  return candidates.sort((a, b) => hexDistance(from, a) - hexDistance(from, b) || (a.id < b.id ? -1 : 1))[0] ?? null;
+}
+function beginWithdrawal(state: AlphaState, threat: Threat, victim: PlayerId): void {
+  threat.withdrawing = true; threat.lastActedRound = state.core.round;
+  alphaEvent(state, 'THREAT_WITHDRAWING', `${threatName(threat)} recuou depois do assalto e volta ao acampamento.`, threatViewers(state, threat.hexId, [victim]));
+}
+function disperse(state: AlphaState, threat: Threat): void {
+  state.threats = state.threats.filter(other => other.id !== threat.id);
+  alphaEvent(state, 'THREAT_DISPERSED', `${threatName(threat)} se dispersou: o acampamento foi tomado e não há onde acampar.`, threatViewers(state, threat.hexId));
+}
+function withdrawThreat(state: AlphaState, threat: Threat): void {
+  threat.lastActedRound = state.core.round;
+  const map = tileMap(state);
+  if (!homeIsValid(state, threat, map)) {
+    // The Acampamento was destroyed or overrun while the Bando was away: it camps at the nearest valid site, or disperses if there is none.
+    const site = rehomeSite(state, threat, map);
+    if (!site) { disperse(state, threat); return; }
+    threat.homeHexId = site.id;
+  }
+  const arrived = () => {
+    threat.hexId = threat.homeHexId; threat.withdrawing = false; threat.status = 'CAMPED'; threat.fresh = false; threat.readyRound = state.core.round + 1;
+    alphaEvent(state, 'THREAT_REGROUPING', `${threatName(threat)} voltou ao acampamento e se reorganiza.`, threatViewers(state, threat.hexId));
+  };
+  if (threat.hexId === threat.homeHexId) { arrived(); return; }
+  // It walks back around cities and pieces (never assaults on the way home); if it is boxed in, it waits for the next activation.
+  const avoid = new Set<string>([...allCities(state).map(city => city.hexId as string), ...state.units.filter(unit => !unit.carrierId).map(unit => unit.hexId as string)]);
+  const path = pathTo(state, threat, new Set([threat.homeHexId]), map, avoid);
+  if (!path) return;
+  for (let step = 0, remaining = [...path]; step < speedOf(threat) && remaining.length > 0; step++) moveThreat(state, threat, map.get(remaining.shift()!)!);
+  if (threat.hexId === threat.homeHexId) arrived();
+}
+
 function actThreat(state: AlphaState, threat: Threat): void {
+  if (threat.withdrawing) { withdrawThreat(state, threat); return; }
   const target = threat.kind === 'PIRATE' ? seaTarget(state, threat) : landTarget(state, threat);
   if (!target) return;
   threat.lastActedRound = state.core.round;
-  if (threat.status === 'CAMPED') { threat.status = 'MARCHING'; alphaEvent(state, 'THREAT_MARCHING', `${threat.kind === 'PIRATE' ? 'Piratas partiram' : 'Um bando partiu'} de seu ${threat.kind === 'PIRATE' ? 'ancoradouro' : 'acampamento'}.`, null); }
+  if (threat.status === 'CAMPED') { threat.status = 'MARCHING'; alphaEvent(state, 'THREAT_MARCHING', `${threat.kind === 'PIRATE' ? 'Piratas partiram' : 'Um bando de saqueadores partiu'} de seu ${threat.kind === 'PIRATE' ? 'ancoradouro' : 'acampamento'}.`, null); }
   const map = tileMap(state);
   for (let step = 0, remaining = [...target.path]; step < speedOf(threat) && remaining.length > 0 && state.threats.includes(threat); step++) {
     const next = remaining.shift()!, tile = map.get(next)!;
@@ -229,7 +280,10 @@ function actThreat(state: AlphaState, threat: Threat): void {
       const fighters = occupants.filter(unit => !CIVILIANS.has(unit.kind) && state.rules.units[unit.kind].strength > 0);
       if (!city && fighters.length === 0 && threat.kind === 'CAMP') { killExposed(state, threat, occupants, next); moveThreat(state, threat, tile); continue; }
       if (threat.kind === 'PIRATE' && !fighters.length && !city) { moveThreat(state, threat, tile); continue; }
-      assault(state, threat, next); break;
+      assault(state, threat, next);
+      // R1: the Bando does not besiege the city: if it survived, it withdraws toward its Acampamento. Pirates and assaults on pieces in the way are unchanged.
+      if (city && threat.kind === 'CAMP' && state.threats.includes(threat)) beginWithdrawal(state, threat, city.ownerId);
+      break;
     }
     moveThreat(state, threat, tile);
   }
@@ -239,9 +293,9 @@ function actThreat(state: AlphaState, threat: Threat): void {
 
 function moveThreat(state: AlphaState, threat: Threat, tile: HexTile): void {
   threat.hexId = tile.id;
-  if (threat.kind === 'CAMP' && tile.improvement && tile.ownerId) {
+  if (threat.kind === 'CAMP' && !threat.withdrawing && tile.improvement && tile.ownerId) {
     const owner = tile.ownerId; tile.improvement = null;
-    alphaEvent(state, 'THREAT_PILLAGE', `Um bando pilhou uma melhoria em ${tile.id}.`, [owner]);
+    alphaEvent(state, 'THREAT_PILLAGE', `Um bando de saqueadores pilhou uma melhoria em ${tile.id}.`, [owner]);
   }
   for (const route of state.routes) if ((route.path as string[]).includes(tile.id)) route.suspended = true;
 }
@@ -249,7 +303,7 @@ function moveThreat(state: AlphaState, threat: Threat, tile: HexTile): void {
 function killExposed(state: AlphaState, threat: Threat, victims: readonly AlphaUnit[], hex: string): void {
   const owners = [...new Set(victims.map(unit => unit.ownerId))];
   state.units = state.units.filter(unit => !victims.some(victim => victim.id === unit.id));
-  alphaEvent(state, 'THREAT_AMBUSH', `Um bando surpreendeu peças desprotegidas em ${hex}.`, threatViewers(state, hex, owners));
+  alphaEvent(state, 'THREAT_AMBUSH', `Um bando de saqueadores surpreendeu peças desprotegidas em ${hex}.`, threatViewers(state, hex, owners));
   resolutionEvent(state, { type: 'LOSSES', actorId: null, visibleTo: threatViewers(state, hex, owners), message: `${threatName(threat)} eliminou peças desprotegidas em ${hex}.`, hexId: hex as HexId, unitIds: victims.map(unit => unit.id) });
 }
 

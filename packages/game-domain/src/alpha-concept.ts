@@ -246,7 +246,7 @@ export const WORLD_PULSE_CARDS: readonly WorldPulseCard[] = [
   pulse('wp-panic', 'Pânico mercantil', 'NEGATIVE', 'WEALTH', -2),
   pulse('wp-dogma', 'Reação ao saber', 'NEGATIVE', 'KNOWLEDGE', -1),
   pulse('wp-scandal', 'Crise diplomática', 'NEGATIVE', 'INFLUENCE', -1),
-  pulse('wp-raiders', 'Bandos em marcha', 'NEGATIVE', null, 0, { command: { command: 'ACTIVATE' } }),
+  pulse('wp-raiders', 'Bandos de Saqueadores em marcha', 'NEGATIVE', null, 0, { command: { command: 'ACTIVATE' } }),
   pulse('wp-migration', 'Migrações', 'MIXED', 'FOOD', -1),
   pulse('wp-caravans', 'Caravanas errantes', 'MIXED', 'WEALTH', 1),
   pulse('wp-debate', 'Grande debate', 'MIXED', 'KNOWLEDGE', 1),

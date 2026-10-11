@@ -34,6 +34,22 @@ export async function runOne({ policy, profile, players, seed, traced = true, ma
 
 const hash = state => createHash('sha256').update(JSON.stringify(state)).digest('hex').slice(0, 16);
 
+/** What the World's Threats did in this match (read from the final state): assaults, who won, on which cities, camps killed. Used by the R1 measurement. */
+function threatSummary(s) {
+  const WORLD = 'world', cities = s.core.players.flatMap(p => p.civilization.cities.map(c => ({ id: c.id, hexId: c.hexId, owner: p.id })));
+  const against = s.battles.filter(b => b.attackerId === WORLD), byPlayer = s.battles.filter(b => b.defenderId === WORLD);
+  const wins = against.filter(b => b.winnerId === WORLD && b.outcome !== 'TIE');
+  const perCity = {}; for (const b of against) { const city = cities.find(c => c.hexId === b.hexId); const k = city ? city.id : `field:${b.hexId}`; perCity[k] = (perCity[k] ?? 0) + 1; }
+  const events = {}; for (const e of s.events) if (/^THREAT/.test(e.type) || e.type === 'THREATS_GREW') events[e.type] = (events[e.type] ?? 0) + 1;
+  return {
+    assaults: against.length, worldWins: wins.length, worldWinsOnCities: wins.filter(b => cities.some(c => c.hexId === b.hexId)).length, assaultsByCity: perCity,
+    assaultRounds: against.map(b => b.round), playerAttacksOnThreats: byPlayer.length, events,
+    telemetry: { attacks: s.telemetry.threatAttacks, kills: s.telemetry.threatKills, losses: s.telemetry.threatLosses, spawned: s.telemetry.threatsSpawned },
+    campsAliveAtEnd: s.threats.filter(t => t.kind === 'CAMP' && t.status === 'CAMPED').length, bandsMarchingAtEnd: s.threats.filter(t => t.status === 'MARCHING').length, piratesAtEnd: s.threats.filter(t => t.kind === 'PIRATE').length,
+    citiesAtEnd: cities.length,
+  };
+}
+
 async function single() {
   const policy = arg('policy', 'balanced'), profile = Number(arg('profile', 21)), players = Number(arg('players', 2)), seed = Number(arg('seed', 1));
   const variant = arg('variant', 'base'), peace = !flag('world');
@@ -46,6 +62,7 @@ async function single() {
     rows, checks: { ...checks, residualsAtCommand: box.residuals, unclassified: box.unclassified },
     actionFailedReasons: s.events.filter(e => e.type === 'ACTION_FAILED').reduce((m, e) => { const k = e.message.replace(/\d+/g, 'N').slice(0, 130); m[k] = (m[k] ?? 0) + 1; return m; }, {}), rejectMessages: (box.rejectLog ?? []).reduce((m, r) => { const k = `${r.type}:${r.action ?? ''}: ${r.msg.slice(0, 110)}`; m[k] = (m[k] ?? 0) + 1; return m; }, {}), speculativeFlowsDropped: box.speculative, slotMismatchSkips: box.slotMismatchSkips ?? [], yieldSamples: box.yieldSamples, final: box.finalOpen, reports: s.roundReports.length,
     telemetry: { actionsByType: s.telemetry.actionsByType, productionByResource: s.telemetry.productionByResource },
+    threats: threatSummary(s),
   };
   const file = arg('out-file', join(OUT, variant !== 'base' ? 'variants' : peace ? 'runs' : 'runs-world', `${policy}-${profile}-p${players}-s${seed}${variant === 'base' ? '' : '-' + variant}.json`));
   mkdirSync(dirname(file), { recursive: true });
