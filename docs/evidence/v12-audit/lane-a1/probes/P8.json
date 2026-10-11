@@ -1,0 +1,16 @@
+{
+ "classification": "UX (custo exibido ≠ custo pago quando falta material e a Riqueza cobre 2:1)",
+ "displayedCost": {
+  "wood": 4,
+  "stone": 2
+ },
+ "displayedBlocked": null,
+ "paid": [
+  {
+   "wood": -1,
+   "stone": -2,
+   "wealth": -6
+  }
+ ],
+ "rule": "wealthConversionRate=2, até 50% do custo de materiais"
+}

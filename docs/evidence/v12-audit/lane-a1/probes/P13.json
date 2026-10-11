@@ -1,0 +1,90 @@
+{
+ "classification": "BUG/LEGACY (a Teia declara 25 edifícios e o motor só tem 7; improvement:*/building:*/unit:* não são impostos)",
+ "improvements": [
+  {
+   "improvement": "FARM",
+   "nodeThatUnlocksIt": "web-agriculture",
+   "researched": false,
+   "result": "ACEITO sem pesquisa"
+  },
+  {
+   "improvement": "MINE",
+   "nodeThatUnlocksIt": "web-metallurgy",
+   "researched": false,
+   "result": "ACEITO sem pesquisa"
+  },
+  {
+   "improvement": "LUMBER_CAMP",
+   "nodeThatUnlocksIt": "(sem nó)",
+   "researched": false,
+   "result": "ACEITO sem pesquisa"
+  }
+ ],
+ "buildings": [
+  {
+   "building": "WORKSHOP",
+   "nodeThatUnlocksIt": "web-metallurgy",
+   "researched": false,
+   "districtOpenedBy": "web-masonry",
+   "planBlock": null
+  }
+ ],
+ "units": [
+  {
+   "unit": "CAVALRY",
+   "nodeThatUnlocksIt": "web-maneuver-training",
+   "researched": false,
+   "era": "EXPANSION",
+   "planBlock": null
+  },
+  {
+   "unit": "RANGED",
+   "nodeThatUnlocksIt": "web-metallurgy",
+   "researched": false,
+   "era": "EXPANSION",
+   "planBlock": null
+  }
+ ],
+ "buildingTagsInWeb": 25,
+ "buildableTypes": [
+  "GRANARY",
+  "MARKET",
+  "LIBRARY",
+  "ARCHIVE",
+  "BARRACKS",
+  "WORKSHOP",
+  "CULTURAL_CENTER"
+ ],
+ "tagsWithoutEngineEntry": [
+  "SCRIBES_HOUSE",
+  "ACADEMY",
+  "OBSERVATORY",
+  "LABORATORY",
+  "PORT",
+  "IRRIGATION",
+  "SHIPYARD",
+  "MILL",
+  "LIGHTHOUSE",
+  "WAREHOUSE",
+  "FOUNDRY",
+  "TEMPLE",
+  "CHANCELLERY",
+  "COURT",
+  "THEATER",
+  "TREASURY",
+  "BANK",
+  "MANUFACTURE",
+  "MONUMENT"
+ ],
+ "effectsLostWithoutEntry": [
+  "TEMPLE (+1 Cultura por Produzir)",
+  "WAREHOUSE (+5 limite de Madeira e Pedra)",
+  "TREASURY/BANK (+5 limite de Riqueza)",
+  "ACADEMY (+5 Conhecimento)",
+  "FOUNDRY (+5 Metal)",
+  "CHANCELLERY (+1 Administração, +5 Influência)",
+  "THEATER (+5 Cultura)",
+  "IRRIGATION/MILL (fazenda)"
+ ],
+ "reading": "Só district:* e government:* (e algumas rule:*) são verificados; melhorias e unidades ficam disponíveis sem o nó que a Teia diz que os abre (Mina na rodada 1, Oficina só com Alvenaria). 19 das 25 etiquetas de edifício (Templo, Armazém, Tesouraria, Academia, Fundição, Chancelaria, Teatro…) não existem no motor: seus efeitos de limite de armazenamento, Cultura e Administração são inalcançáveis."
+}

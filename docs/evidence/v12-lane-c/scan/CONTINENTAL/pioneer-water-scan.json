@@ -1,0 +1,1487 @@
+{
+ "presets": [
+  "CONTINENTAL"
+ ],
+ "counts": [
+  2,
+  4,
+  6
+ ],
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "rounds": 8,
+ "modes": [
+  "bots",
+  "wander",
+  "naval"
+ ],
+ "tally": {
+  "CONTINENTAL/wander": {
+   "OWNED_HEX_IN_CLOSED_REGION": 8,
+   "PROJECTION_CLOSED_REGION_TERRAIN": 5
+  },
+  "CONTINENTAL/naval": {
+   "OWNED_HEX_IN_CLOSED_REGION": 7,
+   "PROJECTION_CLOSED_REGION_TERRAIN": 4,
+   "PIRATE_ON_LAND": 1
+  },
+  "CONTINENTAL/bots": {
+   "OWNED_HEX_IN_CLOSED_REGION": 7,
+   "PROJECTION_CLOSED_REGION_TERRAIN": 5
+  }
+ },
+ "rows": [
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 1,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 3468,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 172
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 17,
+    "URBAN_ACTION:RULE_FAILURE": 7,
+    "PLAY_CARD:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 1,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 1678,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 9,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 5,
+    "commands": 121
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 14,
+    "READY:RULE_FAILURE": 1,
+    "URBAN_ACTION:RULE_FAILURE": 3
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 1,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 1992,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 8,
+    "group": 2,
+    "embark": 1,
+    "disembark": 1,
+    "naval": 0,
+    "probes": 2,
+    "commands": 136
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 10,
+    "READY:RULE_FAILURE": 1,
+    "URBAN_ACTION:RULE_FAILURE": 3,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 10
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 2,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 3433,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 177
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 17,
+    "PLAY_CARD:RULE_FAILURE": 7,
+    "URBAN_ACTION:RULE_FAILURE": 6
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 2,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 2267,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-3,0",
+     "region": "region-10",
+     "owner": "p1",
+     "terrain": "PLAINS",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 6,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "-3,0",
+     "region": "region-10",
+     "terrain": "PLAINS"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-3,1",
+     "region": "region-11",
+     "owner": "p1",
+     "terrain": "HILLS",
+     "round": 8,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    }
+   ],
+   "counters": {
+    "frontier": 12,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 2,
+    "commands": 130
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 5,
+    "READY:RULE_FAILURE": 1,
+    "URBAN_ACTION:RULE_FAILURE": 1,
+    "MANAGE:INVALID_WORKED_HEXES": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 2,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 2858,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-3,0",
+     "region": "region-10",
+     "owner": "p1",
+     "terrain": "PLAINS",
+     "round": 7,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 8,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "-3,0",
+     "region": "region-10",
+     "terrain": "PLAINS"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-3,1",
+     "region": "region-11",
+     "owner": "p1",
+     "terrain": "HILLS",
+     "round": 8,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    }
+   ],
+   "counters": {
+    "frontier": 13,
+    "group": 2,
+    "embark": 1,
+    "disembark": 1,
+    "naval": 0,
+    "probes": 1,
+    "commands": 146
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 4,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 14,
+    "READY:RULE_FAILURE": 1,
+    "URBAN_ACTION:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 3,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 2251,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "0,2",
+     "region": "region-17",
+     "owner": "p1",
+     "terrain": "PLAINS",
+     "round": 4,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "0,2",
+     "region": "region-17",
+     "terrain": "PLAINS"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "0,3",
+     "region": "region-17",
+     "owner": "p1",
+     "terrain": "HILLS",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "4,-6",
+     "region": "region-20",
+     "owner": "p2",
+     "terrain": "FOREST",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "p2",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 6,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "0,3",
+     "region": "region-17",
+     "terrain": "HILLS"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p2",
+     "round": 6,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "4,-6",
+     "region": "region-20",
+     "terrain": "FOREST"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-1,6",
+     "region": "region-18",
+     "owner": "p1",
+     "terrain": "HILLS",
+     "round": 7,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 8,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "-1,6",
+     "region": "region-18",
+     "terrain": "HILLS"
+    }
+   ],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 171
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 16,
+    "URBAN_ACTION:RULE_FAILURE": 7,
+    "PLAY_CARD:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 3,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 1792,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "0,2",
+     "region": "region-17",
+     "owner": "p1",
+     "terrain": "PLAINS",
+     "round": 4,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "0,2",
+     "region": "region-17",
+     "terrain": "PLAINS"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "0,3",
+     "region": "region-17",
+     "owner": "p1",
+     "terrain": "HILLS",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 6,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "0,3",
+     "region": "region-17",
+     "terrain": "HILLS"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-1,6",
+     "region": "region-18",
+     "owner": "p1",
+     "terrain": "HILLS",
+     "round": 8,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    }
+   ],
+   "counters": {
+    "frontier": 5,
+    "group": 1,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 3,
+    "commands": 121
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 10,
+    "URBAN_ACTION:RULE_FAILURE": 3,
+    "READY:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "seed": 3,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 1832,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "0,2",
+     "region": "region-17",
+     "owner": "p1",
+     "terrain": "PLAINS",
+     "round": 4,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "0,2",
+     "region": "region-17",
+     "terrain": "PLAINS"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "0,3",
+     "region": "region-17",
+     "owner": "p1",
+     "terrain": "HILLS",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 6,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "0,3",
+     "region": "region-17",
+     "terrain": "HILLS"
+    },
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-1,6",
+     "region": "region-18",
+     "owner": "p1",
+     "terrain": "HILLS",
+     "round": 7,
+     "phase": "PLANNING",
+     "by": "p1",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p1",
+     "round": 8,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "-1,6",
+     "region": "region-18",
+     "terrain": "HILLS"
+    }
+   ],
+   "counters": {
+    "frontier": 17,
+    "group": 1,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 2,
+    "commands": 142
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 12,
+    "URBAN_ACTION:RULE_FAILURE": 4,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 16,
+    "READY:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 1,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 11356,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 348
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 40,
+    "URBAN_ACTION:RULE_FAILURE": 13,
+    "PLAY_CARD:RULE_FAILURE": 3,
+    "MANAGE:INVALID_WORKED_HEXES": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 1,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 6934,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 22,
+    "group": 1,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 8,
+    "commands": 242
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 20,
+    "READY:RULE_FAILURE": 2,
+    "URBAN_ACTION:RULE_FAILURE": 7,
+    "MANAGE:INVALID_WORKED_HEXES": 2,
+    "PLAY_CARD:RULE_FAILURE": 2
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 1,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 23973,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 22,
+    "group": 8,
+    "embark": 4,
+    "disembark": 1,
+    "naval": 0,
+    "probes": 5,
+    "commands": 278
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 21,
+    "EMBARK:ACTION_LIMIT": 2,
+    "READY:RULE_FAILURE": 2,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 14,
+    "URBAN_ACTION:RULE_FAILURE": 8,
+    "MANAGE:INVALID_WORKED_HEXES": 2,
+    "PLAY_CARD:RULE_FAILURE": 2
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 1,
+   "mode": "sweep",
+   "land": {
+    "checked": 216,
+    "violations": []
+   },
+   "naval": {
+    "checked": 19,
+    "violations": []
+   },
+   "cargo": [
+    {
+     "name": "sunk-interior-sea",
+     "site": "3,3",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 2,
+     "survivors": [],
+     "expectation": "all cargo lost, none left floating"
+    },
+    {
+     "name": "sunk-shore-sea",
+     "site": "-6,-1",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 1,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "HILLS",
+       "carried": false
+      }
+     ],
+     "expectation": "one piece reaches the shore, the other is lost"
+    },
+    {
+     "name": "sunk-on-coast-with-land",
+     "site": "-7,3",
+     "terrain": "COAST",
+     "violations": [],
+     "lost": 1,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "FOREST",
+       "carried": false
+      }
+     ],
+     "expectation": "COAST is land: ideally both pieces simply stay on the hex"
+    },
+    {
+     "name": "rescued-by-second-fleet",
+     "site": "-6,-1",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 0,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "SEA",
+       "carried": true
+      }
+     ],
+     "expectation": "rescued aboard f2"
+    },
+    {
+     "name": "embark-disembark-roundtrip",
+     "site": "-6,-1",
+     "steps": [
+      {
+       "step": "embark",
+       "block": null
+      },
+      {
+       "step": "after-embark",
+       "violations": []
+      },
+      {
+       "step": "disembark-onto-SEA",
+       "block": "Desembarque em terra (Costa ou interior)."
+      },
+      {
+       "step": "disembark-onto-land",
+       "block": null
+      },
+      {
+       "step": "after-disembark",
+       "violations": []
+      }
+     ]
+    }
+   ],
+   "race": {
+    "region": "region-2",
+    "h1": "-7,3",
+    "h2": "-7,2",
+    "k1": 3,
+    "k2": 0,
+    "queuedA": true,
+    "queuedB": true,
+    "A": {
+     "hex": "-7,3",
+     "terrain": "COAST"
+    },
+    "B": {
+     "hex": "-6,1",
+     "terrain": "PLAINS"
+    },
+    "resolvedRotation": 3,
+    "violations": []
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 2,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 24326,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-1,-2",
+     "region": "region-10",
+     "owner": "p3",
+     "terrain": "PLAINS",
+     "round": 3,
+     "phase": "PLANNING",
+     "by": "p3",
+     "cmd": "MANAGE"
+    }
+   ],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 346
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 33,
+    "PLAY_CARD:RULE_FAILURE": 12,
+    "URBAN_ACTION:RULE_FAILURE": 13
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 2,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 13473,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-1,-2",
+     "region": "region-10",
+     "owner": "p3",
+     "terrain": "PLAINS",
+     "round": 3,
+     "phase": "PLANNING",
+     "by": "p3",
+     "cmd": "MANAGE"
+    }
+   ],
+   "counters": {
+    "frontier": 17,
+    "group": 3,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 8,
+    "commands": 249
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 19,
+    "READY:RULE_FAILURE": 2,
+    "URBAN_ACTION:RULE_FAILURE": 7
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 2,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 11658,
+   "hard": [
+    {
+     "code": "PIRATE_ON_LAND",
+     "threat": "pirate-r5-e304-n3",
+     "hex": "-6,9",
+     "terrain": "MOUNTAINS",
+     "round": 9,
+     "phase": "PLANNING",
+     "by": "p4",
+     "cmd": "READY"
+    }
+   ],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-1,-2",
+     "region": "region-10",
+     "owner": "p3",
+     "terrain": "PLAINS",
+     "round": 3,
+     "phase": "PLANNING",
+     "by": "p3",
+     "cmd": "MANAGE"
+    }
+   ],
+   "counters": {
+    "frontier": 25,
+    "group": 3,
+    "embark": 1,
+    "disembark": 1,
+    "naval": 5,
+    "probes": 3,
+    "commands": 288
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 17,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 34,
+    "READY:RULE_FAILURE": 2,
+    "URBAN_ACTION:RULE_FAILURE": 6
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 2,
+   "mode": "sweep",
+   "land": {
+    "checked": 217,
+    "violations": []
+   },
+   "naval": {
+    "checked": 20,
+    "violations": []
+   },
+   "cargo": [
+    {
+     "name": "sunk-interior-sea",
+     "site": "0,6",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 2,
+     "survivors": [],
+     "expectation": "all cargo lost, none left floating"
+    },
+    {
+     "name": "sunk-shore-sea",
+     "site": "-6,-1",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 1,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "PLAINS",
+       "carried": false
+      }
+     ],
+     "expectation": "one piece reaches the shore, the other is lost"
+    },
+    {
+     "name": "sunk-on-coast-with-land",
+     "site": "-6,0",
+     "terrain": "COAST",
+     "violations": [],
+     "lost": 1,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "PLAINS",
+       "carried": false
+      }
+     ],
+     "expectation": "COAST is land: ideally both pieces simply stay on the hex"
+    },
+    {
+     "name": "rescued-by-second-fleet",
+     "site": "-6,-1",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 0,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "SEA",
+       "carried": true
+      }
+     ],
+     "expectation": "rescued aboard f2"
+    },
+    {
+     "name": "embark-disembark-roundtrip",
+     "site": "-6,-1",
+     "steps": [
+      {
+       "step": "embark",
+       "block": null
+      },
+      {
+       "step": "after-embark",
+       "violations": []
+      },
+      {
+       "step": "disembark-onto-SEA",
+       "block": "Desembarque em terra (Costa ou interior)."
+      },
+      {
+       "step": "disembark-onto-land",
+       "block": null
+      },
+      {
+       "step": "after-disembark",
+       "violations": []
+      }
+     ]
+    }
+   ],
+   "race": {
+    "region": "region-1",
+    "h1": "-6,0",
+    "h2": "-7,1",
+    "k1": 2,
+    "k2": 0,
+    "queuedA": true,
+    "queuedB": true,
+    "A": {
+     "hex": "-6,0",
+     "terrain": "COAST"
+    },
+    "B": {
+     "hex": "-6,1",
+     "terrain": "FOREST"
+    },
+    "resolvedRotation": 2,
+    "violations": []
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 3,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 14963,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 354
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 31,
+    "URBAN_ACTION:RULE_FAILURE": 16,
+    "PLAY_CARD:RULE_FAILURE": 2
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 3,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 6870,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 17,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 3,
+    "commands": 245
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 15,
+    "URBAN_ACTION:RULE_FAILURE": 8,
+    "READY:RULE_FAILURE": 2,
+    "QUEUE_ORDER:TRADE:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 3,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 8162,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 34,
+    "group": 3,
+    "embark": 2,
+    "disembark": 2,
+    "naval": 2,
+    "probes": 12,
+    "commands": 284
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 26,
+    "URBAN_ACTION:RULE_FAILURE": 8,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 35,
+    "READY:RULE_FAILURE": 2
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "seed": 3,
+   "mode": "sweep",
+   "land": {
+    "checked": 209,
+    "violations": []
+   },
+   "naval": {
+    "checked": 4,
+    "violations": []
+   },
+   "cargo": [
+    {
+     "name": "sunk-interior-sea",
+     "site": "-2,-5",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 2,
+     "survivors": [],
+     "expectation": "all cargo lost, none left floating"
+    },
+    {
+     "name": "sunk-shore-sea",
+     "site": "-6,-1",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 1,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "COAST",
+       "carried": false
+      }
+     ],
+     "expectation": "one piece reaches the shore, the other is lost"
+    },
+    {
+     "name": "sunk-on-coast-with-land",
+     "site": "-6,0",
+     "terrain": "COAST",
+     "violations": [],
+     "lost": 1,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "COAST",
+       "carried": false
+      }
+     ],
+     "expectation": "COAST is land: ideally both pieces simply stay on the hex"
+    },
+    {
+     "name": "rescued-by-second-fleet",
+     "site": "-6,-1",
+     "terrain": "SEA",
+     "violations": [],
+     "lost": 0,
+     "survivors": [
+      {
+       "id": "pa",
+       "terrain": "SEA",
+       "carried": true
+      }
+     ],
+     "expectation": "rescued aboard f2"
+    },
+    {
+     "name": "embark-disembark-roundtrip",
+     "site": "-6,-1",
+     "steps": [
+      {
+       "step": "embark",
+       "block": null
+      },
+      {
+       "step": "after-embark",
+       "violations": []
+      },
+      {
+       "step": "disembark-onto-SEA",
+       "block": "Desembarque em terra (Costa ou interior)."
+      },
+      {
+       "step": "disembark-onto-land",
+       "block": null
+      },
+      {
+       "step": "after-disembark",
+       "violations": []
+      }
+     ]
+    }
+   ],
+   "race": {
+    "region": "region-1",
+    "h1": "-6,0",
+    "h2": "-7,1",
+    "k1": 3,
+    "k2": 0,
+    "queuedA": true,
+    "queuedB": true,
+    "A": {
+     "hex": "-6,0",
+     "terrain": "COAST"
+    },
+    "B": {
+     "hex": "-6,1",
+     "terrain": "PLAINS"
+    },
+    "resolvedRotation": 3,
+    "violations": []
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 1,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 41310,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "0,6",
+     "region": "region-24",
+     "owner": "p4",
+     "terrain": "HILLS",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "p4",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p4",
+     "round": 6,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "0,6",
+     "region": "region-24",
+     "terrain": "HILLS"
+    }
+   ],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 521
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 57,
+    "URBAN_ACTION:RULE_FAILURE": 22,
+    "PLAY_CARD:RULE_FAILURE": 14,
+    "MANAGE:INVALID_WORKED_HEXES": 1,
+    "QUEUE_ORDER:TRADE:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 1,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 19872,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 16,
+    "group": 2,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 7,
+    "commands": 351
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 35,
+    "URBAN_ACTION:RULE_FAILURE": 7,
+    "READY:RULE_FAILURE": 3,
+    "PLAY_CARD:RULE_FAILURE": 5,
+    "MANAGE:INVALID_WORKED_HEXES": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 1,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 26001,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 17,
+    "group": 7,
+    "embark": 2,
+    "disembark": 1,
+    "naval": 4,
+    "probes": 12,
+    "commands": 416
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 41,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 26,
+    "URBAN_ACTION:RULE_FAILURE": 11,
+    "READY:RULE_FAILURE": 3,
+    "PLAY_CARD:RULE_FAILURE": 5,
+    "PROPOSE_TREATY:RULE_FAILURE": 1,
+    "QUEUE_ORDER:TRADE:RULE_FAILURE": 2
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 2,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 45426,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-2,4",
+     "region": "region-17",
+     "owner": "p5",
+     "terrain": "PLAINS",
+     "round": 3,
+     "phase": "PLANNING",
+     "by": "p5",
+     "cmd": "MANAGE"
+    }
+   ],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 526
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 53,
+    "URBAN_ACTION:RULE_FAILURE": 24,
+    "QUEUE_ORDER:TRADE:RULE_FAILURE": 5,
+    "PLAY_CARD:RULE_FAILURE": 6,
+    "PROPOSE_TREATY:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 2,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 31613,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-2,4",
+     "region": "region-17",
+     "owner": "p5",
+     "terrain": "PLAINS",
+     "round": 4,
+     "phase": "PLANNING",
+     "by": "p5",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p5",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "-2,4",
+     "region": "region-17",
+     "terrain": "PLAINS"
+    }
+   ],
+   "counters": {
+    "frontier": 18,
+    "group": 1,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 6,
+    "commands": 359
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 26,
+    "READY:RULE_FAILURE": 3,
+    "URBAN_ACTION:RULE_FAILURE": 6,
+    "PLAY_CARD:RULE_FAILURE": 2,
+    "MANAGE:INVALID_WORKED_HEXES": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 2,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 24123,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-2,4",
+     "region": "region-17",
+     "owner": "p5",
+     "terrain": "PLAINS",
+     "round": 4,
+     "phase": "PLANNING",
+     "by": "p5",
+     "cmd": "MANAGE"
+    }
+   ],
+   "counters": {
+    "frontier": 21,
+    "group": 8,
+    "embark": 4,
+    "disembark": 2,
+    "naval": 3,
+    "probes": 14,
+    "commands": 416
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 40,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 23,
+    "EMBARK:ACTION_LIMIT": 1,
+    "READY:RULE_FAILURE": 3,
+    "URBAN_ACTION:RULE_FAILURE": 9,
+    "PLAY_CARD:RULE_FAILURE": 2,
+    "MANAGE:INVALID_WORKED_HEXES": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 3,
+   "mode": "bots",
+   "rounds": 9,
+   "ms": 20732,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 0,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 0,
+    "commands": 546
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 40,
+    "URBAN_ACTION:RULE_FAILURE": 22,
+    "PLAY_CARD:RULE_FAILURE": 13
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 3,
+   "mode": "wander",
+   "rounds": 9,
+   "ms": 19113,
+   "hard": [],
+   "soft": [
+    {
+     "code": "OWNED_HEX_IN_CLOSED_REGION",
+     "hex": "-1,1",
+     "region": "region-16",
+     "owner": "p3",
+     "terrain": "HILLS",
+     "round": 4,
+     "phase": "PLANNING",
+     "by": "p3",
+     "cmd": "MANAGE"
+    },
+    {
+     "code": "PROJECTION_CLOSED_REGION_TERRAIN",
+     "seat": "p3",
+     "round": 5,
+     "phase": "PLANNING",
+     "by": "projection",
+     "cmd": "ROUND_START",
+     "hex": "-1,1",
+     "region": "region-16",
+     "terrain": "HILLS"
+    }
+   ],
+   "counters": {
+    "frontier": 17,
+    "group": 0,
+    "embark": 0,
+    "disembark": 0,
+    "naval": 0,
+    "probes": 9,
+    "commands": 369
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 28,
+    "URBAN_ACTION:RULE_FAILURE": 14,
+    "READY:RULE_FAILURE": 3,
+    "PLAY_CARD:RULE_FAILURE": 7,
+    "QUEUE_ORDER:TRADE:RULE_FAILURE": 1
+   }
+  },
+  {
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "seed": 3,
+   "mode": "naval",
+   "rounds": 9,
+   "ms": 26935,
+   "hard": [],
+   "soft": [],
+   "counters": {
+    "frontier": 24,
+    "group": 4,
+    "embark": 3,
+    "disembark": 3,
+    "naval": 4,
+    "probes": 9,
+    "commands": 434
+   },
+   "rejected": {
+    "QUEUE_ORDER:MOVE:RULE_FAILURE": 30,
+    "URBAN_ACTION:RULE_FAILURE": 12,
+    "QUEUE_ORDER:MOVE:ACTION_LIMIT": 38,
+    "READY:RULE_FAILURE": 3,
+    "PLAY_CARD:RULE_FAILURE": 7,
+    "MANAGE:INSUFFICIENT_RESOURCES": 1,
+    "MANAGE:INVALID_WORKED_HEXES": 1
+   }
+  }
+ ]
+}

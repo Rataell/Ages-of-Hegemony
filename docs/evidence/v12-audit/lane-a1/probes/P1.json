@@ -1,0 +1,72 @@
+{
+ "classification": "BUG/UX (o planejador valida cada plano contra o estado atual, não contra o que já está reservado)",
+ "cases": [
+  {
+   "kind": "ELEVATE",
+   "plans": [
+    {
+     "note": "Elevar #1 (Posto -> Povoado, Era I)",
+     "accepted": true,
+     "error": null,
+     "ordersReserved": 1
+    },
+    {
+     "note": "Elevar #2 na mesma rodada (Povoado -> Vila exige Era II)",
+     "accepted": true,
+     "error": null,
+     "ordersReserved": 2
+    }
+   ],
+   "ordersReservedBeforeReady": 2,
+   "failedAtResolution": [
+    "ACTION_FAILED: A ação não pôde ser realizada: Elevar a este nível exige uma Era posterior."
+   ],
+   "paidByAction": [
+    {
+     "action": "ELEVATE",
+     "build": null,
+     "delta": {
+      "wood": -3
+     }
+    }
+   ],
+   "cityLevelAfter": "HAMLET",
+   "districtsAfter": []
+  },
+  {
+   "kind": "BUILD",
+   "plans": [
+    {
+     "note": "Construir distrito Agrário",
+     "accepted": true,
+     "error": null,
+     "ordersReserved": 1
+    },
+    {
+     "note": "Construir o MESMO distrito outra vez",
+     "accepted": true,
+     "error": null,
+     "ordersReserved": 2
+    }
+   ],
+   "ordersReservedBeforeReady": 2,
+   "failedAtResolution": [
+    "ACTION_FAILED: A ação não pôde ser realizada: Um distrito de cada tipo por cidade."
+   ],
+   "paidByAction": [
+    {
+     "action": "BUILD",
+     "build": "AGRARIAN",
+     "delta": {
+      "wood": -2
+     }
+    }
+   ],
+   "cityLevelAfter": "OUTPOST",
+   "districtsAfter": [
+    "AGRARIAN"
+   ]
+  }
+ ],
+ "reading": "O segundo Elevar (que exigiria a Era seguinte) e o segundo distrito igual são aceitos no planejamento, gastam uma Ordem cada e falham na resolução (ACTION_FAILED) sem devolver a Ordem; o jogador só descobre depois de confirmar."
+}

@@ -1,0 +1,284 @@
+{
+ "classification": "WORLD/BALANCE (Metal: depósito a 1 hex da capital em todas as amostras; 5 Ordens pela cadeia da Teia, 3 pelo atalho do P13)",
+ "samples": 36,
+ "nearestDepositDistance": {
+  "min": 1,
+  "median": 1,
+  "max": 1
+ },
+ "sharesWithin": {
+  "d1": 1,
+  "d2": 1,
+  "d3": 1,
+  "d4": 1
+ },
+ "claimRadiusByLevel": {
+  "Posto/Povoado (desenvolvimento 1)": 1,
+  "Vila a Grande Cidade (desenvolvimento 3)": 2,
+  "Metrópole+ (desenvolvimento 5)": 3
+ },
+ "chainOfOrders": [
+  "web-masonry (Avançar, 2 Conhecimento)",
+  "web-metallurgy (Avançar, 3 Conhecimento)",
+  "Reivindicar cada hex até o depósito (Ordem Cidade + 1 Influência cada)",
+  "Melhorar o hex com Mina (Ordem Cidade; 2 Materiais + 1 Riqueza)",
+  "Designar um Produtor ao hex (livre)",
+  "Produzir (Ordem Cidade): +1 Metal por Mina (metalPerMine=1)"
+ ],
+ "minOrdersToFirstMetal": "cadeia da Teia: 2 Avançar + 1 Reivindicar + 1 Melhorar + 1 Produzir = 5 Ordens; hoje o motor aceita Mina sem pesquisa (P13): 3 Ordens",
+ "metalSinks": "Cavalaria 1, Engenho de cerco 2, Frota 1, Fortaleza 1 / Bastião 2 / Cidadela 3, Obras de Legado 2-4",
+ "rows": [
+  {
+   "seed": 1,
+   "civ": "aurelia",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "valgard",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "meridia",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "thalos",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "saren",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "kor",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "orinth",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "nymara",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "veyra",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "solenne",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "dravik",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 1,
+   "civ": "elyra",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "aurelia",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "valgard",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "meridia",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "thalos",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "saren",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "kor",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "orinth",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "nymara",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "veyra",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "solenne",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "dravik",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 2,
+   "civ": "elyra",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "aurelia",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "valgard",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "meridia",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "thalos",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "saren",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "kor",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "orinth",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "nymara",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "veyra",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "solenne",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "dravik",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  },
+  {
+   "seed": 3,
+   "civ": "elyra",
+   "nearestKnown": 1,
+   "nearestAnywhere": 1,
+   "depositsKnownAtStart": 2
+  }
+ ]
+}

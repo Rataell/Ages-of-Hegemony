@@ -1,0 +1,298 @@
+apps/web/app/design/tokens.json:444:      "sample": "Passo de Valgard"
+apps/web/app/alpha/table-art.ts:91:const CHASSIS_CULTURE: Record<string, CultureId> = { valgard: 'hellenes', nymara: 'egyptians', meridia: 'mesopotamians', dravik: 'persians', solenne: 'israel', kor: 
+apps/web/app/alpha/table-art.ts:92:/** Accepts the hidden chassis id (`valgard`…) or the CORE 10 id (`hellenes`…); anything else is the neutral style. */
+apps/web/docs/rc12-cards-shots/shots.spec.ts:15:  const state = beginAlphaPlanning(createAlphaGame({ gameId: `7a1b5c9a-3d2e-4f8a-9b7c-1a2b3c4d7a${String(10 + counter++).padStart(2, '0')}`, seed: o.see
+apps/server/src/local-maps.ts:10:const names = ['Aurélia', 'Valgard', 'Merídia', 'Thalos', 'Saren', 'Kor'];
+packages/game-domain/src/alpha-civilization-kits.ts:70:  { ...alpha('aurelia'), affinity: 'AGRARIAN',
+packages/game-domain/src/alpha-civilization-kits.ts:75:    cards: cards('aurelia', [['Qollqa Aberta', produce('food', 3), '+3 Alimento.'], ['Mit’a de Obras', produce('materials', 3), '+3 Madeira/Pedra
+packages/game-domain/src/alpha-civilization-kits.ts:77:  { ...alpha('valgard'), affinity: 'TERRITORIAL',
+packages/game-domain/src/alpha-civilization-kits.ts:82:    cards: cards('valgard', [['Falange Cerrada', round('STRENGTH'), '+1 Força nos conflitos desta rodada.'], ['Pedreira de Pentélico', produce('m
+packages/game-domain/src/alpha-civilization-kits.ts:84:  { ...alpha('meridia'), affinity: 'ECONOMIC',
+packages/game-domain/src/alpha-civilization-kits.ts:89:    cards: cards('meridia', [['Feira do Karum', produce('wealth', 3), '+3 Riqueza.'], ['Tábuas de Argila', produce('knowledge', 2), '+2 Conhecime
+packages/game-domain/src/alpha-civilization-kits.ts:91:  { ...alpha('thalos'), affinity: 'MARITIME',
+packages/game-domain/src/alpha-civilization-kits.ts:96:    cards: cards('thalos', [['Vento de Popa', round('MOVEMENT'), '+1 movimento nesta rodada.'], ['Thing da Costa', produce('influence', 2), '+2 I
+packages/game-domain/src/alpha-civilization-kits.ts:98:  { ...alpha('saren'), affinity: 'POLITICAL',
+packages/game-domain/src/alpha-civilization-kits.ts:103:    cards: cards('saren', [['Édito de Pilar', produce('influence', 3), '+3 Influência.'], ['Conselho do Mandala', round('COMMAND'), '+1 ação pri
+packages/game-domain/src/alpha-civilization-kits.ts:105:  { ...alpha('kor'), affinity: 'TERRITORIAL',
+packages/game-domain/src/alpha-civilization-kits.ts:110:    cards: cards('kor', [['Fábrica das Legiões', produce('materials', 3), '+3 Madeira/Pedra.'], ['Testudo', round('STRENGTH'), '+1 Força nos con
+packages/game-domain/src/alpha-civilization-kits.ts:112:  { ...alpha('orinth'), affinity: 'SCIENTIFIC',
+packages/game-domain/src/alpha-civilization-kits.ts:117:    cards: cards('orinth', [['Exame Imperial', produce('knowledge', 2), '+2 Conhecimento.'], ['Correio Imperial', round('MOVEMENT'), '+1 movimen
+packages/game-domain/src/alpha-civilization-kits.ts:119:  { ...alpha('nymara'), affinity: 'AGRARIAN',
+packages/game-domain/src/alpha-civilization-kits.ts:124:    cards: cards('nymara', [['Cheia Generosa', produce('food', 3), '+3 Alimento.'], ['Titulatura Real', produce('influence', 3), '+3 Influência.
+packages/game-domain/src/alpha-civilization-kits.ts:126:  { ...alpha('veyra'), affinity: 'POLITICAL',
+packages/game-domain/src/alpha-civilization-kits.ts:131:    cards: cards('veyra', [['Encruzilhada', produce('wealth', 3), '+3 Riqueza.'], ['Caravana Veloz', round('MOVEMENT'), '+1 movimento nesta roda
+packages/game-domain/src/alpha-civilization-kits.ts:133:  { ...alpha('solenne'), affinity: 'CULTURAL',
+packages/game-domain/src/alpha-civilization-kits.ts:138:    cards: cards('solenne', [['Anciãos do Portão', produce('influence', 2), '+2 Influência.'], ['Escribas e Rolos', produce('knowledge', 3), '+3
+packages/game-domain/src/alpha-civilization-kits.ts:140:  { ...alpha('dravik'), affinity: 'TERRITORIAL',
+packages/game-domain/src/alpha-civilization-kits.ts:145:    cards: cards('dravik', [['Obra de Persépolis', produce('materials', 3), '+3 Madeira/Pedra.'], ['Correio Real', round('MOVEMENT'), '+1 movime
+packages/game-domain/src/alpha-civilization-kits.ts:147:  { ...alpha('elyra'), affinity: 'SCIENTIFIC',
+packages/game-domain/src/alpha-civilization-kits.ts:152:    cards: cards('elyra', [['Aula ao Ar Livre', produce('knowledge', 2), '+2 Conhecimento.'], ['Mapa Noturno', round('MOVEMENT'), '+1 movimento 
+packages/game-domain/src/alpha-civilization-kits.ts:174:  { ...bibleOnly('norvak', 'Norvak', 'O inverno é nosso aliado.'), affinity: 'MARITIME',
+packages/game-domain/src/alpha-web.ts:129:  ...heritage('aurelia', [['Reserva em Rede', 'web-agriculture', 'FOUNDATION', { materials: 1 }, 'Limite de Alimento +4 em cidades conectadas por Estrada.'], 
+packages/game-domain/src/alpha-web.ts:130:  ...heritage('valgard', [['Falange Cerrada', 'web-guard-formations', 'EXPANSION', { materials: 1 }, 'Infantaria e Guardas custam −1 Madeira/Pedra para recrut
+packages/game-domain/src/alpha-web.ts:131:  ...heritage('meridia', [['Tábuas do Karum', 'web-exchange', 'FOUNDATION', { wealth: 1 }, 'A primeira oferta comercial de cada rodada também rende +1 Influên
+packages/game-domain/src/alpha-web.ts:132:  ...heritage('thalos', [['Rotas do Mar do Norte', 'web-coastal-navigation', 'FOUNDATION', { wealth: 1 }, 'Pioneiro embarcado numa Barca de Patrulha revela Re
+packages/game-domain/src/alpha-web.ts:133:  ...heritage('saren', [['Pilares de Edito', 'web-common-narratives', 'FOUNDATION', { influence: 1 }, 'Cada tratado novo que você assina rende +1 Influência.'
+packages/game-domain/src/alpha-web.ts:134:  ...heritage('kor', [['Fábricas das Legiões', 'web-metallurgy', 'EXPANSION', { materials: 1 }, 'Oficina custa −1 Madeira; Artesãos rendem Pedra sem escolha.'
+packages/game-domain/src/alpha-web.ts:135:  ...heritage('orinth', [['Academia de Jixia', 'web-writing', 'FOUNDATION', { knowledge: 1 }, 'Biblioteca +3 Conhecimento de limite extra.'], ['Observatório I
+packages/game-domain/src/alpha-web.ts:136:  ...heritage('nymara', [['Canais da Cheia', 'web-agriculture', 'FOUNDATION', { food: 1 }, 'Fazendas irrigadas: o Distrito Agrário rende +1 Alimento a mais qu
+packages/game-domain/src/alpha-web.ts:137:  ...heritage('veyra', [['Câmara de Trocas', 'web-exchange', 'FOUNDATION', { wealth: 1 }, 'Enviados custam −1 Riqueza.'], ['Padrões de Confiança', 'web-region
+packages/game-domain/src/alpha-web.ts:138:  ...heritage('solenne', [['Anciãos do Portão', 'web-common-narratives', 'FOUNDATION', { influence: 1 }, 'Governar na capital recupera +1 Ânimo.'], ['Aliança 
+packages/game-domain/src/alpha-web.ts:139:  ...heritage('dravik', [['Postas Reais', 'web-masonry', 'FOUNDATION', { materials: 1 }, 'Peças sobre uma Estrada movem +1 por rodada.'], ['Satrapias', 'web-u
+packages/game-domain/src/alpha-web.ts:140:  ...heritage('elyra', [['Escola Itinerante', 'web-writing', 'FOUNDATION', { knowledge: 1 }, 'Revelar uma Região rende +1 Conhecimento.'], ['Curadoria de Sabe
+packages/game-domain/src/alpha-web.ts:146:  ...heritage('norvak', [['Presas do Norte', 'web-guard-formations', 'FOUNDATION', { food: 1 }, 'Guardas em Floresta +1 Força.'], ['Inverno Longo', 'web-irrig
+packages/game-domain/src/alpha-core10.ts:5: * (`civilization: 'valgard'`); nothing in a new flow shows it. Content comes from docs/product/aoh-historical-civilizations-core10-figures-v1.md.
+packages/game-domain/src/alpha-core10.ts:35:    "chassis": "valgard",
+packages/game-domain/src/alpha-core10.ts:182:    "chassis": "nymara",
+packages/game-domain/src/alpha-core10.ts:301:    "chassis": "meridia",
+packages/game-domain/src/alpha-core10.ts:422:    "chassis": "dravik",
+packages/game-domain/src/alpha-core10.ts:541:    "chassis": "solenne",
+packages/game-domain/src/alpha-core10.ts:661:    "chassis": "kor",
+packages/game-domain/src/alpha-core10.ts:780:    "chassis": "thalos",
+packages/game-domain/src/alpha-core10.ts:789:      "N6–N7: salão real, mercado costeiro (tipo Birka e Hedeby), pedra rúnica"
+packages/game-domain/src/alpha-core10.ts:899:    "chassis": "orinth",
+packages/game-domain/src/alpha-core10.ts:1017:    "chassis": "saren",
+packages/game-domain/src/alpha-core10.ts:1136:    "chassis": "aurelia",
+packages/game-domain/src/alpha-institutions.ts:7:  ['aurelia','Incas (Tawantinsuyu)','Cusco','Terraços, qollqas e estradas através dos Andes','food','materials','Colheita do Inca'],
+packages/game-domain/src/alpha-institutions.ts:8:  ['valgard','Helênicos','Atenas','Pólis armadas, estratégia e defesa do território','materials','food','Convocação da Pólis'],
+packages/game-domain/src/alpha-institutions.ts:9:  ['meridia','Mesopotâmicos','Babilônia','Cidades de tijolo, canais de irrigação e rotas de comércio','wealth','knowledge','Feira do Karum'],
+packages/game-domain/src/alpha-institutions.ts:10:  ['thalos','Nórdicos','Hedeby','Navegadores, incursores e exploradores das costas do Norte','knowledge','wealth','Travessia do Mar do Norte'],
+packages/game-domain/src/alpha-institutions.ts:11:  ['saren','Índia Antiga','Pataliputra','Editos, diplomacia e cidades planejadas do vale do Ganges','influence','food','Pilares de Edito'],
+packages/game-domain/src/alpha-institutions.ts:12:  ['kor','Romanos','Roma','Legiões, estradas e engenharia de cerco e muralha','materials','wealth','Mutirão das Legiões'],
+packages/game-domain/src/alpha-institutions.ts:13:  ['orinth','Chineses','Chang’an','Burocracia, astronomia e muralhas de um império de estudiosos','knowledge','materials','Exames Imperiais'],
+packages/game-domain/src/alpha-institutions.ts:14:  ['nymara','Egípcios','Tebas','Cheias do Nilo, obras monumentais e a estabilidade das colheitas','food','wealth','Cheia do Nilo'],
+packages/game-domain/src/alpha-institutions.ts:15:  ['veyra','Veyra','Encruzilhada de Veyra','Articuladores de rotas e padrões de confiança','wealth','influence','Câmara de trocas'],
+packages/game-domain/src/alpha-institutions.ts:16:  ['solenne','Israel e Judá','Jerusalém','Tribos reunidas em torno da Lei, do Templo e da memória','influence','knowledge','Assembleia do Portão'],
+packages/game-domain/src/alpha-institutions.ts:17:  ['dravik','Persas','Persépolis','Estradas reais, satrapias e administração de muitos povos','materials','knowledge','Tributo das Satrapias'],
+packages/game-domain/src/alpha-institutions.ts:18:  ['elyra','Elyra','Escola de Elyra','Curadores de saberes e vínculos comunitários','knowledge','food','Escola itinerante'],
+packages/game-domain/src/alpha-leaders.ts:52:  ['aurelia', 'leader-maera-vaelun', 'Maera Vaelun', 'Guardiã dos Celeiros', 'AV', ['Celeiros de cortesia', 'Os celeiros comuns guardam mais Alimentos.', s
+packages/game-domain/src/alpha-leaders.ts:53:  ['valgard', 'leader-toren-hjalvar', 'Toren Hjalvar', 'Senhor das Passagens', 'TH', ['Refúgios abastecidos', 'Suas peças ficam abastecidas 1 hex mais long
+packages/game-domain/src/alpha-leaders.ts:54:  ['meridia', 'leader-isaure-mekhan', 'Isaure Mekhan', 'Voz das Margens', 'IM', ['Casas de câmbio', 'Suas casas de troca guardam mais Riqueza.', storage('w
+packages/game-domain/src/alpha-leaders.ts:55:  ['thalos', 'leader-kaelis-orran', 'Kaelis Orran', 'Cartógrafa das Costas', 'KO', ['Cartas de abastecimento', 'Suas peças ficam abastecidas 1 hex mais lon
+packages/game-domain/src/alpha-leaders.ts:56:  ['saren', 'leader-oduan-saretha', 'Oduan Saretha', 'Presidente do Concílio dos Vales', 'OS', ['Acordos de vizinhança', 'A Ação cívica integra 10 pontos a
+packages/game-domain/src/alpha-leaders.ts:57:  ['kor', 'leader-brakka-kordun', 'Brakka Kordun', 'Mestre da Transformação', 'BK', ['Depósito de ferragens', 'Suas oficinas guardam mais Metal.', storage(
+packages/game-domain/src/alpha-leaders.ts:58:  ['orinth', 'leader-ilaen-orivane', 'Ilaen Orivane', 'Observadora-Chefe', 'IO', ['Arquivo de medidas', 'Seus arquivos guardam mais Pedra de referência.', 
+packages/game-domain/src/alpha-leaders.ts:59:  ['nymara', 'leader-suvi-nymeru', 'Suvi Nymeru', 'Memória Viva', 'SN', ['Bosques de memória', 'Seus bosques comuns guardam mais Madeira.', storage('wood')
+packages/game-domain/src/alpha-leaders.ts:60:  ['veyra', 'leader-delphar-veyn', 'Delphar Veyn', 'Árbitro das Rotas', 'DV', ['Pontos de confiança', 'A Ação cívica integra 10 pontos a mais em cidades oc
+packages/game-domain/src/alpha-leaders.ts:61:  ['solenne', 'leader-amaris-solenth', 'Amaris Solenth', 'Anfitriã das Vozes', 'AS', ['Casa aberta', 'A Ação cívica integra 10 pontos a mais em cidades ocu
+packages/game-domain/src/alpha-leaders.ts:62:  ['dravik', 'leader-hartvig-drell', 'Hartvig Drell', 'Arquiteto das Obras', 'HD', ['Redes de abastecimento', 'Suas peças ficam abastecidas 1 hex mais long
+packages/game-domain/src/alpha-leaders.ts:63:  ['elyra', 'leader-lirien-elyrae', 'Lirien Elyrae', 'Curadora Itinerante', 'LE', ['Vínculos de aprendizado', 'A Ação cívica integra 10 pontos a mais em ci
+packages/game-engine/src/alpha-kits.ts:8: * valgard = Helênicos, nymara = Egípcios, meridia = Mesopotâmicos, dravik = Persas, solenne = Israel e Judá, kor = Romanos,
+packages/game-engine/src/alpha-kits.ts:9: * thalos = Nórdicos, orinth = Chineses, saren = Índia Antiga, aurelia = Incas. veyra and elyra are not selectable.
+packages/game-engine/src/alpha-kits.ts:17:/** Recruitment cost after the kit: Veyra's envoys cost 1 Wealth less (trait), Valgard's +1 Influence and Elyra's siege +1 Metal (limitations). */
+packages/game-engine/src/alpha-kits.ts:21:  if (civ === 'veyra' && kind === 'ENVOY') cost.wealth = Math.max(0, cost.wealth - 1);
+packages/game-engine/src/alpha-kits.ts:22:  if (civ === 'valgard' && kind === 'ENVOY') cost.influence += 1;
+packages/game-engine/src/alpha-kits.ts:23:  if (civ === 'elyra' && kind === 'SIEGE') metal += 1;
+packages/game-engine/src/alpha-kits.ts:26:/** Research cost after the kit: Orinth's first advancement of each domain costs 1 less; Solenne's Era I Knowledge advancements 1 more. */
+packages/game-engine/src/alpha-kits.ts:29:  if (civ === 'orinth' && !research.some(id => ADVANCEMENTS.find(a => a.id === id)?.domain === node.domain)) cost.knowledge = Math.max(1, cost.knowledge - 1);
+packages/game-engine/src/alpha-kits.ts:30:  if (civ === 'solenne' && node.domain === 'KNOWLEDGE' && node.era === 'FOUNDATION') cost.knowledge += 1;
+packages/game-engine/src/alpha-kits.ts:33:/** Knowledge for revealing a region: Elyra always, Thalos when the region touches the sea. */
+packages/game-engine/src/alpha-kits.ts:36:  if (civ === 'elyra') return 1;
+packages/game-engine/src/alpha-kits.ts:37:  if (civ === 'thalos' && hexIds.some(id => ['COAST', 'SEA'].includes(state.core.map.find(t => t.id === id)?.terrain ?? ''))) return 1;
+packages/game-engine/src/alpha-kits.ts:40:/** Saren's treaties last one round more. */
+packages/game-engine/src/alpha-kits.ts:41:export const kitTreatyRounds = (state: AlphaState, a: PlayerId, b: PlayerId) => [a, b].some(id => civilizationOf(state, id) === 'saren') ? 1 : 0;
+packages/game-engine/src/alpha-kits.ts:42:/** Solenne defends its cultural presence with +1. */
+packages/game-engine/src/alpha-kits.ts:43:export const kitCultureDefense = (_state: AlphaState, civilizationId: string) => civilizationId === 'solenne' ? 1 : 0;
+packages/game-engine/src/alpha-kits.ts:44:/** Dravik's routes yield 1 Wealth less. */
+packages/game-engine/src/alpha-kits.ts:45:export const kitRouteIncome = (state: AlphaState, actor: PlayerId) => civilizationOf(state, actor) === 'dravik' ? -1 : 0;
+packages/game-engine/src/alpha-kits.ts:46:/** Kor's fleets move 1 less. */
+packages/game-engine/src/alpha-kits.ts:47:export const kitMovement = (state: AlphaState, actor: PlayerId, kind: AlphaUnit['kind']) => civilizationOf(state, actor) === 'kor' && kind === 'FLEET' ? -1 : 
+packages/game-engine/src/alpha-kits.ts:54:  if (civ === 'valgard' && tile?.ownerId === unit.ownerId) return 1;
+packages/game-engine/src/alpha-kits.ts:55:  if (civ === 'dravik' && state.roads.includes(unit.hexId)) return 1;
+packages/game-engine/src/alpha-kits.ts:56:  if (civ === 'thalos' && state.rules.units[unit.kind].domain === 'LAND' && state.rules.units[unit.kind].strength > 0 && tile?.ownerId !== unit.ownerId) retur
+packages/game-engine/src/alpha-kits.ts:61:  if (civilizationOf(state, unit.ownerId) !== 'kor') return false;
+packages/game-engine/src/alpha-kits.ts:68:export const kitDroughtRelief = (state: AlphaState, actor: PlayerId, card: { mitigatedBy: readonly string[] }, loss: number): number => civilizationOf(state, 
+packages/game-engine/src/alpha-kits.ts:69:export const kitDroughtRecovery = (state: AlphaState, actor: PlayerId, card: { mitigatedBy: readonly string[] }): number => civilizationOf(state, actor) === '
+packages/game-engine/src/alpha-kits.ts:71:export const kitLegacyPrestige = (state: AlphaState, actor: PlayerId): number => civilizationOf(state, actor) === 'nymara' ? 2 : 0;
+packages/game-engine/src/alpha-kits.ts:72:/** Merídia's walls stop at the Stone Wall until Era IV (Impérios). */
+packages/game-engine/src/alpha-kits.ts:75:  if (civilizationOf(state, actor) === 'meridia' && player && eraIndex(player.era) < eraIndex('EMPIRES') && !['PALISADE', 'STONE_WALL'].includes(next)) return
+packages/game-engine/src/alpha-kits.ts:78:/** Extra food upkeep: Saren and Orinth pay 1 more per Cavalry; Aurélia pays 1 more for every 4 military pieces. */
+packages/game-engine/src/alpha-kits.ts:81:  if (civ === 'saren' || civ === 'orinth') return own.filter(unit => unit.kind === 'CAVALRY').length;
+packages/game-engine/src/alpha-kits.ts:82:  if (civ === 'aurelia') return Math.floor(own.filter(unit => state.rules.units[unit.kind].strength > 0).length / 4);
+packages/game-engine/src/alpha-kits.ts:86:/** Extra yield when a city PRODUCES: Kor +1 Stone per worked quarry on Hills; Aurélia +1 Food per worked farm. */
+packages/game-engine/src/alpha-kits.ts:89:  if (!city || (civ !== 'kor' && civ !== 'aurelia')) return { food: 0, stone: 0 };
+packages/game-engine/src/alpha-kits.ts:92:    food: civ === 'aurelia' ? worked.filter(t => t.improvement === 'FARM').length : 0,
+packages/game-engine/src/alpha-kits.ts:93:    stone: civ === 'kor' ? worked.filter(t => t.improvement === 'QUARRY' && t.terrain === 'HILLS').length : 0,
+packages/game-engine/src/alpha-kits.ts:99:  if (civ === 'dravik' || (civ === 'aurelia' && road && (road.terrain === 'HILLS' || road.terrain === 'MOUNTAINS'))) return { ...cost, materials: Math.max(0, 
+packages/game-engine/src/alpha-kits.ts:102:/** Merídia: +1 Wealth for the first trade offer it settles in a round (as proposer or recipient). */
+packages/game-engine/src/alpha-kits.ts:105:    if (civilizationOf(state, id) !== 'meridia') continue;
+packages/game-engine/src/alpha-kits.ts:114: * Valgard's Guards are the Shield Guard (+1 guard each when defending a fortified city); Kor's Siege are Siege Engineers
+packages/game-engine/src/alpha-kits.ts:115: * (+1 breach against stone or better); Thalos' Infantry is Naval Infantry (no amphibious penalty); Elyra's Explorers are
+packages/game-engine/src/alpha-kits.ts:119:/** Movement an unknown-Region entry costs this piece: UNKNOWN (1), nothing for Elyra's Cartographer Pioneiros (the old "reveal up to two hexes away"). */
+packages/game-engine/src/alpha-kits.ts:120:export const kitFrontierCost = (state: AlphaState, unit: Pick<AlphaUnit, 'ownerId' | 'kind'>, base: number): number => civilizationOf(state, unit.ownerId) ==
+packages/game-engine/src/alpha-kits.ts:137:    if (civ === 'valgard') {
+packages/game-engine/src/alpha-kits.ts:142:    if (civ === 'meridia') player.resources.wealth += 3;
+packages/game-engine/src/alpha-kits.ts:143:    if (civ === 'thalos' || civ === 'elyra') place('PIONEER', 2);
+packages/game-engine/src/alpha-kits.ts:144:    if (civ === 'saren') { place('ENVOY', 1); player.resources.influence += 2; }
+packages/game-engine/src/alpha-kits.ts:145:    if (civ === 'veyra') { place('ENVOY', 1); place('ENVOY', 2); }
+packages/game-engine/src/alpha-kits.ts:146:    if (civ === 'kor' && meta && meta.fortification.level === 'NONE') meta.fortification = { level: 'PALISADE', state: 'INTACT' };
+packages/game-engine/src/alpha-kits.ts:147:    if (civ === 'orinth') player.resources.knowledge += 2;
+packages/game-engine/src/alpha-kits.ts:148:    if (civ === 'solenne' && meta) meta.mood = Math.min(6, meta.mood + 1);
+packages/game-engine/src/alpha-kits.ts:149:    if (civ === 'nymara') player.resources.food += 3;
+packages/game-engine/src/alpha-kits.ts:150:    if (civ === 'aurelia') { player.resources.food += 2; player.resources.wood += 1; player.resources.stone += 1; }
+packages/game-engine/src/alpha-kits.ts:151:    if (civ === 'dravik') player.resources.stone += 2;
+tests/alpha-kit-effects.test.ts:8:const game = (civ: string, other = 'aurelia'): AlphaState => beginAlphaPlanning(createAlphaGame({ gameId: `kit-${civ}`, seed: 21, preset: 'STANDARD', players: [{ id: 
+tests/alpha-kit-effects.test.ts:10:const base = game('aurelia', 'valgard');
+tests/alpha-kit-effects.test.ts:12:const raw = (civ: string): AlphaState => createAlphaGame({ gameId: `kit-raw-${civ}`, seed: 21, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um', civilization: ci
+tests/alpha-kit-effects.test.ts:13:const start = raw('valgard').players[0]!.resources;
+tests/alpha-kit-effects.test.ts:23:    expect(own(game('valgard'), 'GUARD')).toBe(1);
+tests/alpha-kit-effects.test.ts:24:    expect(own(game('saren'), 'ENVOY')).toBe(1);
+tests/alpha-kit-effects.test.ts:25:    expect(raw('saren').players[0]!.resources.influence).toBe(start.influence + 2);
+tests/alpha-kit-effects.test.ts:26:    expect(own(game('veyra'), 'ENVOY')).toBe(2);
+tests/alpha-kit-effects.test.ts:27:    expect(own(game('thalos'), 'PIONEER')).toBe(3); // 2 starting Pioneiros + 1 heritage
+tests/alpha-kit-effects.test.ts:28:    expect(own(game('elyra'), 'PIONEER')).toBe(3);
+tests/alpha-kit-effects.test.ts:29:    expect(game('kor').cities.find(city => city.capital && city.currentOwnerId === p1)!.fortification.level).toBe('PALISADE');
+tests/alpha-kit-effects.test.ts:30:    expect(raw('meridia').players[0]!.resources.wealth).toBe(start.wealth + 3);
+tests/alpha-kit-effects.test.ts:31:    expect(raw('orinth').players[0]!.resources.knowledge).toBe(start.knowledge + 2);
+tests/alpha-kit-effects.test.ts:32:    expect(raw('dravik').players[0]!.resources.stone).toBe(start.stone + 2);
+tests/alpha-kit-effects.test.ts:33:    const solenne = raw('solenne'), plain = raw('aurelia');
+tests/alpha-kit-effects.test.ts:34:    expect(solenne.cities.find(city => city.currentOwnerId === p1)!.mood).toBe(Math.min(6, plain.cities.find(city => city.currentOwnerId === p1)!.mood + 1));
+tests/alpha-kit-effects.test.ts:35:    expect(raw('nymara').players[0]!.resources.food).toBe(start.food + 3);
+tests/alpha-kit-effects.test.ts:36:    expect(raw('aurelia').players[0]!.resources).toMatchObject({ food: start.food + 2, wood: start.wood + 1, stone: start.stone + 1 });
+tests/alpha-kit-effects.test.ts:37:    for (const civ of ['valgard', 'saren', 'veyra', 'thalos', 'kor']) expect(AlphaStateSchema.safeParse(game(civ)).success).toBe(true);
+tests/alpha-kit-effects.test.ts:40:  it('adjusts costs: Veyra and Valgard envoys, Elyra siege, Orinth and Solenne research', () => {
+tests/alpha-kit-effects.test.ts:41:    expect(kitUnitCost(game('veyra'), p1, 'ENVOY').cost.wealth).toBe(base.rules.units.ENVOY.cost.wealth - 1);
+tests/alpha-kit-effects.test.ts:42:    expect(kitUnitCost(game('valgard'), p1, 'ENVOY').cost.influence).toBe(base.rules.units.ENVOY.cost.influence + 1);
+tests/alpha-kit-effects.test.ts:43:    expect(kitUnitCost(game('elyra'), p1, 'SIEGE').metal).toBe(base.rules.units.SIEGE.metal + 1);
+tests/alpha-kit-effects.test.ts:45:    expect(kitAdvancementCost(game('orinth'), p1, first).knowledge).toBe(first.cost.knowledge - 1);
+tests/alpha-kit-effects.test.ts:46:    expect(kitAdvancementCost(game('solenne'), p1, first).knowledge).toBe(first.cost.knowledge + 1);
+tests/alpha-kit-effects.test.ts:51:    expect(kitExplorationKnowledge(game('elyra'), p1, [])).toBe(1);
+tests/alpha-kit-effects.test.ts:52:    expect(kitTreatyRounds(game('saren'), p1, p2)).toBe(1);
+tests/alpha-kit-effects.test.ts:53:    expect(kitMovement(game('kor'), p1, 'FLEET')).toBe(-1);
+tests/alpha-kit-effects.test.ts:54:    expect(kitFortificationBlock(game('meridia'), p1, 'FORTRESS')).toMatch(/Muralha de Pedra/);
+tests/alpha-kit-effects.test.ts:55:    expect(kitFortificationBlock(game('meridia'), p1, 'STONE_WALL')).toBeNull();
+tests/alpha-kit-effects.test.ts:56:    const aurelia = game('aurelia', 'valgard');
+tests/alpha-kit-effects.test.ts:57:    for (const n of [1, 2, 3, 4]) aurelia.units.push({ id: `soldier-${n}`, ownerId: p1, kind: 'INFANTRY', hexId: aurelia.units[0]!.hexId, recruitedRound: 1, carrierI
+tests/alpha-kit-effects.test.ts:58:    expect(kitFoodUpkeep(aurelia, p1)).toBe(1);
+tests/alpha-kit-effects.test.ts:61:  it('adds Kor quarry stone and Aurélia farm food when a city produces, and trims Dravik works', () => {
+tests/alpha-kit-effects.test.ts:62:    for (const [civ, improvement, terrain, key] of [['kor', 'QUARRY', 'HILLS', 'stone'], ['aurelia', 'FARM', 'PLAINS', 'food']] as const) {
+tests/alpha-kit-effects.test.ts:68:      expect(kitProduceBonus(game('valgard'), p1, game('valgard').core.players[0]!.civilization.cities[0]!.id)).toEqual({ food: 0, stone: 0 });
+tests/alpha-kit-effects.test.ts:70:    expect(kitWorksCost(game('dravik'), p1, { food: 0, materials: 2, wealth: 1, knowledge: 0, influence: 0 }).materials).toBe(1);
+tests/alpha-kit-effects.test.ts:73:  it('gives Merídia +1 Wealth for its first settled trade of the round only', () => {
+tests/alpha-kit-effects.test.ts:74:    const state = game('meridia'), before = state.players[0]!.resources.wealth;
+tests/alpha-kit-effects.test.ts:77:    expect(state.players[1]!.resources.wealth).toBe(game('meridia').players[1]!.resources.wealth);
+tests/alpha-kit-effects.test.ts:81:    const state = game('aurelia', 'valgard');
+tests/alpha-kit-effects.test.ts:84:    expect(kitFrontierCost(game('elyra'), { ownerId: p1, kind: 'PIONEER' }, 1)).toBe(0);
+tests/alpha-kit-effects.test.ts:85:    expect(kitFrontierCost(game('elyra'), { ownerId: p1, kind: 'INFANTRY' }, 1)).toBe(1);
+tests/alpha-kit-effects.test.ts:101:      const plain = game('aurelia', 'valgard'), egypt = game('nymara', 'valgard');
+tests/alpha-kit-effects.test.ts:107:      const irrigated = game('nymara', 'valgard'); irrigated.players[0]!.research.push('web-irrigation'); irrigated.players[0]!.resources.food = 10;
+tests/alpha-kit-effects.test.ts:110:      const others = game('aurelia', 'valgard'); others.players[0]!.research.push('web-irrigation'); others.players[0]!.resources.food = 10;
+tests/alpha-kit-effects.test.ts:117:      expect(kitLegacyPrestige(game('nymara'), p1)).toBe(2);
+tests/alpha-kit-effects.test.ts:118:      expect(kitLegacyPrestige(game('kor'), p1)).toBe(0);
+tests/alpha-kit-effects.test.ts:121:      const place = (civ: string) => { const state = game(civ, 'aurelia'), unit = state.units.find(u => u.ownerId === p1 && u.kind === 'PIONEER')!; return { state, 
+tests/alpha-kit-effects.test.ts:122:      const persian = place('dravik');
+tests/alpha-kit-effects.test.ts:126:      const roman = place('kor');
+tests/alpha-kit-effects.test.ts:133:      expect(kitRoadSupply(game('dravik'), roman.unit)).toBe(false);
+tests/alpha-kit-effects.test.ts:134:      const inca = game('aurelia', 'valgard'), roadCost = inca.rules.roadCost;
+tests/alpha-kit-effects.test.ts:140:      const state = game('thalos', 'valgard'), soldier = { id: 's', ownerId: p1, kind: 'INFANTRY' as const, hexId: state.core.map.find(t => t.ownerId === null && ![
+tests/alpha-legacy-room.test.ts:7:/** A REAL V1.1 room (tag external-alpha-v1.1-bots-parity): 1 human + 2 bots (valgard, nymara, veyra), round 9 of a running match. */
+tests/alpha-legacy-room.test.ts:17:    expect(room.seats.some(seat => seat.civilization === 'veyra')).toBe(true);
+tests/alpha-governments.test.ts:15:  const state = beginAlphaPlanning(createAlphaGame({ gameId: `gov-${seed}`, seed, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um', civilization: 'saren' }, { id
+tests/alpha-materials-terminology.test.ts:8:  const state = beginAlphaPlanning(createAlphaGame({ gameId: 'materials', seed: 9, preset: 'QUICK', players: [{ id: 'p1', name: 'Ana', civilization }, { id:
+tests/alpha-military.test.ts:9:    initialCities:[{id:'c1',ownerId:p1,hexId:'0,0',name:'Aurora'},{id:'c2',ownerId:p2,hexId:'4,0',name:'Merídia'}]});
+tests/alpha-bots.test.ts:22:const CIVS = ['aurelia', 'valgard', 'thalos', 'ironmark'];
+tests/alpha-bots.test.ts:51:    const real = beginAlphaPlanning(createAlphaGame({ gameId: randomUUID(), seed: 3, privateSeed: 'a'.repeat(64), preset: 'QUICK', players: [{ id: 'p1', name: 'A', civiliza
+tests/alpha-bots.test.ts:147:    let game = beginAlphaPlanning(createAlphaGame({ gameId: randomUUID(), seed: 5, preset: 'QUICK', players: [{ id: 'p1', name: 'Humano', civilization: 'aurelia' }, { id: 
+tests/alpha-growth-forecast.test.ts:7:  const state = beginAlphaPlanning(createAlphaGame({ gameId: 'growth', seed: 4, preset: 'QUICK', players: [{ id: 'p1', name: 'Ana', civilization: 'meridia' }, { i
+tests/alpha-command-actions.test.ts:8:  const state = beginAlphaPlanning(createAlphaGame({ gameId: 'command', seed: 4, preset: 'QUICK', actionsPerRound, players: [{ id: 'p1', name: 'Ana', civilization
+tests/alpha-bot-parity.test.ts:14:  let game = beginAlphaPlanning(createAlphaGame({ gameId: randomUUID(), seed: 9, privateSeed: 'b'.repeat(64), preset: 'QUICK', players: [{ id: 'p1', name: 'A', civili
+tests/alpha-bot-parity.test.ts:65:    seats: [{ guestId: host, playerId: 'player-1', name: 'Ana', civilization: null, ready: false }, ...(bots ? [{ guestId: randomUUID(), playerId: 'player-2', name: '
+tests/alpha-match-scenario.ts:11:    players:[{id:'p1',name:'Aurélia',resources:{food:500,materials:500,wealth:500,knowledge:500,influence:500}},{id:'p2',name:'Valgard',resources:{food:500,materials:5
+tests/alpha-match-scenario.ts:19:  state.players[0]!.civilization='aurelia';state.players[1]!.civilization='valgard';
+tests/alpha-postgres-migration.db.integration.ts:32:  for (const [actor, civilization] of [[a, 'aurelia'], [b, 'valgard']] as const) {
+tests/alpha-lifecycle.db.integration.ts:21:    for (const [actor, civilization] of [[a, 'aurelia'], [b, 'valgard']] as const) {
+tests/alpha-administration.test.ts:8:  const state = beginAlphaPlanning(createAlphaGame({ gameId: 'admin', seed: 9, preset: 'QUICK', players: [{ id: 'p1', name: 'Ana', civilization: 'valgard' }, { id:
+tests/alpha-administration.test.ts:33:    let state = beginAlphaPlanning(createAlphaGame({ gameId: 'admin-3', seed: 11, preset: 'QUICK', players: [{ id: 'p1', name: 'Ana', civilization: 'valgard' }, {
+tests/alpha-figures-lobby.test.ts:21:    expect((await lobby(f, f.a, f.view, { type: 'CHOOSE_CIVILIZATION', civilization: 'veyra' })).ok).toBe(false);
+tests/alpha-figures-lobby.test.ts:22:    expect((await lobby(f, f.a, f.view, { type: 'CHOOSE_CIVILIZATION', civilization: 'elyra' })).ok).toBe(false);
+tests/alpha-figures-lobby.test.ts:23:    const chosen = await lobby(f, f.a, f.view, { type: 'CHOOSE_CIVILIZATION', civilization: 'valgard' });
+tests/alpha-figures-lobby.test.ts:31:    const civ = await lobby(f, f.a, f.view, { type: 'CHOOSE_CIVILIZATION', civilization: 'valgard' }); if (!civ.ok) throw new Error(civ.error.message);
+tests/alpha-figures-lobby.test.ts:41:    const a1 = await lobby(f, f.a, view, { type: 'CHOOSE_CIVILIZATION', civilization: 'valgard' }); if (!a1.ok) throw new Error('a1'); view = a1.value;
+tests/alpha-figures-lobby.test.ts:43:    const b1 = await lobby(f, f.b, view, { type: 'CHOOSE_CIVILIZATION', civilization: 'kor' }); if (!b1.ok) throw new Error('b1'); view = b1.value;
+tests/alpha-figures-lobby.test.ts:47:    expect(bSees.value.seats.find(s => s.civilization === 'valgard')!.figureId).toBeNull();
+tests/alpha-figures-lobby.test.ts:48:    expect(bSees.value.seats.find(s => s.civilization === 'valgard')!.figureChosen).toBe(true);
+tests/alpha-figures-lobby.test.ts:49:    expect(bSees.value.seats.find(s => s.civilization === 'kor')!.figureId).toBe('leader-julio-cesar');
+tests/alpha-figures-lobby.test.ts:92:    const blocked = await f.service.lobby(f.a, f.view.id, { type: 'CHOOSE_CIVILIZATION', expectedVersion: view.value.version, civilization: 'valgard' }, 0);
+tests/alpha-bots-worlds.test.ts:20:  const civ = ['valgard', 'nymara', 'meridia', 'dravik', 'solenne', 'kor', 'thalos', 'orinth', 'saren', 'aurelia'].find(c => !taken.has(c))!;
+tests/alpha-action-economy.test.ts:17:      { id: 'c2', ownerId: 'p2', hexId: '13,0', name: 'Merídia' },
+tests/alpha-resonance.test.ts:7:const fresh = (): AlphaState => clearPulse(beginAlphaPlanning(createAlphaGame({ gameId: 'resonance', seed: 7, preset: 'QUICK', players: [{ id: p1, name: 'A', civilizati
+tests/alpha-resonance.test.ts:54:    const heritage = HERITAGE_ADVANCES.find(advance => advance.civilizationId === 'valgard')!;
+tests/alpha-recruit-reservation.test.ts:7:  const state = beginAlphaPlanning(createAlphaGame({ gameId: 'recruit-reservation', seed: 5, preset: 'STANDARD', players: [{ id: 'p1', name: 'Um', civilizatio
+tests/alpha-table-art.test.ts:16:      const sizes = [1, 2, 3, 4, 5, 6, 7].map(level => volumes(cityPieceArt({ level, color: SEAT_COLORS[0], seed: 3, civilization: 'valgard', lod })));
+tests/alpha-table-art.test.ts:46:    const closed = fortificationArt('STONE_WALL', 'INTACT', 50, { civilization: 'kor' }), open = fortificationArt('STONE_WALL', 'INTACT', 50, { civilization: 'kor', ha
+tests/alpha-table-art.test.ts:51:    expect(cityDetailArt({ level: 4, color: SEAT_COLORS[1], seed: 2, civilization: 'thalos', harbor: true })).toMatch(/^<svg[^>]*class="city-detail-art"[\s\S]*harbor c
+tests/alpha-table-art.test.ts:60:    const city = cityPieceArt({ level: 4, color: SEAT_COLORS[0], seed: 1, civilization: 'saren', work: { workId: 'world-council', steps: 2, complete: false } });
+tests/alpha-leaders.test.ts:16:  players: [{ id: 'p1', name: 'Um', civilization, figureId }, { id: 'p2', name: 'Dois', civilization: civilization === 'aurelia' ? 'valgard' : 'aurelia' }],
+tests/alpha-leaders.test.ts:24:const names = ['Incas (Tawantinsuyu)', 'Helênicos', 'Mesopotâmicos', 'Nórdicos', 'Índia Antiga', 'Romanos', 'Chineses', 'Egípcios', 'Veyra', 'Israel e Judá', 'Persas', '
+tests/alpha-leaders.test.ts:40:    for (const id of ['leader-odisseu', 'leader-alexandre-magno', 'leader-agamenon']) expect(figuresOfCivilization('valgard').map(l => l.id)).toContain(id);
+tests/alpha-leaders.test.ts:77:    expect(match('valgard').players[0]!.leader!.leaderId).toBe('leader-alexandre-magno');
+tests/alpha-leaders.test.ts:81:    const state = match('aurelia');
+tests/alpha-leaders.test.ts:82:    state.players[0]!.leader = leaderStateFor('valgard');
+tests/alpha-leaders.test.ts:84:    expect(leaderStateFor('aurelia', 'leader-odisseu')).toBeNull();
+tests/alpha-leaders.test.ts:85:    expect(() => match('aurelia', 121, 'leader-odisseu')).toThrow('Figura inválida');
+tests/alpha-leaders.test.ts:86:    const nobody = match('aurelia');
+tests/alpha-leaders.test.ts:92:    const state = match('kor');
+tests/alpha-leaders.test.ts:96:    const old = toV4Snapshot(match('orinth'));
+tests/alpha-leaders.test.ts:108:      const neutral = leader.civilizationId === 'saren' ? match('valgard', 121, 'leader-alexandre-magno') : match('saren', 121, 'leader-ashoka');
+tests/alpha-leaders.test.ts:184:    const state = match('thalos');
+tests/alpha-leaders.test.ts:189:    const urban = match('thalos');setAlphaPhase(urban,'URBAN_ACTIONS');
+tests/alpha-leaders.test.ts:194:    const state = match('dravik', 121, 'leader-ciro-o-grande');
+tests/alpha-leaders.test.ts:197:    const mood = match('aurelia');
+tests/alpha-leaders.test.ts:203:    const state = match('nymara', 121, 'leader-ramses-ii');
+tests/alpha-leaders.test.ts:215:    const state = match('dravik');
+tests/alpha-leaders.test.ts:235:      let state = match('meridia', 123);
+tests/alpha-leaders.test.ts:249:    const state = match('dravik', 121, 'leader-ciro-o-grande');
+tests/alpha-service.test.ts:16:  for(const [actor,civilization] of [[f.a,'aurelia'],[f.b,'valgard']] as const){
+tests/alpha-service.test.ts:47:    const chosen=await f.service.lobby(f.a,f.view.id,{type:'CHOOSE_CIVILIZATION',civilization:'aurelia',expectedVersion:f.view.version},0);
+tests/alpha-service.test.ts:49:    expect((await f.service.lobby(f.b,f.view.id,{type:'CHOOSE_CIVILIZATION',civilization:'aurelia',expectedVersion:chosen.value.version},0)).ok).toBe(false);
+tests/alpha-playtest-log.test.ts:16:const fresh = () => beginAlphaPlanning(createAlphaGame({ gameId: 'playtest-log', seed: 5, players: [{ id: 'p1', name: SENTINEL, civilization: 'valgard' }, { id: 'p2
+tests/alpha-playtest-log.test.ts:89:    for (const [actor, civilization] of [[a, 'aurelia'], [b, 'valgard']] as const) {
+tests/alpha-ux-round-1.test.ts:35:      for (const [actor, civilization] of [[a, 'aurelia'], [b, 'valgard']] as const) {
+tests/alpha-lifecycle.test.ts:10:const CIVS=['aurelia','valgard','thalos','ironmark'];
+tests/alpha-postgres.db.integration.ts:30:    for (const [actor, civilization] of [[a, 'aurelia'], [b, 'valgard']] as const) {
+tests/alpha-push.test.ts:45:    const chosen = await post(http, created.cookie, { operation: 'lobby', gameId: room.id, payload: { type: 'CHOOSE_CIVILIZATION', civilization: 'aurelia', expectedVersion:
+tests/alpha-civilization-kits.test.ts:10:    expect(CIVILIZATION_KITS.filter(kit => kit.availability === 'AUTHORING').map(kit => kit.name)).toEqual(['Kaedor', 'Lumaris', 'Targan', 'Iskara', 'Veloria',
+tests/alpha-http.test.ts:23:    for(const [cookie,civilization] of [[cookieA,'aurelia'],[cookieB,'valgard']]){
+e2e/resonance-live.spec.ts:19:  const state = beginAlphaPlanning(createAlphaGame({ gameId: `7c1d4e22-5b6a-4c3d-8e9f-0a1b2c3d${String(2000 + counter++).padStart(4, '0')}`, seed: 11, preset: 'QUICK', pl
+e2e/strip-six-seats.spec.ts:13:const CIVS = ['valgard', 'kor', 'aurelia', 'thalos', 'orinth', 'saren'];
+tests/alpha-unit-options.test.ts:99:    const state = beginAlphaPlanning(createAlphaGame({ gameId: 'capitals', seed: 3, preset: 'QUICK', players: [{ id: 'p1', name: 'Ana', civilization: 'meridia' }, {
+tests/alpha-conflict-recovery.test.ts:48:  for (const [browser, civilization] of [[a, 'aurelia'], [b, 'valgard']] as const) {
+tests/fixtures/v11-room.json:1:{"room":{"id":"0c14b7e6-021a-412e-9981-70d1e3647c0d","version":19,"name":"Velha","joinCode":"CQ4RK-rMIis_iDHfMnOPbg","hostGuestId":"b96cd085-310b-4d9c-8e12-a979ae8642e2"
+e2e/move-discovery-live.spec.ts:31:    const state = beginAlphaPlanning(createAlphaGame({ gameId: `9e2a5c9a-3d2e-4f8a-9b7c-1a2b3c4d${String(1000 + counter).padStart(4, '0')}`, seed, preset: 'QUICK', w
+e2e/alpha-conflict.spec.ts:145:      const finale=page.getByRole('dialog',{name:index===0?'Sua civilização venceu':'Aurélia venceu'});
+e2e/alpha-conflict.spec.ts:149:      await expect(finale.locator('.alpha-standings tbody tr').first()).toContainText('Aurélia');
+scripts/alpha-simulate.mjs:81:  if (round === 15 && p === A) await cmd(p, { type: 'PLAY_CIVILIZATION_CARD', cardId: 'civ-valgard-1' });
+e2e/v51b-threat-intent.spec.ts:16:  const state = beginAlphaPlanning(createAlphaGame({ gameId: `7a1b5c9a-3d2e-4f8a-9b7c-1a2b3c4d5f${String(10 + counter++).padStart(2, '0')}`, seed: 23, preset: 'QUICK'
+scripts/alpha-rc-shots.mjs:8:const CHASSIS = ['valgard', 'nymara', 'meridia', 'dravik', 'solenne', 'kor', 'thalos', 'orinth', 'saren', 'aurelia'];
+e2e/local-play.spec.ts:29:  await expect(page.getByRole('heading', { name: 'Aurélia', exact: true }).first()).toBeVisible();
+e2e/local-play.spec.ts:88:  await page.getByRole('button', { name: /★ Aurélia/ }).click();
+e2e/local-play.spec.ts:195:  await expect(page.locator('.civ-brand')).toContainText('Valgard');
+e2e/interaction-v2.spec.ts:18:  const state = beginAlphaPlanning(createAlphaGame({ gameId: `7a1b5c9a-3d2e-4f8a-9b7c-1a2b3c4d6f${String(10 + counter++).padStart(2, '0')}`, seed: 23, preset: 'QUICK', pl
+e2e/v51b-table.spec.ts:20:  const state = clearPulse(beginAlphaPlanning(createAlphaGame({ gameId: `6f1b5c9a-3d2e-4f8a-9b7c-1a2b3c4d5e${String(60 + extra.length).padStart(2, '0')}`, seed: 11, preset: '
+e2e/v51b-seeded-states.spec.ts:18:  const state = beginAlphaPlanning(createAlphaGame({ gameId: `7a1b5c9a-3d2e-4f8a-9b7c-1a2b3c4d5e${String(10 + counter++).padStart(2, '0')}`, seed: 23, preset: 'QUICK'
+scripts/alpha-rc-smoke.mjs:8:const CHASSIS = ['valgard', 'nymara', 'meridia', 'dravik', 'solenne', 'kor', 'thalos', 'orinth', 'saren', 'aurelia'];
+scripts/alpha-rc-smoke.mjs:50:    const notCore = await lobby(a, id, { type: 'CHOOSE_CIVILIZATION', civilization: 'elyra' }); check('only the Core 10 are selectable (elyra refused)', notCore.ok === fa
+scripts/alpha-rc-smoke.mjs:51:    r = await lobby(a, id, { type: 'CHOOSE_CIVILIZATION', civilization: 'valgard' }); check('Core 10 choice accepted; recommended Figura preselected', r.ok && r.value.sea
+scripts/alpha-rc-smoke.mjs:53:    r = await lobby(b, id, { type: 'CHOOSE_CIVILIZATION', civilization: 'kor' }); check('second civilization accepted', r.ok);
+scripts/alpha-rc-smoke.mjs:55:    const bView = (await b.get(id)).value; check("Figura of a ready seat stays hidden until everyone is ready", bView.seats.find(s => s.civilization === 'valgard').figure
+scripts/alpha-live-persistence.mjs:21:    for (const [p, civ] of [[a, 'aurelia'], [b, 'valgard']]) {
+scripts/alpha-lobby-noscroll.mjs:16:const OLD_NAMES = /\b(Valgard|Aurélia|Merídia|Thalos|Saren|Kor|Orinth|Nymara|Dravik|Solenne|Elyra|Veyra)\b/;
+scripts/alpha-rc2-prod-ui.mjs:17:const civ = ['valgard', 'nymara', 'meridia', 'dravik', 'solenne', 'kor', 'thalos', 'orinth', 'saren', 'aurelia'].find(c => !lobby.seats.some(s => s.civilization === c)
+scripts/alpha-live-rooms.mjs:29:  for (const [p, civ] of [[a, 'aurelia'], [b, 'valgard'], [c, 'thalos']]) { const x = await post(p, { operation: 'lobby', gameId: id2, payload: { type: 'CHOOSE_CIVILIZA
+scripts/alpha-art-shots.mjs:22:  ['valgard', 'Helênicos', { emblem: 'aspis', seal: 'HEXAGON', banner: 'SHIELD', border: 'DOUBLE' }],
+scripts/alpha-art-shots.mjs:23:  ['nymara', 'Egípcios', { emblem: 'semtauy', seal: 'DIAMOND', banner: 'POLE', border: 'DOTTED' }],
+scripts/alpha-art-shots.mjs:24:  ['meridia', 'Mesopotâmicos', { emblem: 'estrela8', seal: 'CIRCLE', banner: 'PANEL', border: 'BAND' }],
+scripts/alpha-art-shots.mjs:25:  ['dravik', 'Persas', { emblem: 'aguia', seal: 'HEXAGON', banner: 'EAGLE', border: 'DASHED' }],
+scripts/alpha-art-shots.mjs:26:  ['solenne', 'Israel e Judá', { emblem: 'leao', seal: 'HEXAGON', banner: 'DEGEL', border: 'SOLID' }],
+scripts/alpha-art-shots.mjs:27:  ['kor', 'Romanos', { emblem: 'aquila', seal: 'DIAMOND', banner: 'VEXILLUM', border: 'SOLID' }],
+scripts/alpha-art-shots.mjs:28:  ['thalos', 'Nórdicos', { emblem: 'corvo', seal: 'CIRCLE', banner: 'RAVEN', border: 'DASH_DOT' }],
+scripts/alpha-art-shots.mjs:29:  ['orinth', 'Chineses', { emblem: 'ding', seal: 'HEXAGON', banner: 'STREAMER', border: 'DOUBLE' }],
+scripts/alpha-art-shots.mjs:30:  ['saren', 'Índia Antiga', { emblem: 'pavao', seal: 'DIAMOND', banner: 'LONG', border: 'DOTTED' }],
+scripts/alpha-art-shots.mjs:31:  ['aurelia', 'Incas', { emblem: 'mascaipacha', seal: 'CIRCLE', banner: 'SQUARE', border: 'BAND' }],
+scripts/alpha-art-shots.mjs:83:  const rows = [['valgard', 'Helênicos'], ['nymara', 'Egípcios'], ['thalos', 'Nórdicos'], ['orinth', 'Chineses'], ['aurelia', 'Incas']].map(([civ, name], i) => `<div cla
+scripts/alpha-art-shots.mjs:96:  const cells = A.LEGACY_WORK_IDS.map(id => `<div class="cell" style="width:150px">${svg(120, 120, '-50 -54 100 100', A.workArt(id, 48, 3))}<div style="display:flex;gap:
+scripts/alpha-live-playtest.mjs:11:const BOTS = Number(arg.get('bots') ?? 3), ROUNDS = Number(arg.get('rounds') ?? 14), NAVAL = arg.has('naval'), CIV = String(arg.get('civ') ?? 'valgard');
+scripts/alpha-live-playtest.mjs:31:const CHASSIS = ['valgard', 'nymara', 'meridia', 'dravik', 'solenne', 'kor', 'thalos', 'orinth', 'saren', 'aurelia'];
+scripts/alpha-smoke.mjs:71:  for (const [cookie, civilization] of [[a.cookie, 'aurelia'], [b.cookie, 'valgard']]) {
+scripts/alpha-live-suspend.mjs:17:  for (const [p, civ] of [[a, 'aurelia'], [b, 'valgard']]) { const x = await post(p, { operation: 'lobby', gameId: id, payload: { type: 'CHOOSE_CIVILIZATION', civiliz
+scripts/alpha-live-bots.mjs:27:    const free = ['aurelia', 'valgard', 'thalos', 'ironmark', 'kor'].find(x => !v.seats.some(s => s.civilization === x));

@@ -1,0 +1,24 @@
+{
+ "classification": "UX (prévia do Produzir omite o bônus de civilização kitProduceBonus; growthForecast herda o erro)",
+ "displayedFood": 5,
+ "creditedFoodByProduce": 6,
+ "produceFlows": [
+  {
+   "round": 1,
+   "phase": "URBAN_ACTIONS",
+   "label": "PRODUCE",
+   "delta": {
+    "food": 5
+   }
+  },
+  {
+   "round": 1,
+   "phase": "URBAN_ACTIONS",
+   "label": "PRODUCE",
+   "delta": {
+    "food": 1
+   }
+  }
+ ],
+ "civilization": "aurelia (+1 Alimento por Fazenda trabalhada)"
+}

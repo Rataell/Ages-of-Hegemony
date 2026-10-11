@@ -1,0 +1,8 @@
+{
+ "generatedAt": "2026-10-11T02:31:01.616Z",
+ "gitHead": "7ad69c4",
+ "branch": "stabilize/alpha-v1.2-audit",
+ "distFiles": 81,
+ "distSha256": "a78d3293d1d622b31f8c077b",
+ "note": "sha256 over packages/game-domain/dist/*.js and packages/game-engine/dist/*.js at the time the lane-a1 matrix was started; dist was NOT recompiled by this lane"
+}

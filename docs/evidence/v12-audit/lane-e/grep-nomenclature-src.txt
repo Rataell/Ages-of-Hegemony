@@ -1,0 +1,258 @@
+apps/server/src/alpha-bot-policy.ts:275:      // D-1 measurement: with nothing left to open, competent players sweep the ring 3–5 hexes from their cities so a fresh Acampamento is seen.
+apps/server/src/alpha-bot-policy.ts:400:  // Military (competent): garrisons stay home, the surplus strikes Acampamentos early with a real stack and answers marching Bandos.
+apps/server/src/alpha-bot-policy.ts:407:    for (const t of threatsSeen) if (t.kind === 'CAMP') strikeTargets.push({ hex: t.hexId, kind: 'threat', power: compPower(t), camped: t.status === 'CAMPED' });
+apps/server/src/alpha-bot-policy.ts:417:      // Targets in reach, each with the force it asks for. A target the stack can answer wins over a nearer one it cannot; an enemy city beats a camp at equal footing.
+apps/server/src/alpha-bot-policy.ts:419:      const inReach = strikeTargets.map(t => ({ ...t, d: dist(here, tileOf(state, t.hex)) })).filter(t => t.d <= (t.kind === 'threat' ? 8 : 9) && (t.kind === 'threat' ? (t.camped || t.d <= 4) : (persona.war <= round || hard)));
+apps/server/src/alpha-bot-policy.ts:474:    // Never eat the seed corn: a Recrutar that would leave Alimento below what the cities and pieces eat this round waits (unless a Bando is at the gate).
+apps/server/src/alpha-bot-policy.ts:476:    // Saving for Elevar: when a city lacks only resources, spending that would eat into them waits (defence against a Bando at the gate excepted).
+apps/web/app/alpha/alpha-board.tsx:129:    ...game.threatAlerts.map(alert=>`${alert.kind==='PIRATE'?'Piratas':'Um bando'} a ${alert.distance} hex(es) de ${civ.cities.find(x=>x.id===alert.cityId)?.name??'uma cidade'}: reforce a defesa ou ataque-o.`),
+apps/web/app/alpha/alpha-board.tsx:234:            ...(raidHere?[{key:'threat' as const,title:raidHere.kind==='PIRATE'?'Piratas':'Ameaça',node:<section className="alpha-people-panel is-raid" aria-label={raidHere.kind==='PIRATE'?'Piratas':raidHere.status==='CAMPED'?'Acampamento':'Bando em marcha'}><p className="eyebrow">{raidHere.kind==='PIRATE'?(raidHere.status==='CAMPED'?'ANCORADOURO PIRATA':'PIRATAS'):(raidHere.sta
+apps/web/app/alpha/alpha-board.tsx:235:            ...(people?[{key:'people' as const,title:'Povo',node:<section className="alpha-people-panel" aria-label="Povo independente"><p className="eyebrow">POVO INDEPENDENTE · {text(people.type).toUpperCase()}</p><p>Atitude: <b>{text(people.attitude)}</b> · Sua influência: <b>{people.yourInfluence}</b>{people.protectorId?` · Protegido por ${game.players.find(p=>p.id===people.
+apps/web/app/alpha/alpha-card.tsx:142:const DISCOVERY_GLYPH: Record<string, string> = { RUIN: 'M-14,14V-6M-4,14V-14M6,14V-2M16,14V-10M-20,16H22', DEPOSIT: 'M-18,14L-6,-10L2,2L10,-14L20,14Z', PASSAGE: 'M-18,16C-6,4 4,-2 18,-16M-8,18C2,6 10,0 22,-8', ANCHORAGE: 'M0,-16V14M-14,4C-12,14 12,14 14,4M-8,-10H8', DANGER: 'M0,-16L18,14H-18Z M0,-4V5 M0,9V10', CAMP: 'M-18,14L-4,-12L10,14M-4,-12L-4,14M8,14L16,0L24,14', NONE: 'M-1
+apps/web/app/alpha/alpha-compendium.tsx:14:const DISCOVERY_ORDER: DiscoveryKind[] = ['RUIN', 'DEPOSIT', 'PASSAGE', 'ANCHORAGE', 'DANGER', 'CAMP', 'NONE'];
+apps/web/app/alpha/alpha-details.tsx:104:    {threats.map(alert => <p key={`${alert.kind}-${alert.distance}`} className="alpha-warning">{alert.kind === 'PIRATE' ? 'Piratas' : 'Um bando'} a {alert.distance} hex(es).</p>)}
+apps/web/app/alpha/alpha-table.tsx:397:    const camped = t.status === 'CAMPED', title = t.kind === 'PIRATE' ? (camped ? 'Ancoradouro pirata' : 'Piratas') : camped ? 'Acampamento' : 'Bando em marcha';
+apps/web/app/alpha/alpha-table.tsx:399:    const note = camped ? (t.fresh ? 'Recém-surgido: ainda não pode partir. Destruído no acampamento, paga recompensa uma única vez.' : 'Destruído no acampamento, paga recompensa uma única vez; se partir, derrotá-lo em campo não rende nada.')
+apps/web/app/alpha/alpha.css:583:/* S7b: marching Bando heading (dashed, neutral), government list notes and the recruit count. */
+apps/web/app/alpha/table-art.ts:680:export const DISCOVERY_MARKERS: ReadonlySet<string> = new Set(['RUIN', 'DEPOSIT', 'PASSAGE', 'ANCHORAGE', 'CAMP']);
+apps/web/app/alpha/table-art.ts:686:  CAMP: () => { const k = WK, tent = (x: number, y: number, s: number, c: string) => fl(k, pd([[x - 10 * s, y], [x, y - 16 * s], [x + 10 * s, y]]), c) + fp(pd([[x, y - 16 * s], [x + 10 * s, y], [x + 2 * s, y]]), '#00000030') + fp(pd([[x - 2 * s, y], [x, y - 7 * s], [x + 2 * s, y]]), '#1d1510') + ln(`M${x},${y - 16 * s}l-2,-4M${x},${y - 16 * s}l2,-4`, WD, 1); return fp(ell(2, 30, 42
+apps/web/app/play/hex-map.tsx:49:  threats?: readonly { id: string; hexId: string; kind: 'CAMP' | 'PIRATE'; level: 1 | 2 | 3; status: 'CAMPED' | 'MARCHING'; fresh?: boolean; intent?: { state: string; targetKind: string | null; targetKnown: boolean; targetId: string | null; targetHexId: string | null; distance: number | null; nextHexId: string | null } }[];
+apps/web/app/play/hex-map.tsx:493:                  {people && <g transform={city && art ? 'translate(0 -40)' : 'translate(0 -28)'} className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title><
+apps/web/app/play/hex-map.tsx:494:                  {threat && <g transform={city && art ? 'translate(0 -40)' : 'translate(0 -28)'} className={`alpha-raid alpha-threat kind-${threat.kind} status-${threat.status}${threat.fresh ? ' is-fresh' : ''}`} data-level={threat.level}><rect x="-19" y="-10" width="38" height="20" rx="4" className="raid-badge" />{threat.kind === 'PIRATE' ? <path d="M-14 6L-3 6L-9 -6Z M-9 -6V7" cla
+apps/web/app/play/hex-map.tsx:546:        {/* Descobertas: a small permanent marker near the Region's centre (Vestígio, Jazida, Passagem, Ancoradouro, Acampamento). */}
+e2e/interaction-v2.spec.ts:226:test('threat: the Acampamento shows its state and is attacked from the adjacent stack, no side panel', async ({ browser }) => {
+e2e/interaction-v2.spec.ts:228:  const cap = capital(state), camp = neighbour(state, cap.hexId);
+e2e/interaction-v2.spec.ts:229:  const band = spawnThreat(state, 'CAMP')!; band.hexId = camp.id as never; band.homeHexId = camp.id as never; band.level = 2; band.status = 'CAMPED'; band.fresh = true;
+e2e/interaction-v2.spec.ts:233:  await hexOf(page, camp.id).click({ force: true });
+e2e/interaction-v2.spec.ts:234:  await expect(page.locator('.table-cloud .ctx-plate')).toContainText('Acampamento');
+e2e/v51b-seeded-states.spec.ts:45:test('SEEDED: Acampamento before activation, Bando marching, Pirata on the map', async ({ browser }) => {
+e2e/v51b-seeded-states.spec.ts:50:  const camp = spawnThreat(state, 'CAMP');
+e2e/v51b-seeded-states.spec.ts:51:  if (camp) { camp.hexId = near.id as never; camp.homeHexId = near.id as never; camp.level = 2; camp.status = 'CAMPED'; camp.composition = [{ kind: 'INFANTRY', count: 3 }, { kind: 'RANGED', count: 1 }]; }
+e2e/v51b-seeded-states.spec.ts:53:  await shot(page, 'acampamento-antes-de-ativar');
+e2e/v51b-seeded-states.spec.ts:54:  // the same camp, marching
+e2e/v51b-seeded-states.spec.ts:57:  const band = spawnThreat(marching, 'CAMP');
+e2e/v51b-seeded-states.spec.ts:60:  await shot(page, 'bando-em-marcha');
+e2e/v51b-seeded-states.spec.ts:69:  await shot(page, 'pirata-no-mar');
+e2e/v51b-table.spec.ts:18:/** A real 2-seat state, advanced the way a match would be: researched marks and sockets, a camp in sight of the capital. */
+e2e/v51b-table.spec.ts:26:  const threat = spawnThreat(state, 'CAMP');
+e2e/v51b-table.spec.ts:77:  // City card (inspector) and the camp on the map.
+e2e/v51b-table.spec.ts:80:  const camp = page.locator('.world-map [data-threat], .world-map .threat-mark, .world-map .alpha-threat').first();
+e2e/v51b-table.spec.ts:81:  if (await camp.count()) { await camp.click({ force: true }); }
+e2e/v51b-threat-intent.spec.ts:11:// SEEDED evidence for V51B-05: the Bando's target is the engine's own intention, drawn by the map exactly as received.
+e2e/v51b-threat-intent.spec.ts:12:// Three situations: target inside the player's vision, target beyond the fog, and a RECÉM-SURGIDO Acampamento (D-1).
+e2e/v51b-threat-intent.spec.ts:46:test('SEEDED: a Bando marching on the viewer\'s city shows its authoritative target; the target of a Bando on the open table is public', async ({ browser }) => {
+e2e/v51b-threat-intent.spec.ts:48:  // 1. target inside vision: a Bando 3 hexes from Ana's capital, marching on it; Ana sees the line and the target.
+e2e/v51b-threat-intent.spec.ts:51:    const probe = spawnThreat(near, 'CAMP')!; probe.hexId = t.id as never; probe.status = 'MARCHING'; const ok = landTarget(near, probe)?.id === home.id; near.threats = near.threats.filter(x => x.id !== probe.id); return ok;
+e2e/v51b-threat-intent.spec.ts:53:  const band = spawnThreat(near, 'CAMP')!; band.hexId = start.id as never; band.homeHexId = start.id as never; band.status = 'MARCHING'; band.fresh = false; band.level = 2;
+e2e/v51b-threat-intent.spec.ts:55:  near.regions.find(region => region.hexIds.includes(start.id as never))!.revealedBy.push(near.players[0]!.playerId); // the Region was explored: the Bando is on the table
+e2e/v51b-threat-intent.spec.ts:60:  await shot(page, '1-bando-alvo-visivel');
+e2e/v51b-threat-intent.spec.ts:65:    const probe = spawnThreat(far, 'CAMP')!; probe.hexId = t.id as never; probe.status = 'MARCHING'; const ok = landTarget(far, probe)?.id === rival.id; far.threats = far.threats.filter(x => x.id !== probe.id); return ok;
+e2e/v51b-threat-intent.spec.ts:67:  const wild = spawnThreat(far, 'CAMP')!; wild.hexId = spot.id as never; wild.homeHexId = spot.id as never; wild.status = 'MARCHING'; wild.fresh = false;
+e2e/v51b-threat-intent.spec.ts:73:  await shot(page, '2-bando-alvo-patria-rival');
+e2e/v51b-threat-intent.spec.ts:75:  // 3. RECÉM-SURGIDO: a fresh Acampamento in sight says it cannot leave yet.
+e2e/v51b-threat-intent.spec.ts:78:  const camp = spawnThreat(fresh, 'CAMP')!; camp.hexId = site.id as never; camp.homeHexId = site.id as never; camp.fresh = true;
+e2e/v51b-threat-intent.spec.ts:83:  await shot(page, '3-acampamento-recem-surgido');
+packages/game-domain/src/alpha-concept.ts:247:  pulse('wp-raiders', 'Bandos em marcha', 'NEGATIVE', null, 0, { command: { command: 'ACTIVATE' } }),
+packages/game-domain/src/alpha-concept.ts:404:  /** World threats (V5.1b): spawned, attacks they made, camps destroyed while camped, and threats wiped out. */
+packages/game-domain/src/alpha-regions.ts:50: * fisheries, farms on fertile soil, lumber camps and quarries meaningful choices instead of empty catalogue entries.
+packages/game-domain/src/alpha-resonance.ts:101:  STONE_AND_METAL: { boonA: [gain('stone', 2), gain('metal', 1)], boonB: [gain('metal', 2)], price: [{ op: 'THREAT', command: 'SPAWN', kind: 'LAND' }], mitigatedBy: ['web-fortification'], leveragedBy: ['web-metallurgy'], a: 'Filão', b: 'Forja acesa', priceText: 'o barulho atrai um Acampamento' },
+packages/game-domain/src/alpha-resonance.ts:103:  TRADE: { boonA: [gain('wealth', 3)], boonB: [gain('influence', 1), gain('wealth', 1)], price: [{ op: 'THREAT', command: 'SPAWN', kind: 'PIRATE' }], mitigatedBy: ['web-logistics'], leveragedBy: ['web-currency'], a: 'Boom mercantil', b: 'Rede de contatos', priceText: 'cobiça de piratas nas rotas' },
+packages/game-domain/src/alpha-threats.ts:11:export const ThreatStatusSchema = z.enum(['CAMPED', 'MARCHING']);
+packages/game-domain/src/alpha-threats.ts:19:  /** The reward of destroying a camp is paid once. */
+packages/game-domain/src/alpha-threats.ts:21:  /** RECÉM-SURGIDO (D-1): a camp stays vulnerable until one full Planning round has passed; it cannot launch a Bando while fresh. */
+packages/game-domain/src/alpha-threats.ts:27: * Composition by level and Era index (0 = Era I). Camps (canon §21b): I = 2 Infantaria; II = 3 Infantaria + 1 Arqueiros (Cavalaria from Era III);
+packages/game-domain/src/alpha-threats.ts:38:export const THREAT_NAMES: Record<ThreatKind, { camp: string; band: string }> = { CAMP: { camp: 'Acampamento', band: 'Bando' }, PIRATE: { camp: 'Ancoradouro pirata', band: 'Piratas' } };
+packages/game-domain/src/alpha-threats.ts:41:export const DiscoveryKindSchema = z.enum(['RUIN', 'DEPOSIT', 'PASSAGE', 'ANCHORAGE', 'DANGER', 'CAMP', 'NONE']);
+packages/game-domain/src/alpha-threats.ts:45:export const DISCOVERY_WEIGHTS: readonly (readonly [DiscoveryKind, number])[] = [['NONE', 25], ['RUIN', 20], ['DEPOSIT', 15], ['PASSAGE', 10], ['ANCHORAGE', 10], ['DANGER', 10], ['CAMP', 10]];
+packages/game-domain/src/alpha-threats.ts:54:  ANCHORAGE: { name: 'Ancoradouro', identity: 'Uma enseada protegida, boa para fundear e pescar.', effect: '+1 Riqueza; a primeira costa da região ganha boa pesca.', marker: true },
+packages/game-domain/src/alpha-threats.ts:56:  CAMP: { name: 'Acampamento', identity: 'Fogueiras e tendas: alguém já ocupou esta região.', effect: 'Surge um acampamento bárbaro na região.', marker: true },
+packages/game-domain/src/alpha-threats.ts:59:export const DISCOVERY_NAMES: Record<DiscoveryKind, string> = { RUIN: 'Vestígio', DEPOSIT: 'Jazida', PASSAGE: 'Passagem', ANCHORAGE: 'Ancoradouro', DANGER: 'Perigo', CAMP: 'Acampamento Bárbaro', NONE: 'Terra comum' };
+packages/game-domain/src/alpha-threats.ts:6:/** World threats (V5.1b canon §21b): Acampamentos that march as Bandos, and pirate Ancoradouros. The shock engine treats the world as a side. */
+packages/game-domain/src/alpha-threats.ts:68:  { id: 'enc-camp-spoils', title: 'Despojos do acampamento', text: 'O acampamento caído deixou provisões e um prisioneiro que fala.', options: [{ id: 'loot', label: 'Dividir os despojos: +2 Alimento e +1 Metal', ops: [gain('food', 2), gain('metal', 1)] }, { id: 'ransom', label: 'Negociar o prisioneiro: +2 Influência', ops: [gain('influence', 2)] }] },
+packages/game-domain/src/alpha-threats.ts:9:export const ThreatKindSchema = z.enum(['CAMP', 'PIRATE']);
+packages/game-domain/src/alpha.ts:188:  /** World threats (V5.1b §21b): Acampamentos, Bandos and pirate Ancoradouros. */
+packages/game-domain/src/alpha.ts:348:/** I-5/I-21: the pre-V5.1b raid bands become level-I/II Acampamentos (a band of strength 3+ is level II). Saves without `raidBands` are untouched. */
+packages/game-domain/src/alpha.ts:357:    return { id: `camp-${band.id ?? index + 1}`, kind: 'CAMP', hexId: band.hexId, homeHexId: band.hexId, level, status: 'CAMPED', composition: threatComposition('CAMP', level, 0), createdRound: 0, lastActedRound: round, rewardPaid: false, fresh: false };
+packages/game-domain/src/alpha.ts:360:  return { ...rest, threats: [...existing, ...threats], events: threats.length ? [...events, { id: `event-${events.length + 1}`, round, type: 'SAVE_UPGRADED', audience: null, message: 'Os bandos de fronteira agora são Acampamentos com Ameaça I–III (regras V5.1b).' }] : events };
+packages/game-engine/src/alpha-combat.ts:219:/** A player attacks a camp, a Bando or a pirate hold with the same shock core (design I-21, I-22). */
+packages/game-engine/src/alpha-discoveries.ts:62:      say('um ancoradouro natural: +1 Riqueza e boa pesca na costa.'); break;
+packages/game-engine/src/alpha-discoveries.ts:71:    case 'CAMP': {
+packages/game-engine/src/alpha-discoveries.ts:72:      say('um acampamento bárbaro se esconde na região.');
+packages/game-engine/src/alpha-discoveries.ts:97:      danger: method ? region.discovery?.kind === 'DANGER' || region.discovery?.kind === 'CAMP' : null,
+packages/game-engine/src/alpha-era-turn.ts:105:  log(state, 4, `${grown} Acampamento(s) cresceram; as Ameaças agiram.`);
+packages/game-engine/src/alpha-independents.ts:33:  if (!people || !state.players.find(player => player.playerId === actor)?.knownHexIds.includes(people.hexId)) throw new Error('Povo independente desconhecido.');
+packages/game-engine/src/alpha-independents.ts:34:  if (people.integratedBy !== null) throw new Error('Este povo independente já foi integrado.');
+packages/game-engine/src/alpha-independents.ts:41:  if (tile.ownerId !== null && tile.ownerId !== actor) throw new Error('O território independente está sob controle estrangeiro.');
+packages/game-engine/src/alpha-shock.ts:7: * (Bandos, Piratas) share one engine. One die per fighting piece from the private RNG, attackers first then defenders, each in id
+packages/game-engine/src/alpha-telemetry.ts:25:  const camps = state.threats.filter(threat => threat.kind === 'CAMP'), pirates = state.threats.filter(threat => threat.kind === 'PIRATE');
+packages/game-engine/src/alpha-telemetry.ts:26:  const threatsAlive: Record<string, number> = { camp: camps.length, pirate: pirates.length, marching: state.threats.filter(threat => threat.status === 'MARCHING').length };
+packages/game-engine/src/alpha-threats.ts:102:  const kind: ThreatKind = op.kind === 'PIRATE' ? 'PIRATE' : 'CAMP';
+packages/game-engine/src/alpha-threats.ts:103:  const label = kind === 'PIRATE' ? 'pirata' : 'de fronteira';
+packages/game-engine/src/alpha-threats.ts:115:/** Era turn growth: every camped threat with no player piece or city within 2 hexes gains an Ameaça level (up to III). */
+packages/game-engine/src/alpha-threats.ts:119:    if (threat.status !== 'CAMPED' || threat.level >= 3 || nearestPlayer(state, map.get(threat.hexId)!, sites, map) <= 2) continue;
+packages/game-engine/src/alpha-threats.ts:126:/** D-1: a fresh camp becomes ACTIVE once a Planning round that began after its creation has completed. */
+packages/game-engine/src/alpha-threats.ts:17: * World threats (canon §21b, design I-5, I-20 … I-24): Acampamentos that grow, march as Bandos, pillage and die; pirate
+packages/game-engine/src/alpha-threats.ts:18: * Ancoradouros with their own cap. A threat is not an `AlphaUnit`: its pieces are descriptors for the shock core, so the
+packages/game-engine/src/alpha-threats.ts:196:  if (threat.status === 'CAMPED') return { state: threat.fresh ? 'FRESH' : 'WAITING', ...none };
+packages/game-engine/src/alpha-threats.ts:203:const speedOf = (threat: Threat): number => threat.kind === 'CAMP' && threat.level >= 2 && threat.composition.some(entry => entry.kind === 'CAVALRY') ? 2 : 1;
+packages/game-engine/src/alpha-threats.ts:206: * Moves threats. `launch: true` (event command ACTIVATE, Era turn) turns CAMPED threats with a target into MARCHING Bandos (I-20);
+packages/game-engine/src/alpha-threats.ts:213:    if (threat.status === 'CAMPED') { if (!options.launch || threat.fresh) continue; } else if (threat.lastActedRound >= state.core.round) continue;
+packages/game-engine/src/alpha-threats.ts:222:  if (threat.status === 'CAMPED') { threat.status = 'MARCHING'; alphaEvent(state, 'THREAT_MARCHING', `${threat.kind === 'PIRATE' ? 'Piratas partiram' : 'Um bando partiu'} de seu ${threat.kind === 'PIRATE' ? 'ancoradouro' : 'acampamento'}.`, null); }
+packages/game-engine/src/alpha-threats.ts:230:      if (!city && fighters.length === 0 && threat.kind === 'CAMP') { killExposed(state, threat, occupants, next); moveThreat(state, threat, tile); continue; }
+packages/game-engine/src/alpha-threats.ts:242:  if (threat.kind === 'CAMP' && tile.improvement && tile.ownerId) {
+packages/game-engine/src/alpha-threats.ts:244:    alphaEvent(state, 'THREAT_PILLAGE', `Um bando pilhou uma melhoria em ${tile.id}.`, [owner]);
+packages/game-engine/src/alpha-threats.ts:25:export const threatCap = (state: AlphaState, kind: ThreatKind): number => kind === 'CAMP' ? state.players.length + 2 : Math.ceil(state.players.length / 2) + 1;
+packages/game-engine/src/alpha-threats.ts:252:  alphaEvent(state, 'THREAT_AMBUSH', `Um bando surpreendeu peças desprotegidas em ${hex}.`, threatViewers(state, hex, owners));
+packages/game-engine/src/alpha-threats.ts:256:/** Piratas: from a hex next to a port they pillage 2 Riqueza from its owner, once per activation (I-24). */
+packages/game-engine/src/alpha-threats.ts:265:  alphaEvent(state, 'THREAT_PILLAGE', `Piratas pilharam o porto de ${city.name}${loss ? ` (−${loss} Riqueza)` : ''}.`, [city.ownerId]);
+packages/game-engine/src/alpha-threats.ts:27:export const threatName = (threat: Pick<Threat, 'kind' | 'status'>): string => threat.kind === 'PIRATE' ? (threat.status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : (threat.status === 'CAMPED' ? 'Acampamento' : 'Bando');
+packages/game-engine/src/alpha-threats.ts:273:/** A hex a Bando stands on is not worked: Produzir skips it (I-23). */
+packages/game-engine/src/alpha-threats.ts:295:/** Pays the destroyer once, only when a camp dies still CAMPED (no farming of Bandos in the field, I-22). */
+packages/game-engine/src/alpha-threats.ts:297:  if (threat.status !== 'CAMPED' || threat.rewardPaid) return;
+packages/game-engine/src/alpha-threats.ts:303:    if (threat.level === 3) { const card = ENCOUNTER_CARDS.find(item => item.id === 'enc-camp-spoils')!; addPendingChoice(state, actor, { source: 'ENCOUNTER', cardId: card.id, title: card.title, text: card.text, mitigated: false, options: card.options }); }
+packages/game-engine/src/alpha-threats.ts:54:  if (kind === 'CAMP') {
+packages/game-engine/src/alpha-threats.ts:70:    id: `${kind === 'CAMP' ? 'camp' : 'pirate'}-r${state.core.round}-e${state.events.length}-n${state.threats.length + 1}`, kind, hexId: tile.id, homeHexId: tile.id, level: 1, status: 'CAMPED',
+packages/game-engine/src/alpha-world.ts:74:  // The two opening Acampamentos obey the same site rule as every later one (canon §21b: unclaimed, 3–5 hexes from a city, out of sight), not "as far as possible" (E-2).
+packages/game-engine/src/alpha-world.ts:75:  state.threats=[];for(let index=0;index<2;index++)spawnThreat(state,'CAMP');state.threats.forEach(threat=>{threat.fresh=false;});state.telemetry.threatsSpawned=0;
+tests/alpha-audio.test.ts:58:    const after = game({ phase: 'CONFLICTS', units: [{ id: 'u1', ownerId: 'p1', hexId: 'b' }, { id: 'u2', ownerId: 'p2', hexId: 'y' }], self: { era: 'II', resonance: { slots: [1] }, pendingChoices: [] }, threats: [{ id: 't1', kind: 'CAMP', status: 'CAMPED' }] });
+tests/alpha-bot-playtest.test.ts:46:    // Seed 1: coverage of the incidental flags (famine, battle, band, fortification) depends on the seed; Move + Discovery changed the opening order of exploration, so seed 5 no longer meets a Bando.
+tests/alpha-discoveries.test.ts:33:  it('covers every kind across seeds and only places an Ancoradouro where there is water', () => {
+tests/alpha-discoveries.test.ts:94:  it('CAMP spawns a camp inside the region (subject to the cap)', () => {
+tests/alpha-discoveries.test.ts:96:    const { region } = reveal(state, 'CAMP');
+tests/alpha-era-turn.test.ts:75:    expect(turn.eraTurn!.log.find(entry => entry.step === 4)!.summary).toMatch(/Acampamento/);
+tests/alpha-http-matches.test.ts:49:      // A city a Bando drove into Revolta only accepts Governar (canon §10): the bot governs it instead of producing.
+tests/alpha-independents.test.ts:100:      expect(nearest).toBeGreaterThanOrEqual(3); expect(nearest).toBeLessThanOrEqual(5); expect(camp.ownerId).toBeNull();
+tests/alpha-independents.test.ts:88:  it.each([2, 3, 4, 5, 6])('places peoples away from every capital and apart; opening camps follow the canon site rule (%i players)', async count => {
+tests/alpha-independents.test.ts:94:    expect(state.independents).toHaveLength(3); expect(state.threats.filter(threat => threat.kind === 'CAMP' && threat.createdRound <= 1).length).toBeGreaterThanOrEqual(2);
+tests/alpha-independents.test.ts:98:    for (const camp of state.threats.map(threat => at(threat.hexId))) {
+tests/alpha-independents.test.ts:99:      const nearest = Math.min(...capitals.map(capital => distance(capital, camp)));
+tests/alpha-naval.test.ts:125:    state.units.push({ id: 'raider-1', ownerId: p2, kind: 'FLEET', hexId: coast as never, recruitedRound: 1, carrierId: null }, { id: 'raider-2', ownerId: p2, kind: 'FLEET', hexId: coast as never, recruitedRound: 1, carrierId: null });
+tests/alpha-naval.test.ts:129:    const order = { id: 'naval-strike', type: 'ATTACK' as const, unitIds: ['raider-1', 'raider-2'], target: sea as never, posture: 'ASSAULT' as const };
+tests/alpha-naval.test.ts:130:    resolveBattleWithFaces(state, p2, order, { 'raider-1': 'IMPACT', 'raider-2': 'IMPACT', [fleet.id]: 'EMPTY' });
+tests/alpha-naval.test.ts:96:    state.units.push({ id: 'raider', ownerId: p2, kind: 'FLEET', hexId: coast as never, recruitedRound: 1, carrierId: null });
+tests/alpha-snapshot-upgrade.test.ts:55:describe('raid bands become Acampamentos (V5.1b threats)', () => {
+tests/alpha-snapshot-upgrade.test.ts:56:  it('migrates saved raidBands into level I/II camps with a public event, and parses again', () => {
+tests/alpha-snapshot-upgrade.test.ts:62:    expect(upgraded.threats.map(t => [t.kind, t.level, t.status, t.hexId])).toEqual([['CAMP', 1, 'CAMPED', hex], ['CAMP', 2, 'CAMPED', state.threats[1]!.hexId]]);
+tests/alpha-snapshot-upgrade.test.ts:64:    expect(upgraded.events.some(e => e.type === 'SAVE_UPGRADED' && e.audience === null && e.message.includes('Acampamentos'))).toBe(true);
+tests/alpha-threats.test.ts:100:    expect(threatComposition('CAMP', 3, 4)).toEqual([{ kind: 'INFANTRY', count: 4 }, { kind: 'CAVALRY', count: 1 }, { kind: 'SIEGE', count: 1 }]);
+tests/alpha-threats.test.ts:106:    const lonely = camp(state, farthest(state), { id: 'camp-lonely' });
+tests/alpha-threats.test.ts:107:    const watched = camp(state, origin(state, 4), { id: 'camp-watched' });
+tests/alpha-threats.test.ts:112:    expect(lonely.composition).toEqual(threatComposition('CAMP', 2, 0));
+tests/alpha-threats.test.ts:117:  it('a marching Bando does not grow', () => {
+tests/alpha-threats.test.ts:119:    const band = camp(state, land(state).filter(t => hexDistance(centre, t) >= 9)[0]!.id, { status: 'MARCHING' });
+tests/alpha-threats.test.ts:127:    const t = camp(state, start);
+tests/alpha-threats.test.ts:136:    const mid = camp(state, start, { id: 'camp-mid' });
+tests/alpha-threats.test.ts:144:  it('ACTIVATE launches a camp (CAMPED → MARCHING) and moves it one hex toward its target', () => {
+tests/alpha-threats.test.ts:145:    const state = setup(), start = origin(state, 5), t = camp(state, start);
+tests/alpha-threats.test.ts:148:    expect(t.status).toBe('CAMPED'); expect(t.hexId).toBe(start);
+tests/alpha-threats.test.ts:161:    const state = setup(), t = camp(state, origin(state, 6), { level: 2, composition: threatComposition('CAMP', 2, 3) });
+tests/alpha-threats.test.ts:168:    const state = setup(); camp(state, origin(state, 4)); applyThreatCommand(state, null, { op: 'THREAT', command: 'SPAWN', kind: 'LAND' });
+tests/alpha-threats.test.ts:176:describe('what a Bando does', () => {
+tests/alpha-threats.test.ts:181:    camp(state, next.id, { status: 'MARCHING', level: 3, composition: threatComposition('CAMP', 3, 0) });
+tests/alpha-threats.test.ts:197:    const band = camp(state, next.id, { status: 'MARCHING', level: 3, composition: threatComposition('CAMP', 3, 0) });
+tests/alpha-threats.test.ts:20:function camp(state: AlphaState, hex: string, over: Partial<Threat> = {}): Threat {
+tests/alpha-threats.test.ts:208:    const state = setup(), start = origin(state, 4), t = camp(state, start, { status: 'MARCHING' });
+tests/alpha-threats.test.ts:21:  const threat: Threat = { id: over.id ?? `camp-t${state.threats.length + 1}`, kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false, ...over };
+tests/alpha-threats.test.ts:214:    const state2 = setup(), t2 = camp(state2, origin(state2, 4), { status: 'MARCHING' });
+tests/alpha-threats.test.ts:224:    const state = setup(), start = origin(state, 4), t = camp(state, start, { status: 'MARCHING' });
+tests/alpha-threats.test.ts:226:    camp(state, land(state)[0]!.id === start ? land(state)[1]!.id : land(state)[0]!.id, { id: 'camp-still' });
+tests/alpha-threats.test.ts:227:    expect(hexBlockedByThreat(state, state.threats.find(x => x.id === 'camp-still')!.hexId)).toBe(false);
+tests/alpha-threats.test.ts:238:    const pirate = camp(state, water[0]!.id, { id: 'pirate-1', kind: 'PIRATE', status: 'MARCHING', composition: threatComposition('PIRATE', 1, 0) });
+tests/alpha-threats.test.ts:252:    const t = camp(state, spot.id, { level, status, composition: threatComposition('CAMP', level, 0) });
+tests/alpha-threats.test.ts:259:  it('attacking a camp with the normal ATTACK order resolves through the shock core and pays the reward once', () => {
+tests/alpha-threats.test.ts:260:    const { state, threat, stand } = fight(1, 'CAMPED');
+tests/alpha-threats.test.ts:274:  it('D-1: a fresh camp that the player strikes inside its window dies camped, pays its reward and never becomes a Bando', () => {
+tests/alpha-threats.test.ts:275:    const { state, threat, stand } = fight(1, 'CAMPED');
+tests/alpha-threats.test.ts:278:    expect(threat.status).toBe('CAMPED');
+tests/alpha-threats.test.ts:286:  it('a level III camp also pays Prestígio and an Encontro choice', () => {
+tests/alpha-threats.test.ts:287:    const { state, threat, stand } = fight(3, 'CAMPED');
+tests/alpha-threats.test.ts:292:    expect(state.players[0]!.pendingChoices.some(c => c.source === 'ENCOUNTER' && c.cardId === ENCOUNTER_CARDS.find(e => e.id === 'enc-camp-spoils')!.id)).toBe(true);
+tests/alpha-threats.test.ts:295:  it('a Bando killed in the field pays nothing (no farming)', () => {
+tests/alpha-threats.test.ts:30:/** A land hex `distance` away from the first capital from which the camp has a land route to a city. */
+tests/alpha-threats.test.ts:305:    const { state, threat, stand } = fight(1, 'CAMPED');
+tests/alpha-threats.test.ts:314:    const t = camp(state, far.id);
+tests/alpha-threats.test.ts:322:describe('D-1 · Acampamento RECÉM-SURGIDO', () => {
+tests/alpha-threats.test.ts:323:  it('a spawned camp is fresh and cannot launch a Bando in the chain that created it', () => {
+tests/alpha-threats.test.ts:325:    const created = spawnThreat(state, 'CAMP')!;
+tests/alpha-threats.test.ts:328:    expect(created.status).toBe('CAMPED'); expect(created.hexId).toBe(created.homeHexId);
+tests/alpha-threats.test.ts:331:    expect(created.status).toBe('CAMPED');
+tests/alpha-threats.test.ts:336:    const created = spawnThreat(state, 'CAMP')!;
+tests/alpha-threats.test.ts:34:    const probe = camp(state, candidate.id, { id: 'probe' }); const ok = landTarget(state, probe)?.id === state.core.players[0]!.civilization.cities[0]!.id; state.threats = state.threats.filter(t => t.id !== 'probe');
+tests/alpha-threats.test.ts:345:  it('a fresh camp keeps its place at the Era turn when a seasoned one launches', () => {
+tests/alpha-threats.test.ts:346:    const state = setup(), seasoned = camp(state, origin(state, 5), { id: 'camp-old' });
+tests/alpha-threats.test.ts:347:    const fresh = spawnThreat(state, 'CAMP')!;
+tests/alpha-threats.test.ts:349:    expect(seasoned.status).toBe('MARCHING'); expect(fresh.status).toBe('CAMPED');
+tests/alpha-threats.test.ts:352:  it('opening camps are not fresh', () => {
+tests/alpha-threats.test.ts:353:    const game = createAlphaGame({ gameId: 'open-camps', seed: 5, preset: 'STANDARD', players: [{ id: 'p1', name: 'A' }, { id: 'p2', name: 'B' }] });
+tests/alpha-threats.test.ts:358:describe('V51B-05 · the Bando target is authoritative public information; a Bando in a closed Region is not on the table', () => {
+tests/alpha-threats.test.ts:359:  /** A marching camp whose engine target is p1's capital. `open` turns the Region it stands in into a public one (somebody explored it). */
+tests/alpha-threats.test.ts:361:    const state = setup(), start = origin(state, 5), band = camp(state, start, { status: 'MARCHING' });
+tests/alpha-threats.test.ts:366:  it('is computed by the same functions the engine acts with: the next hex is where the Bando goes', () => {
+tests/alpha-threats.test.ts:374:  it('on an open Region the Bando and its intention are public: every seat reads the same target', () => {
+tests/alpha-threats.test.ts:384:  it('a Bando in a Region nobody explored is not on the table: no position, target or intention reaches any seat', () => {
+tests/alpha-threats.test.ts:394:  it('a CAMPED camp has no target and says whether it is fresh', () => {
+tests/alpha-threats.test.ts:395:    const state = setup(), spawned = spawnThreat(state, 'CAMP')!;
+tests/alpha-threats.test.ts:43:  it.each([[2, 4, 2], [4, 6, 3], [6, 8, 4]] as const)('%i players: camps cap %i, pirates cap %i', (count, camps, pirates) => {
+tests/alpha-threats.test.ts:45:    expect(threatCap(state, 'CAMP')).toBe(camps);
+tests/alpha-threats.test.ts:49:  it('SPAWN creates a camp out of sight, 3+ hexes from every city, unclaimed and never next to a city', () => {
+tests/alpha-threats.test.ts:51:    const created = spawnThreat(state, 'CAMP')!;
+tests/alpha-threats.test.ts:52:    expect(created.status).toBe('CAMPED'); expect(created.level).toBe(1); expect(created.composition).toEqual([{ kind: 'INFANTRY', count: 2 }]);
+tests/alpha-threats.test.ts:61:  it('a SPAWN over the cap reinforces an existing camp instead of creating another', () => {
+tests/alpha-threats.test.ts:62:    const state = setup(), cap = threatCap(state, 'CAMP');
+tests/alpha-threats.test.ts:63:    for (let i = 0; i < cap; i++) { const t = spawnThreat(state, 'CAMP'); expect(t).not.toBeNull(); }
+tests/alpha-threats.test.ts:71:  it('REINFORCE picks the camp farthest from player pieces and stops at Ameaça III', () => {
+tests/alpha-threats.test.ts:73:    const near = camp(state, origin(state, 4), { id: 'camp-near' });
+tests/alpha-threats.test.ts:74:    const far = camp(state, farthest(state), { id: 'camp-far' });
+tests/alpha-threats.test.ts:96:    expect(threatComposition('CAMP', 1, 0)).toEqual([{ kind: 'INFANTRY', count: 2 }]);
+tests/alpha-threats.test.ts:97:    expect(threatComposition('CAMP', 2, 0)).toEqual([{ kind: 'INFANTRY', count: 3 }, { kind: 'RANGED', count: 1 }]);
+tests/alpha-threats.test.ts:98:    expect(threatComposition('CAMP', 2, 2)).toEqual([{ kind: 'INFANTRY', count: 3 }, { kind: 'CAVALRY', count: 1 }]);
+tests/alpha-threats.test.ts:99:    expect(threatComposition('CAMP', 3, 3)).toEqual([{ kind: 'INFANTRY', count: 4 }, { kind: 'CAVALRY', count: 1 }]);
+tests/alpha-ui-coverage.test.ts:35:    expect(copy).not.toMatch(/Contestar presença|Ação de povo independente/i);
+tests/alpha-v4-fixture.ts:7: * trade offers, independents, raiders, world pulse, telemetry, the phase indicator, balance/world rules, battle posture
+tests/alpha-war-access.test.ts:15:  state.units.push({ id: 'raider', ownerId: p1, kind: 'INFANTRY', hexId: start.id, recruitedRound: 1, carrierId: null });
+tests/alpha-war-access.test.ts:28:    const moves = Object.keys(alphaUnitOptions(state, p1)['raider']!.moves);
+tests/alpha-war-access.test.ts:33:    const raider = state.units.find(unit => unit.id === 'raider')!;
+tests/alpha-war-access.test.ts:34:    raider.hexId = (hexNeighbors(state.core.map.find(t => t.id === target)!).map(hexId).find(id => state.core.map.some(t => t.id === id && t.ownerId === p2)))! as never;
+tests/alpha-war-access.test.ts:35:    expect(Object.keys(alphaUnitOptions(state, p1)['raider']!.moves)).not.toContain(target);
+tests/alpha-war-access.test.ts:36:    const attack = applyAlphaCommand(state, p1, { type: 'QUEUE_ORDER', expectedVersion: state.version, order: { id: 'storm', type: 'ATTACK', unitIds: ['raider'], target, posture: 'ASSAULT' } });
+tests/alpha-war-access.test.ts:42:    expect(Object.keys(alphaUnitOptions(state, p1)['raider']!.moves).some(id => ring.includes(id))).toBe(false);
+tests/external-threat-fixtures.test.ts:102:    const state = setup(), c = camp(state, origin(state, 5), { status: 'MARCHING' });
+tests/external-threat-fixtures.test.ts:111:    const state = setup(), start = origin(state, 5), c = camp(state, start, { status: 'MARCHING' });
+tests/external-threat-fixtures.test.ts:119:  it('8 blocks/stacks: two Bandos never share a hex (pathing treats the other as blocked)', () => {
+tests/external-threat-fixtures.test.ts:121:    const first = camp(state, start, { id: 'band-a', status: 'MARCHING' });
+tests/external-threat-fixtures.test.ts:123:    const second = camp(state, ahead, { id: 'band-b', status: 'MARCHING' });
+tests/external-threat-fixtures.test.ts:136:    const band = camp(state, next.id, { status: 'MARCHING', level: 3, composition: threatComposition('CAMP', 3, 0) });
+tests/external-threat-fixtures.test.ts:163:  it('11 can die: a Bando thrown against a strong garrison loses pieces until it is gone, with no reward', () => {
+tests/external-threat-fixtures.test.ts:167:    const band = camp(state, next.id, { status: 'MARCHING' });
+tests/external-threat-fixtures.test.ts:177:  it('13 camp cap is players+2: SPAWN never creates more', () => {
+tests/external-threat-fixtures.test.ts:180:      expect(threatCap(state, 'CAMP')).toBe(count + 2);
+tests/external-threat-fixtures.test.ts:182:      expect(state.threats.filter(t => t.kind === 'CAMP').length).toBe(count + 2);
+tests/external-threat-fixtures.test.ts:186:  it('14 over the cap, SPAWN reinforces an existing camp (level +1) and the event never names a hex', () => {
+tests/external-threat-fixtures.test.ts:187:    const state = setup(), cap = threatCap(state, 'CAMP');
+tests/external-threat-fixtures.test.ts:188:    for (let i = 0; i < cap; i++) spawnThreat(state, 'CAMP');
+tests/external-threat-fixtures.test.ts:199:describe('Piratas', () => {
+tests/external-threat-fixtures.test.ts:21:function camp(state: AlphaState, hex: string, over: Partial<Threat> = {}): Threat {
+tests/external-threat-fixtures.test.ts:210:    expect(created).toMatchObject({ kind: 'PIRATE', status: 'CAMPED', composition: [{ kind: 'FLEET', count: 1 }] });
+tests/external-threat-fixtures.test.ts:22:  const threat: Threat = { id: over.id ?? `camp-t${state.threats.length + 1}`, kind: 'CAMP', hexId: hex as never, homeHexId: hex as never, level: 1, status: 'CAMPED', composition: threatComposition('CAMP', 1, 0), createdRound: 1, lastActedRound: 0, rewardPaid: false, fresh: false, ...over };
+tests/external-threat-fixtures.test.ts:230:    const pirate = camp(state, water[0]!.id, { id: 'pirate-1', kind: 'PIRATE', status: 'MARCHING', composition: threatComposition('PIRATE', 1, 0) });
+tests/external-threat-fixtures.test.ts:245:    const state = setup(), start = origin(state, 5), band = camp(state, start, { status: 'MARCHING', level: 2, composition: threatComposition('CAMP', 2, 0) });
+tests/external-threat-fixtures.test.ts:250:    expect(seen[1]).toMatchObject({ kind: 'CAMP', level: 2, status: 'MARCHING', hexId: start, fresh: false, composition: threatComposition('CAMP', 2, 0) });
+tests/external-threat-fixtures.test.ts:29:    const probe = camp(state, candidate.id, { id: 'probe' }); const ok = landTarget(state, probe)?.id === state.core.players[0]!.civilization.cities[0]!.id; state.threats = state.threats.filter(t => t.id !== 'probe');
+tests/external-threat-fixtures.test.ts:44:describe('Acampamento', () => {
+tests/external-threat-fixtures.test.ts:45:  it('1 spawns: SPAWN creates a CAMPED level I camp out of sight and counts it', () => {
+tests/external-threat-fixtures.test.ts:49:    expect(state.threats[0]).toMatchObject({ kind: 'CAMP', status: 'CAMPED', level: 1 });
+tests/external-threat-fixtures.test.ts:53:  it('2 is "recém-surgido" (fresh) when spawned; opening/seasoned camps are not', () => {
+tests/external-threat-fixtures.test.ts:55:    expect(spawnThreat(state, 'CAMP')!.fresh).toBe(true);
+tests/external-threat-fixtures.test.ts:59:  it('3 does not activate immediately: ACTIVATE in the same chain leaves it camped in place', () => {
+tests/external-threat-fixtures.test.ts:60:    const state = setup(), created = spawnThreat(state, 'CAMP')!;
+tests/external-threat-fixtures.test.ts:62:    expect(created).toMatchObject({ status: 'CAMPED', hexId: created.homeHexId });
+tests/external-threat-fixtures.test.ts:66:    const state = setup(), created = spawnThreat(state, 'CAMP')!;
+tests/external-threat-fixtures.test.ts:76:  it('12 can be destroyed by a player ATTACK order while CAMPED, paying the reward once', () => {
+tests/external-threat-fixtures.test.ts:80:    const threat = camp(state, spot.id);
+tests/external-threat-fixtures.test.ts:9:// EXTERNAL ALPHA audit: short deterministic threat fixtures (Acampamentos, Bandos, Piratas). No simulations.
+tests/external-threat-fixtures.test.ts:91:describe('Bando', () => {
+tests/external-threat-fixtures.test.ts:92:  it('5 an Acampamento becomes a Bando on ACTIVATE, and REINFORCE grows the level/composition', () => {
+tests/external-threat-fixtures.test.ts:93:    const state = setup(), c = camp(state, origin(state, 5));
+tests/external-threat-fixtures.test.ts:94:    const grown = reinforceThreat(state, 'CAMP')!;
+tests/external-threat-fixtures.test.ts:95:    expect(grown).toBe(c); expect(c.level).toBe(2); expect(c.composition).toEqual(threatComposition('CAMP', 2, 0));
+tests/fixtures/v11-room.json:1:{"room":{"id":"0c14b7e6-021a-412e-9981-70d1e3647c0d","version":19,"name":"Velha","joinCode":"CQ4RK-rMIis_iDHfMnOPbg","hostGuestId":"b96cd085-310b-4d9c-8e12-a979ae8642e2","preset":"QUICK","worldPreset":"MIXED","seed":31,"seatLimit":3,"actionsPerRound":5,"revealMap":false,"planningSeconds":0,"deadline":null,"seats":[{"guestId":"b96cd085-310b-4d9c-8e12-a979ae8642e2","playerId":"player-1","

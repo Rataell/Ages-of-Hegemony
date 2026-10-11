@@ -1,0 +1,29 @@
+{
+ "jobs": [
+  {
+   "policy": "metalculture",
+   "profile": 49,
+   "players": 4,
+   "seed": 1
+  },
+  {
+   "policy": "metalculture",
+   "profile": 35,
+   "players": 4,
+   "seed": 1
+  },
+  {
+   "policy": "metalculture",
+   "profile": 21,
+   "players": 4,
+   "seed": 1
+  }
+ ],
+ "failed": [],
+ "generatedWith": "node scripts/alpha-economy-policies.mjs",
+ "profiles": {
+  "21": "QUICK",
+  "35": "STANDARD",
+  "49": "EPIC"
+ }
+}

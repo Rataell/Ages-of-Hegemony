@@ -1,0 +1,60 @@
+{
+ "classification": "RULE/BALANCE (limite aplicado no crédito do Produzir, antes do sustento da mesma rodada)",
+ "cap": 15,
+ "stockBefore": 14,
+ "producedFood": 2,
+ "sustenance": 3,
+ "flows": [
+  {
+   "round": 1,
+   "phase": "URBAN_ACTIONS",
+   "label": "DISCARD",
+   "delta": {
+    "food": -1
+   }
+  },
+  {
+   "round": 1,
+   "phase": "URBAN_ACTIONS",
+   "label": "PRODUCE",
+   "delta": {
+    "food": 2,
+    "knowledge": 2
+   }
+  },
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "RECURRING_MAINTENANCE",
+   "delta": {
+    "wood": 1
+   }
+  },
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "RECURRING_MAINTENANCE",
+   "delta": {
+    "wealth": 1
+   }
+  },
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "SUSTENANCE",
+   "delta": {
+    "food": -3
+   }
+  },
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "MILITARY_UPKEEP",
+   "delta": {}
+  }
+ ],
+ "finalFood": 12,
+ "finalIfDeferredToEndOfRound": 13,
+ "lostFood": 1,
+ "reading": "O crédito do Produzir é cortado no limite na hora (alphaGain com enforceStorage). O sustento só roda depois, na Manutenção. A produção que passa do limite é destruída mesmo que a mesma rodada a consuma. Efeito: o teto de vazão de Alimento por rodada é limite - resto, não o limite + produção."
+}

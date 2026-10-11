@@ -1,0 +1,2237 @@
+{
+ "seeds": 16,
+ "aggregates": [
+  {
+   "size": "STANDARD",
+   "preset": "MIXED",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 14,
+   "seaBodies": 9.1,
+   "navBodies": 6.8,
+   "largestNav": 20.7,
+   "ponds": 4.7,
+   "pondQuayPct": 35,
+   "fakeCoasts": 1.5,
+   "worldsWithFakeCoastPct": 97,
+   "landMasses": 1,
+   "landFragments": 0,
+   "largestLand": 196,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 13,
+   "minCapitalDistance": 10,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 0
+  },
+  {
+   "size": "STANDARD",
+   "preset": "MIXED",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 14,
+   "seaBodies": 9.4,
+   "navBodies": 7.6,
+   "largestNav": 16.2,
+   "ponds": 5.4,
+   "pondQuayPct": 43.2,
+   "fakeCoasts": 1.4,
+   "worldsWithFakeCoastPct": 94,
+   "landMasses": 1,
+   "landFragments": 0,
+   "largestLand": 196,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 63,
+   "minCapitalDistance": 7,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 0
+  },
+  {
+   "size": "STANDARD",
+   "preset": "MIXED",
+   "players": 6,
+   "worlds": 32,
+   "seaHexes": 14,
+   "seaBodies": 9.1,
+   "navBodies": 6.8,
+   "largestNav": 18.8,
+   "ponds": 4.8,
+   "pondQuayPct": 38.8,
+   "fakeCoasts": 1.3,
+   "worldsWithFakeCoastPct": 88,
+   "landMasses": 1,
+   "landFragments": 0,
+   "largestLand": 196,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 75,
+   "minCapitalDistance": 5,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 0
+  },
+  {
+   "size": "STANDARD",
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 50.2,
+   "seaBodies": 8.3,
+   "navBodies": 8.6,
+   "largestNav": 18.6,
+   "ponds": 5.1,
+   "pondQuayPct": 33.7,
+   "fakeCoasts": 0.1,
+   "worldsWithFakeCoastPct": 6,
+   "landMasses": 1.2,
+   "landFragments": 0.2,
+   "largestLand": 159.6,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 25,
+   "minCapitalDistance": 10,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 28,
+   "noStoneR1Pct": 6,
+   "rimBodies": 8.3,
+   "rimDryHexes": 11.8
+  },
+  {
+   "size": "STANDARD",
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 48.2,
+   "seaBodies": 9.6,
+   "navBodies": 9.2,
+   "largestNav": 17.1,
+   "ponds": 5.9,
+   "pondQuayPct": 40.3,
+   "fakeCoasts": 0,
+   "worldsWithFakeCoastPct": 0,
+   "landMasses": 1.3,
+   "landFragments": 0.3,
+   "largestLand": 161.5,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 53,
+   "minCapitalDistance": 7,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 69,
+   "noStoneR1Pct": 38,
+   "rimBodies": 8.5,
+   "rimDryHexes": 13.8
+  },
+  {
+   "size": "STANDARD",
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "worlds": 32,
+   "seaHexes": 46.3,
+   "seaBodies": 11.4,
+   "navBodies": 10.7,
+   "largestNav": 15.1,
+   "ponds": 7.3,
+   "pondQuayPct": 47.3,
+   "fakeCoasts": 0.1,
+   "worldsWithFakeCoastPct": 6,
+   "landMasses": 1.3,
+   "landFragments": 0.3,
+   "largestLand": 163.4,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 53,
+   "minCapitalDistance": 5,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 75,
+   "noStoneR1Pct": 16,
+   "rimBodies": 9.5,
+   "rimDryHexes": 15.8
+  },
+  {
+   "size": "STANDARD",
+   "preset": "ARCHIPELAGO",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 52.1,
+   "seaBodies": 6.7,
+   "navBodies": 5.1,
+   "largestNav": 55.3,
+   "ponds": 3.4,
+   "pondQuayPct": 17.3,
+   "fakeCoasts": 0.6,
+   "worldsWithFakeCoastPct": 56,
+   "landMasses": 5.4,
+   "landFragments": 2.4,
+   "largestLand": 94.2,
+   "patriasSameLandPct": 31,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 10,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 6,
+   "noStoneR1Pct": 0
+  },
+  {
+   "size": "STANDARD",
+   "preset": "ARCHIPELAGO",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 47,
+   "seaBodies": 7.6,
+   "navBodies": 5.3,
+   "largestNav": 52.5,
+   "ponds": 3.4,
+   "pondQuayPct": 18.1,
+   "fakeCoasts": 0.6,
+   "worldsWithFakeCoastPct": 50,
+   "landMasses": 4.3,
+   "landFragments": 2.2,
+   "largestLand": 111.7,
+   "patriasSameLandPct": 28,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 7,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 25
+  },
+  {
+   "size": "STANDARD",
+   "preset": "ARCHIPELAGO",
+   "players": 6,
+   "worlds": 32,
+   "seaHexes": 56.6,
+   "seaBodies": 7.2,
+   "navBodies": 5.1,
+   "largestNav": 52.1,
+   "ponds": 2.6,
+   "pondQuayPct": 12.5,
+   "fakeCoasts": 0.4,
+   "worldsWithFakeCoastPct": 34,
+   "landMasses": 4.5,
+   "landFragments": 1.8,
+   "largestLand": 100,
+   "patriasSameLandPct": 13,
+   "patriaOnlyPondPct": 3,
+   "minCapitalDistance": 5,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 19,
+   "noStoneR1Pct": 44
+  },
+  {
+   "size": "STANDARD",
+   "preset": "INLAND_SEA",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 29.2,
+   "seaBodies": 7.8,
+   "navBodies": 6.2,
+   "largestNav": 33.8,
+   "ponds": 4.3,
+   "pondQuayPct": 32.2,
+   "fakeCoasts": 1.2,
+   "worldsWithFakeCoastPct": 91,
+   "landMasses": 1.4,
+   "landFragments": 0.4,
+   "largestLand": 180.4,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 10,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 6,
+   "noStoneR1Pct": 0,
+   "centreDryHexes": 1.8,
+   "centreBodies": 1
+  },
+  {
+   "size": "STANDARD",
+   "preset": "INLAND_SEA",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 29.7,
+   "seaBodies": 8.2,
+   "navBodies": 5.8,
+   "largestNav": 32.8,
+   "ponds": 3.5,
+   "pondQuayPct": 24.9,
+   "fakeCoasts": 1,
+   "worldsWithFakeCoastPct": 75,
+   "landMasses": 1.5,
+   "landFragments": 0.5,
+   "largestLand": 179.8,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 7,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 0,
+   "centreDryHexes": 1.9,
+   "centreBodies": 1
+  },
+  {
+   "size": "STANDARD",
+   "preset": "INLAND_SEA",
+   "players": 6,
+   "worlds": 32,
+   "seaHexes": 28,
+   "seaBodies": 9,
+   "navBodies": 6.6,
+   "largestNav": 28.6,
+   "ponds": 4.2,
+   "pondQuayPct": 31.2,
+   "fakeCoasts": 1.1,
+   "worldsWithFakeCoastPct": 81,
+   "landMasses": 1.2,
+   "landFragments": 0.2,
+   "largestLand": 181.8,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 5,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 31,
+   "noStoneR1Pct": 9,
+   "centreDryHexes": 3.3,
+   "centreBodies": 1
+  },
+  {
+   "size": "COMPACT",
+   "preset": "MIXED",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 10.4,
+   "seaBodies": 7.1,
+   "navBodies": 6,
+   "largestNav": 15.3,
+   "ponds": 4.5,
+   "pondQuayPct": 46.1,
+   "fakeCoasts": 1.1,
+   "worldsWithFakeCoastPct": 75,
+   "landMasses": 1,
+   "landFragments": 0,
+   "largestLand": 157.6,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 50,
+   "minCapitalDistance": 11,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 6,
+   "noStoneR1Pct": 0
+  },
+  {
+   "size": "COMPACT",
+   "preset": "MIXED",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 10.4,
+   "seaBodies": 7.3,
+   "navBodies": 6.3,
+   "largestNav": 14.5,
+   "ponds": 4.8,
+   "pondQuayPct": 47.8,
+   "fakeCoasts": 1,
+   "worldsWithFakeCoastPct": 72,
+   "landMasses": 1,
+   "landFragments": 0,
+   "largestLand": 157.6,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 53,
+   "minCapitalDistance": 5,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 6,
+   "noStoneR1Pct": 0
+  },
+  {
+   "size": "COMPACT",
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 43.6,
+   "seaBodies": 8.4,
+   "navBodies": 8.5,
+   "largestNav": 15,
+   "ponds": 5.8,
+   "pondQuayPct": 39.6,
+   "fakeCoasts": 0.1,
+   "worldsWithFakeCoastPct": 9,
+   "landMasses": 1.5,
+   "landFragments": 0.5,
+   "largestLand": 123.9,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 28,
+   "minCapitalDistance": 11,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 9,
+   "noStoneR1Pct": 16,
+   "rimBodies": 8.3,
+   "rimDryHexes": 11.7
+  },
+  {
+   "size": "COMPACT",
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 43.3,
+   "seaBodies": 8.7,
+   "navBodies": 8.6,
+   "largestNav": 16.3,
+   "ponds": 5.8,
+   "pondQuayPct": 41.5,
+   "fakeCoasts": 0,
+   "worldsWithFakeCoastPct": 3,
+   "landMasses": 1.3,
+   "landFragments": 0.3,
+   "largestLand": 124.4,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 44,
+   "minCapitalDistance": 5,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 56,
+   "noStoneR1Pct": 22,
+   "rimBodies": 7.8,
+   "rimDryHexes": 12.5
+  },
+  {
+   "size": "COMPACT",
+   "preset": "ARCHIPELAGO",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 37.9,
+   "seaBodies": 6.3,
+   "navBodies": 3.8,
+   "largestNav": 46.3,
+   "ponds": 2.3,
+   "pondQuayPct": 13.8,
+   "fakeCoasts": 0.4,
+   "worldsWithFakeCoastPct": 34,
+   "landMasses": 3.5,
+   "landFragments": 0.9,
+   "largestLand": 75.8,
+   "patriasSameLandPct": 13,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 11,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 6,
+   "noStoneR1Pct": 19
+  },
+  {
+   "size": "COMPACT",
+   "preset": "ARCHIPELAGO",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 39.3,
+   "seaBodies": 5.8,
+   "navBodies": 4.6,
+   "largestNav": 40.9,
+   "ponds": 2.8,
+   "pondQuayPct": 16.4,
+   "fakeCoasts": 0.7,
+   "worldsWithFakeCoastPct": 53,
+   "landMasses": 3.3,
+   "landFragments": 1,
+   "largestLand": 92.9,
+   "patriasSameLandPct": 25,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 5,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 25
+  },
+  {
+   "size": "COMPACT",
+   "preset": "INLAND_SEA",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 26.2,
+   "seaBodies": 6.6,
+   "navBodies": 5.3,
+   "largestNav": 30,
+   "ponds": 3.8,
+   "pondQuayPct": 35.5,
+   "fakeCoasts": 0.8,
+   "worldsWithFakeCoastPct": 66,
+   "landMasses": 1.7,
+   "landFragments": 0.7,
+   "largestLand": 141,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 11,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 0,
+   "noStoneR1Pct": 0,
+   "centreDryHexes": 2.2,
+   "centreBodies": 1
+  },
+  {
+   "size": "COMPACT",
+   "preset": "INLAND_SEA",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 25.2,
+   "seaBodies": 6.5,
+   "navBodies": 5.3,
+   "largestNav": 27.2,
+   "ponds": 3.6,
+   "pondQuayPct": 35.1,
+   "fakeCoasts": 0.9,
+   "worldsWithFakeCoastPct": 81,
+   "landMasses": 1.3,
+   "landFragments": 0.3,
+   "largestLand": 142.5,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 5,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 0,
+   "noStoneR1Pct": 31,
+   "centreDryHexes": 2.6,
+   "centreBodies": 1
+  },
+  {
+   "size": "WIDE",
+   "preset": "MIXED",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 19,
+   "seaBodies": 13.8,
+   "navBodies": 13,
+   "largestNav": 16.1,
+   "ponds": 9.7,
+   "pondQuayPct": 45.3,
+   "fakeCoasts": 2.9,
+   "worldsWithFakeCoastPct": 100,
+   "landMasses": 1,
+   "landFragments": 0,
+   "largestLand": 282,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 47,
+   "minCapitalDistance": 14,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 6
+  },
+  {
+   "size": "WIDE",
+   "preset": "MIXED",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 19,
+   "seaBodies": 13.8,
+   "navBodies": 12.8,
+   "largestNav": 18.6,
+   "ponds": 10.1,
+   "pondQuayPct": 48.1,
+   "fakeCoasts": 2.8,
+   "worldsWithFakeCoastPct": 97,
+   "landMasses": 1,
+   "landFragments": 0,
+   "largestLand": 281.8,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 63,
+   "minCapitalDistance": 10,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 0,
+   "noStoneR1Pct": 6
+  },
+  {
+   "size": "WIDE",
+   "preset": "MIXED",
+   "players": 6,
+   "worlds": 32,
+   "seaHexes": 19,
+   "seaBodies": 13.8,
+   "navBodies": 13.4,
+   "largestNav": 17.4,
+   "ponds": 10.6,
+   "pondQuayPct": 52.3,
+   "fakeCoasts": 3.1,
+   "worldsWithFakeCoastPct": 97,
+   "landMasses": 1,
+   "landFragments": 0,
+   "largestLand": 282,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 91,
+   "minCapitalDistance": 7,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 19,
+   "noStoneR1Pct": 0
+  },
+  {
+   "size": "WIDE",
+   "preset": "CONTINENTAL",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 64.5,
+   "seaBodies": 11.3,
+   "navBodies": 10.7,
+   "largestNav": 22,
+   "ponds": 7,
+   "pondQuayPct": 34.8,
+   "fakeCoasts": 0,
+   "worldsWithFakeCoastPct": 0,
+   "landMasses": 1.6,
+   "landFragments": 0.6,
+   "largestLand": 235.9,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 38,
+   "minCapitalDistance": 14,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 25,
+   "noStoneR1Pct": 22,
+   "rimBodies": 10.5,
+   "rimDryHexes": 14.5
+  },
+  {
+   "size": "WIDE",
+   "preset": "CONTINENTAL",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 63.1,
+   "seaBodies": 12.3,
+   "navBodies": 11.5,
+   "largestNav": 18.6,
+   "ponds": 7.2,
+   "pondQuayPct": 34.1,
+   "fakeCoasts": 0,
+   "worldsWithFakeCoastPct": 0,
+   "landMasses": 1.6,
+   "landFragments": 0.6,
+   "largestLand": 237.4,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 41,
+   "minCapitalDistance": 10,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 44,
+   "noStoneR1Pct": 41,
+   "rimBodies": 11,
+   "rimDryHexes": 17
+  },
+  {
+   "size": "WIDE",
+   "preset": "CONTINENTAL",
+   "players": 6,
+   "worlds": 32,
+   "seaHexes": 61.2,
+   "seaBodies": 13.1,
+   "navBodies": 11.8,
+   "largestNav": 16.5,
+   "ponds": 7.3,
+   "pondQuayPct": 33.5,
+   "fakeCoasts": 0,
+   "worldsWithFakeCoastPct": 3,
+   "landMasses": 1.6,
+   "landFragments": 0.6,
+   "largestLand": 239.2,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 28,
+   "minCapitalDistance": 7,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 34,
+   "noStoneR1Pct": 53,
+   "rimBodies": 10.9,
+   "rimDryHexes": 18.9
+  },
+  {
+   "size": "WIDE",
+   "preset": "ARCHIPELAGO",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 77.4,
+   "seaBodies": 10.6,
+   "navBodies": 8.4,
+   "largestNav": 70.2,
+   "ponds": 6.1,
+   "pondQuayPct": 18,
+   "fakeCoasts": 1.4,
+   "worldsWithFakeCoastPct": 97,
+   "landMasses": 5.4,
+   "landFragments": 2.5,
+   "largestLand": 160,
+   "patriasSameLandPct": 50,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 14,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 6,
+   "noStoneR1Pct": 6
+  },
+  {
+   "size": "WIDE",
+   "preset": "ARCHIPELAGO",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 76.1,
+   "seaBodies": 10.3,
+   "navBodies": 8.1,
+   "largestNav": 81.3,
+   "ponds": 6.3,
+   "pondQuayPct": 19.3,
+   "fakeCoasts": 1.4,
+   "worldsWithFakeCoastPct": 72,
+   "landMasses": 6.3,
+   "landFragments": 2.7,
+   "largestLand": 109.4,
+   "patriasSameLandPct": 9,
+   "patriaOnlyPondPct": 0,
+   "minCapitalDistance": 10,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 0,
+   "noStoneR1Pct": 13
+  },
+  {
+   "size": "WIDE",
+   "preset": "ARCHIPELAGO",
+   "players": 6,
+   "worlds": 32,
+   "seaHexes": 67.3,
+   "seaBodies": 10.6,
+   "navBodies": 7.8,
+   "largestNav": 73.2,
+   "ponds": 6,
+   "pondQuayPct": 22.4,
+   "fakeCoasts": 1.3,
+   "worldsWithFakeCoastPct": 75,
+   "landMasses": 4.1,
+   "landFragments": 1.1,
+   "largestLand": 146.1,
+   "patriasSameLandPct": 19,
+   "patriaOnlyPondPct": 3,
+   "minCapitalDistance": 7,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 34
+  },
+  {
+   "size": "WIDE",
+   "preset": "INLAND_SEA",
+   "players": 2,
+   "worlds": 32,
+   "seaHexes": 34.4,
+   "seaBodies": 13.4,
+   "navBodies": 12.9,
+   "largestNav": 31.8,
+   "ponds": 10.4,
+   "pondQuayPct": 46,
+   "fakeCoasts": 3.3,
+   "worldsWithFakeCoastPct": 100,
+   "landMasses": 1.5,
+   "landFragments": 0.5,
+   "largestLand": 266.1,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 41,
+   "minCapitalDistance": 14,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 0,
+   "noStoneR1Pct": 13,
+   "centreDryHexes": 2.4,
+   "centreBodies": 1
+  },
+  {
+   "size": "WIDE",
+   "preset": "INLAND_SEA",
+   "players": 4,
+   "worlds": 32,
+   "seaHexes": 34.4,
+   "seaBodies": 13.7,
+   "navBodies": 12.1,
+   "largestNav": 28.2,
+   "ponds": 8.8,
+   "pondQuayPct": 39.8,
+   "fakeCoasts": 2.7,
+   "worldsWithFakeCoastPct": 100,
+   "landMasses": 1.5,
+   "landFragments": 0.5,
+   "largestLand": 266.2,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 66,
+   "minCapitalDistance": 10,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 13,
+   "centreDryHexes": 2.5,
+   "centreBodies": 1
+  },
+  {
+   "size": "WIDE",
+   "preset": "INLAND_SEA",
+   "players": 6,
+   "worlds": 32,
+   "seaHexes": 34.2,
+   "seaBodies": 13.1,
+   "navBodies": 12.7,
+   "largestNav": 31.3,
+   "ponds": 10.1,
+   "pondQuayPct": 47,
+   "fakeCoasts": 2.9,
+   "worldsWithFakeCoastPct": 100,
+   "landMasses": 1.4,
+   "landFragments": 0.4,
+   "largestLand": 266.3,
+   "patriasSameLandPct": 100,
+   "patriaOnlyPondPct": 81,
+   "minCapitalDistance": 7,
+   "metalR2Missing": 0,
+   "noFishR1Pct": 13,
+   "noStoneR1Pct": 19,
+   "centreDryHexes": 2,
+   "centreBodies": 1
+  }
+ ],
+ "properties": {
+  "STANDARD": {
+   "G1-seven-hex-regions": {
+    "id": "G1-seven-hex-regions",
+    "kind": "GUARD",
+    "title": "every Region has exactly seven distinct hexes",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G2-deposit-survives-rotation": {
+    "id": "G2-deposit-survives-rotation",
+    "kind": "GUARD",
+    "title": "a Region keeps exactly its metal deposits under all six rotations",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G3-patria-untouched": {
+    "id": "G3-patria-untouched",
+    "kind": "GUARD",
+    "title": "active Pátrias stay at rotation 0 with their authored terrain",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G4-metal-within-two-regions": {
+    "id": "G4-metal-within-two-regions",
+    "kind": "GUARD",
+    "title": "every active Pátria has a metal deposit within two Regions",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G5-patrias-share-a-land-mass": {
+    "id": "G5-patrias-share-a-land-mass",
+    "kind": "GUARD",
+    "title": "every active Pátria is on the same land mass (a walkable road exists between homelands)",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G6-inland-sea-one-body": {
+    "id": "G6-inland-sea-one-body",
+    "kind": "GUARD",
+    "title": "the central sea is one connected body",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G7-archipelago-islands": {
+    "id": "G7-archipelago-islands",
+    "kind": "GUARD",
+    "title": "the world is split into at least two land masses",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "F1-no-fake-coast": {
+    "id": "F1-no-fake-coast",
+    "kind": "FINDING",
+    "title": "no COAST hex without a navigable neighbour (a coast to nowhere)",
+    "byPreset": {
+     "MIXED": {
+      "fails": 89,
+      "total": 96,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "2 fake coast(s)"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 4,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 2,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "1 fake coast(s)"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 45,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "1 fake coast(s)"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 79,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "1 fake coast(s)"
+      }
+     }
+    }
+   },
+   "F2-isPort-implies-harbor": {
+    "id": "F2-isPort-implies-harbor",
+    "kind": "FINDING",
+    "title": "isPort (recruit ships) and harborHex (Distrito Marítimo) agree on every COAST hex",
+    "byPreset": {
+     "MIXED": {
+      "fails": 89,
+      "total": 96,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "2 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 4,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 2,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "1 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 45,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "1 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 79,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "1 COAST hex(es) are a port without a harbor"
+      }
+     }
+    }
+   },
+   "F3-no-port-on-a-pond": {
+    "id": "F3-no-port-on-a-pond",
+    "kind": "FINDING",
+    "title": "a quay needs a navigable body of at least one Region (7 hexes): harborHex is null on pond-only edges",
+    "byPreset": {
+     "MIXED": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "22 pond-only quay hex(es), e.g. -2,-5"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "23 pond-only quay hex(es), e.g. -7,3"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 95,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "37 pond-only quay hex(es), e.g. -7,0"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 95,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "24 pond-only quay hex(es), e.g. -2,-5"
+      }
+     }
+    }
+   },
+   "F4-home-port-on-real-sea": {
+    "id": "F4-home-port-on-real-sea",
+    "kind": "FINDING",
+    "title": "no active Pátria is left with ponds as its only water",
+    "byPreset": {
+     "MIXED": {
+      "fails": 48,
+      "total": 96,
+      "first": {
+       "preset": "MIXED",
+       "seed": 4,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "turned",
+       "detail": "slots 1 reach only a pond (best body 6)"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 42,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 2,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "turned",
+       "detail": "slots 1 reach only a pond (best body 6)"
+      }
+     }
+    }
+   },
+   "F5-continental-ocean-rim": {
+    "id": "F5-continental-ocean-rim",
+    "kind": "FINDING",
+    "title": "the outer ocean rim is one navigable body",
+    "byPreset": {
+     "CONTINENTAL": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "10 separate bodies (12 dry rim hexes)"
+      }
+     }
+    }
+   },
+   "F6-continental-one-land-mass": {
+    "id": "F6-continental-one-land-mass",
+    "kind": "FINDING",
+    "title": "one great land mass: no islet cut off from it",
+    "byPreset": {
+     "CONTINENTAL": {
+      "fails": 25,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "land masses 160,1"
+      }
+     }
+    }
+   },
+   "F7-inland-sea-no-metal-islets": {
+    "id": "F7-inland-sea-no-metal-islets",
+    "kind": "FINDING",
+    "title": "the central sea has no dry hex (deposits are not carved into islets)",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 88,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "turned",
+       "detail": "dry: -1,-1:MOUNTAINS+METAL,0,-2:HILLS+METAL,2,-1:MOUNTAINS+METAL"
+      }
+     }
+    }
+   },
+   "F8-inland-sea-no-fragments": {
+    "id": "F8-inland-sea-no-fragments",
+    "kind": "FINDING",
+    "title": "no land fragment smaller than a Region",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 35,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 2,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "1 fragment(s) 1"
+      }
+     }
+    }
+   },
+   "F9-archipelago-no-corridor": {
+    "id": "F9-archipelago-no-corridor",
+    "kind": "FINDING",
+    "title": "no land corridor: no two active Pátrias share a land mass",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 72,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 3,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "turned",
+       "detail": "slots 1 and 2 share a land mass"
+      }
+     }
+    }
+   },
+   "F10-archipelago-patria-has-real-port": {
+    "id": "F10-archipelago-patria-has-real-port",
+    "kind": "FINDING",
+    "title": "every active Pátria reaches a real sea (a quay within 3 hexes of the capital on a body of 7+ hexes)",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 1,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 3,
+       "players": 6,
+       "size": "STANDARD",
+       "variant": "turned",
+       "detail": "slots 3 have no real port"
+      }
+     }
+    }
+   },
+   "F11-archipelago-no-islets": {
+    "id": "F11-archipelago-no-islets",
+    "kind": "FINDING",
+    "title": "no land fragment smaller than a Region",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 92,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "STANDARD",
+       "variant": "creation",
+       "detail": "3 fragment(s) 3,2,1"
+      }
+     }
+    }
+   }
+  },
+  "COMPACT": {
+   "G1-seven-hex-regions": {
+    "id": "G1-seven-hex-regions",
+    "kind": "GUARD",
+    "title": "every Region has exactly seven distinct hexes",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     }
+    }
+   },
+   "G2-deposit-survives-rotation": {
+    "id": "G2-deposit-survives-rotation",
+    "kind": "GUARD",
+    "title": "a Region keeps exactly its metal deposits under all six rotations",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     }
+    }
+   },
+   "G3-patria-untouched": {
+    "id": "G3-patria-untouched",
+    "kind": "GUARD",
+    "title": "active Pátrias stay at rotation 0 with their authored terrain",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     }
+    }
+   },
+   "G4-metal-within-two-regions": {
+    "id": "G4-metal-within-two-regions",
+    "kind": "GUARD",
+    "title": "every active Pátria has a metal deposit within two Regions",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     }
+    }
+   },
+   "G5-patrias-share-a-land-mass": {
+    "id": "G5-patrias-share-a-land-mass",
+    "kind": "GUARD",
+    "title": "every active Pátria is on the same land mass (a walkable road exists between homelands)",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     }
+    }
+   },
+   "G6-inland-sea-one-body": {
+    "id": "G6-inland-sea-one-body",
+    "kind": "GUARD",
+    "title": "the central sea is one connected body",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     }
+    }
+   },
+   "G7-archipelago-islands": {
+    "id": "G7-archipelago-islands",
+    "kind": "GUARD",
+    "title": "the world is split into at least two land masses",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 6,
+      "total": 64,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 10,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "turned",
+       "detail": "single land mass"
+      }
+     }
+    }
+   },
+   "F1-no-fake-coast": {
+    "id": "F1-no-fake-coast",
+    "kind": "FINDING",
+    "title": "no COAST hex without a navigable neighbour (a coast to nowhere)",
+    "byPreset": {
+     "MIXED": {
+      "fails": 47,
+      "total": 64,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "1 fake coast(s)"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 4,
+      "total": 64,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 5,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "1 fake coast(s)"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 28,
+      "total": 64,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "1 fake coast(s)"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 47,
+      "total": 64,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "2 fake coast(s)"
+      }
+     }
+    }
+   },
+   "F2-isPort-implies-harbor": {
+    "id": "F2-isPort-implies-harbor",
+    "kind": "FINDING",
+    "title": "isPort (recruit ships) and harborHex (Distrito Marítimo) agree on every COAST hex",
+    "byPreset": {
+     "MIXED": {
+      "fails": 47,
+      "total": 64,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "1 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 4,
+      "total": 64,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 5,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "1 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 28,
+      "total": 64,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "1 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 47,
+      "total": 64,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "2 COAST hex(es) are a port without a harbor"
+      }
+     }
+    }
+   },
+   "F3-no-port-on-a-pond": {
+    "id": "F3-no-port-on-a-pond",
+    "kind": "FINDING",
+    "title": "a quay needs a navigable body of at least one Region (7 hexes): harborHex is null on pond-only edges",
+    "byPreset": {
+     "MIXED": {
+      "fails": 64,
+      "total": 64,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "37 pond-only quay hex(es), e.g. -2,-5"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 64,
+      "total": 64,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "25 pond-only quay hex(es), e.g. -3,-5"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 60,
+      "total": 64,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "19 pond-only quay hex(es), e.g. -7,0"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 63,
+      "total": 64,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "32 pond-only quay hex(es), e.g. -7,0"
+      }
+     }
+    }
+   },
+   "F4-home-port-on-real-sea": {
+    "id": "F4-home-port-on-real-sea",
+    "kind": "FINDING",
+    "title": "no active Pátria is left with ponds as its only water",
+    "byPreset": {
+     "MIXED": {
+      "fails": 33,
+      "total": 64,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "slots 2 reach only a pond (best body 5)"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 23,
+      "total": 64,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 2,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "slots 1 reach only a pond (best body 5)"
+      }
+     }
+    }
+   },
+   "F5-continental-ocean-rim": {
+    "id": "F5-continental-ocean-rim",
+    "kind": "FINDING",
+    "title": "the outer ocean rim is one navigable body",
+    "byPreset": {
+     "CONTINENTAL": {
+      "fails": 64,
+      "total": 64,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "8 separate bodies (12 dry rim hexes)"
+      }
+     }
+    }
+   },
+   "F6-continental-one-land-mass": {
+    "id": "F6-continental-one-land-mass",
+    "kind": "FINDING",
+    "title": "one great land mass: no islet cut off from it",
+    "byPreset": {
+     "CONTINENTAL": {
+      "fails": 20,
+      "total": 64,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 5,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "land masses 125,1,1"
+      }
+     }
+    }
+   },
+   "F7-inland-sea-no-metal-islets": {
+    "id": "F7-inland-sea-no-metal-islets",
+    "kind": "FINDING",
+    "title": "the central sea has no dry hex (deposits are not carved into islets)",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 60,
+      "total": 64,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "dry: 1,-2:HILLS+METAL,1,-1:MOUNTAINS+METAL"
+      }
+     }
+    }
+   },
+   "F8-inland-sea-no-fragments": {
+    "id": "F8-inland-sea-no-fragments",
+    "kind": "FINDING",
+    "title": "no land fragment smaller than a Region",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 30,
+      "total": 64,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "turned",
+       "detail": "1 fragment(s) 1"
+      }
+     }
+    }
+   },
+   "F9-archipelago-no-corridor": {
+    "id": "F9-archipelago-no-corridor",
+    "kind": "FINDING",
+    "title": "no land corridor: no two active Pátrias share a land mass",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 35,
+      "total": 64,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 5,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "turned",
+       "detail": "slots 1 and 2 share a land mass"
+      }
+     }
+    }
+   },
+   "F10-archipelago-patria-has-real-port": {
+    "id": "F10-archipelago-patria-has-real-port",
+    "kind": "FINDING",
+    "title": "every active Pátria reaches a real sea (a quay within 3 hexes of the capital on a body of 7+ hexes)",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 64,
+      "first": null
+     }
+    }
+   },
+   "F11-archipelago-no-islets": {
+    "id": "F11-archipelago-no-islets",
+    "kind": "FINDING",
+    "title": "no land fragment smaller than a Region",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 41,
+      "total": 64,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "COMPACT",
+       "variant": "creation",
+       "detail": "1 fragment(s) 4"
+      }
+     }
+    }
+   }
+  },
+  "WIDE": {
+   "G1-seven-hex-regions": {
+    "id": "G1-seven-hex-regions",
+    "kind": "GUARD",
+    "title": "every Region has exactly seven distinct hexes",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G2-deposit-survives-rotation": {
+    "id": "G2-deposit-survives-rotation",
+    "kind": "GUARD",
+    "title": "a Region keeps exactly its metal deposits under all six rotations",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G3-patria-untouched": {
+    "id": "G3-patria-untouched",
+    "kind": "GUARD",
+    "title": "active Pátrias stay at rotation 0 with their authored terrain",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G4-metal-within-two-regions": {
+    "id": "G4-metal-within-two-regions",
+    "kind": "GUARD",
+    "title": "every active Pátria has a metal deposit within two Regions",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "ARCHIPELAGO": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G5-patrias-share-a-land-mass": {
+    "id": "G5-patrias-share-a-land-mass",
+    "kind": "GUARD",
+    "title": "every active Pátria is on the same land mass (a walkable road exists between homelands)",
+    "byPreset": {
+     "MIXED": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "CONTINENTAL": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     },
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G6-inland-sea-one-body": {
+    "id": "G6-inland-sea-one-body",
+    "kind": "GUARD",
+    "title": "the central sea is one connected body",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 0,
+      "total": 96,
+      "first": null
+     }
+    }
+   },
+   "G7-archipelago-islands": {
+    "id": "G7-archipelago-islands",
+    "kind": "GUARD",
+    "title": "the world is split into at least two land masses",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 4,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 3,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "turned",
+       "detail": "single land mass"
+      }
+     }
+    }
+   },
+   "F1-no-fake-coast": {
+    "id": "F1-no-fake-coast",
+    "kind": "FINDING",
+    "title": "no COAST hex without a navigable neighbour (a coast to nowhere)",
+    "byPreset": {
+     "MIXED": {
+      "fails": 94,
+      "total": 96,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "3 fake coast(s)"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 1,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 7,
+       "players": 6,
+       "size": "WIDE",
+       "variant": "turned",
+       "detail": "1 fake coast(s)"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 78,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "2 fake coast(s)"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "5 fake coast(s)"
+      }
+     }
+    }
+   },
+   "F2-isPort-implies-harbor": {
+    "id": "F2-isPort-implies-harbor",
+    "kind": "FINDING",
+    "title": "isPort (recruit ships) and harborHex (Distrito Marítimo) agree on every COAST hex",
+    "byPreset": {
+     "MIXED": {
+      "fails": 94,
+      "total": 96,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "3 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 1,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 7,
+       "players": 6,
+       "size": "WIDE",
+       "variant": "turned",
+       "detail": "1 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 78,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "2 COAST hex(es) are a port without a harbor"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "5 COAST hex(es) are a port without a harbor"
+      }
+     }
+    }
+   },
+   "F3-no-port-on-a-pond": {
+    "id": "F3-no-port-on-a-pond",
+    "kind": "FINDING",
+    "title": "a quay needs a navigable body of at least one Region (7 hexes): harborHex is null on pond-only edges",
+    "byPreset": {
+     "MIXED": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "87 pond-only quay hex(es), e.g. -10,2"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "26 pond-only quay hex(es), e.g. -6,-3"
+      }
+     },
+     "ARCHIPELAGO": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "45 pond-only quay hex(es), e.g. -10,2"
+      }
+     },
+     "INLAND_SEA": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "65 pond-only quay hex(es), e.g. -10,2"
+      }
+     }
+    }
+   },
+   "F4-home-port-on-real-sea": {
+    "id": "F4-home-port-on-real-sea",
+    "kind": "FINDING",
+    "title": "no active Pátria is left with ponds as its only water",
+    "byPreset": {
+     "MIXED": {
+      "fails": 64,
+      "total": 96,
+      "first": {
+       "preset": "MIXED",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "slots 1 reach only a pond (best body 4)"
+      }
+     },
+     "CONTINENTAL": {
+      "fails": 34,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "slots 2 reach only a pond (best body 6)"
+      }
+     }
+    }
+   },
+   "F5-continental-ocean-rim": {
+    "id": "F5-continental-ocean-rim",
+    "kind": "FINDING",
+    "title": "the outer ocean rim is one navigable body",
+    "byPreset": {
+     "CONTINENTAL": {
+      "fails": 96,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "11 separate bodies (13 dry rim hexes)"
+      }
+     }
+    }
+   },
+   "F6-continental-one-land-mass": {
+    "id": "F6-continental-one-land-mass",
+    "kind": "FINDING",
+    "title": "one great land mass: no islet cut off from it",
+    "byPreset": {
+     "CONTINENTAL": {
+      "fails": 45,
+      "total": 96,
+      "first": {
+       "preset": "CONTINENTAL",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "land masses 236,1"
+      }
+     }
+    }
+   },
+   "F7-inland-sea-no-metal-islets": {
+    "id": "F7-inland-sea-no-metal-islets",
+    "kind": "FINDING",
+    "title": "the central sea has no dry hex (deposits are not carved into islets)",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 93,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "dry: 2,0:HILLS+METAL"
+      }
+     }
+    }
+   },
+   "F8-inland-sea-no-fragments": {
+    "id": "F8-inland-sea-no-fragments",
+    "kind": "FINDING",
+    "title": "no land fragment smaller than a Region",
+    "byPreset": {
+     "INLAND_SEA": {
+      "fails": 46,
+      "total": 96,
+      "first": {
+       "preset": "INLAND_SEA",
+       "seed": 2,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "1 fragment(s) 1"
+      }
+     }
+    }
+   },
+   "F9-archipelago-no-corridor": {
+    "id": "F9-archipelago-no-corridor",
+    "kind": "FINDING",
+    "title": "no land corridor: no two active Pátrias share a land mass",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 67,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "slots 1 and 2 share a land mass"
+      }
+     }
+    }
+   },
+   "F10-archipelago-patria-has-real-port": {
+    "id": "F10-archipelago-patria-has-real-port",
+    "kind": "FINDING",
+    "title": "every active Pátria reaches a real sea (a quay within 3 hexes of the capital on a body of 7+ hexes)",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 1,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 9,
+       "players": 6,
+       "size": "WIDE",
+       "variant": "turned",
+       "detail": "slots 1 have no real port"
+      }
+     }
+    }
+   },
+   "F11-archipelago-no-islets": {
+    "id": "F11-archipelago-no-islets",
+    "kind": "FINDING",
+    "title": "no land fragment smaller than a Region",
+    "byPreset": {
+     "ARCHIPELAGO": {
+      "fails": 84,
+      "total": 96,
+      "first": {
+       "preset": "ARCHIPELAGO",
+       "seed": 1,
+       "players": 2,
+       "size": "WIDE",
+       "variant": "creation",
+       "detail": "4 fragment(s) 3,2,1,1"
+      }
+     }
+    }
+   }
+  }
+ }
+}

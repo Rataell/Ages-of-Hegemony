@@ -1,0 +1,6 @@
+docs/evidence/v12-audit/lane-e/runs/fix-retreat-QUICK-2p-s1.json 25176ms round 21 spawned 2 attacks 13 kills 0
+docs/evidence/v12-audit/lane-e/runs/fix-retreat-STANDARD-2p-s1.json 57999ms round 35 spawned 2 attacks 22 kills 0
+docs/evidence/v12-audit/lane-e/runs/fix-retreat-STANDARD-2p-s2.json 65887ms round 35 spawned 1 attacks 13 kills 0
+docs/evidence/v12-audit/lane-e/runs/fix-retreat-QUICK-2p-s2.json 33652ms round 21 spawned 2 attacks 10 kills 0
+docs/evidence/v12-audit/lane-e/runs/fix-retreat-QUICK-2p-s3.json 29734ms round 21 spawned 3 attacks 10 kills 0
+docs/evidence/v12-audit/lane-e/runs/fix-retreat-STANDARD-2p-s3.json 54954ms round 35 spawned 2 attacks 10 kills 0

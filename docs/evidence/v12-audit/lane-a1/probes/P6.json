@@ -1,0 +1,109 @@
+{
+ "classification": "WORLD/BALANCE (informativo)",
+ "rows": [
+  {
+   "civ": "aurelia",
+   "overCap": {}
+  },
+  {
+   "civ": "valgard",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "meridia",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "thalos",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "saren",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "kor",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "orinth",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "nymara",
+   "overCap": {
+    "food": {
+     "pool": 19,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "veyra",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "solenne",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "dravik",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  },
+  {
+   "civ": "elyra",
+   "overCap": {
+    "food": {
+     "pool": 16,
+     "cap": 15
+    }
+   }
+  }
+ ],
+ "anyOverCap": true
+}

@@ -1,0 +1,54 @@
+{
+ "classification": "RULE (ordem de operações da Manutenção: sustento -> Crescer -> manutenção militar)",
+ "setup": "Alimento 4 (+1 de efeito recorrente na Manutenção), pop. 3 (come 2), 1 Guarda (come 1), Posto abaixo do teto de pop. (pode Crescer por 3)",
+ "moodBefore": 4,
+ "moodAfter": 3,
+ "flows": [
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "RECURRING_MAINTENANCE",
+   "delta": {
+    "wood": 1
+   }
+  },
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "RECURRING_MAINTENANCE",
+   "delta": {
+    "food": 1
+   }
+  },
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "SUSTENANCE",
+   "delta": {
+    "food": -2
+   }
+  },
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "GROWTH",
+   "delta": {
+    "food": -3
+   }
+  },
+  {
+   "round": 1,
+   "phase": "INTEGRATION_MAINTENANCE",
+   "label": "MILITARY_UPKEEP",
+   "delta": {}
+  }
+ ],
+ "events": [
+  "POPULATION_GROWN: Atenas cresceu para 4 habitantes.",
+  "UPKEEP_SHORTAGE: Faltaram recursos para manter as peças. Ânimo das cidades −1.",
+  "UPKEEP: Manutenção: 3 Alimento e 0 Riqueza.",
+  "POPULATION_GROWN: Babilônia cresceu para 3 habitantes.",
+  "UPKEEP: Manutenção: 1 Alimento e 0 Riqueza."
+ ],
+ "reading": "Com 5 de Alimento dava para pagar sustento (2) e peça (1) e sobrar 2. O Crescer automático gasta 3 antes da manutenção militar; a peça fica sem pagamento e TODAS as cidades perdem 1 Ânimo. Crescer não é opcional para o jogador."
+}

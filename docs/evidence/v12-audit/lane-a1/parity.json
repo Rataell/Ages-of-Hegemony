@@ -1,0 +1,6 @@
+{
+ "untouched": "eca0e20902173539",
+ "traced": "eca0e20902173539",
+ "identical": true,
+ "command": "node scripts/alpha-economy-policies.mjs --verify-parity"
+}

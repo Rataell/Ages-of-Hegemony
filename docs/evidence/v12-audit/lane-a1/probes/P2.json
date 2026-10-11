@@ -1,0 +1,53 @@
+{
+ "classification": "BUG (duas fontes de verdade para vagas de distrito: escada alfa × tabela do núcleo)",
+ "cases": [
+  {
+   "level": "GREAT_CITY",
+   "districtsBuilt": 3,
+   "alphaSlots": 4,
+   "coreSlots": 3,
+   "planAccepted": true,
+   "planError": null,
+   "failedAtResolution": [
+    "ACTION_FAILED: A ação não pôde ser realizada: No district slots available"
+   ],
+   "paid": [],
+   "districtsAfter": 3
+  },
+  {
+   "level": "IMPERIAL_METROPOLIS",
+   "districtsBuilt": 5,
+   "alphaSlots": 6,
+   "coreSlots": 5,
+   "planAccepted": true,
+   "planError": null,
+   "failedAtResolution": [
+    "ACTION_FAILED: A ação não pôde ser realizada: No district slots available"
+   ],
+   "paid": [],
+   "districtsAfter": 5
+  },
+  {
+   "level": "CITY",
+   "districtsBuilt": 3,
+   "alphaSlots": 4,
+   "coreSlots": 3,
+   "planAccepted": true,
+   "planError": null,
+   "failedAtResolution": [
+    "ACTION_FAILED: A ação não pôde ser realizada: No district slots available"
+   ],
+   "paid": [],
+   "districtsAfter": 3
+  },
+  {
+   "level": "VILLAGE",
+   "districtsBuilt": 2,
+   "alphaSlots": 2,
+   "coreSlots": 3,
+   "planAccepted": false,
+   "planError": "Sem vagas de distrito: Eleve a cidade."
+  }
+ ],
+ "reading": "districtSlots(alfa)=1/1/2/3/4/5/6 (+1 com Federalização), mas o núcleo recusa acima de territory.districtSlots[development-1] com development espelhado 1/3/5. Grande Cidade (4ª vaga), Metrópole Imperial (6ª vaga) e a vaga da Federalização são prometidas na UI e na validação do plano e recusadas na resolução."
+}

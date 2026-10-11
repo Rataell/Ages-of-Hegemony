@@ -1,0 +1,249 @@
+{
+ "classification": "RULE (Revolta + fome: Governar +1/nível por Ordem, fome -1 por cidade por rodada, Produzir bloqueado em Revolta)",
+ "cases": [
+  {
+   "name": "sem Cultura nem Riqueza, Ânimo 0, Alimento 0",
+   "trace": [
+    {
+     "round": 1,
+     "mood": 0,
+     "pop": 4,
+     "food": 0,
+     "wealth": 0,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 2,
+     "mood": 0,
+     "pop": 3,
+     "food": 0,
+     "wealth": 0,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 3,
+     "mood": 0,
+     "pop": 2,
+     "food": 0,
+     "wealth": 0,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 4,
+     "mood": 0,
+     "pop": 2,
+     "food": 0,
+     "wealth": 0,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "end": true,
+     "mood": 0,
+     "pop": 2,
+     "food": 0
+    }
+   ]
+  },
+  {
+   "name": "com Riqueza 20, Ânimo 0, Alimento 0, cidade de Capacidade 1 (Povoado)",
+   "trace": [
+    {
+     "round": 1,
+     "mood": 0,
+     "pop": 4,
+     "food": 0,
+     "wealth": 20,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 2,
+     "mood": 0,
+     "pop": 3,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 3,
+     "mood": 0,
+     "pop": 2,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 4,
+     "mood": 0,
+     "pop": 2,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 5,
+     "mood": 0,
+     "pop": 2,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 6,
+     "mood": 0,
+     "pop": 2,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "end": true,
+     "mood": 0,
+     "pop": 2,
+     "food": 0
+    }
+   ]
+  },
+  {
+   "name": "com Riqueza 20, Ânimo 0, Alimento 10 (a cidade ainda come)",
+   "trace": [
+    {
+     "round": 1,
+     "mood": 0,
+     "pop": 4,
+     "food": 10,
+     "wealth": 20,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 2,
+     "mood": 1,
+     "pop": 5,
+     "food": 5,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 3,
+     "mood": 1,
+     "pop": 6,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 4,
+     "mood": 0,
+     "pop": 5,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 5,
+     "mood": 0,
+     "pop": 4,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "end": true,
+     "mood": 0,
+     "pop": 3,
+     "food": 0
+    }
+   ]
+  },
+  {
+   "name": "com Riqueza 20, Ânimo 0, Alimento 0, Capacidade 2 (Vila, pop. 6)",
+   "trace": [
+    {
+     "round": 1,
+     "mood": 0,
+     "pop": 6,
+     "food": 0,
+     "wealth": 20,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 2,
+     "mood": 0,
+     "pop": 5,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 3,
+     "mood": 0,
+     "pop": 4,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 4,
+     "mood": 0,
+     "pop": 3,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "round": 5,
+     "mood": 0,
+     "pop": 2,
+     "food": 0,
+     "wealth": 15,
+     "produceBlocked": "Cidade em Revolta: só Governar (Ânimo e integração) está disponível.",
+     "governBlocked": null,
+     "did": "Governar"
+    },
+    {
+     "end": true,
+     "mood": 0,
+     "pop": 2,
+     "food": 0
+    }
+   ]
+  }
+ ]
+}

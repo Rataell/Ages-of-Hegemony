@@ -1,0 +1,53 @@
+{
+ "classification": "BUG (Cultura nunca é cobrada; ledger omite Cultura; fluxos da Virada de Era ficam fora de qualquer relatório)",
+ "culture": {
+  "displayedCost": {
+   "culture": 1
+  },
+  "cultureBefore": 3,
+  "cultureAfter": 3,
+  "moodBefore": 3,
+  "moodAfter": 4,
+  "tracerCultureFlows": []
+ },
+ "reportKeys": [
+  "food",
+  "materials",
+  "wealth",
+  "knowledge",
+  "influence"
+ ],
+ "chain": [
+  {
+   "from": 1,
+   "to": 2,
+   "diffOpeningMinusClosing": {},
+   "eraTurnBetween": false
+  },
+  {
+   "from": 2,
+   "to": 3,
+   "diffOpeningMinusClosing": {},
+   "eraTurnBetween": false
+  },
+  {
+   "from": 3,
+   "to": 4,
+   "diffOpeningMinusClosing": {
+    "influence": 2
+   },
+   "eraTurnBetween": true
+  }
+ ],
+ "eraTurnFlowsOutsideReports": [
+  {
+   "round": 3,
+   "phase": "ERA_TURN",
+   "label": "PULSE",
+   "delta": {
+    "influence": 2
+   }
+  }
+ ],
+ "reading": "alphaCanAfford/alphaPay só tratam Alimento, Conhecimento, Influência, Madeira/Pedra/Metal e Riqueza: o campo culture do custo é ignorado, então Governar (1 Cultura por nível) sai de graça e a Cultura só acumula. RoundLedger tem cinco chaves (materials = madeira+pedra+metal) e nenhuma é Cultura. A Virada de Era (Pulso, recompensas, reformas) roda depois do relatório da rodada ser copiado e antes do ledger seguinte abrir."
+}
