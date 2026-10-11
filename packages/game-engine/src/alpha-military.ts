@@ -78,9 +78,12 @@ export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:Stra
       const target=state.core.map.find(t=>t.id===id);
       if(!target||!progress.knownHexIds.includes(id)||hexDistance(current,target)!==1||!canEnter(state,unit,id))throw new Error('Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.');
       if(order.type==='MOVE'&&(!movementOpen(state,actor,target.ownerId)||enemyCityAt(state,actor,id)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)||state.threats.some(t=>t.hexId===id)))throw new Error('Fronteira fechada, cidade inimiga, ameaça do mundo ou presença de outra civilização: use uma ordem de conflito.');
-      cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];current=target;
+      // B-01: only a MOVE walks into the hex and pays its terrain. An ATTACK strikes an adjacent hex; the target's terrain is the defender's advantage, not the attacker's budget.
+      if(order.type==='MOVE')cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];
+      current=target;
     }
-    if(cost>unitMovement(state,unit)+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind))throw new Error('Caminho excede a mobilidade da peça.');
+    const mobility=unitMovement(state,unit)+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind);
+    if(order.type==='ATTACK'?mobility<1:cost>mobility)throw new Error(order.type==='ATTACK'?'Esta peça não tem mobilidade para atacar.':'Caminho excede a mobilidade da peça.');
     if(order.type==='ATTACK'&&state.rules.units[unit.kind].strength===0)throw new Error('Esta peça não participa de ataques.');
   }
   if(order.type==='MOVE'&&order.path.length){const crowded=stackBlock(state,actor,units as AlphaUnit[],order.path.at(-1)!);if(crowded)throw new Error(crowded);}

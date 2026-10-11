@@ -13,32 +13,55 @@ import { P1, P2, P3, attackOrder, line, put, tryValidate, type Kind } from './v1
 const win = (attackers: string[], defenders: string[]) => ({ ...Object.fromEntries(attackers.map(id => [id, 'IMPACT' as const])), ...Object.fromEntries(defenders.map(id => [id, 'EMPTY' as const])) });
 const ids = (units: { id: string }[]) => units.map(unit => unit.id);
 
-describe('B-01 · attack cost uses the terrain movement cost of the TARGET hex', () => {
+describe('B-01 · an attack is not charged the terrain movement cost of the TARGET hex', () => {
   // The shared arena (tests/alpha-arena.ts) gives p1 a free +5 movement effect, which hides this rule; `line()` does not.
-  it.fails('REPRO: Engenho de cerco (movimento 1) can attack a city on Colinas', () => {
+  it('B-01 fixed: Engenho de cerco (movimento 1) can attack a city on Colinas', () => {
     const state = line({ terrain: { 7: 'HILLS' } }); state.wars = [[P1, P2]];
     const siege = put(state, P1, 'SIEGE', 6);
     expect(tryValidate(() => validateMilitaryOrder(state, P1, attackOrder([siege], 7)))).toBeNull();
   });
-  it.fails('REPRO: Engenho de cerco can attack a unit in a Floresta', () => {
+  it('B-01 fixed: Engenho de cerco can attack a unit in a Floresta', () => {
     const state = line({ terrain: { 5: 'FOREST' } }); state.wars = [[P1, P2]];
     const siege = put(state, P1, 'SIEGE', 4); put(state, P2, 'INFANTRY', 5);
     expect(tryValidate(() => validateMilitaryOrder(state, P1, attackOrder([siege], 5)))).toBeNull();
   });
-  it.fails('REPRO: a mixed stack (Infantaria + Cerco) is blocked as a whole by its slowest piece', () => {
+  it('B-01 fixed: a mixed stack (Infantaria + Cerco) is blocked as a whole by its slowest piece', () => {
     const state = line({ terrain: { 5: 'FOREST' } }); state.wars = [[P1, P2]];
     const stack = [put(state, P1, 'INFANTRY', 4), put(state, P1, 'SIEGE', 4)]; put(state, P2, 'INFANTRY', 5);
     expect(tryValidate(() => validateMilitaryOrder(state, P1, attackOrder(stack, 5)))).toBeNull();
   });
-  it.fails('REPRO: Infantaria (movimento 2) can attack a unit on Montanhas (cost 3), where the defender gets +2', () => {
+  it('B-01 fixed: Infantaria (movimento 2) can attack a unit on Montanhas (cost 3), where the defender gets +2', () => {
     const state = line({ terrain: { 5: 'MOUNTAINS' } }); state.wars = [[P1, P2]];
     const inf = put(state, P1, 'INFANTRY', 4); put(state, P2, 'INFANTRY', 5);
     expect(tryValidate(() => validateMilitaryOrder(state, P1, attackOrder([inf], 5)))).toBeNull();
   });
-  it('CHARACTERIZATION: the same targets on Planície are fine (the block is only the terrain cost)', () => {
+  it('control: the same targets on Planície were always fine', () => {
     const state = line(); state.wars = [[P1, P2]];
     const siege = put(state, P1, 'SIEGE', 6);
     expect(tryValidate(() => validateMilitaryOrder(state, P1, attackOrder([siege], 7)))).toBeNull();
+  });
+  // The fix must not free attacks that are illegal for other reasons.
+  it('an attack still needs an adjacent, known, enterable target and a piece that can move', () => {
+    const state = line({ terrain: { 5: 'MOUNTAINS' } }); state.wars = [[P1, P2]];
+    const inf = put(state, P1, 'INFANTRY', 3); put(state, P2, 'INFANTRY', 5);
+    expect(tryValidate(() => validateMilitaryOrder(state, P1, attackOrder([inf], 5)))).toBe('Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.'); // two hexes away
+    const near = put(state, P1, 'INFANTRY', 4); put(state, P2, 'INFANTRY', 6);
+    expect(tryValidate(() => validateMilitaryOrder(state, P1, attackOrder([near], 6)))).toBe('Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.');
+    state.rules.units.INFANTRY.movement = 0;                // a piece that cannot move cannot attack
+    expect(tryValidate(() => validateMilitaryOrder(state, P1, attackOrder([put(state, P1, 'INFANTRY', 4, 'still')], 5)))).toBe('Esta peça não tem mobilidade para atacar.');
+  });
+  it('a MOVE into the same Montanha still pays its real cost (3 > 2): movement rules are untouched', () => {
+    const state = line({ terrain: { 5: 'MOUNTAINS' } }); state.wars = [[P1, P2]];
+    const inf = put(state, P1, 'INFANTRY', 4);
+    expect(tryValidate(() => validateMilitaryOrder(state, P1, { id: 'm', type: 'MOVE', unitIds: [inf.id], path: ['5,0'] } as never))).toBe('Caminho excede a mobilidade da peça.');
+  });
+  it('end to end: Engenho de cerco queued against a unit in a Floresta resolves as a battle', () => {
+    let state = line({ terrain: { 5: 'FOREST' } }); state.wars = [[P1, P2]];
+    const siege = put(state, P1, 'SIEGE', 4, 's1'); put(state, P2, 'INFANTRY', 5, 'd1');
+    state = must(state, P1, { type: 'QUEUE_ORDER', order: attackOrder([siege], 5) });
+    state = completeRound(state);
+    expect(state.battles).toHaveLength(1);
+    expect(state.battles[0]).toMatchObject({ attackerId: P1, defenderId: P2 });
   });
 });
 
