@@ -151,3 +151,37 @@ describe('E-1 · persistence and compatibility', () => {
     expect(AlphaStateSchema.parse(JSON.parse(JSON.stringify(done))).cities.find(city => city.cityId === meta(done).cityId)!.revoltEmergencyRound).toBe(1);
   });
 });
+
+describe('E-1 · cannot be farmed (property over many random episodes)', () => {
+  /** A seeded stream so the "random" histories are reproducible. */
+  const rng = (seed: number) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
+  it('between two uses there is always a later round that closed Estável or better; forcing Revolta every round yields exactly one use', () => {
+    // Forced relapse: the city is thrown back to Ânimo 1 at every round start. It may use the recovery once and never again.
+    const state = revoltCity(); let uses = 0;
+    for (let round = 1; round <= 40; round++) {
+      state.core.round = round; meta(state).mood = 1;
+      if (emergencyGovernBlock(state, P1, meta(state).cityId) === null) { meta(state).revoltEmergencyRound = round; meta(state).mood = REVOLT_EMERGENCY_MOOD; uses++; }
+      meta(state).mood = 1;                                                   // maintenance throws it back
+      rearmRevoltEmergency(state);
+    }
+    expect(uses).toBe(1);
+
+    // 400 random histories: use it whenever allowed, then draw the Ânimo the city ends the round with.
+    for (let seed = 1; seed <= 400; seed++) {
+      const next = rng(seed), game = revoltCity(); let lastUse = 0, lastStable = 0; const log: string[] = [];
+      for (let round = 1; round <= 40; round++) {
+        game.core.round = round;
+        if (next() < 0.5) meta(game).mood = Math.floor(next() * 2);          // Revolta (0 or 1)
+        if (moodOf(game) <= 1 && emergencyGovernBlock(game, P1, meta(game).cityId) === null) {
+          // A use is only legal if a later round closed Estável since the previous use.
+          if (lastUse > 0) expect(lastStable, `seed ${seed} round ${round} ${log.join(' ')}`).toBeGreaterThan(lastUse);
+          meta(game).revoltEmergencyRound = round; meta(game).mood = REVOLT_EMERGENCY_MOOD; lastUse = round; log.push(`use@${round}`);
+        }
+        meta(game).mood = Math.floor(next() * 7);                            // the Ânimo the round closes with
+        rearmRevoltEmergency(game);
+        if (meta(game).mood >= REVOLT_EMERGENCY_MOOD && round > lastUse) lastStable = round;
+      }
+    }
+  });
+  const moodOf = (state: AlphaState) => meta(state).mood;
+});
