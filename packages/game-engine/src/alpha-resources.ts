@@ -64,7 +64,8 @@ export function alphaCanAfford(state: AlphaState, actor: PlayerId, rawCost: Reso
   const pool = state.players.find(player => player.playerId === actor)?.resources;
   if (!pool) return false;
   const cost = alphaCost(rawCost, pool);
-  if (pool.food < cost.food || pool.knowledge < cost.knowledge || pool.influence < cost.influence) return false;
+  // Cultura is never covered by Riqueza (E-7): a cost in Cultura needs the Cultura itself.
+  if (pool.food < cost.food || pool.knowledge < cost.knowledge || pool.influence < cost.influence || pool.culture < cost.culture) return false;
   const shortages = (['wood', 'stone', 'metal'] as const).reduce((total, key) => total + Math.max(0, cost[key] - pool[key]), 0);
   const materialCost = cost.wood + cost.stone + cost.metal;
   if (shortages > Math.floor(materialCost * Math.max(state.rules.balance.wealthMaterialCostPercentMax, governmentEffects(state, actor).wealthCoverPercent, scope === 'BUILD' ? buildCoverPercent(state, actor) : 0) / 100)) return false;
@@ -80,6 +81,7 @@ export function alphaPay(state: AlphaState, actor: PlayerId, rawCost: ResourcePo
   player.resources.food -= cost.food;
   player.resources.knowledge -= cost.knowledge;
   player.resources.influence -= cost.influence;
+  player.resources.culture -= cost.culture;
   let wealth = cost.wealth;
   for (const key of ['wood', 'stone', 'metal'] as const) {
     const paid = Math.min(player.resources[key], cost[key]);
