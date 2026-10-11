@@ -109,8 +109,9 @@ export const VARIANTS = {
   stock150: 'starting resources x1.5',
   startvillage: 'capital starts as a Vila (N3) with 6 inhabitants, web-agriculture and web-masonry researched',
   combo: 'orders6 + yield150 + starthamlet',
+  sprint: 'Elevar and the city ladder need 25% fewer inhabitants (rounded up): 4,6,8,11,14,18 become 3,5,6,9,11,14',
 };
-function applyVariant(state, variant) {
+function applyVariant(state, variant, D = null) {
   const up = (v, k) => Math.ceil(v * k);
   const scalePool = (pool, k) => { for (const key of Object.keys(pool)) pool[key] = up(pool[key], k); };
   if (['yield150', 'combo'].includes(variant)) {
@@ -125,6 +126,12 @@ function applyVariant(state, variant) {
     for (const i of Object.values(t.improvementCatalog)) scalePool(i.cost, 0.6);
     scalePool(t.foundingCost, 0.6);
     for (const u of Object.values(state.rules.units)) scalePool(u.cost, 0.6);
+  }
+  if (variant === 'sprint' && D) {
+    // The tables are shared by the engine and the policies in this process only; each match runs in its own child process, so nothing leaks.
+    let previous = D.CITY_LADDER[0].minPopulation;
+    for (const step of D.CITY_LADDER.slice(1)) { step.minPopulation = Math.max(previous + 1, Math.ceil(step.minPopulation * 0.75)); previous = step.minPopulation; }
+    for (const entry of D.ELEVATE_TABLE) entry.minPopulation = D.ladderStep(entry.to).minPopulation;
   }
   if (variant === 'stock150') for (const p of state.players) for (const k of Object.keys(p.resources)) p.resources[k] = up(p.resources[k], 1.5);
   if (variant === 'startvillage') {
@@ -154,7 +161,7 @@ export function createBox({ E, D, policy, profile, players, seed, startingPionee
   const seats = Array.from({ length: players }, (_, i) => ({ id: `p${i + 1}`, name: `${policy}-${i + 1}`, civilization: civs[(i + seed) % civs.length], policy: mixed ? mixed[i % mixed.length] : policy }));
   resetTrace();
   let state = E.createAlphaGame({ gameId: `a1-${policy}-${profile}-${players}-${seed}`, seed, preset, worldPreset, startingPioneers, ...(['orders6', 'combo'].includes(variant) ? { actionsPerRound: 6 } : {}), players: seats.map(({ id, name, civilization }) => ({ id, name, civilization })) });
-  if (variant !== 'base') state = applyVariant(state, variant);
+  if (variant !== 'base') state = applyVariant(state, variant, D);
   state = E.beginAlphaPlanning(state);
   return {
     E, D, state, seats, policy, profile, seed, players, preset, variant, peace,
