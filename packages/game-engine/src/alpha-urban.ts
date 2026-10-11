@@ -1,5 +1,5 @@
 import {
-  ADVANCEMENTS, AlphaEraSchema, AlphaUnitClassSchema, districtEntry, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, ALPHA_RESOURCE_KEYS, elevateRequirement, emptyAlphaResourcePool, ladderStep, nextLevel,
+  ADVANCEMENTS, OFFERED_BUILDINGS, buildingSpec, AlphaEraSchema, AlphaUnitClassSchema, districtEntry, BuildingTypeSchema, DistrictTypeSchema, FORTIFICATION_UPGRADES, ALPHA_RESOURCE_KEYS, elevateRequirement, emptyAlphaResourcePool, ladderStep, nextLevel,
   type AlphaCommand, type AlphaResourcePool, type AlphaState, type PlayerId,
 } from '@aoh/game-domain';
 import { applyCommand } from './engine.js';
@@ -15,6 +15,8 @@ import { isCoastalCity } from './alpha-water.js';
 import { kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
 
 type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
+/** The buildings the economic core builds with its own catalog and prices; the other offered ones come from ALPHA_BUILDING_CATALOG. */
+type CoreBuilding = (typeof BuildingTypeSchema.options)[number];
 
 /** Keeps the alpha city records aligned with the districts and buildings the economic core owns. */
 export function syncCityMetadata(state: AlphaState): void {
@@ -110,7 +112,16 @@ function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: B
     return alphaCanAfford(state, actor, entry.cost, 'BUILD') ? null : 'Recursos insuficientes para esta ação.';
   }
   if (build.kind === 'BUILDING') {
-    const entry = rules.buildings[build.building];
+    const spec = buildingSpec(build.building);
+    // V1.2 B0: only a building whose effect the engine really applies can be bought.
+    if (!OFFERED_BUILDINGS.includes(build.building)) return spec.path === 'DISTRICT' ? 'O Porto vem com o Distrito Marítimo.' : spec.path === 'IMPROVEMENT' ? 'Irrigação é melhoria de hex, não edifício.' : 'Este edifício ainda não está disponível.';
+    if (spec.path === 'CATALOG') {
+      if (!meta.districts.includes(spec.district)) return 'O edifício exige o distrito correspondente.';
+      if (meta.buildings.includes(build.building)) return 'Este edifício já existe.';
+      if (!hasUnlock(state, actor, `building:${build.building}`)) return 'Este edifício exige um avanço da Teia.';
+      return alphaCanAfford(state, actor, spec.cost!, 'BUILD') ? null : 'Recursos insuficientes para esta ação.';
+    }
+    const entry = rules.buildings[build.building as CoreBuilding];
     if (!city.districts.some(item => item.type === entry.district)) return 'O edifício exige o distrito correspondente.';
     if (city.buildings.some(item => item.type === build.building)) return 'Este edifício já existe.';
     return alphaCanAfford(state, actor, entry.cost, 'BUILD') ? null : 'Recursos insuficientes para esta ação.';
@@ -167,7 +178,11 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
   const zero = emptyAlphaResourcePool(), territory = state.core.config.territory, balance = state.rules.balance;
   const cityMeta = state.cities.find(candidate => candidate.cityId === cityId);
   if (action === 'BUILD' && params.build?.kind === 'DISTRICT') return alphaCostWithMetal(state, actor, territory.districts[params.build.district].cost, 0);
-  if (action === 'BUILD' && params.build?.kind === 'BUILDING') return alphaCostWithMetal(state, actor, territory.buildings[params.build.building].cost, 0);
+  if (action === 'BUILD' && params.build?.kind === 'MARITIME') return { ...districtEntry('MARITIME').cost };
+  if (action === 'BUILD' && params.build?.kind === 'BUILDING') {
+    const spec = buildingSpec(params.build.building);
+    return spec.path === 'CATALOG' ? { ...spec.cost! } : spec.path === 'CORE' ? alphaCostWithMetal(state, actor, territory.buildings[params.build.building as CoreBuilding].cost, 0) : zero;
+  }
   if (action === 'BUILD' && params.build?.kind === 'FORTIFICATION' && cityMeta) {
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(cityMeta.fortification.level as never) + 1];
     return next ? alphaCostWithMetal(state, actor, balance.fortification[next].cost, balance.fortification[next].metal) : zero;
@@ -216,7 +231,12 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     const higher = nextLevel(meta.level);
     list.push(option(state, actor, id, 'ELEVATE', {}, higher ? `Elevar a ${higher}: Capacidade ${ladderStep(higher).capacity}, ${ladderStep(higher).slots} vaga(s), suprimento ${ladderStep(higher).supplyReach}` : 'Nível máximo'));
     for (const district of DistrictTypeSchema.options) list.push(option(state, actor, id, 'BUILD', { build: { kind: 'DISTRICT', district } }, `Novo distrito${listOf(territory.districts[district].production) ? ` · ${listOf(territory.districts[district].production)}` : ''}`));
-    for (const building of BuildingTypeSchema.options) list.push(option(state, actor, id, 'BUILD', { build: { kind: 'BUILDING', building } }, `Novo edifício${listOf(territory.buildings[building].production) ? ` · ${listOf(territory.buildings[building].production)}` : ''}`));
+    for (const building of OFFERED_BUILDINGS) {
+      const spec = buildingSpec(building);
+      // One of each storage building counts per civilization: say so before the player pays for a second one.
+      const duplicate = spec.path === 'CATALOG' && /limite/i.test(spec.effect) && state.cities.some(other => other.currentOwnerId === actor && other.cityId !== id && other.buildings.includes(building));
+      list.push(option(state, actor, id, 'BUILD', { build: { kind: 'BUILDING', building } }, `${spec.name} · ${spec.effect}${duplicate ? ' Já existe um na civilização: o limite não soma de novo.' : ''}`));
+    }
     list.push(option(state, actor, id, 'BUILD', { build: { kind: 'MARITIME' } }, `Distrito Marítimo · Porto incluído · +1 Alimento por Produzir`));
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
     list.push(option(state, actor, id, 'BUILD', { build: { kind: 'FORTIFICATION' } }, next ? `Fortificação ${next}` : 'Fortificação máxima'));
@@ -292,6 +312,14 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
         alphaPay(state, actor, alphaCostWithMetal(state, actor, spec.cost, spec.metal), 'BUILD');
         meta.fortification = { level: next, state: 'INTACT' };
         message = `${city.name} recebeu a fortificação ${next}.`;
+      } else if (command.build.kind === 'BUILDING' && buildingSpec(command.build.building).path === 'CATALOG') {
+        // V1.2 B0: the eight buildings whose effect the engine already had. Priced and gated by ALPHA_BUILDING_CATALOG; the effect is read from the city's building list.
+        const spec = buildingSpec(command.build.building);
+        const blocked = buildBlock(state, actor, city.id, command.build);
+        if (blocked) throw new Error(blocked);
+        alphaPay(state, actor, spec.cost!, 'BUILD');
+        meta.buildings = [...meta.buildings, spec.id];
+        message = `${city.name} construiu ${spec.name}.`;
       } else if (command.build.kind === 'MARITIME') {
         const blocked = buildBlock(state, actor, city.id, command.build);
         if (blocked) throw new Error(blocked);

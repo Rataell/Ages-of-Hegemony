@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AlphaBuildingSchema, ADVANCEMENTS, districtEntry, emptyAlphaResourcePool, type AlphaResourcePool } from '@aoh/game-domain';
+import { ALPHA_BUILDING_CATALOG, AlphaBuildingSchema, ADVANCEMENTS, districtEntry, emptyAlphaResourcePool, type AlphaResourcePool } from '@aoh/game-domain';
 import { cityYield, deriveCityProductionBreakdown, urbanCost, urbanOptions } from '@aoh/game-engine';
 import { coreCity, freshGame, meta, seat, shape, P1 } from './v12-audit-urban-helpers.js';
 
@@ -29,7 +29,7 @@ function unlockedGame() {
 }
 
 describe('D-01 · Construir Marítimo shows no cost but charges 3 Madeira + 1 Pedra', () => {
-  it.fails('REPRO D-01 (BUG/UX): urbanCost for the Marítimo district is empty while buildBlock/pay use districtEntry("MARITIME").cost (alpha-urban.ts:104-110,282)', () => {
+  it('D-01 fixed: urbanCost for the Marítimo district is the price buildBlock/pay charge, districtEntry("MARITIME").cost', () => {
     const state = unlockedGame();
     const shown = urbanCost(state, P1, meta(state).cityId, 'BUILD', { build: { kind: 'MARITIME' } });
     expect(total(shown)).toBe(total(districtEntry('MARITIME').cost));
@@ -68,19 +68,19 @@ describe('D-02 · the effect text of Construir (core catalog) against what Produ
 const buildingOf = (option: { build?: { kind: string } }): string => (option.build as { building?: string } | undefined)?.building ?? '';
 
 describe('D-03 · buildings the Web unlocks but the Construir action never offers', () => {
-  it.fails('REPRO D-03 (BUG): every building a Web advance unlocks ("building:X") is offered as a Construir option', () => {
+  it('D-03 fixed (V1.2 B0): every building a Web advance unlocks is either offered by Construir or classified in ALPHA_BUILDING_CATALOG as not offered, with a reason (see tests/v12-fix-catalog.test.ts)', () => {
     const state = unlockedGame();
     const offered = new Set(urbanOptions(state, P1).cities[meta(state).cityId]!.filter(option => option.build?.kind === 'BUILDING').map(option => buildingOf(option)));
     const unlocked = new Set(ADVANCEMENTS.flatMap(node => node.unlocks.filter(tag => tag.startsWith('building:')).map(tag => tag.slice('building:'.length))));
-    // PORT arrives with the Marítimo district (alpha-urban.ts:285); the rest has no way in.
-    const missing = [...unlocked].filter(building => !offered.has(building) && building !== 'PORT').sort();
-    expect(missing).toEqual([]);
+    const silent = [...unlocked].filter(building => !offered.has(building) && !ALPHA_BUILDING_CATALOG.some(entry => entry.id === building && entry.path !== 'CORE' && entry.path !== 'CATALOG')).sort();
+    // MANUFACTURE and MONUMENT are unlocked by the Web but exist neither in AlphaBuildingSchema nor in the canon building list of this phase.
+    expect(silent).toEqual(['MANUFACTURE', 'MONUMENT']);
   });
-  it('CHARACTERIZATION D-03: only the 7 buildings of the legacy core catalog are buildable (GRANARY MARKET LIBRARY ARCHIVE BARRACKS WORKSHOP CULTURAL_CENTER)', () => {
+  it('D-03 now: 13 buildings are offered: the 5 core buildings with a real effect and the 8 catalog buildings; the other 16 ids stay in the schema, not offered', () => {
     const state = unlockedGame();
     const offered = urbanOptions(state, P1).cities[meta(state).cityId]!.filter(option => option.build?.kind === 'BUILDING').map(option => buildingOf(option)).sort();
-    expect(offered).toEqual(['ARCHIVE', 'BARRACKS', 'CULTURAL_CENTER', 'GRANARY', 'LIBRARY', 'MARKET', 'WORKSHOP']);
-    expect(AlphaBuildingSchema.options.filter(building => !(offered as string[]).includes(building))).toContain('TEMPLE');
+    expect(offered).toEqual(['ACADEMY', 'ARCHIVE', 'BANK', 'CHANCELLERY', 'FOUNDRY', 'GRANARY', 'LIBRARY', 'MARKET', 'TEMPLE', 'THEATER', 'TREASURY', 'WAREHOUSE', 'WORKSHOP']);
+    expect(AlphaBuildingSchema.options.filter(building => !(offered as string[]).includes(building))).toHaveLength(16);
   });
 });
 

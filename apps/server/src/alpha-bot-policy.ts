@@ -329,7 +329,7 @@ export function candidates(box, id, persona) {
     // Districts and buildings by persona priority; competent play puts food, storage and learning first.
     for (const opt of pick('BUILD', x => x.build.kind === 'DISTRICT')) { const rank = persona.districts.indexOf(opt.build.district); if (rank >= 0) add((72 - rank * 4 + (comp && opt.build.district === 'AGRARIAN' ? (foodLow ? 24 : 10) : comp && opt.build.district === 'INDUSTRIAL' ? Math.min(26, miss.stone * 5) : comp && opt.build.district === 'COMMERCIAL' ? Math.min(24, miss.wealth * 4) : comp && opt.build.district === 'ACADEMIC' ? Math.min(20, miss.knowledge * 3) : 0)) * w.build * saving, `district:${city.id}:${opt.build.district}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build }); }
     for (const opt of pick('BUILD', x => x.build.kind === 'BUILDING')) {
-      const isStorage = ['GRANARY', 'WAREHOUSE', 'TREASURY', 'MARKET', 'LIBRARY', 'WORKSHOP', 'BARRACKS', 'TEMPLE'].includes(opt.build.building);
+      const isStorage = ['GRANARY', 'WAREHOUSE', 'TREASURY', 'BANK', 'FOUNDRY', 'ACADEMY', 'THEATER', 'CHANCELLERY', 'MARKET', 'LIBRARY', 'WORKSHOP', 'TEMPLE'].includes(opt.build.building);
       const boost = comp ? ({ GRANARY: foodLow ? 26 : 12, MARKET: 10 + Math.min(14, miss.wealth * 3), LIBRARY: 12 + Math.min(12, miss.knowledge * 2), TEMPLE: mood <= 3 ? 14 : 4, WAREHOUSE: 6, WORKSHOP: Math.min(14, miss.wood * 2) }[opt.build.building] ?? 0) : 0;
       add(((isStorage ? 62 : 52) + boost) * w.build * saving, `building:${city.id}:${opt.build.building}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: opt.build });
     }

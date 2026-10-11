@@ -8,6 +8,7 @@ export * from './serialization.js';
 export * from './alpha.js';
 export * from './alpha-concept.js';
 export * from './alpha-city-ladder.js';
+export * from './alpha-building-catalog.js';
 export * from './alpha-catalog.js';
 export * from './alpha-regions.js';
 export * from './alpha-institutions.js';

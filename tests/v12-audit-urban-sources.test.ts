@@ -147,13 +147,13 @@ describe('S-06 · hegemony thresholds on STOCKS above what the storage rules all
     }
     return best;
   };
-  it.fails('REPRO S-06a (RULE/BUG): Hegemonia Cultural asks 25 Influência, but even with EVERY building and a Metrópole the limit is 18 (hard cap 20)', () => {
+  it.fails('REPRO S-06a (declared value): Hegemonia Cultural DECLARES 25 Influência, above the hard cap 20: the effective minimum is capped at the storage limit (tests/v12-fix-catalog.test.ts)', () => {
     expect(ceiling('influence', true)).toBeGreaterThanOrEqual(alphaRules().hegemonyRequirements.CULTURAL.find(r => r.metric === 'influence')!.minimum);
   });
-  it.fails('REPRO S-06b (RULE/BUG): Hegemonia Econômica asks 30 Riqueza, but with the buildings the game lets you build the best limit is 24', () => {
+  it('S-06b now: with Tesouro and Banco buildable, a civilization with a Riqueza Figura reaches the declared 30 Riqueza limit (the others get the capped minimum, see v12-fix-catalog)', () => {
     expect(ceiling('wealth', false)).toBeGreaterThanOrEqual(alphaRules().hegemonyRequirements.ECONOMIC.find(r => r.metric === 'wealth')!.minimum);
   });
-  it('CHARACTERIZATION S-06: 30 Riqueza is reachable only if Tesouro and Banco (not buildable, D-03) existed and the Figura adds +6 (meridia)', () => {
+  it('CHARACTERIZATION S-06: 30 Riqueza is reachable only with Tesouro and Banco and a Figura that adds to Riqueza (meridia)', () => {
     expect(ceiling('wealth', true)).toBeGreaterThanOrEqual(30);
   });
 });

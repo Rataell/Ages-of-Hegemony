@@ -11,11 +11,11 @@ import { MapSizeSchema } from './alpha-topology.js';
 import { civilizationKit } from './alpha-civilization-kits.js';
 import { RegionDiscoverySchema, ThreatSchema, WORLD_ID, threatComposition } from './alpha-threats.js';
 import { PendingChoiceSchema, ResonanceStateSchema, advancementDomains, advancementSource, emptyResonance } from './alpha-resonance.js';
-import { BuildingTypeSchema, DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
+import { DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
   ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, LegacyAlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
   BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, TacticalFaceSchema,
-  TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, legacyToAlphaResources, type AlphaRoundPhase,
+  AlphaBuildingSchema, TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, legacyToAlphaResources, type AlphaRoundPhase,
 } from './alpha-concept.js';
 
 export const AlphaPresetSchema = z.enum(['QUICK', 'STANDARD', 'EPIC']);
@@ -76,7 +76,7 @@ export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD
 }
 export const UrbanBuildTargetSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('DISTRICT'), district: DistrictTypeSchema }),
-  z.strictObject({ kind: z.literal('BUILDING'), building: BuildingTypeSchema }),
+  z.strictObject({ kind: z.literal('BUILDING'), building: AlphaBuildingSchema }),
   z.strictObject({ kind: z.literal('FORTIFICATION') }),
   /** Distrito Marítimo: needs a real navigable-water edge; the basic Porto is included in it (never bought apart). */
   z.strictObject({ kind: z.literal('MARITIME') }),
