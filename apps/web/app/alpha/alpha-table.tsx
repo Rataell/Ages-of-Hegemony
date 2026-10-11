@@ -238,7 +238,7 @@ export function useTable(a: {
     if (step.id === 'recruit') return listLevel('recruit', 'Recrutar', byAction('RECRUIT'));
     if (step.id === 'more') {
       const rootIds = new Set(rootNodes().map(n => n.id));
-      const extra: (CloudNode | null)[] = [rootIds.has('ELEVATE') ? null : direct('ELEVATE', 'Elevar', 'elevate'), rootIds.has('PROMOTE_MOOD') ? null : direct('PROMOTE_MOOD', 'Governar', 'govern'), direct('SUPPORT_TRADE', 'Comércio', 'trade'), direct('CIVIC_ACTION', 'Ação cívica', 'civic'), direct('MOVE_CAPITAL', 'Mover capital', 'found'),
+      const extra: (CloudNode | null)[] = [rootIds.has('ELEVATE') ? null : direct('ELEVATE', 'Elevar', 'elevate'), rootIds.has('PROMOTE_MOOD') ? null : direct('PROMOTE_MOOD', 'Governar', 'govern'), byAction('EMERGENCY_GOVERN').some(o => reasonOf(o) === null) ? direct('EMERGENCY_GOVERN', 'Recuperação emergencial', 'govern') : null, direct('SUPPORT_TRADE', 'Comércio', 'trade'), direct('CIVIC_ACTION', 'Ação cívica', 'civic'), direct('MOVE_CAPITAL', 'Mover capital', 'found'),
         { id: 'work', label: 'Trabalhar', icon: 'produce', hint: 'Escolher os hexes que esta cidade trabalha', disabled: gate, onSelect: () => { close(); a.startWork(city.id); } },
         { id: 'research', label: 'Pesquisar', icon: 'research', hint: 'A Teia Civilizacional (Ordem Avanço)', onSelect: () => { close(); a.openBook('research'); } },
         groupsAt(city.hexId).length ? { id: 'pieces', label: 'Peças aqui', icon: 'recruit', onSelect: () => { setCtx({ hexId: city.hexId, kind: 'units', group: groupsAt(city.hexId)[0]!.key }); setSteps([{ id: 'root' }]); } } : null,
@@ -254,13 +254,13 @@ export function useTable(a: {
       const recruit: CloudNode = { id: 'RECRUIT', label: 'Recrutar', icon: 'recruit', badge: String(open(byAction('RECRUIT'))), disabled: byAction('RECRUIT').length ? gate ?? cityActionGate(game, city.id, 'RECRUIT') : 'Nenhuma peça disponível.', onSelect: () => push('recruit') };
       const govern = direct('PROMOTE_MOOD', 'Governar', 'govern', revolt ? 'dominant' : 'alt');
       const elevate = elevateOpen ? direct('ELEVATE', 'Elevar', 'elevate', 'alt') : null;
-      // E-1: in Revolta the one way out that costs nothing leads the cloud; Produzir/Construir/Recrutar are closed to the city until it leaves Revolta.
-      const emergency = revolt && byAction('EMERGENCY_GOVERN').some(o => reasonOf(o) === null) ? direct('EMERGENCY_GOVERN', 'Recuperação emergencial', 'govern', 'dominant') : null;
-      if (emergency && govern) govern.tone = 'alt';
-      const list = [emergency, produce, build, recruit, govern, elevate].filter((n): n is CloudNode => n !== null);
+      // E-1: in Revolta with nothing to pay Governar with, the free emergency recovery takes Governar's place in the cloud (it is also always under "Mais ações").
+      const emergencyOpen = revolt && byAction('EMERGENCY_GOVERN').some(o => reasonOf(o) === null);
+      const governShown = emergencyOpen && byAction('PROMOTE_MOOD').every(o => reasonOf(o) !== null) ? direct('EMERGENCY_GOVERN', 'Recuperação emergencial', 'govern', 'dominant') : govern;
+      const list = [produce, build, recruit, governShown, elevate].filter((n): n is CloudNode => n !== null);
       if (!list.some(n => n.tone === 'dominant')) { const first = list.find(n => !n.disabled) ?? list[0]; if (first) first.tone = 'dominant'; }
       // Four at most: the opportunity (Elevar) displaces Governar while the city is calm.
-      const limited = list.length > 4 ? list.filter(n => n.id !== (revolt ? 'ELEVATE' : 'PROMOTE_MOOD') && !(emergency && (n.id === 'BUILD' || n.id === 'RECRUIT'))) : list;
+      const limited = list.length > 4 ? list.filter(n => n.id !== (revolt ? 'ELEVATE' : 'PROMOTE_MOOD')) : list;
       return [...(cancel ? [cancel] : []), ...limited.slice(0, cancel ? 3 : 4), more()];
     }
     void back0;
