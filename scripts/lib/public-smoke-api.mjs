@@ -8,7 +8,9 @@ export class Seat {
   constructor(label, cookie = '') { this.label = label; this.cookie = cookie; }
   async call(body, tries = 5) {
     for (let attempt = 0; attempt < tries; attempt++) {
-      const response = await fetch(`${BASE}/api/alpha`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: BASE, Cookie: this.cookie }, body: JSON.stringify(body) });
+      let response;
+      try { response = await fetch(`${BASE}/api/alpha`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: BASE, Cookie: this.cookie }, body: JSON.stringify(body), signal: AbortSignal.timeout(45_000) }); }
+      catch (error) { console.log(`WARN  POST ${body.operation}/${body.payload?.type ?? ''} ${body.gameId ?? ''} ${error.name}`); return { ok: false, error: { code: 'TIMEOUT', message: error.name } }; }
       const set = response.headers.get('set-cookie'); if (set) this.cookie = set.split(';')[0];
       const payload = await response.json().catch(() => ({ ok: false, error: { code: 'BAD_JSON', message: String(response.status) } }));
       if (response.status === 429) { await sleep(11_000); continue; }
@@ -17,8 +19,11 @@ export class Seat {
     return { ok: false, error: { code: 'RATE', message: 'rate limited' } };
   }
   async get(gameId, extra = '') {
-    const response = await fetch(`${BASE}/api/alpha?gameId=${gameId}${extra}`, { headers: { Cookie: this.cookie }, cache: 'no-store' });
-    return response.json();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try { const response = await fetch(`${BASE}/api/alpha?gameId=${gameId}${extra}`, { headers: { Cookie: this.cookie }, cache: 'no-store', signal: AbortSignal.timeout(30_000) }); return await response.json(); }
+      catch (error) { console.log(`WARN  GET ${gameId}${extra} ${error.name} (try ${attempt + 1})`); await sleep(2_000); }
+    }
+    return { ok: false, error: { code: 'TIMEOUT', message: 'GET timed out' } };
   }
 }
 export const lobby = async (seat, id, payload) => { const v = (await seat.get(id)).value; return seat.call({ operation: 'lobby', gameId: id, payload: { expectedVersion: v.version, ...payload } }); };
