@@ -64,6 +64,7 @@ button.pill:hover,button.pill:focus-visible,button.pill[aria-pressed=true]{borde
 .pop{position:absolute;z-index:8;left:8px;top:56px;max-width:min(420px,calc(100% - 16px));background:var(--glass);border:1px solid var(--b-brass);border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--b-ink);backdrop-filter:blur(10px)}
 .pop b{font:700 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--b-brass);display:block;margin-bottom:3px}
 @media (max-width:760px){.pop{position:static;max-width:none;border-radius:0;border-inline:0}}
+.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}.cat figure{margin:0;background:var(--board);border:1px solid var(--board-line);border-radius:10px;padding:6px;display:grid;justify-items:center;gap:2px;text-align:center;color:#cfdadd;font-size:12px;min-width:0}.cat figure svg{width:92px;height:96px}.cat figcaption b{display:block;font:700 12.5px var(--serif);color:#f0efe6}.cat .kind{font:700 9.5px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--b-brass)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 12px;background:var(--board-2);border-top:1px solid var(--board-line);font-size:12.5px;color:var(--b-mute)}
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .legend svg{width:22px;height:22px}
@@ -139,6 +140,9 @@ code{font:500 .9em ui-monospace,Menlo,monospace}
     <div class="legend" id="legA"></div>
     <div class="info" id="infoA"></div>
   </div>
+  <h3>Terrenos, recursos e melhorias</h3>
+  <p class="note">Cada hex mostra o relevo, o que há nele e o que foi construído. Toque num hex do mapa para ler o tipo, o custo de movimento e o que rende. Traço do hex: borda azul = território de Leontia.</p>
+  <div class="cat" id="terrA"></div>
 </section>
 
 <section id="cena-b">

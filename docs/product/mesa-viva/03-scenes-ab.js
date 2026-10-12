@@ -11,6 +11,8 @@ $('#decisoes').innerHTML = [
 (function sceneA() {
   const g = new Grid(['sssccpfh??', 'sscppffhm?', 'sccppppmh?', 'sscpphppf?', 'sssccppfp?', 'ssssccp???', 'sssssc????'], 40);
   const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
+  const OWN = '#60a3e9';
+  const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '6,3': { imp: 'ROAD' }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
   const sight = Object.values(own);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
   const INFO = {
@@ -25,8 +27,8 @@ $('#decisoes').innerHTML = [
     ghost: ['Último avistamento · rodada 7', 'Um Bando foi visto aqui. Não se sabe onde está agora: sem posição atual por causa da névoa.', ['INFANTRY']],
   };
   const hit = (k, x, y, label) => `<g class="ent" data-k="${k}" tabindex="0" role="button" aria-label="${esc(label)}" style="cursor:pointer"><circle cx="${f1(x)}" cy="${f1(y)}" r="27" fill="transparent"/></g>`;
-  function map(sel) {
-    let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?')}`;
+  function map(sel, hexSel) {
+    let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET)}`;
     const P = k => g.xy(...own[k] || k);
     // trilha do Bando (intenção conhecida)
     s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 });
@@ -42,6 +44,7 @@ $('#decisoes').innerHTML = [
     [x, y] = g.xy(1, 5); s += threatFigure('COASTAL_VESSEL', x, y, 30) + hit('pirate', x, y, 'Piratas');
     [x, y] = g.xy(8, 3); s += threatFigure('INFANTRY', x, y, 24, 0, { ghost: true }) + `<text x="${f1(x)}" y="${f1(y + 27)}" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-size="9" font-weight="700" fill="#e0a08f">visto R7</text>` + hit('ghost', x, y, 'Último avistamento');
     if (sel) { const q = sel === 'camp' ? g.xy(7, 0) : sel === 'band' ? g.xy(6, 1) : sel === 'pirate' ? g.xy(1, 5) : sel === 'ghost' ? g.xy(8, 3) : P(sel); s += `<circle cx="${f1(q[0])}" cy="${f1(q[1])}" r="33" fill="none" stroke="#c9a867" stroke-width="2.4" stroke-dasharray="6 4"/>`; }
+    if (hexSel) { const [hx, hy] = g.xy(...hexSel); s += `<polygon points="${g.pts(...hexSel, 1)}" fill="none" stroke="#c9a867" stroke-width="3" stroke-dasharray="6 4" pointer-events="none"/>`; }
     return s + '</svg>';
   }
   const pips = (n, u) => Array.from({ length: n }, (_, i) => `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0 -5.5 L4.8 -2.7 V2.7 L0 5.5 L-4.8 2.7 V-2.7Z" fill="${i < u ? '#c9a867' : 'none'}" stroke="#c9a867" stroke-width="1.2"/></svg>`).join('');
@@ -68,9 +71,20 @@ $('#decisoes').innerHTML = [
     $('#infoA').innerHTML = `<b>${esc(t)}</b><div class="row">${cluster}<span>${esc(d)}</span></div>`;
     $('#mapA').innerHTML = map(k);
   }
-  $('#mapA').addEventListener('click', e => { const n = e.target.closest('.ent'); if (n) show(n.dataset.k); });
+  function showHex(c, r) {
+    const t = g.t(c, r), det = DET[c + ',' + r] || {}, [nm, mv, yl] = TERR_INFO[t];
+    const lines = [mv, yl, ...(det.feat || []).map(f => FEAT_INFO[f][0] + ': ' + FEAT_INFO[f][1]), ...(det.imp ? [IMP_INFO[det.imp][0] + ': ' + IMP_INFO[det.imp][1]] : []), det.owner ? 'Território de Leontia.' : 'Sem dono.'];
+    const one = new Grid([t === '?' ? '?' : t], 30);
+    $('#infoA').innerHTML = `<b>${esc(nm)}${det.imp ? ' · ' + esc(IMP_INFO[det.imp][0]) : ''}</b><div class="row"><svg width="64" height="64" viewBox="-34 -34 68 68">${hexArt(one, 0, 0, t === '?' ? '?' : t, false, det)}</svg><span>${lines.map(esc).join('<br>')}</span></div>`;
+    $('#mapA').innerHTML = map(null, [c, r]);
+  }
+  $('#mapA').addEventListener('click', e => { const n = e.target.closest('.ent'); if (n) { show(n.dataset.k); return; } const h = e.target.closest('[data-hex]'); if (h) { const [c, r] = h.dataset.hex.split(',').map(Number); showHex(c, r); } });
   $('#mapA').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { const n = e.target.closest('.ent'); if (n) { e.preventDefault(); show(n.dataset.k); } } });
   show('band');
+  const cat = (kind, title, t, det, sub) => { const one = new Grid([t], 34); return `<figure><svg viewBox="-38 -40 76 80" role="img" aria-label="${esc(title)}">${hexArt(one, 0, 0, t, false, det)}</svg><figcaption><span class="kind">${kind}</span><b>${esc(title)}</b>${esc(sub)}</figcaption></figure>`; };
+  $('#terrA').innerHTML = ['p', 'f', 'h', 'm', 'c', 's'].map(t => cat('Terreno', TERR_INFO[t][0], t, null, TERR_INFO[t][1].replace('Custo de movimento ', 'mov. ').replace(' (conta como terra)', ''))).join('')
+    + [['RIVER', 'p'], ['FERTILE', 'p'], ['TIMBER', 'f'], ['STONE', 'h'], ['METAL', 'm'], ['FISH', 'c']].map(([f, t]) => cat('Recurso', FEAT_INFO[f][0], t, { feat: [f] }, 'em ' + TERR_INFO[t][0])).join('')
+    + [['FARM', 'p'], ['LUMBER_CAMP', 'f'], ['QUARRY', 'h'], ['MINE', 'm'], ['FISHERY', 'c'], ['ROAD', 'p']].map(([i, t]) => cat('Melhoria', IMP_INFO[i][0], t, { imp: i, owner: '#60a3e9' }, IMP_INFO[i][1])).join('');
 })();
 
 /* ===== Cena B · Movimento coordenado ===== */
