@@ -54,7 +54,7 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
     // Stack limits are explained before any command: ten pieces cannot end a voluntary move on one hex. The MAP is where the destination is chosen.
     await cloudNode(a,'move').click();
     await a.locator('svg.world-map g.hex.target-move').first().click();
-    await expect(a.locator('.ctx-chip')).toContainText('Limite de pilha atingido em');
+    await expect(a.locator('.ctx-chip, .ctx-ficha')).toContainText('Limite de pilha atingido em');
     await a.keyboard.press('Escape');
     await cloudNode(a,'posture').click();await a.locator('.ctx-node',{hasText:'Manobra'}).click();
     await openArea(b,'Conselho');await b.locator('.alpha-pages').getByRole('tab',{name:'Postura defensiva'}).click();await b.getByLabel('Se for atacado, sua civilização adota',{exact:false}).selectOption('HOLD');await toMap(b);

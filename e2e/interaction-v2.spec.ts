@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
-import { AlphaStateSchema, type AlphaState } from '@aoh/game-domain';
+import { ALPHA_CARDS, AlphaStateSchema, type AlphaState } from '@aoh/game-domain';
 import { beginAlphaPlanning, createAlphaGame, hexNeighbors, spawnThreat } from '@aoh/game-engine';
 import { AlphaHttp } from '../apps/server/src/alpha-http.js';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
-import { connectAlphaContext, muteTour, cloudNode, touchPiece } from './alpha-fixture.js';
+import { connectAlphaContext, muteTour, cloudNode, touchPiece, confirmMove } from './alpha-fixture.js';
 
 // Interaction Model V2 · TABLE FIRST. SEEDED states served through the real HTTP boundary: what matters here is where each decision is born
 // (on the touched piece), that the map answers spatial decisions, and that the page itself never scrolls.
@@ -99,7 +99,7 @@ test('Pioneiro: Mover (which also discovers) and Fundar answer on the map; click
   // Mover: the cloud folds into one pill and the MAP lights the legal destinations.
   await cloudNode(page, 'move').click();
   await expect(page.locator('.table-cloud .ctx-node')).toHaveCount(0);
-  await expect(page.locator('.ctx-chip')).toContainText('Mover');
+  await expect(page.locator('.ctx-chip, .ctx-ficha')).toContainText('Mover');
   expect(await page.locator('svg.world-map g.hex.target-move').count()).toBeGreaterThan(0);
   await shot(page, 'D-move-mode');
   // Esc leaves target mode and the cloud is back on the piece.
@@ -107,6 +107,11 @@ test('Pioneiro: Mover (which also discovers) and Fundar answer on the map; click
   await expect(cloudNode(page, 'move')).toBeVisible();
   await cloudNode(page, 'move').click();
   await page.locator(`svg.world-map g.hex.target-move[aria-label$=" ${near.id}"], svg.world-map g.hex.target-move[aria-label$=" ${near.id}, trabalhado"]`).first().click();
+  // The Move is the draft of one Order: the destination makes a leg (trajectory on the map, numbers from the server preview), ONE button confirms it.
+  await expect(page.locator('.ctx-ficha .ctx-legs li')).toHaveCount(1);
+  await expect(page.locator('svg.world-map .art-draft-leg')).toHaveCount(1);
+  await expect(page.locator('.ctx-ficha .ctx-leg-body')).toContainText(/custo \d+\/\d+ · resta \d+/);
+  await confirmMove(page);
   await expect(page.locator('.table-cloud')).toHaveCount(0);
   await expect.poll(async () => (await repository.find(room.id))!.game!.players[0]!.orders.length).toBe(1);
   await expect(page.locator('.art-mark.tone-plan')).toContainText('Mover');
@@ -131,8 +136,8 @@ test('Pioneiro next to a closed Region: Mover is dominant and the Region lights 
   await touchPiece(page, `g.hex[aria-label$=" ${edge}"], g.hex[aria-label$=" ${edge}, trabalhado"]`);
   await expect(page.locator('.ctx-node.tone-dominant')).toHaveAttribute('data-node', 'move');
   await cloudNode(page, 'move').click();
-  await expect(page.locator('.ctx-chip')).toContainText('Mover');
-  await expect(page.locator('.ctx-chip')).toContainText('Região fechada');
+  await expect(page.locator('.ctx-chip, .ctx-ficha')).toContainText('Mover');
+  await expect(page.locator('.ctx-chip, .ctx-ficha')).toContainText('Região fechada');
   expect(await page.locator('svg.world-map .region-back.is-target').count()).toBeGreaterThanOrEqual(1);
   await shot(page, 'E-move-into-the-unknown-mode');
 });
@@ -298,4 +303,93 @@ test('work of a city: Trabalhar turns the map into the chooser, Confirmar sends 
   await page.locator('.ctx-chip .ctx-go').click();
   await expect(page.locator('.ctx-chip')).toHaveCount(0);
   await expect.poll(async () => (await repository.find(room.id))!.game!.core.players[0]!.civilization.cities[0]!.workedHexIds.length).toBeGreaterThan(0);
+});
+
+/** A straight strip of known, unowned, empty PLAINS hexes leaving the capital: `start` is the hex next to the city, `line` the hexes beyond it (distance 1, 2, ...). */
+function strip(state: AlphaState, len = 7) {
+  const byId = new Map(state.core.map.map(t => [t.id as string, t])), cap = capital(state);
+  let best: string[] = [];
+  for (let dir = 0; dir < 6; dir++) {
+    const ids: string[] = []; let cur = byId.get(cap.hexId as string)!;
+    for (let i = 0; i < len + 1; i++) { const point = hexNeighbors(cur)[dir]!, t = byId.get(`${point.q},${point.r}`); if (!t) break; ids.push(t.id); cur = t; }
+    if (ids.length > best.length) best = ids;
+  }
+  const [start, ...line] = best;
+  const progress = state.players[0]!;
+  // Face-down Regions are drawn as one back with no hexes to touch: open the ones the strip crosses.
+  for (const id of best) for (const region of state.regions) if (region.hexIds.includes(id as never) && !region.revealedBy.includes(p1)) region.revealedBy.push(p1);
+  for (const id of best) {
+    const t = byId.get(id)!; t.terrain = 'PLAINS' as never; t.ownerId = null as never; t.features = [] as never;
+    if (!progress.knownHexIds.includes(id as never)) progress.knownHexIds.push(id as never);
+    state.units = state.units.filter(u => u.hexId !== id); state.threats = state.threats.filter(th => th.hexId !== id); state.independents = state.independents.filter(i => i.hexId !== id);
+  }
+  expect(line.length).toBeGreaterThanOrEqual(len - 1);
+  return { start: start!, line };
+}
+const hexAt = (page: Page, id: string) => page.locator(`svg.world-map g.hex[data-hex="${id}"]`);
+
+test('D-A: a +2 card played from the hand WHILE Mover is open extends the lit destinations (the reach is derived from the projection, not frozen)', async ({ browser }) => {
+  const state = base();
+  const { start, line } = strip(state);
+  state.units = state.units.filter(u => u.ownerId !== p1 || u.kind !== 'PIONEER');
+  state.units.push({ id: 'v2-bonus-scout', ownerId: p1, kind: 'PIONEER' as never, hexId: start as never, recruitedRound: 1 } as never);
+  const card = ALPHA_CARDS.find(c => c.id === 'strategy-22')!;
+  state.cards.strategyDeck = state.cards.strategyDeck.filter(id => id !== card.id); state.cards.discarded = state.cards.discarded.filter(id => id !== card.id);
+  for (const player of state.players) player.hand = player.hand.filter(id => id !== card.id);
+  state.players[0]!.hand.push(card.id); state.players[0]!.ambitionsChosen = true;
+  const far = line[4]!;
+  const { page, repository, room } = await serve(browser, state);
+  await touchPiece(page, `g.hex[data-hex="${start}"]`);
+  await cloudNode(page, 'move').click();
+  await expect(hexAt(page, line[2]!)).toHaveClass(/target-move/);
+  await expect(hexAt(page, far)).not.toHaveClass(/target/);
+  // The card is played from the hand with the mode still open: the lit hexes follow the new budget, the extra ones in their own tone with "+2".
+  const toggle = page.getByRole('button', { name: /^Cartas/ });
+  if (await toggle.isVisible().catch(() => false)) await toggle.click();
+  await page.getByRole('button', { name: new RegExp(`^${card.name}`) }).first().dispatchEvent('click');
+  await page.getByRole('button', { name: /Jogar carta/ }).click();
+  await expect(hexAt(page, far)).toHaveClass(/target-move/);
+  await expect(hexAt(page, far)).toHaveClass(/tone-bonus/);
+  await expect(hexAt(page, far).locator('.target-cost')).toContainText('+2');
+  await expect(hexAt(page, line[0]!).locator('.target-cost')).toHaveText('1');
+  await shot(page, 'M-bonus-after-card');
+  await hexAt(page, far).click();
+  await expect(page.locator('.ctx-ficha .ctx-legs li')).toHaveCount(1);
+  await confirmMove(page);
+  await expect.poll(async () => (await repository.find(room.id))!.game!.players[0]!.orders.find(o => o.type === 'MOVE' && o.path?.at(-1) === far) !== undefined).toBe(true);
+});
+
+test('Mover coordenado: two legs from one stack are drafted on the map and confirmed as ONE Order; the tray lists them as a set', async ({ browser }) => {
+  const state = base();
+  const { start, line } = strip(state);
+  state.units = state.units.filter(u => u.ownerId !== p1 || u.kind !== 'PIONEER');
+  state.units.push(...[['INFANTRY', 'a'], ['INFANTRY', 'b'], ['CAVALRY', 'c']].map(([kind, tag]) => ({ id: `v2-coord-${tag}`, ownerId: p1, kind: kind as never, hexId: start as never, recruitedRound: 1 }) as never));
+  state.players[0]!.ambitionsChosen = true;
+  const { page, repository, room } = await serve(browser, state);
+  await touchPiece(page, `g.hex[data-hex="${start}"]`);
+  await expect(page.locator('.table-cloud .ctx-plate')).toContainText('MILITARES · 3');
+  await cloudNode(page, 'move').click();
+  const ficha = page.locator('.ctx-ficha');
+  await expect(ficha.locator('.ctx-piece')).toHaveCount(3);
+  await expect(ficha.locator('.ctx-ficha-count')).toContainText('Peças');
+  // Leg 1: the cavalry leaves the selection, the two infantry walk one hex together.
+  await ficha.locator('.ctx-piece[data-unit="v2-coord-c"]').click();
+  await hexAt(page, line[0]!).click();
+  await expect(ficha.locator('.ctx-legs li')).toHaveCount(1);
+  // Leg 2: the cavalry, two hexes away.
+  await ficha.locator('.ctx-piece[data-unit="v2-coord-c"]').click();
+  await expect(ficha.locator('.ctx-piece.is-picked')).toHaveCount(1);
+  await hexAt(page, line[1]!).click();
+  await expect(ficha.locator('.ctx-legs li')).toHaveCount(2);
+  await expect(page.locator('svg.world-map .art-draft-leg')).toHaveCount(2);
+  await expect(ficha.locator('.ctx-ficha-count')).toContainText('3/3');
+  await expect(ficha.locator('.ctx-leg-body').nth(1)).toContainText(/custo \d+\/\d+ · resta \d+/);
+  await expect(ficha.locator('.ctx-go')).toBeEnabled();
+  await shot(page, 'N-coordinated-draft');
+  await confirmMove(page);
+  await expect.poll(async () => { const orders = (await repository.find(room.id))!.game!.players[0]!.orders; return orders.length === 1 && orders[0]!.type === 'MOVE' && orders[0]!.legs?.length === 2; }).toBe(true);
+  await expect(page.locator('.art-mark.tone-plan')).toHaveCount(2);
+  await page.locator('details.alpha-action-queue summary').click();
+  await expect(page.locator('details.alpha-action-queue')).toContainText('Movimento coordenado');
+  await shot(page, 'O-coordinated-planned');
 });

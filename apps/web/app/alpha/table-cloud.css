@@ -310,3 +310,48 @@ button.alpha-socket:disabled { cursor: default; opacity: 1; }
 .alpha-entry-card details.alpha-advanced { margin: 0; padding: 0; }
 .alpha-entry-card details.alpha-advanced > summary { padding: 10px 14px; }
 .alpha-entry-card .alpha-form-row { margin: 0; }
+
+/* ===== Mover coordenado (D1) · Ficha da Ordem de Mover and the draft drawn on the Mesa (Cena B of the Mesa Viva) ===== */
+.world-map .hex.target.tone-base { --target-color: #e6c173; }
+.world-map .hex.target.tone-bonus { --target-color: #7fd0c4; }
+.world-map .target-cost { font: 700 11px/1 var(--font-body, 'Source Sans 3', sans-serif); fill: #f4e2b0; paint-order: stroke; stroke: #0b1114; stroke-width: 3px; stroke-linejoin: round; }
+.world-map .target-cost.tone-bonus { fill: #bff1e9; }
+.world-map .art-draft-under { fill: none; stroke: #0b1114; stroke-opacity: .55; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.world-map .art-draft-line { fill: none; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.world-map .art-draft-dot { stroke: #0b1114; stroke-width: 1.2; }
+.world-map .art-draft-tag rect { fill: #0f181c; stroke-width: 1.5; }
+.world-map .art-draft-tag text { font: 700 10.5px/1 var(--font-body, 'Source Sans 3', sans-serif); fill: #f4ecd8; }
+.world-map .art-draft-ring text { font: 700 10px/1 var(--font-body, 'Source Sans 3', sans-serif); fill: #0b1114; }
+.world-map .art-draft-ring circle { stroke: #0b1114; stroke-width: 1.4; }
+
+.ctx-ficha { position: absolute; transform: translate(-50%, -50%); display: grid; gap: 7px; padding: 8px 10px 9px; border-radius: 12px; border: 1px solid var(--accent); background: color-mix(in srgb, var(--surface) 84%, transparent); -webkit-backdrop-filter: blur(12px) saturate(1.1); backdrop-filter: blur(12px) saturate(1.1); box-shadow: 0 8px 22px #0007; color: var(--text-primary); font-size: 12px; max-width: min(340px, 94%); animation: ctx-pop 150ms var(--ctx-ease, ease) both; --dx: 0px; --dy: 0px; }
+.ctx-ficha-head { display: flex; align-items: center; gap: 8px; }
+.ctx-ficha-head > b { font: 600 13px/1.1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; }
+.ctx-ficha-count { margin-left: auto; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); font-size: 11.5px; color: var(--text-secondary); }
+.ctx-ficha-count b { color: var(--text-primary); }
+.ctx-ficha-count.is-over { border-color: var(--danger, #e08a7a); color: var(--danger, #e08a7a); }
+.ctx-ficha-head > button { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 11.5px; }
+.ctx-ficha-head > button:hover, .ctx-ficha-head > button:focus-visible { border-color: var(--accent); color: var(--text-primary); }
+.ctx-pieces { display: flex; flex-wrap: wrap; gap: 5px; }
+.ctx-piece { position: relative; display: inline-flex; align-items: center; gap: 5px; min-height: 38px; padding: 3px 9px 3px 5px; border-radius: 999px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-elevated, var(--surface)) 60%, transparent); color: var(--text-primary); font: 500 12px/1.1 var(--font-body); text-align: left; cursor: pointer; }
+.ctx-piece small { display: block; font-size: 10.5px; color: var(--text-secondary); }
+.ctx-piece:hover, .ctx-piece:focus-visible { border-color: var(--accent); outline: none; }
+.ctx-piece.is-picked { border-color: #fff; box-shadow: 0 0 0 2px color-mix(in srgb, #fff 35%, transparent); background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.ctx-piece-ring { position: absolute; top: -5px; right: -3px; width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; font: 700 10.5px/1 var(--font-body); font-style: normal; color: #0b1114; background: var(--leg, var(--accent)); border: 1.4px solid #0b1114; }
+.ctx-legs { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.ctx-legs li { display: grid; grid-template-columns: auto 1fr auto auto; align-items: start; gap: 7px; padding: 5px 7px; border-radius: 9px; border: 1px solid color-mix(in srgb, var(--leg, var(--accent)) 60%, var(--border)); background: color-mix(in srgb, var(--leg, var(--accent)) 8%, transparent); }
+.ctx-legs li.is-blocked { border-color: var(--danger, #e08a7a); }
+.ctx-leg-no { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 700 11px/1 var(--font-body); font-style: normal; color: #0b1114; background: var(--leg, var(--accent)); }
+.ctx-leg-body { display: grid; gap: 1px; min-width: 0; }
+.ctx-leg-body small { color: var(--text-secondary); font-size: 11px; line-height: 1.3; }
+.ctx-leg-body small.ctx-leg-block { color: var(--danger, #e08a7a); }
+.ctx-leg-body small.ctx-leg-risk { color: #e6c36a; }
+.ctx-leg-turn { display: inline-flex; align-items: center; gap: 3px; align-self: center; }
+.ctx-leg-turn small { font-size: 10.5px; color: var(--text-secondary); white-space: nowrap; }
+.ctx-leg-turn button, .ctx-leg-x { min-width: 26px; min-height: 26px; padding: 0 6px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; }
+.ctx-leg-turn button:hover, .ctx-leg-x:hover, .ctx-leg-x:focus-visible, .ctx-leg-turn button:focus-visible { border-color: var(--accent); color: var(--text-primary); }
+.ctx-leg-x { align-self: center; }
+.ctx-ficha-foot { display: grid; gap: 4px; }
+.ctx-ficha-foot .ctx-why { font-size: 11.5px; line-height: 1.35; color: var(--text-secondary); }
+@media (prefers-reduced-motion: reduce) { .ctx-ficha { animation: none; } }
+@media (max-width: 760px) { .ctx-ficha { max-width: 96%; } .ctx-piece { min-height: 44px; } }

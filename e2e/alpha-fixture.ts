@@ -1,4 +1,4 @@
-import type { BrowserContext } from '@playwright/test';
+import { expect, type BrowserContext } from '@playwright/test';
 import type { AlphaHttp } from '../apps/server/src/alpha-http.js';
 
 /** Real HTTP boundary, explicitly in-process transport for browser integration tests. */
@@ -48,6 +48,13 @@ export async function touchPiece(page:import('@playwright/test').Page,hexSelecto
   },hexSelector);
   if(!point)throw new Error('no own piece badge found');
   await page.mouse.click(point.x,point.y);
+}
+/** Mover coordenado (D1): the Move is the draft of ONE Order on the Mesa; after the destination is touched, the Ficha's single button confirms it. */
+export async function confirmMove(page:import('@playwright/test').Page){
+  const go=page.locator('.ctx-ficha .ctx-go');
+  await go.waitFor();
+  await expect(go).toBeEnabled();
+  await go.click();
 }
 /** Details ("Ver detalhes") are the only place for the full city catalog: opens the Inspector on the city tab with every action listed. */
 export async function openCatalog(page:import('@playwright/test').Page){

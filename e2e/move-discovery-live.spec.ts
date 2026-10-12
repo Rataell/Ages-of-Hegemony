@@ -6,7 +6,7 @@ import { AlphaHttp } from '../apps/server/src/alpha-http.js';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
-import { connectAlphaContext, muteTour, cloudNode, touchPiece } from './alpha-fixture.js';
+import { connectAlphaContext, muteTour, cloudNode, touchPiece, confirmMove } from './alpha-fixture.js';
 
 // RC 2 · MOVER É DESCOBRIR. Seeded tables through the real UI: there is no Explorar; a Pioneiro (alone or with an escort) Moves into a closed Region and the same Move
 // reveals it (auto orientation / choice), a soldier alone cannot, "Requer acesso naval.", a ship needs a Pioneiro aboard until Navegação Oceânica. Evidence in docs/evidence/rc2/move.
@@ -90,7 +90,7 @@ async function serve(browser: import('@playwright/test').Browser, state: AlphaSt
 const shot = async (page: Page, name: string) => { await page.waitForTimeout(250); await page.screenshot({ path: `${evidence}/${name}.png` }); };
 const entryHex = (id: string) => `g.hex.target[aria-label$=" ${id}"]`;
 /** After the entry hex is clicked: a Region with several orientations asks for one (confirm the first), one orientation is queued at once. */
-async function confirmIfAsked(page: Page) { const asked = page.locator('.table-cloud').filter({ hasText: /Orientação \d+ de \d+/ }); if (await asked.isVisible({ timeout: 1200 }).catch(() => false)) await page.getByRole('button', { name: /Confirmar movimento/ }).click(); }
+async function confirmIfAsked(page: Page) { await confirmMove(page); }
 const hexLabel = (id: string) => `g.hex[aria-label$=" ${id}"], g.hex[aria-label$=" ${id}, trabalhado"]`;
 test.beforeAll(async () => { await mkdir(evidence, { recursive: true }); });
 
@@ -121,7 +121,7 @@ test('Pioneiro with SEVERAL orientations: Mover → closed Region → abstract s
   await expect(selector).toContainText(/Orientação \d+ de \d+/);
   expect(await selector.innerText()).not.toMatch(/\b(mar|terra|colinas?|montanhas?|floresta|costa|planície)\b/i);
   await shot(page, '3-orientation-selector');
-  await page.getByRole('button', { name: /Confirmar movimento/ }).click();
+  await confirmMove(page);
   await expect(page.getByText(/Mover · descobrir/).first()).toBeVisible();
   await shot(page, '4-one-move-planned');
   await resolveAndRecord(page, readyOther, '5-reveal');
@@ -137,6 +137,7 @@ test('Pioneiro with ONE orientation: the Move is queued at once; the log says De
   await cloudNode(page, 'move').click();
   await page.locator(entryHex(entry)).first().click();
   await expect(page.locator('.table-cloud').filter({ hasText: /Orientação \d+ de \d+/ })).toHaveCount(0);
+  await confirmMove(page);
   await expect(page.getByText(/Mover · descobrir/).first()).toBeVisible();
   await shot(page, '7-auto-queued');
   await resolveAndRecord(page, readyOther, '8-auto-reveal');

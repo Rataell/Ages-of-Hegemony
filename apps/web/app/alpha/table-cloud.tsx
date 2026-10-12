@@ -33,7 +33,7 @@ export function useHexAnchor(hexId: string | null, host: RefObject<HTMLElement |
   }, [hexId, host]);
   return point;
 }
-function useHostSize(host: RefObject<HTMLElement | null>): Size | null {
+export function useHostSize(host: RefObject<HTMLElement | null>): Size | null {
   const [size, setSize] = useState<Size | null>(null);
   useEffect(() => {
     const el = host.current;

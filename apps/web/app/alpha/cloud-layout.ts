@@ -7,7 +7,7 @@ export interface Size { w: number; h: number }
 export const NODE = { w: 112, h: 38 };
 export const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), Math.max(lo, hi));
 /** Arc of nodes facing the middle of the table, pushed inside the safe area and apart from each other. The plate sits on the far side. */
-type Box = { x: number; y: number; w: number; h: number };
+export type Box = { x: number; y: number; w: number; h: number };
 const hits = (a: Box, b: Box, gap = 6) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 + gap && Math.abs(a.y - b.y) < (a.h + b.h) / 2 + gap;
 
 /**
@@ -15,14 +15,14 @@ const hits = (a: Box, b: Box, gap = 6) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 
  * area, clear of the piece and of the others. The plate stands on the far side, also clear of the piece. Corner anchors therefore fan out
  * instead of piling up against the wall.
  */
-export function layoutCloud(anchor: Anchor, size: Size, safe: Safe, count: number, plate: Size) {
+export function layoutCloud(anchor: Anchor, size: Size, safe: Safe, count: number, plate: Size, avoid: readonly Box[] = []) {
   const radius = Math.max(92, anchor.r + 58);
   const cx = (safe.left + size.w - safe.right) / 2, cy = (safe.top + size.h - safe.bottom) / 2;
   const toward = Math.hypot(cx - anchor.x, cy - anchor.y) < 40 ? -Math.PI / 2 : Math.atan2(cy - anchor.y, cx - anchor.x);
   const step = count > 1 ? Math.min(54, 200 / (count - 1)) * Math.PI / 180 : 0;
   const inside = (b: Box) => b.x - b.w / 2 >= safe.left && b.x + b.w / 2 <= size.w - safe.right && b.y - b.h / 2 >= safe.top && b.y + b.h / 2 <= size.h - safe.bottom;
   const piece: Box = { x: anchor.x, y: anchor.y, w: anchor.r * 2 + 10, h: anchor.r * 2 + 10 };
-  const taken: Box[] = [piece];
+  const taken: Box[] = [piece, ...avoid];
   const free = (b: Box) => inside(b) && !taken.some(other => hits(b, other));
   const around = (ideal: number, w: number, h: number, radii: number[]): Box | null => {
     for (const r of radii) for (let k = 0; k <= 15; k++) for (const sign of k === 0 ? [1] : [1, -1]) {

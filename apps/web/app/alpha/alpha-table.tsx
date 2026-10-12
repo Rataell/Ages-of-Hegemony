@@ -1,7 +1,7 @@
 'use client';
-import { useCallback, useState, type ReactNode, type RefObject } from 'react';
+import { useCallback, useMemo, useState, type ReactNode, type RefObject } from 'react';
 import { atWarWith } from './war-relation';
-import { civilizationDisplayName, stackCategory, stackViewVerdict } from '@aoh/game-domain';
+import { civilizationDisplayName, orderUnitIds, stackCategory, stackViewVerdict } from '@aoh/game-domain';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
 import { alphaLabel as text } from './alpha-copy';
 import { cityActionGate } from './alpha-panels';
@@ -9,6 +9,8 @@ import { compositionText } from './alpha-army';
 import { POSTURES, postureText } from './alpha-combat';
 import { TableContextCloud, TargetChip, type CloudLevel, type CloudNode, type Safe } from './table-cloud';
 import type { AlphaSend } from './alpha-board';
+import { LEG_COLORS, legPayload, previewBlock, useMovePreview, type DraftLeg } from './move-draft';
+import { MoveFicha, type FichaChip, type FichaLeg } from './move-ficha';
 
 /**
  * Interaction Model V2 · TABLE FIRST. Everything physical on the Mesa (city, Pioneiro, stack, empty territory) is operated from a cloud born on
@@ -21,7 +23,14 @@ type Unit = Game['units'][number];
 type Tab = 'city' | 'territory' | 'military';
 type Ctx = { hexId: string; kind: 'city' | 'units' | 'hex' | 'people' | 'threat' | 'foreign'; cityId?: string; group?: string | null };
 type Step = { id: string; param?: string | undefined };
-type Mode = { kind: 'move' | 'attack' | 'mission' | 'disembark'; ids: string[]; origin: string; hexes: string[]; label: string; /** Closed Regions this group can enter as the last step of the Move (Move + Discovery). */ frontier?: GroupFrontier[] };
+/**
+ * The spatial decision in progress. It stores only WHAT is being decided (kind, pieces, origin): the lit hexes, the instruction and the Regions the group can enter are DERIVED from the projection
+ * on every render (`modeView`), so a card played from the hand while the mode is open (a +2 movement) is felt at once instead of freezing the reach seen when the mode began.
+ * `legs` exists only for a coordinated Move: the draft Order (D1), one leg per set of pieces from one origin.
+ */
+type Mode = { kind: 'move' | 'attack' | 'mission' | 'disembark'; ids: string[]; origin: string; name: string; legs?: DraftLeg[] };
+/** What the map shows for the mode: legal hexes, the instruction, the closed Regions the group can enter (Move + Discovery), and for a Move the terrain cost of each lit hex. */
+type ModeView = { hexes: string[]; label: string; frontier?: GroupFrontier[]; labels?: Record<string, string>; tones?: Record<string, 'base' | 'bonus'> };
 type Group = { key: string; kind: 'pioneer' | 'envoy' | 'army' | 'fleet'; label: string; ids: string[] };
 /** A closed Region the whole group can enter: each entry hex with the group's path (the slowest piece's) and the orientations that give every piece a way in. */
 type GroupFrontier = { regionId: string; hexIds: string[]; entries: { hexId: string; path: string[]; rotations: number[] }[] };
@@ -46,13 +55,16 @@ const optionLabel = (o: UrbanOption) => o.build?.kind === 'DISTRICT' ? text(o.bu
 const coords = (id: string) => { const [q, r] = id.split(',').map(Number); return { q: q ?? 0, r: r ?? 0 }; };
 const distance = (a: string, b: string) => { const p = coords(a), q = coords(b); return (Math.abs(p.q - q.q) + Math.abs(p.q + p.r - q.q - q.r) + Math.abs(p.r - q.r)) / 2; };
 const MOOD: Record<string, string> = { REVOLT: 'Revolta', SHAKEN: 'Abalada', STABLE: 'Estável', PROSPEROUS: 'Próspera' };
+const NO_LEGS: readonly DraftLeg[] = [];
 const LEVELS = ['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS'];
 
 export interface TableApi {
   /** Cloud and target-mode chip, to be rendered inside the map host. */
   element: ReactNode;
-  /** Legal hexes of the pending spatial decision, for the map to light up. */
-  targets: { kind: string; hexIds: string[] } | null;
+  /** Legal hexes of the pending spatial decision, for the map to light up (with the terrain cost of each hex and whether only a card bonus reaches it). */
+  targets: { kind: string; hexIds: string[]; labels?: Record<string, string>; tones?: Record<string, 'base' | 'bonus'> } | null;
+  /** The legs of the coordinated Move being drafted, for the map to draw as coloured trajectories. */
+  draftLegs: { index: number; color: string; origin: string; path: string[]; kinds: string[]; tag: string }[] | null;
   /** The orientation being chosen for a closed Region (preview on the Region back; never its terrain). */
   orientation: { regionId: string; rotation: number } | null;
   /** A hex (or the player's own pieces on it) was touched. Returns true when a target-mode decision consumed the click. */
@@ -64,15 +76,20 @@ export interface TableApi {
 
 export function useTable(a: {
   game: Game; selfId: string; locked: boolean; send: AlphaSend; queue: (order: Record<string, unknown>) => Promise<boolean>; manage: (command: Record<string, unknown>) => Promise<boolean>;
-  host: RefObject<HTMLElement | null>; describeOrder: (order: Order) => string; safe?: Safe; startWork: (cityId: string) => void; work: { cityName: string; origin: string; count: number; limit: number; onConfirm: () => void; onCancel: () => void } | null; openDetails: (tab: Tab, catalog?: boolean) => void; openBook: (tab: string) => void; hold: boolean;
+  roomId: string; /** The seat colour, for the piece miniatures of the Ficha. */ color?: string; host: RefObject<HTMLElement | null>; describeOrder: (order: Order) => string; safe?: Safe; startWork: (cityId: string) => void; work: { cityName: string; origin: string; count: number; limit: number; onConfirm: () => void; onCancel: () => void } | null; openDetails: (tab: Tab, catalog?: boolean) => void; openBook: (tab: string) => void; hold: boolean;
 }): TableApi {
   const { game, selfId, locked, send, queue, manage, host } = a;
-  const [ctx, setCtx] = useState<Ctx | null>(null), [steps, setSteps] = useState<Step[]>([]), [mode, setMode] = useState<Mode | null>(null);
+  const [ctx, setCtx] = useState<Ctx | null>(null), [steps, setSteps] = useState<Step[]>([]);
   const [posture, setPosture] = useState('ASSAULT'), [name, setName] = useState('Novo Horizonte'), [count, setCount] = useState(1), [orient, setOrient] = useState<Orient | null>(null), [flash, setFlash] = useState<string | null>(null);
   const civ = game.view.player.civilization, rules = game.rules.units;
   const ownUnits = game.units.filter(u => u.ownerId === selfId && !u.carrierId);
   const orderedIds = new Map<string, Order>();
-  for (const order of game.self.orders) for (const id of 'unitIds' in order ? order.unitIds : 'unitId' in order ? [order.unitId] : []) orderedIds.set(id, order);
+  for (const order of game.self.orders) for (const id of orderUnitIds(order)) orderedIds.set(id, order);
+  /** Movement the cards played this round add (already inside `unitOptions`): the lit hexes only they reach get their own tone. */
+  const moveBonus = game.self.temporaryEffects.filter(entry => entry.round === game.view.round && entry.effect.kind === 'MOVEMENT').reduce((total, entry) => total + ('amount' in entry.effect ? entry.effect.amount : 0), 0);
+  let terrainIndex: Map<string, string> | null = null;
+  const terrainAt = (id: string) => { terrainIndex ??= new Map([...game.view.visibleTerritory, ...game.knownTerritory].map(t => [t.id as string, t.terrain as string])); return terrainIndex.get(id) ?? 'PLAINS'; };
+  const [mode, setMode] = useState<Mode | null>(null);
 
   const close = useCallback(() => { setCtx(null); setSteps([]); setMode(null); setFlash(null); setCount(1); setOrient(null); }, []);
   const push = (id: string, param?: string) => { setFlash(null); setSteps(old => [...old, { id, param }]); };
@@ -97,8 +114,12 @@ export function useTable(a: {
   // ---------- entering a context ----------
   const select = (hexId: string, fromPieces = false): boolean => {
     if (mode) {
-      if (!mode.hexes.includes(hexId)) { setFlash('Fora do alcance: escolha um hex destacado.'); return true; }
-      commit(hexId);
+      if (!modeInfo!.hexes.includes(hexId)) {
+        // Coordinated Move: touching another stack of mine (free this round) takes ITS pieces for the next leg; the draft stays.
+        if (mode.legs) { const grabbed = grabAt(hexId); if (grabbed) { pickPieces(grabbed.ids, hexId, grabbed.name); return true; } }
+        setFlash(mode.legs && !mode.ids.length ? 'Escolha uma peça (ou toque noutra pilha sua) para o próximo trajeto.' : mode.legs && !modeInfo!.hexes.length ? 'Estas peças não têm destino em comum: separe-as em trajetos diferentes.' : 'Fora do alcance: escolha um hex destacado.'); return true;
+      }
+      if (mode.legs) addLeg(hexId); else commit(hexId);
       return true;
     }
     const myCity = civ.cities.find(c => c.hexId === hexId), groups = groupsAt(hexId);
@@ -130,32 +151,86 @@ export function useTable(a: {
     }
     return { regions, block, note: null };
   };
+  /** Where the mode may land, derived from the CURRENT projection every render (never frozen when the mode began). */
+  const modeView = (m: Mode): ModeView => {
+    if (m.kind === 'disembark') {
+      const lists = m.ids.map(id => game.unitOptions[id]?.disembark ?? []);
+      return { hexes: lists.length ? lists[0]!.filter(h => lists.every(list => list.includes(h))) : [], label: 'Desembarcar: escolha a terra no mapa' };
+    }
+    const opts = m.ids.map(id => game.unitOptions[id]).filter((o): o is NonNullable<typeof o> => o !== undefined);
+    if (m.kind === 'move') {
+      if (!m.ids.length || opts.length !== m.ids.length) return { hexes: [], label: m.legs ? 'Mover: escolha as peças e o destino no mapa' : `Mover ${m.name}: sem destino` };
+      const frontier = frontierOfGroup(m.ids).regions;
+      const walk = Object.keys(opts[0]!.moves).filter(h => opts.every(o => o.moves[h]));
+      // Terrain cost of each lit hex (the slowest piece's path, as the Move will walk it) and which hexes only the card bonus of this round reaches.
+      const slowest = opts.reduce((a, b) => (b.movement < a.movement ? b : a)), base = slowest.movement - moveBonus, labels: Record<string, string> = {}, tones: Record<string, 'base' | 'bonus'> = {};
+      const land = m.ids.every(id => { const unit = game.units.find(u => u.id === id); return unit !== undefined && rules[unit.kind]?.domain === 'LAND'; }), roads = game.roads as readonly string[];
+      for (const h of walk) {
+        const cost = (slowest.moves[h] ?? []).reduce((n, step) => n + (land && roads.includes(step) ? 1 : (game.rules.movementCosts[terrainAt(step) as keyof typeof game.rules.movementCosts] ?? 1)), 0);
+        const only = moveBonus > 0 && cost > base;
+        labels[h] = only ? `${cost} · +${moveBonus}` : String(cost); tones[h] = only ? 'bonus' : 'base';
+      }
+      return { hexes: [...walk, ...frontier.flatMap(r => r.hexIds)], frontier, labels, tones,
+        label: m.legs ? `Mover ${m.name}: escolha o destino de ${m.ids.length > 1 ? 'estas peças' : 'esta peça'}${frontier.length ? ' · uma Região fechada destacada é descoberta' : ''}` : `Mover ${m.name}: escolha o destino no mapa${frontier.length ? ' · uma Região fechada destacada é descoberta' : ''}` };
+    }
+    const foreign = new Set<string>([...game.view.visibleCities.filter(c => c.ownerId !== selfId).map(c => c.hexId), ...(m.kind === 'attack' ? game.units.filter(u => u.ownerId !== selfId && !u.carrierId).map(u => u.hexId) : [])]);
+    if (m.kind === 'mission') return { hexes: game.view.visibleCities.filter(c => c.ownerId !== selfId && distance(m.origin, c.hexId) <= 1).map(c => c.hexId), label: 'Missão de influência: escolha a cidade' };
+    return { hexes: [...foreign].filter(h => distance(m.origin, h) === 1), label: `Atacar (${postureText(posture)}): escolha o alvo no mapa` };
+  };
   const startMode = (group: Group, kind: Mode['kind']) => {
     if (kind === 'disembark') {
       const cargo = game.units.filter(u => u.ownerId === selfId && u.carrierId && group.ids.includes(u.carrierId));
-      const lists = cargo.map(u => game.unitOptions[u.id]?.disembark ?? []);
-      const hexes = lists.length ? lists[0]!.filter(h => lists.every(list => list.includes(h))) : [];
-      setFlash(null); setMode({ kind, ids: cargo.map(u => u.id), origin: ownUnits.find(u => u.id === group.ids[0])!.hexId, hexes, label: 'Desembarcar: escolha a terra no mapa' });
+      setFlash(null); setMode({ kind, ids: cargo.map(u => u.id), origin: ownUnits.find(u => u.id === group.ids[0])!.hexId, name: group.label });
       return;
     }
     const opts = group.ids.map(id => game.unitOptions[id]).filter((o): o is NonNullable<typeof o> => o !== undefined);
     if (opts.length !== group.ids.length || !opts.length) return;
-    let hexes: string[] = [], label = '';
-    let frontier: GroupFrontier[] | undefined;
-    if (kind === 'move') {
-      hexes = Object.keys(opts[0]!.moves).filter(h => opts.every(o => o.moves[h]));
-      frontier = frontierOfGroup(group.ids).regions;
-      hexes = [...hexes, ...frontier.flatMap(r => r.hexIds)];
-      label = `Mover ${group.label}: escolha o destino no mapa${frontier.length ? ' · uma Região fechada destacada é descoberta' : ''}`;
+    // With the coordinated rule on, Mover opens the draft of one Order (legs); without it, one click on the destination is the Order.
+    setFlash(null); setMode({ kind, ids: group.ids, origin: ownUnits.find(u => u.id === group.ids[0])!.hexId, name: group.label, ...(kind === 'move' && game.coordinatedMove.enabled ? { legs: [] } : {}) });
+  };
+  // ---------- coordinated Move (D1): the draft Order ----------
+  /** My free pieces on a hex that can take part in a Move (not in an Order, not carried, the server listed options for them). */
+  const freeAt = (hexId: string) => ownUnits.filter(u => u.hexId === hexId && !orderedIds.has(u.id) && game.unitOptions[u.id] !== undefined);
+  const grabAt = (hexId: string): { ids: string[]; name: string } | null => {
+    const free = new Set(freeAt(hexId).map(u => u.id)), group = groupsAt(hexId).find(g => g.ids.some(id => free.has(id)));
+    return group ? { ids: group.ids.filter(id => free.has(id)), name: group.label } : null;
+  };
+  const pickPieces = (ids: string[], origin: string, name: string) => { setFlash(null); setMode(m => (m ? { ...m, ids, origin, name } : m)); };
+  const togglePiece = (id: string) => {
+    const unit = game.units.find(u => u.id === id);
+    if (!mode || !unit) return;
+    setFlash(null);
+    if (unit.hexId !== mode.origin) { pickPieces([id], unit.hexId, text(unit.kind)); return; }
+    pickPieces(mode.ids.includes(id) ? mode.ids.filter(x => x !== id) : [...mode.ids, id], mode.origin, mode.name);
+  };
+  const addLeg = (dest: string) => {
+    if (!mode?.legs) return;
+    const ids = mode.ids, opts = ids.map(id => game.unitOptions[id]).filter((o): o is NonNullable<typeof o> => o !== undefined);
+    if (!ids.length || opts.length !== ids.length) return;
+    // The last step may enter a closed Region (Move + Discovery): the leg carries the orientations that give every piece a way in.
+    const region = (modeInfo!.frontier ?? []).find(r => r.hexIds.includes(dest));
+    let leg: DraftLeg;
+    if (region) {
+      const entry = region.entries.find(e => e.hexId === dest) ?? [...region.entries].sort((x, y) => x.path.length - y.path.length || x.hexId.localeCompare(y.hexId))[0]!;
+      leg = { ids: [...ids], origin: mode.origin, dest: entry.hexId, path: entry.path, rotations: [...entry.rotations], ri: 0, regionId: game.board.find(r => (r.hexIds as readonly string[]).includes(entry.hexId))?.id ?? null };
+    } else {
+      const block = stackViewVerdict(game.stacks, ids.map(id => stackCategory(rules[game.units.find(u => u.id === id)!.kind]!)), dest);
+      if (block) { setFlash(block); return; }
+      const slowest = opts.reduce((a, b) => (b.movement < a.movement ? b : a));
+      leg = { ids: [...ids], origin: mode.origin, dest, path: slowest.moves[dest]!, rotations: [], ri: 0, regionId: null };
     }
-    if (kind === 'attack' || kind === 'mission') {
-      const origin = ownUnits.find(u => u.id === group.ids[0])!.hexId;
-      const foreign = new Set<string>([...game.view.visibleCities.filter(c => c.ownerId !== selfId).map(c => c.hexId), ...(kind === 'attack' ? game.units.filter(u => u.ownerId !== selfId && !u.carrierId).map(u => u.hexId) : [])]);
-      hexes = [...foreign].filter(h => distance(origin, h) === 1);
-      if (kind === 'mission') hexes = game.view.visibleCities.filter(c => c.ownerId !== selfId && distance(origin, c.hexId) <= 1).map(c => c.hexId);
-      label = kind === 'attack' ? `Atacar (${postureText(posture)}): escolha o alvo no mapa` : 'Missão de influência: escolha a cidade';
-    }
-    setFlash(null); setMode({ kind, ids: group.ids, origin: ownUnits.find(u => u.id === group.ids[0])!.hexId, hexes, label, ...(frontier ? { frontier } : {}) });
+    // A piece belongs to ONE leg: taking it for a new destination removes it from the one it was in.
+    const kept = mode.legs.map(l => ({ ...l, ids: l.ids.filter(id => !ids.includes(id)) })).filter(l => l.ids.length);
+    if (kept.length + 1 > game.coordinatedMove.maxPieces) { setFlash(`Limite de playtest: ${game.coordinatedMove.maxPieces} trajetos por Ordem. Remova um trajeto antes.`); return; }
+    setFlash(null); setMode(m => (m ? { ...m, ids: [], legs: [...kept, leg] } : m));
+  };
+  const dropLeg = (index: number) => { setFlash(null); setMode(m => (m?.legs ? { ...m, legs: m.legs.filter((_, i) => i !== index) } : m)); };
+  const turnLeg = (index: number, step: 1 | -1) => setMode(m => (m?.legs ? { ...m, legs: m.legs.map((l, i) => (i === index && l.rotations.length ? { ...l, ri: (l.ri + step + l.rotations.length) % l.rotations.length } : l)) } : m));
+  const confirmDraft = () => {
+    const legs = mode?.legs;
+    if (!legs?.length) return;
+    // One leg is the plain Move every client already speaks; two or three legs are ONE coordinated Order.
+    void (legs.length === 1 ? queue({ type:'MOVE', ...legPayload(legs[0]!) }) : queue({ type:'MOVE', legs: legs.map(legPayload) })).then(finish);
   };
   const hostileTo = (hexId: string) => {
     const city = game.view.visibleCities.find(c => c.hexId === hexId), other = city?.ownerId ?? game.units.find(u => u.hexId === hexId && u.ownerId !== selfId)?.ownerId;
@@ -169,7 +244,7 @@ export function useTable(a: {
     if (mode.kind === 'disembark') { void send({ type:'DISEMBARK', unitIds: mode.ids, hexId }).then(finish); return; }
     if (mode.kind === 'move') {
       // The last step may enter a closed Region: the same Move, ending on an entry hex, carrying the orientation (Move + Discovery).
-      const region = (mode.frontier ?? []).find(r => r.hexIds.includes(hexId));
+      const region = (modeInfo!.frontier ?? []).find(r => r.hexIds.includes(hexId));
       if (region) {
         const entry = region.entries.find(e => e.hexId === hexId) ?? [...region.entries].sort((x, y) => x.path.length - y.path.length || x.hexId.localeCompare(y.hexId))[0]!;
         if (entry.rotations.length === 1) { void queue({ type:'MOVE', unitIds: mode.ids, path: entry.path, rotation: entry.rotations[0] }).then(finish); return; }
@@ -436,13 +511,45 @@ export function useTable(a: {
   };
 
   const current = mode ? null : level();
+  const modeInfo: ModeView | null = mode ? modeView(mode) : null;
+  const draft = mode?.kind === 'move' && mode.legs ? mode.legs : null;
+  const preview = useMovePreview(a.roomId, draft ?? NO_LEGS, game.version);
+  const numbersOf = (index: number) => { const leg = preview.status === 'ready' ? preview.data.legs[index] : undefined; return leg ? `custo ${leg.cost}/${leg.budget} · resta ${leg.remaining}` : null; };
+  const draftLegs = useMemo(() => draft?.length ? draft.map((leg, index) => {
+    const answer = preview.status === 'ready' ? preview.data.legs[index] : undefined;
+    return { index, color: LEG_COLORS[index % LEG_COLORS.length]!, origin: leg.origin, path: leg.path, kinds: leg.ids.map(id => game.units.find(u => u.id === id)?.kind ?? 'INFANTRY'), tag: `${index + 1}${answer ? ` · ${answer.cost}/${answer.budget}` : ''}` };
+  }) : null, [draft, preview, game.units]);
+  const ficha = (): ReactNode => {
+    if (!mode || !draft) return null;
+    const used = draft.reduce((n, leg) => n + leg.ids.length, 0), max = game.coordinatedMove.maxPieces;
+    const chipIds = [...new Set([...freeAt(mode.origin).map(u => u.id), ...draft.flatMap(leg => leg.ids)])];
+    const chips: FichaChip[] = chipIds.map(id => {
+      const unit = game.units.find(u => u.id === id)!, same = chipIds.filter(other => game.units.find(u => u.id === other)?.kind === unit.kind), leg = draft.findIndex(l => l.ids.includes(id));
+      return { id, kind: unit.kind, label: same.length > 1 ? `${text(unit.kind)} ${same.indexOf(id) + 1}` : text(unit.kind), sub: leg >= 0 ? `no trajeto ${leg + 1}` : `mov ${game.unitOptions[id]?.movement ?? 0}`, leg: leg >= 0 ? leg : null, picked: mode.ids.includes(id) };
+    });
+    const rows: FichaLeg[] = draft.map((leg, index) => {
+      const answer = preview.status === 'ready' ? preview.data.legs[index] : undefined;
+      return { index, pieces: compositionText(leg.ids.map(id => game.units.find(u => u.id === id)!).filter(Boolean)), dest: leg.dest, numbers: numbersOf(index), blockers: [...new Set((answer?.blockers ?? []).map(b => b.message))],
+        risk: answer?.frontierRisk?.danger === 'POSSIBLE' ? 'Perigo possível ao explorar uma Região fechada.' : null, turn: leg.rotations.length > 1 ? { count: leg.rotations.length, index: leg.ri } : null };
+    });
+    const block = gate ?? (draft.length ? previewBlock(preview) : 'Escolha as peças e toque num destino iluminado.');
+    const note = flash ?? (!mode.ids.length && draft.length ? 'Escolha outra peça ou confirme a Ordem.' : modeInfo!.frontier?.length ? 'Uma Região fechada iluminada é descoberta ao entrar.' : null);
+    return <MoveFicha host={host} hexId={mode.origin} {...(a.safe ? { safe: a.safe } : {})} color={a.color ?? '#60a3e9'} chips={chips} legs={rows}
+      counter={{ used, max: draft.length > 1 || used <= max ? max : null, over: draft.length > 1 && used > max }} note={note} block={block}
+      onToggle={togglePiece} onRemove={dropLeg} onTurn={turnLeg} onConfirm={confirmDraft} onCancel={() => { setMode(null); setFlash(null); }} />;
+  };
   const element = a.hold ? null : a.work
     ? <TargetChip host={host} hexId={a.work.origin} {...(a.safe ? { safe: a.safe } : {})} text={`Trabalho de ${a.work.cityName}: clique nos hexes destacados · ${a.work.count} / ${a.work.limit}`} tone="claim" onCancel={a.work.onCancel}>
       <button type="button" className="ctx-go" onClick={a.work.onConfirm}>Confirmar</button></TargetChip>
+    : mode && draft
+    ? ficha()
     : mode
-    ? <TargetChip host={host} hexId={mode.origin} {...(a.safe ? { safe: a.safe } : {})} text={flash ?? mode.label} tone={mode.kind === 'attack' ? 'attack' : 'move'} onCancel={() => { setMode(null); setFlash(null); }}>
+    ? <TargetChip host={host} hexId={mode.origin} {...(a.safe ? { safe: a.safe } : {})} text={flash ?? modeInfo!.label} tone={mode.kind === 'attack' ? 'attack' : 'move'} onCancel={() => { setMode(null); setFlash(null); }}>
 </TargetChip>
     : ctx && current ? <TableContextCloud host={host} hexId={ctx.hexId} level={current} {...(a.safe ? { safe: a.safe } : {})} canBack={steps.length > 1} onBack={back} onClose={close} /> : null;
-  const orientation = !mode && orient && orient.regionId && steps.at(-1)?.id === 'orient' ? { regionId: orient.regionId, rotation: orient.rotations[Math.min(orient.index, orient.rotations.length - 1)]! } : null;
-  return { element, orientation, targets: mode ? { kind: mode.kind === 'move' ? 'move' : mode.kind, hexIds: mode.hexes } : null, select, background: () => { if (mode) { setFlash('Escolha um hex destacado (Esc cancela).'); return; } close(); }, close, active: !!ctx || !!mode };
+  // Orientation preview on the Region back: the leg being edited (coordinated) or the one being oriented (single Move).
+  const turning = draft?.filter(leg => leg.rotations.length > 1 && leg.regionId).at(-1);
+  const orientation = !mode && orient && orient.regionId && steps.at(-1)?.id === 'orient' ? { regionId: orient.regionId, rotation: orient.rotations[Math.min(orient.index, orient.rotations.length - 1)]! }
+    : turning ? { regionId: turning.regionId!, rotation: turning.rotations[Math.min(turning.ri, turning.rotations.length - 1)]! } : null;
+  return { element, orientation, draftLegs, targets: mode && modeInfo ? { kind: mode.kind === 'move' ? 'move' : mode.kind, hexIds: modeInfo.hexes, ...(modeInfo.labels ? { labels: modeInfo.labels } : {}), ...(modeInfo.tones ? { tones: modeInfo.tones } : {}) } : null, select, background: () => { if (mode) { setFlash('Escolha um hex destacado (Esc cancela).'); return; } close(); }, close, active: !!ctx || !!mode };
 }

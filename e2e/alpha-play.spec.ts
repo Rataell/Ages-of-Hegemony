@@ -5,7 +5,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { hexDistance } from '@aoh/game-engine';
-import { connectAlphaContext, openArea, toMap, muteTour, cloudNode, touchPiece, openCatalog } from './alpha-fixture.js';
+import { connectAlphaContext, openArea, toMap, muteTour, cloudNode, touchPiece, openCatalog, confirmMove } from './alpha-fixture.js';
 
 // Browser integration uses the real HTTP/service/engine code with the explicit test repository.
 // PostgreSQL durability and deployed-network E2E remain separate mandatory release gates.
@@ -130,6 +130,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await cloudNode(pa,'move').click();
     await expect(pa.locator('svg.world-map g.hex.target-move').first()).toBeVisible();
     await pa.locator('svg.world-map g.hex.target-move:not([aria-label^="Desconhecido"])').first().click();
+    await confirmMove(pa);
     await expect(pa.locator('.alpha-order-chip.is-used').filter({hasText:'Expedição'})).toHaveCount(1);
     await pa.reload();await openCatalog(pa);await expect(pa.locator('.alpha-urban')).toContainText('Ações planejáveis da cidade: 1 / 2');
     await bothConfirm('Confirmar planejamento','2 / 21');

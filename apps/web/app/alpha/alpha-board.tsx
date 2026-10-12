@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import { ALPHA_CARDS, ALPHA_ERA_NUMERALS, AlphaEraSchema, ORDER_NAMES, AlphaOrderTypeSchema, DISCOVERY_INFO, civilizationDisplayName, core10OfChassis, WORLD_PULSE_CARDS, civilizationKit } from '@aoh/game-domain';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ALPHA_CARDS, ALPHA_ERA_NUMERALS, AlphaEraSchema, ORDER_NAMES, AlphaOrderTypeSchema, DISCOVERY_INFO, civilizationDisplayName, core10OfChassis, WORLD_PULSE_CARDS, civilizationKit, moveLegs, orderUnitIds } from '@aoh/game-domain';
 import { emblemArt, sealArt, seatColor, seatSealSvg } from './table-art';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import { HexMap } from '../play/hex-map';
@@ -43,6 +43,8 @@ function loadPanels():{council:boolean;inspector:boolean}{
   const narrow=typeof window!=='undefined'&&window.innerWidth<1400;
   try{const stored=localStorage.getItem(PANELS_KEY);if(stored===null)return {council:!narrow,inspector:false};const raw=JSON.parse(stored) as Record<string,unknown>;return {council:raw.council!==false,inspector:raw.inspector===true};}catch{return {council:!narrow,inspector:false};}
 }
+const NO_HEXES:readonly string[]=[];
+const NO_EVENTS:readonly never[]=[];
 const PRESENCE_LEVEL:Record<string,string>={CONTACT:'contato',ROOTED:'enraizada',PREDOMINANT:'predominante'};
 const INSPECTORS:[Inspector,string][]=[['city','Cidade'],['territory','Território'],['military','Militar']];
 
@@ -95,13 +97,18 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
   useEffect(()=>{if(game.phase==='ERA_TURN')trackUi(watched,room.id,'era_turn_shown',String(game.view.round));},[watched,room.id,game.phase,game.view.round]);
   useEffect(()=>{setTerPage('threat');},[selected]);
   useEffect(()=>{setUnits(current=>{const live=current.filter(id=>ownUnits.some(u=>u.id===id));return live.length===current.length?current:live;});},[liveKey]);
-  /** "Movimento · Pioneiro → 4,6": what moves, and where, instead of the bare order type. */
+  /** "Movimento · Pioneiro → 4,6": what moves, and where, instead of the bare order type. A coordinated Move reads as ONE set: "Mover coordenado · Infantaria ×2 → 4,6 + Cavalaria → 5,2". */
   const orderLabel=(order:typeof game.self.orders[number])=>{
-    const ids='unitIds' in order?order.unitIds:'unitId' in order?[order.unitId]:[];
-    const who=ids.length?compositionText(game.units.filter(u=>ids.includes(u.id))):'';
-    const where=order.type==='MOVE'?order.path.at(-1):order.type==='TRADE'?civ.cities.find(c=>c.id===order.fromCityId)?.name:order.target;
-    // Discovery is part of the Move: a Move that carries an orientation enters a closed Region, so the plan reads as one Move to the unknown.
-    if(order.type==='MOVE'&&order.rotation!==undefined)return `${text(order.type)}${who?` · ${who}`:''} → desconhecido`;
+    const piecesOf=(ids:readonly string[])=>ids.length?compositionText(game.units.filter(u=>ids.includes(u.id))):'';
+    if(order.type==='MOVE'){
+      const legs=moveLegs(order),to=(leg:typeof legs[number])=>leg.rotation!==undefined?'desconhecido':(leg.path.at(-1)??'');
+      // Discovery is part of the Move: a leg that carries an orientation enters a closed Region, so the plan reads as one Move to the unknown.
+      if(legs.length>1)return `${text(order.type)} coordenado · ${legs.map(leg=>`${piecesOf(leg.unitIds)} → ${to(leg)}`).join(' + ')}`;
+      const only=legs[0]!,who=piecesOf(only.unitIds);
+      return `${text(order.type)}${who?` · ${who}`:''} → ${to(only)}`;
+    }
+    const ids=orderUnitIds(order),who=piecesOf(ids);
+    const where=order.type==='TRADE'?civ.cities.find(c=>c.id===order.fromCityId)?.name:order.target;
     return `${text(order.type)}${who?` · ${who}`:''}${where?` → ${where}`:''}`;
   };
   const manage=(command:Record<string,unknown>)=>send({type:'MANAGE',command:{...command,playerId:room.selfPlayerId,expectedVersion:game.view.version}});
@@ -125,7 +132,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
     era:game.milestones.roundsUntilNext===1&&game.phase==='PLANNING'?'Última rodada da Era':undefined,
   };
   /** What a confirmation would leave undone: a city without its action produces nothing; idle pieces and spare actions are just reminders. */
-  const orderedNow=new Set(game.self.orders.flatMap(o=>'unitIds' in o?o.unitIds:'unitId' in o?[o.unitId]:[]));
+  const orderedNow=new Set(game.self.orders.flatMap(orderUnitIds));
   const planningWarnings=game.phase!=='PLANNING'?[]:[
     ...game.cityStates.filter(c=>c.status!=='OCCUPIED'&&c.plannedUrbanActions===0).map(c=>`${civ.cities.find(x=>x.id===c.cityId)?.name??'Uma cidade'} não tem ação planejada: não produz nesta rodada.`),
     ...game.threatAlerts.map(alert=>`${alert.kind==='PIRATE'?'Piratas':'Um bando de saqueadores'} a ${alert.distance} hex(es) de ${civ.cities.find(x=>x.id===alert.cityId)?.name??'uma cidade'}: reforce a defesa ou ataque-o.`),
@@ -149,7 +156,8 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
   /** Resolved plans, on the table: what the player has already decided this round is visible where it will happen. */
   const planMarks=game.phase==='PLANNING'?[
     ...game.self.plannedActions.flatMap(action=>action.type==='URBAN_ACTION'?[{hexId:civ.cities.find(c=>c.id===action.cityId)?.hexId??'',label:`✓ ${text(action.action)}`,tone:'plan' as const}]:[]),
-    ...game.self.orders.map(order=>({hexId:order.type==='MOVE'?order.path.at(-1)??'':'target' in order?String(order.target):'',label:order.type==='MOVE'?(order.rotation!==undefined?'✓ Mover · descobrir':'✓ Mover'):order.type==='EXPLORE'?'✓ Explorar':order.type==='ATTACK'?'✓ Ataque':`✓ ${text(order.type)}`,tone:'plan' as const})),
+    // A MOVE puts one mark at the destination of EACH leg (a coordinated Order of 2 legs reads "✓ Mover 1/2" and "✓ Mover 2/2").
+    ...game.self.orders.flatMap(order=>order.type==='MOVE'?moveLegs(order).map((leg,index,all)=>({hexId:leg.path.at(-1)??'',label:`${leg.rotation!==undefined?'✓ Mover · descobrir':'✓ Mover'}${all.length>1?` ${index+1}/${all.length}`:''}`,tone:'plan' as const})):[{hexId:'target' in order?String(order.target):'',label:order.type==='EXPLORE'?'✓ Explorar':order.type==='ATTACK'?'✓ Ataque':`✓ ${text(order.type)}`,tone:'plan' as const}]),
   ].filter(mark=>mark.hexId!==''):[];
   const mapMarks=[
     ...planMarks,
@@ -169,8 +177,14 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
   const openDetails=(next:Inspector,wantCatalog=false)=>{setInspector(next);if(next==='city')setCityPage(wantCatalog?'actions':'summary');setPanels(old=>({...old,inspector:true}));};
   const workCity=civ.cities.find(c=>c.id===selectedCity);
   const startWork=(cityId:string)=>{const target=civ.cities.find(c=>c.id===cityId);if(!target)return;setSelectedCity(cityId);setWorked(target.workedHexIds);setWorking(true);};
-  const table=useTable({game,selfId:room.selfPlayerId,startWork,work:working&&workCity?{cityName:workCity.name,origin:workCity.hexId,count:worked.length,limit:workCity.workers.producers,onConfirm:()=>{void manage({type:'ASSIGN_WORKED_HEXES',cityId:workCity.id,hexIds:worked}).then(ok=>{if(ok)setWorking(false);});},onCancel:()=>setWorking(false)}:null,locked,send,queue,manage,host:hostRef,describeOrder:orderLabel,hold:tab!=='world'||civOpen,safe:{top:78,right:panels.inspector?400:16,bottom:98,left:16},openDetails,openBook:next=>{setTab(next);}});
+  const table=useTable({game,roomId:room.id,selfId:room.selfPlayerId,startWork,work:working&&workCity?{cityName:workCity.name,origin:workCity.hexId,count:worked.length,limit:workCity.workers.producers,onConfirm:()=>{void manage({type:'ASSIGN_WORKED_HEXES',cityId:workCity.id,hexIds:worked}).then(ok=>{if(ok)setWorking(false);});},onCancel:()=>setWorking(false)}:null,locked,send,queue,manage,host:hostRef,describeOrder:orderLabel,hold:tab!=='world'||civOpen,safe:{top:78,right:panels.inspector?400:16,bottom:98,left:16},openDetails,openBook:next=>{setTab(next);}});
   useEffect(()=>{if(tab!=='world'||civOpen)table.close();},[tab,civOpen]);
+  /** Closed hexes a piece can enter whose Region carries `frontierRisk.danger === 'POSSIBLE'`: the amber warning shows while the map is answering a Move (never the fact of a Perigo). */
+  const dangerHexes=useMemo(()=>{
+    const lit=new Set<string>(table.targets?.kind==='move'?table.targets.hexIds:[]);
+    if(!lit.size)return NO_HEXES;
+    return [...new Set(Object.values(game.unitOptions).flatMap(o=>o.frontier.filter(f=>f.frontierRisk?.danger==='POSSIBLE').flatMap(f=>f.entries.map(e=>e.hexId))))].filter(id=>lit.has(id));
+  },[game.unitOptions,table.targets]);
   function select(id:string){
     // While the map is answering a spatial decision (target mode) a click is the answer, not a new selection.
     if(table.targets){table.select(id);return;}
@@ -228,7 +242,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
           <dl className="alpha-cofre-facts"><div><dt>Administração</dt><dd className={over?'warning':''}>{civ.administrativeLoad} / {civ.administrativeCapacity}{over&&' · sobre-extensão'}</dd></div><div><dt>Ordens</dt><dd>{game.actions.used} / {game.actions.limit} · {game.actions.reserved} planejadas</dd></div></dl></>}</div>
     </section>}
     <div className="alpha-table" data-inspector={panels.inspector?'open':'folded'}>
-      <div className="world-column" ref={hostRef}>{game.worldPulse&&(()=>{const card=WORLD_PULSE_CARDS.find(c=>c.id===game.worldPulse!.id),module=card?.modules[0],RES:Record<string,string>={FOOD:'Alimento',WOOD:'Madeira',STONE:'Pedra',METAL:'Metal',WEALTH:'Riqueza',KNOWLEDGE:'Conhecimento',INFLUENCE:'Influência',CULTURE:'Cultura'};const effect=module?.resource?`${module.amount>0?'+':''}${module.amount} ${RES[module.resource]??module.resource} para todos`:'sem efeito nos recursos';return <small className={`alpha-pulse-chip tone-${game.worldPulse!.type}`} title="Pulso do mundo desta rodada: automático, vale para todas as civilizações">Pulso: {game.worldPulse!.name} · {effect}</small>;})()}<ol className="alpha-table-log" aria-label="Crônica da mesa">{game.events.filter(e=>['REGION_REVEALED','CITY_FOUNDED','ROAD_BUILT','WAR_DECLARED','EXPLORE','MOVE','ATTACK','LEGACY_WORK_COMPLETED','THREAT_ASSAULT'].includes(e.type)).slice(-4).map(e=><li key={e.id}><small>R{e.round}</small> {e.message}</li>)}</ol><HexMap data={mapData} board={game.board} seatStatus={seatStatus} plateBubble={bubbles} plateTone={plateTone} onSelfPlate={setCloud} art={{seats:Object.fromEntries(game.players.map((p,i)=>{const kit=civilizationKit(p.civilization);return [p.id,{color:seatColor(i),mark:kit?.mark??null,signature:kit?.signature.item.status==='ACTIVE'?kit.signature.family:null,seat:i}];})),cityMarks:game.cityMarks,discoveries:game.regions.flatMap(r=>r.discovery&&DISCOVERY_INFO[r.discovery.kind]?.marker?[{regionId:r.id,hexIds:r.hexIds,kind:r.discovery.kind,resolved:r.discovery.resolved}]:[]),marks:mapMarks,roads:game.roads,routes:game.routes}} units={game.units} peoples={game.independents} threats={game.threats} selected={selected} focus={focus} working={working} worked={worked} onSelect={select} targets={table.targets} orientation={table.orientation} reveal={revealQueue[0]??null} onRevealDone={()=>setRevealQueue(q=>q.slice(1))} onBackground={table.background} onSelectPieces={selectPieces}/>{table.element}<AlphaHand game={game} locked={locked} send={send} seatColor={seatColor(Math.max(0,game.players.findIndex(p=>p.id===room.selfPlayerId)))} onFocus={setCardFocus}/></div>
+      <div className="world-column" ref={hostRef}>{game.worldPulse&&(()=>{const card=WORLD_PULSE_CARDS.find(c=>c.id===game.worldPulse!.id),module=card?.modules[0],RES:Record<string,string>={FOOD:'Alimento',WOOD:'Madeira',STONE:'Pedra',METAL:'Metal',WEALTH:'Riqueza',KNOWLEDGE:'Conhecimento',INFLUENCE:'Influência',CULTURE:'Cultura'};const effect=module?.resource?`${module.amount>0?'+':''}${module.amount} ${RES[module.resource]??module.resource} para todos`:'sem efeito nos recursos';return <small className={`alpha-pulse-chip tone-${game.worldPulse!.type}`} title="Pulso do mundo desta rodada: automático, vale para todas as civilizações">Pulso: {game.worldPulse!.name} · {effect}</small>;})()}<ol className="alpha-table-log" aria-label="Crônica da mesa">{game.events.filter(e=>['REGION_REVEALED','CITY_FOUNDED','ROAD_BUILT','WAR_DECLARED','EXPLORE','MOVE','ATTACK','LEGACY_WORK_COMPLETED','THREAT_ASSAULT'].includes(e.type)).slice(-4).map(e=><li key={e.id}><small>R{e.round}</small> {e.message}</li>)}</ol><HexMap data={mapData} board={game.board} seatStatus={seatStatus} plateBubble={bubbles} plateTone={plateTone} onSelfPlate={setCloud} art={{seats:Object.fromEntries(game.players.map((p,i)=>{const kit=civilizationKit(p.civilization);return [p.id,{color:seatColor(i),mark:kit?.mark??null,signature:kit?.signature.item.status==='ACTIVE'?kit.signature.family:null,seat:i}];})),cityMarks:game.cityMarks,discoveries:game.regions.flatMap(r=>r.discovery&&DISCOVERY_INFO[r.discovery.kind]?.marker?[{regionId:r.id,hexIds:r.hexIds,kind:r.discovery.kind,resolved:r.discovery.resolved}]:[]),marks:mapMarks,roads:game.roads,routes:game.routes}} units={game.units} peoples={game.independents} threats={game.threats} resolution={latestReport?.resolution??NO_EVENTS} dangerHexes={dangerHexes} movementCosts={game.rules.movementCosts} draftLegs={table.draftLegs} selected={selected} focus={focus} working={working} worked={worked} onSelect={select} targets={table.targets} orientation={table.orientation} reveal={revealQueue[0]??null} onRevealDone={()=>setRevealQueue(q=>q.slice(1))} onBackground={table.background} onSelectPieces={selectPieces}/>{table.element}<AlphaHand game={game} locked={locked} send={send} seatColor={seatColor(Math.max(0,game.players.findIndex(p=>p.id===room.selfPlayerId)))} onFocus={setCardFocus}/></div>
       {panels.inspector?<aside className="alpha-context alpha-inspector aoh-card aoh-glass" aria-label="Cartão do contexto">
         <div className="alpha-context-head"><div className="inspector-tabs" role="group" aria-label="Contexto">{INSPECTORS.map(([key,title])=><button key={key} aria-pressed={inspector===key} onClick={()=>setInspector(key)}>{title}{key==='military'&&game.self.orders.length>0?` · ${game.self.orders.length}`:''}</button>)}</div><button type="button" className="aoh-btn is-sm is-ghost" aria-label="Fechar cartão" onClick={()=>togglePanel('inspector')}>×</button></div>
         <div className="alpha-panel-body">
