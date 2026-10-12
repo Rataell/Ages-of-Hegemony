@@ -145,6 +145,7 @@ function pathLine(g, cells, color, o = {}) {
 }
 
 /* Cidade: o desenho do artifact de cultura material (city(), pele de Leontia). Distritos e edifícios reais do catálogo; o Ânimo e o nome ficam no hex. */
+let CITY_SCALE = 1.12;
 const CITY_DEF = {
   1: [{ d: 'AGRARIAN', b: ['GRANARY'] }], 2: [{ d: 'AGRARIAN', b: ['GRANARY', 'MILL'] }],
   3: [{ d: 'COMMERCIAL', b: ['MARKET'] }, { d: 'AGRARIAN', b: ['GRANARY'] }],
@@ -152,7 +153,7 @@ const CITY_DEF = {
   5: [{ d: 'COMMERCIAL', b: ['MARKET', 'TREASURY'] }, { d: 'MILITARY', b: ['BARRACKS'] }, { d: 'CULTURAL', b: ['TEMPLE'] }, { d: 'AGRARIAN', b: ['GRANARY'] }],
 };
 function cityArt(x, y, level, color, name, mood, o = {}) {
-  const R = o.R || 40, g = city(R * 1.28, { skin: 'valgard', L: level, districts: o.districts || CITY_DEF[Math.min(5, level)], port: o.port, fort: o.fort, acc: color, seed: o.seed || 7 });
+  const R = o.R || 40, g = city(R * CITY_SCALE, { skin: 'valgard', L: level, districts: o.districts || CITY_DEF[Math.min(5, level)], port: o.port, fort: o.fort, acc: color, seed: o.seed || 7 });
   let s = `<g transform="translate(${f1(x)} ${f1(y)})">${g}`;
   if (o.seal !== false) s += `<g transform="translate(${f1(-R * .66)} ${f1(-R * .62)})">${moodSeal(mood, Math.max(22, R * .78), true).replace('<svg ', '<svg x="' + f1(-Math.max(22, R * .78) / 2) + '" y="' + f1(-Math.max(22, R * .78) / 2) + '" ')}</g>`;
   if (o.label !== false) s += `<g transform="translate(0 ${f1(R * .98)})"><rect x="-${f1(R * .78)}" y="-7" width="${f1(R * 1.56)}" height="13" rx="6.5" fill="#0f181c" stroke="${color}" stroke-width="1.2"/><text text-anchor="middle" y="2.8" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="8.4" fill="#e8dcc0">${esc(name)} · N${level}</text></g>`;

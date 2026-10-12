@@ -9,6 +9,8 @@ export type TerrainKey = (typeof TERRAIN_KEYS)[number];
 export const TERRAIN_VARIANTS = 3;
 export const HEX_RADIUS = 52;
 export const EXTRA_SCALE = HEX_RADIUS / 40;
+/** Relief extras stay in the background; resource and improvement art is smaller and shifted up-left so the centre stays free for pieces and the city (tested against crowded hexes). */
+export const BASE_SCALE = 0.85, DETAIL_SCALE = 0.7, DETAIL_OFFSET = 0.16;
 /** Terrain colours of the concept. COAST is shallow turquoise water you can wade (walkable), SEA is deep blue (ships only). */
 export const TERRAIN_COLORS: Record<TerrainKey, string> = { PLAINS: '#5d7350', FOREST: '#394f3e', HILLS: '#766f50', MOUNTAINS: '#60656b', COAST: '#46a6ad', SEA: '#264f68' };
 const IK = '#0b1114';
@@ -107,10 +109,10 @@ export function terrainDefs(): string {
   let s = '';
   for (const t of TERRAIN_KEYS) for (let v = 0; v < TERRAIN_VARIANTS; v++) {
     const id = terrainId(t, v);
-    s += `<g id="${id}">${terrainHex(HEX_RADIUS, t, (v * 31 + 17) % 97 + 3 + TERRAIN_KEYS.indexOf(t) * 11, `${id}-clip`)}<g transform="scale(${u})">${TERR_EXTRA[t]()}</g></g>`;
+    s += `<g id="${id}">${terrainHex(HEX_RADIUS, t, (v * 31 + 17) % 97 + 3 + TERRAIN_KEYS.indexOf(t) * 11, `${id}-clip`)}<g transform="scale(${n2(u * BASE_SCALE)})">${TERR_EXTRA[t]()}</g></g>`;
   }
-  for (const f of FEATURE_KEYS) s += `<g id="${featureId(f)}"><g transform="scale(${u})">${FEAT_ART[f]()}</g></g>`;
-  for (const i of IMPROVEMENT_KEYS) s += `<g id="${improvementId(i)}"><g transform="scale(${u})">${IMP_ART[i]()}</g></g>`;
+  for (const f of FEATURE_KEYS) s += `<g id="${featureId(f)}"><g transform="translate(${n2(-HEX_RADIUS * DETAIL_OFFSET)} ${n2(-HEX_RADIUS * DETAIL_OFFSET)}) scale(${n2(u * DETAIL_SCALE)})">${FEAT_ART[f]()}</g></g>`;
+  for (const i of IMPROVEMENT_KEYS) s += `<g id="${improvementId(i)}"><g transform="translate(${n2(-HEX_RADIUS * DETAIL_OFFSET)} ${n2(-HEX_RADIUS * DETAIL_OFFSET)}) scale(${n2(u * DETAIL_SCALE)})">${IMP_ART[i]()}</g></g>`;
   DEFS = s;
   return s;
 }

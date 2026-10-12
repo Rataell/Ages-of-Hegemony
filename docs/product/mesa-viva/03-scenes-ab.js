@@ -13,7 +13,7 @@ $('#decisoes').innerHTML = [
   const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
   const OWN = '#60a3e9';
   const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
-  const ROADS = ['4,3', '5,3', '5,4', '6,4', '6,3', '6,2'], CITYC = [[3, 3], [6, 5]];
+  const ROADS = ['4,3', '5,3', '5,4', '6,4'], CITYC = [[3, 3], [6, 5]];
   const sight = Object.values(own);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
   const INFO = {
