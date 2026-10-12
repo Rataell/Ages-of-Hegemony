@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { AlphaStateSchema, CIVILIZATIONS } from '@aoh/game-domain';
+import { AlphaStateSchema, CIVILIZATIONS, type MatchReportV1 } from '@aoh/game-domain';
 import { AlphaHttp } from '../apps/server/src/alpha-http.js';
 import { AlphaGameService, type AlphaRoomView } from '../apps/server/src/alpha-service.js';
 import { InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
+import { ReportingAlphaRepository } from '../apps/server/src/alpha-report.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 
 const origin = 'https://full-match.example.test';
 
-async function completeHttpMatch(playerCount: 2 | 4 | 6) {
-  const repository = new InMemoryAlphaRepository();
+async function completeHttpMatch(playerCount: 2 | 4 | 6, pace: 'STANDARD' | 'ACCELERATED' = 'STANDARD') {
+  const repository = new ReportingAlphaRepository(new InMemoryAlphaRepository(), 'rc5-test');   // the production wiring: the report is stored when the match finishes
   const http = new AlphaHttp(new AlphaGameService(repository), new GuestSessions('full-match-secret-'.repeat(4)), origin, true);
   let now = 1_000;
   const call = async (body: unknown, cookie = '') => {
@@ -28,7 +29,7 @@ async function completeHttpMatch(playerCount: 2 | 4 | 6) {
     return payload.value;
   };
 
-  const created = await call({ operation: 'create', payload: { name: `Mesa ${playerCount}`, displayName: 'P1', preset: 'QUICK', seatLimit: playerCount, seed: 700 + playerCount, planningSeconds: 0, actionsPerRound: 5 } });
+  const created = await call({ operation: 'create', payload: { name: `Mesa ${playerCount}`, displayName: 'P1', preset: 'QUICK', seatLimit: playerCount, seed: 700 + playerCount, planningSeconds: 0, ...(pace === 'ACCELERATED' ? { pace } : {}), actionsPerRound: 5 } });
   const cookies = [created.cookie];
   let current = created.view;
   for (let index = 1; index < playerCount; index++) {
@@ -72,10 +73,26 @@ async function completeHttpMatch(playerCount: 2 | 4 | 6) {
   expect(aggregate.winner).not.toBeNull();
   expect(aggregate.roundReports).toHaveLength(playerCount * 21);
   expect(AlphaStateSchema.safeParse(aggregate).success).toBe(true);
+  expect(aggregate.rules.pace).toBe(pace);
+  // The Crônica da Partida of a real, finished match: every seat reads the stored report over HTTP; it carries the pace, the eight resources and nothing private.
+  for (const cookie of cookies) {
+    now += 1_000;
+    const response = await http.handle(new Request(`${origin}/api/alpha?gameId=${current.id}&report=1`, { headers: { Cookie: cookie } }), now);
+    const payload = await response.json() as { ok: boolean; value?: MatchReportV1 };
+    expect(response.status).toBe(200);
+    expect(payload.value!.match).toMatchObject({ pace, roundsPlayed: 21, players: playerCount });
+    expect(Object.keys(payload.value!.economy.perSeat[0]!.stock).sort()).toEqual(['culture', 'food', 'influence', 'knowledge', 'metal', 'stone', 'wealth', 'wood']);
+    expect(payload.value!.seats.every(seat => seat.kind === 'HUMAN')).toBe(true);
+    expect(JSON.stringify(payload.value)).not.toMatch(/joinCode|guestId|privateRng/);
+  }
+  expect((await repository.find(current.id))!.report).not.toBeNull();
 }
 
 describe('complete matches through the HTTP boundary', () => {
   it.each([2, 4, 6] as const)('finishes a deterministic QUICK match with %i players', async playerCount => {
     await completeHttpMatch(playerCount);
+  }, 30_000);
+  it('finishes an ACCELERATED short match over HTTP and serves its Crônica (pace identified)', async () => {
+    await completeHttpMatch(2, 'ACCELERATED');
   }, 30_000);
 });

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { matchReportToCsv, type MatchReportV1 } from '@aoh/game-domain';
+import { ADVANCEMENTS, BUILDING_NAMES_PT, matchReportToCsv, type MatchReportV1 } from '@aoh/game-domain';
 import { Segments } from './alpha-details';
 import { alphaLabel as text } from './alpha-copy';
 
@@ -70,7 +70,7 @@ type Section = { report: MatchReportV1; who: (seat: string | null) => string };
 function Summary({ report, who }: Section) {
   const m = report.match;
   return <>
-    <p>{m.endReason === 'HEGEMONY' ? `Hegemonia consolidada na rodada ${m.roundsPlayed}.` : `Maior Prestígio ao fim das ${m.roundLimit} rodadas.`} {m.players} civilizações, mapa {m.mapSize ?? 'padrão'}, semente {m.seed}.</p>
+    <p>{m.endReason === 'HEGEMONY' ? `Hegemonia consolidada na rodada ${m.roundsPlayed}.` : `Maior Prestígio ao fim das ${m.roundLimit} rodadas.`} {m.players} civilizações, mapa {m.mapSize ?? 'padrão'}, semente {m.seed}.{m.pace === 'ACCELERATED' && <> <b>Ritmo acelerado (experimental)</b>: capital já Povoado e cidades que crescem mais cedo; não comparável com o ritmo padrão.</>}</p>
     <div className="table-scroll"><table className="alpha-standings"><thead><tr><th>#</th><th>Civilização</th><th>Prestígio</th><th>Pesquisas</th><th>População</th><th>Riqueza</th><th>Desempate</th></tr></thead><tbody>
       {report.result.ranking.map(r => <tr key={r.seat}><td>{r.rank}</td><th scope="row">{who(r.seat)}<small>{text(report.seats.find(s => s.seat === r.seat)?.civilization ?? '')}{report.seats.find(s => s.seat === r.seat)?.kind === 'BOT' ? ' · bot' : ''}</small></th><td>{r.prestige}</td><td>{r.researched}</td><td>{r.population}</td><td>{r.wealth}</td><td>{r.decidedBy ? DECIDED[r.decidedBy] : '–'}</td></tr>)}
     </tbody></table></div>
@@ -116,8 +116,9 @@ function Development({ report, who }: Section) {
   return <div className="alpha-chronicle-cards">{report.civilizations.map(c => <article key={c.seat} className="alpha-chronicle-card"><h3>{who(c.seat)}</h3>
     <p>Distritos: {sum(c.districts)} · Edifícios: {sum(c.buildings)}</p>
     <p>{Object.entries(c.districts).map(([k, n]) => `${text(k)} ${n}`).join(' · ') || 'Nenhum distrito'}</p>
-    <p>{Object.entries(c.buildings).map(([k, n]) => `${text(k)} ${n}`).join(' · ') || 'Nenhum edifício'}</p>
+    <p>{Object.entries(c.buildings).map(([k, n]) => `${(BUILDING_NAMES_PT as Record<string, string>)[k] ?? text(k)} ${n}`).join(' · ') || 'Nenhum edifício'}</p>
     <p>Pesquisas por domínio: {Object.entries(c.research.byDomain).map(([k, n]) => `${DOMAINS[k] ?? k} ${n}`).join(' · ') || '–'}</p>
+    <p>Avanços, na ordem em que foram pesquisados: {c.research.order.length ? c.research.order.map(id => ADVANCEMENTS.find(node => node.id === id)?.name ?? (id.startsWith('her-') ? 'Herança' : id)).join(' → ') : '–'}</p>
     <p>Primeira cidade de cada nível: {c.cities.firstRoundAtLevel.map((r, i) => r === null ? null : `N${i + 1} na rodada ${r}`).filter(Boolean).join(' · ') || '–'}</p>
   </article>)}</div>;
 }

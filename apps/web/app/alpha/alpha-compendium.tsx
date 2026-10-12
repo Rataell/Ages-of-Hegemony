@@ -45,7 +45,7 @@ export function AlphaCompendium({ onClose, initial = 'civs' }: { onClose: () => 
       {tab === 'port' && <Rules>
         <li><b>O Distrito Marítimo inclui o Porto básico.</b> Com ele a cidade constrói e recebe navios, e a pesca rende +1 Alimento.</li>
         <li><b>Só em cidade costeira:</b> exige uma borda d’água navegável (Costa ou Mar) junto à cidade.</li>
-        <li><b>Estaleiro e Farol</b> são opcionais e ainda <b>sem efeito</b> nesta versão.</li>
+        <li><b>Estaleiro</b>: Frota e Barca recrutadas na cidade custam 1 Riqueza a menos e até 2 navios ancorados nela não pagam manutenção. <b>Farol</b>: a pilhagem pirata no porto rouba 1 Riqueza (em vez de 2) e o bloqueio exige 2 navios armados do mesmo inimigo; não revela Regiões.</li>
         <li>Abre com Navegação Costeira. Peças terrestres embarcam num navio vizinho e desembarcam numa costa ao lado.</li>
       </Rules>}
       {tab === 'works' && <><p className="alpha-compendium-lead">Doze Obras, cada uma única no mundo e por cidade. Três passos (uma Ordem de Legado cada); ao concluir, +4 Prestígio e um efeito permanente.</p>

@@ -23,10 +23,10 @@ const ERAS = D.AlphaEraSchema.options;
 const dist = (a, b) => E.hexDistance(a, b);
 
 export const SKILLS = ['naive', 'competent', 'hardcore'];
-export function createBotMatch({ seed = 1, players = 2, personas, rounds = 35, preset = 'STANDARD', worldPreset = 'MIXED', skill = 'competent', playtestLog = null, startingPioneers } = {}) {
+export function createBotMatch({ seed = 1, players = 2, personas, rounds = 35, preset = 'STANDARD', worldPreset = 'MIXED', skill = 'competent', playtestLog = null, startingPioneers, pace = 'STANDARD' } = {}) {
   const civs = D.CIVILIZATIONS.map(c => c.id);
   const seats = Array.from({ length: players }, (_, i) => ({ id: `p${i + 1}`, name: `Bot ${i + 1}`, civilization: civs[(i + seed) % civs.length], persona: (personas?.[i] ?? PERSONA_ORDER[(i + seed) % PERSONA_ORDER.length]) }));
-  let state = E.createAlphaGame({ gameId: `bots-${seed}-${players}`, seed, preset, worldPreset, startingPioneers, players: seats.map(({ id, name, civilization }) => ({ id, name, civilization })) });
+  let state = E.createAlphaGame({ gameId: `bots-${seed}-${players}`, seed, preset, worldPreset, startingPioneers, pace, players: seats.map(({ id, name, civilization }) => ({ id, name, civilization })) });
   state = E.beginAlphaPlanning(state);
   // Optional local playtest log (same recorder as the dev server): pass playtestLog: <directory>. Reads states only.
   const recorder = playtestLog ? new PlaytestRecorder(new FileSink(playtestLog)) : null;

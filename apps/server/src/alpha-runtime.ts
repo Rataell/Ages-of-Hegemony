@@ -13,7 +13,7 @@ import { alphaStorageMode, type AlphaStorageMode } from './alpha-storage.js';
 export type { AlphaRoomView } from './alpha-service.js';
 export type { AlphaPlayerView } from './alpha-projection.js';
 const expectedMigrations=['20260919000100_alpha_match','20260920000100_alpha_match_archive'];
-const release='alpha-external-0.2';
+const release='alpha-external-1.2-rc5';
 const posture=()=>({maxSeats:maxSeats(),accessProtected:Boolean(process.env.ALPHA_ACCESS_CODE),singleInstance:true});
 type Runtime={http:AlphaHttp;client:PrismaClient|null;storage:AlphaStorageMode;module:symbol};
 /** Development-only memory storage. It lives on globalThis so a hot reload keeps the matches; restarting the process clears them. */

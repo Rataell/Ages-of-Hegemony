@@ -37,7 +37,7 @@ export function AlphaGuide({ game, onClose }: { game: AlphaPlayerView; onClose: 
       <h3>Descoberta</h3>
       <p><b>Mover é descobrir.</b> Entrar numa Região fechada é o último passo de um Mover e custa 1 de movimento; o grupo (Pioneiro e escolta) para ali. Se a Região intacta admite várias orientações, você escolhe uma (“Orientação 1 de N”); com uma só, ela é aplicada sozinha. “Requer acesso naval.” quer dizer que só um navio a abre. A ordem é secreta: o terreno e a Descoberta aparecem na resolução, só para quem revelou.</p>
       <h3>Porto e Obras de Legado</h3>
-      <p>O <b>Distrito Marítimo</b> inclui o Porto básico e exige borda d’água navegável; Estaleiro e Farol são opcionais e ainda sem efeito. Uma <b>Obra de Legado</b> é única no mundo: três passos (uma Ordem de Legado cada), +4 Prestígio e um efeito permanente.</p>
+      <p>O <b>Distrito Marítimo</b> inclui o Porto básico e exige borda d’água navegável; Estaleiro (navios mais baratos e baratos de manter) e Farol (menos pilhagem pirata, bloqueio mais difícil) são opcionais. Uma <b>Obra de Legado</b> é única no mundo: três passos (uma Ordem de Legado cada), +4 Prestígio e um efeito permanente.</p>
       <h3>Contato, diplomacia e guerra</h3>
       <p>Avistar uma peça ou cidade de outra civilização estabelece contato e abre a negociação em Diplomacia. Acordos duram {rules.treatyDuration} rodadas depois de aceitos; responder a uma proposta não gasta ação.</p>
       <p>Em paz, também dá para trocar recursos: troca imediata, presente, promessa futura ou empréstimo. Ofertas valem até o fim da rodada; quem não paga uma promessa ou empréstimo no prazo perde Prestígio.</p>
