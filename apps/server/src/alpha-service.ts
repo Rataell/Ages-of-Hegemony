@@ -1,8 +1,8 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { CORE10_CHASSIS, GameIdSchema, PlayerIdSchema, figuresOfCivilization, isCore10Chassis, mapSizeAllows, recommendedFigure, recommendedMapSize, type AlphaError, type MatchReportV1 } from '@aoh/game-domain';
-import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, forceContactSetup, previewMoveOrder, type MoveOrderPreview } from '@aoh/game-engine';
+import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, forceContactSetup, previewAction, previewMoveOrder, type ActionPreview, type MoveOrderPreview } from '@aoh/game-engine';
 import { err, ok, type Result } from '@aoh/shared';
-import { MovePreviewRequestSchema, AlphaRoomSchema, CreateAlphaRoomSchema, LEGACY_ROOM_MESSAGE, LobbyActionSchema, RoomActionSchema, isLegacyRoom, lifecycleOf, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
+import { ActionPreviewRequestSchema, MovePreviewRequestSchema, AlphaRoomSchema, CreateAlphaRoomSchema, LEGACY_ROOM_MESSAGE, LobbyActionSchema, RoomActionSchema, isLegacyRoom, lifecycleOf, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
 import { addNotice, eligibleVoters, maxSeats, maybeTransferHost, nextPlayerId, presenceOf, runGuards, safePoint, tallyVote, voteView } from './alpha-lifecycle.js';
 import { leave as presenceLeave, touch as presenceTouch } from './alpha-presence.js';
 import { publishAlphaEvent } from './alpha-bus.js';
@@ -312,6 +312,19 @@ export class AlphaGameService {
     if(!room.game)return err({code:'NOT_STARTED',message:'Aguarde o início da partida.'});
     const parsed=MovePreviewRequestSchema.safeParse(raw);if(!parsed.success)return err({code:'INVALID_INPUT',message:'Prévia de movimento inválida.'});
     return ok(previewMoveOrder(room.game,seat.playerId,parsed.data.legs as never,parsed.data.orderId===undefined?{}:{orderId:parsed.data.orderId}));
+  }
+  /**
+   * Ficha de Ação (slice 4): `previewAction` for the seat's own command. Read-only like movePreview: it never saves, never bumps the version and never touches the clock. The command is
+   * judged for the seat that asks (never for another), so a rival's city, piece or hex answers "not yours" and nothing hidden is read.
+   */
+  async actionPreview(principal:GuestPrincipal,id:string,raw:unknown):Promise<Result<ActionPreview,AlphaError>>{
+    const room=await this.repository.find(id);if(!room)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
+    const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return forbidden();
+    if(isLegacyRoom(room))return err({code:'LEGACY_ROOM',message:LEGACY_ROOM_MESSAGE});
+    if(!room.game)return err({code:'NOT_STARTED',message:'Aguarde o início da partida.'});
+    const parsed=ActionPreviewRequestSchema.safeParse(raw);if(!parsed.success)return err({code:'INVALID_INPUT',message:'Prévia de ação inválida.'});
+    try{return ok(previewAction(room.game,seat.playerId,parsed.data.command));}
+    catch(cause){alphaLog('ENGINE_ERROR',{room:short(room.id),name:cause instanceof Error?cause.name:'Error'});return err({code:'UNAVAILABLE',message:'A prévia não pôde ser calculada agora.'});}
   }
   /** Room-level actions: leaving, suspending, voting, EM GUARDA, and the social reactions (which are never saved). */
   private readonly cooldown=new Map<string,{reaction:number;ping:number}>();
