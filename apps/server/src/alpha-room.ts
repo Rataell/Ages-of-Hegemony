@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AlphaPresetSchema, AlphaStateSchema, CIVILIZATIONS, figuresOfCivilization, isCore10Chassis, GameIdSchema, MapPresetSchema, MapSizeSchema, NonNegativeIntegerSchema, PlayerIdSchema, MAP_FOOTPRINT, SeedSchema } from '@aoh/game-domain';
+import { AlphaPresetSchema, AlphaStateSchema, MatchReportV1Schema, CIVILIZATIONS, figuresOfCivilization, isCore10Chassis, GameIdSchema, MapPresetSchema, MapSizeSchema, NonNegativeIntegerSchema, PlayerIdSchema, MAP_FOOTPRINT, SeedSchema } from '@aoh/game-domain';
 
 export const AlphaRoomSchema=z.strictObject({
   id:GameIdSchema,version:NonNegativeIntegerSchema,name:z.string().trim().min(1).max(80),joinCode:z.string().regex(/^[A-Za-z0-9_-]{22}$/),
@@ -20,6 +20,8 @@ export const AlphaRoomSchema=z.strictObject({
   vote:z.strictObject({id:z.string().max(40),kind:z.enum(['REMOVE','END']),target:PlayerIdSchema.nullable(),proposer:PlayerIdSchema,yes:z.array(PlayerIdSchema).max(6),no:z.array(PlayerIdSchema).max(6),createdAt:z.number().int().nonnegative()}).nullable().default(null),
   /** Short public log of room-level events (host transfer, joins, votes…), newest last. */
   notices:z.array(z.strictObject({id:z.number().int().nonnegative(),at:z.number().int().nonnegative(),type:z.string().max(40),text:z.string().max(160)})).max(30).default([]),
+  /** MatchReportV1, generated once when the match reaches FINISHED and stored with the room. Null until then (and for rooms finished before the report existed). Never rewritten. */
+  report:MatchReportV1Schema.nullable().default(null),
 }).superRefine((room,ctx)=>{
   const fail=(message:string)=>ctx.addIssue({code:'custom',message});
   if(room.seats.length>room.seatLimit||!room.seats.some(s=>s.guestId===room.hostGuestId))fail('Invalid lobby host or seat count');

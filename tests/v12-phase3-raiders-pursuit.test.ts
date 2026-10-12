@@ -41,12 +41,12 @@ const step = (state: AlphaState, round: number, launch = false) => { state.core.
 let serial = 0;
 const put = (state: AlphaState, kind: AlphaUnit['kind'], hex: string): AlphaUnit => { const unit = { id: `p1-${kind.toLowerCase()}-${++serial}`, ownerId: p1, kind, hexId: hex as never, recruitedRound: 1, carrierId: null } as AlphaUnit; state.units.push(unit); return unit; };
 const order = (units: AlphaUnit[], target: string, id = 'atk') => ({ id, type: 'ATTACK' as const, unitIds: units.map(unit => unit.id), target: target as never, posture: 'ASSAULT' as const });
-const faces = (state: AlphaState, attackers: AlphaUnit[], threat: Threat, attack: 'IMPACT' | 'EMPTY', defence: 'IMPACT' | 'EMPTY'): Faces =>
+const faces = (attackers: AlphaUnit[], threat: Threat, attack: 'IMPACT' | 'EMPTY', defence: 'IMPACT' | 'EMPTY'): Faces =>
   ({ ...Object.fromEntries(attackers.map(unit => [unit.id, attack])), ...Object.fromEntries(threatPieces(threat).map(piece => [piece.id, defence])) });
 /** The player's attack, through the real validation and battle code (dice fixed so the story is the same on every run). */
 function attack(state: AlphaState, attackers: AlphaUnit[], threat: Threat, attackFace: 'IMPACT' | 'EMPTY', defenceFace: 'IMPACT' | 'EMPTY') {
   const command = order(attackers, threat.hexId);
-  resolveBattleWithFaces(state, p1, command, faces(state, attackers, threat, attackFace, defenceFace));
+  resolveBattleWithFaces(state, p1, command, faces(attackers, threat, attackFace, defenceFace));
   return state.battles.at(-1)!;
 }
 /** A MOVE through the real resolver. It re-parses the state, so the threat objects held by the test are put back (the resolver does not touch threats). */
@@ -81,7 +81,7 @@ describe('Saqueadores · the player locates, defends, counter-attacks, chases an
   };
 
   it('1 · locates: opening its Region puts the Acampamento on the table, and the Bando shows as an alert when it marches', () => {
-    const { state, home, band, city } = story(false);
+    const { state, home, band } = story(false);
     expect(visibleHexIds(state, p1).has(home)).toBe(false);                      // far from every own piece: the Acampamento is not on the player\'s table
     // Visibility is by Region (no radius): the player locates the Acampamento by opening its Region (Pioneiro / Move + Descoberta).
     state.regions.find(region => region.hexIds.includes(home as never))!.revealedBy.push(p1);
@@ -100,7 +100,7 @@ describe('Saqueadores · the player locates, defends, counter-attacks, chases an
 
   it('2 · the whole story: defence, counter-attack on the Bando in recuo, chase, and the Acampamento destroyed', () => {
     const { state, home, band, city, record } = story();
-    [put(state, 'INFANTRY', city), put(state, 'INFANTRY', city), put(state, 'INFANTRY', city), put(state, 'GUARD', city)];
+    for (const kind of ['INFANTRY', 'INFANTRY', 'INFANTRY', 'GUARD'] as const) put(state, kind, city);   // the garrison
     const owner = () => state.players.find(player => player.playerId === p1)!;       // the resolver re-parses the state: always read the live seat
     const wealth = owner().resources.wealth;
     record(0, 'camped');
@@ -142,7 +142,7 @@ describe('Saqueadores · the player locates, defends, counter-attacks, chases an
         expect(hexDistance(tile(state, previous), tile(state, band.hexId)), `no teleport at round ${round}`).toBeLessThanOrEqual(2);
         expect(['SEA', 'UNKNOWN']).not.toContain(tile(state, band.hexId).terrain);
         previous = band.hexId as string; moves++;
-      } else if (band.status !== 'CAMPED') {
+      } else if ((band.status as string) !== 'CAMPED') {
         // the pursuers close in without attacking on the way: a legal MOVE, never an entry into the Bando\'s own hex
         const lead = tile(state, pursuers()[0]!.hexId);
         const path = walk(state, lead.id, band.hexId, 2).filter(id => id !== band.hexId);

@@ -22,3 +22,4 @@ export * from './alpha-resonance.js';
 export * from './alpha-threats.js';
 export * from './alpha-legacy-works.js';
 export * from './alpha-topology.js';
+export * from './alpha-match-report.js';

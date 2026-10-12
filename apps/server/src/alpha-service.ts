@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { CORE10_CHASSIS, GameIdSchema, PlayerIdSchema, figuresOfCivilization, isCore10Chassis, mapSizeAllows, recommendedFigure, recommendedMapSize, type AlphaError } from '@aoh/game-domain';
+import { CORE10_CHASSIS, GameIdSchema, PlayerIdSchema, figuresOfCivilization, isCore10Chassis, mapSizeAllows, recommendedFigure, recommendedMapSize, type AlphaError, type MatchReportV1 } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, forceContactSetup } from '@aoh/game-engine';
 import { err, ok, type Result } from '@aoh/shared';
 import { AlphaRoomSchema, CreateAlphaRoomSchema, LEGACY_ROOM_MESSAGE, LobbyActionSchema, RoomActionSchema, isLegacyRoom, lifecycleOf, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
@@ -10,6 +10,7 @@ import { alphaLog, short } from './alpha-log.js';
 import { botDelayMs, botPersonaFor, confirmBotSeat, planBotSeat } from './alpha-bot.js';
 import { alphaPlayerView } from './alpha-projection.js';
 import type { GuestPrincipal } from './guest-session.js';
+import { reportOf } from './alpha-report.js';
 import { playtestEnabled, playtestRecorderFor, UI_KINDS, type UiKind } from './playtest-log.js';
 
 export function roomView(room:AlphaRoom,principal:GuestPrincipal,now=Date.now()){
@@ -175,6 +176,17 @@ export class AlphaGameService {
       room.closedReason='VOTE';room.deadline=null;room.suspended=false;
       addNotice(room,'GAME_CLOSED','A partida foi encerrada por votação.',now);alphaLog('GAME_CLOSED',{room:short(room.id),by:'vote'});
     }
+  }
+  /**
+   * The Crônica da Partida. Only a seat of the match can read it, and only once the match is definitively FINISHED (a report holds the whole table's figures, so before that
+   * it would leak hidden information). It is the stored report; rooms finished before reports existed get one rebuilt in memory, marked RECONSTRUCTED, and nothing is written.
+   */
+  async readReport(principal:GuestPrincipal,id:string):Promise<Result<MatchReportV1,AlphaError>>{
+    const loaded=await this.repository.find(id);if(!loaded)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
+    if(!loaded.seats.some(s=>s.guestId===principal.guestId))return forbidden();
+    if(lifecycleOf(loaded)!=='FINISHED')return err({code:'NOT_FINISHED',message:'A Crônica da Partida só fica disponível depois do encerramento definitivo.'});
+    const report=reportOf(loaded);
+    return report?ok(report):err({code:'REPORT_UNAVAILABLE',message:'Não foi possível montar a Crônica desta partida.'});
   }
   async read(principal:GuestPrincipal,id:string,now:number):Promise<Response>{
     const loaded=await this.repository.find(id);if(!loaded)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});

@@ -8,6 +8,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { playMatch, PERSONA_ORDER, SKILLS } from './lib/alpha-bots.mjs';
 import { summarize, markdownReport, comparisonReport, bandBenchmarkMarkdown } from './lib/alpha-playtest-report.mjs';
 import { SCENARIOS } from './lib/alpha-scenarios.mjs';
+import { emitMatchReport } from './lib/emit-match-report.mjs';
 import { gradeBenchmark, bandBenchmark } from './lib/alpha-grade-benchmark.mjs';
 
 const arg = (name, fallback) => (process.argv.find(a => a.startsWith(`--${name}=`)) ?? `--${name}=${fallback}`).split('=')[1];
@@ -16,6 +17,8 @@ const out = arg('out', 'docs/evidence/v51b-playtest'), rounds = Number(arg('roun
 mkdirSync(out, { recursive: true });
 // --playtest-log=<dir>: also write the per-match JSONL event log (see scripts/alpha-playtest-summary.mjs).
 const logDir = arg('playtest-log', '') || null;
+// --reports=<dir>: also write one MatchReportV1 per finished match (same generator as the live Crônica da Partida).
+const reportsDir = arg('reports', '') || null;
 
 const skills = arg('skills', SKILLS.join(',')).split(',');
 const scenariosOnly = process.argv.includes('--scenarios-only');
@@ -25,6 +28,7 @@ for (const skill of scenariosOnly ? [] : skills) {
   for (const players of playerCounts) for (const seed of seeds) {
     const started = performance.now();
     const result = playMatch({ seed, players, rounds, skill, ...(logDir ? { playtestLog: `${logDir}/${skill}-${players}p-seed${seed}` } : {}) });
+    if (reportsDir) emitMatchReport(result, reportsDir, { name: `bots-${skill}-${players}p-s${seed}` });
     const summary = { skill, ...summarize(result, { players, seed }) };
     runs.push(summary);
     console.log(`[${skill}] ${players}p seed ${seed}: round ${result.state.core.round} ${result.state.core.status} · ${Math.round(performance.now() - started)} ms · crashes ${result.ctx.crashes.length} · violations ${result.ctx.violations.length}`);

@@ -710,3 +710,26 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .presence-dot.is-bot { background: var(--mark, #8ab4c8); border-radius: 2px; }
 .alpha-add-bot { display: flex; align-items: center; gap: 12px; margin: 10px 0; flex-wrap: wrap; }
 .alpha-add-bot small { color: var(--text-secondary); }
+
+/* Crônica da Partida (post-match report). Same tokens and surfaces as the final screen. */
+.alpha-chronicle { width: min(920px, 100%); }
+.alpha-chronicle-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.alpha-chronicle-head h2 { margin: 2px 0 0; font-size: 24px; }
+.alpha-chronicle-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.alpha-chronicle-body { margin-top: 12px; }
+.alpha-chronicle-body h3 { margin: 16px 0 4px; font-size: 16px; }
+.alpha-chronicle-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.alpha-chronicle-card { padding: 12px 14px; border: 1px solid var(--border-subtle); background: var(--surface); margin-bottom: 10px; }
+.alpha-chronicle-card h3 { margin: 0 0 2px; }
+.alpha-chronicle-card dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0 0; }
+.alpha-chronicle-card dt { color: var(--text-secondary); }
+.alpha-chronicle-card dd { margin: 0; }
+.alpha-chronicle-sparks { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0; color: var(--text-secondary); }
+.alpha-spark { display: block; width: 110px; height: 28px; margin-top: 2px; }
+.alpha-spark polyline { stroke: var(--accent); stroke-width: 2; }
+.alpha-spark.is-empty { color: var(--text-secondary); }
+.alpha-chronicle-timeline { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.alpha-chronicle-timeline li span { color: var(--accent); }
+.alpha-chronicle-limits { margin-top: 14px; color: var(--text-secondary); font-size: 13px; }
+.alpha-chronicle-limits ul { padding-left: 18px; }
+@media (max-width: 560px) { .alpha-chronicle { padding: 16px; } .alpha-chronicle-card dl { grid-template-columns: 1fr; } }

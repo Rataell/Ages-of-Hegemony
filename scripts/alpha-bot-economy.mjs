@@ -1,7 +1,10 @@
-// Bot food economy report (V51B-16). Usage: npm run compile && node scripts/alpha-bot-economy.mjs [--players=2,4,6] [--seeds=10] [--rounds=35] [--out=docs/evidence/v51b-bot-economy] [--tag=after]
+// Bot food economy report (V51B-16). Usage: npm run compile && node scripts/alpha-bot-economy.mjs [--players=2,4,6] [--seeds=10] [--rounds=35] [--out=docs/evidence/v51b-bot-economy] [--tag=after] [--reports=<dir>]
+// --reports=<dir>: also write one MatchReportV1 per finished match (same format as the live Crônica da Partida).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { playMatch } from './lib/alpha-bots.mjs';
+import { emitMatchReport } from './lib/emit-match-report.mjs';
 const arg = (n, f) => (process.argv.find(a => a.startsWith(`--${n}=`)) ?? `--${n}=${f}`).split('=')[1];
+const reportsDir = arg('reports', '') || null;
 const counts = arg('players', '2,4,6').split(',').map(Number), seeds = Number(arg('seeds', 10)), rounds = Number(arg('rounds', 35)), out = arg('out', 'docs/evidence/v51b-bot-economy'), tag = arg('tag', 'run');
 mkdirSync(out, { recursive: true });
 const rows = [], culprits = {}, perMatch = [], diag = {}, eraBands = { 'I-II (1-10)': [0, 0], 'III-IV (11-20)': [0, 0], 'V-VII (21-35)': [0, 0] };
@@ -9,6 +12,7 @@ for (const players of counts) {
   const agg = { seatRounds: 0, famine: 0, unitShort: 0, seatsWithFamineEraII: 0, seats: 0, popEraIII: [], citiesEraIII: [], citiesEraV: [], popEraV: [], armyEraIII: [], armyEraV: [], eraVReached: 0 };
   for (let seed = 1; seed <= seeds; seed++) {
     const r = playMatch({ seed, players, rounds, startingPioneers: 2 });
+    if (reportsDir) emitMatchReport(r, reportsDir, { name: `bots-${tag}-${players}p-s${seed}` });
     const log = r.ctx.foodLog ?? [];
     for (const [k, v] of Object.entries(r.ctx.diag ?? {})) diag[k] = (diag[k] ?? 0) + v;
     for (const seat of r.ctx.seats) {

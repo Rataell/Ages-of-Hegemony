@@ -1,0 +1,995 @@
+[
+ {
+  "fingerprint": "a8b57646494df6e2",
+  "games": 18,
+  "replicates": 0,
+  "seatSamples": 72,
+  "sufficient": false,
+  "warnings": [
+   "Amostra pequena: 18 partidas independentes (< 30). Nenhuma estratégia pode ser declarada dominante com estes dados."
+  ],
+  "winByCivilization": [
+   {
+    "label": "kor",
+    "k": 1,
+    "n": 12,
+    "pct": 8.3,
+    "ci": [
+     1.5,
+     35.4
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "orinth",
+    "k": 6,
+    "n": 12,
+    "pct": 50,
+    "ci": [
+     25.4,
+     74.6
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "saren",
+    "k": 2,
+    "n": 12,
+    "pct": 16.7,
+    "ci": [
+     4.7,
+     44.8
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "nymara",
+    "k": 2,
+    "n": 9,
+    "pct": 22.2,
+    "ci": [
+     6.3,
+     54.7
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "thalos",
+    "k": 3,
+    "n": 9,
+    "pct": 33.3,
+    "ci": [
+     12.1,
+     64.6
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "meridia",
+    "k": 2,
+    "n": 6,
+    "pct": 33.3,
+    "ci": [
+     9.7,
+     70
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "veyra",
+    "k": 1,
+    "n": 6,
+    "pct": 16.7,
+    "ci": [
+     3,
+     56.4
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "solenne",
+    "k": 1,
+    "n": 3,
+    "pct": 33.3,
+    "ci": [
+     6.1,
+     79.2
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "valgard",
+    "k": 0,
+    "n": 3,
+    "pct": 0,
+    "ci": [
+     0,
+     56.2
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   }
+  ],
+  "winByGovernment": [
+   {
+    "label": "PROTO_GOVERNANCE",
+    "k": 18,
+    "n": 72,
+    "pct": 25,
+    "ci": [
+     16.4,
+     36.1
+    ],
+    "enough": true,
+    "flag": null
+   }
+  ],
+  "winByFigure": [],
+  "winByKind": [
+   {
+    "label": "BOT",
+    "k": 18,
+    "n": 72,
+    "pct": 25,
+    "ci": [
+     16.4,
+     36.1
+    ],
+    "enough": true,
+    "flag": null
+   }
+  ],
+  "advances": {
+   "seats": 0,
+   "most": [],
+   "least": []
+  },
+  "acquisitionOrder": [],
+  "buildings": [],
+  "districts": [],
+  "levelByEra": {
+   "N4": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 9.7,
+    "5": 23.6,
+    "6": 65.3,
+    "7": 81.9
+   },
+   "N5": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 1.4,
+    "7": 18.1
+   },
+   "N6": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0
+   },
+   "N7": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0
+   }
+  },
+  "scarcity": {
+   "food": {
+    "seatRounds": 1512,
+    "emptyPct": 8.8,
+    "atCapPct": 4.3
+   },
+   "wood": {
+    "seatRounds": 1512,
+    "emptyPct": 14.3,
+    "atCapPct": 10.1
+   },
+   "stone": {
+    "seatRounds": 1512,
+    "emptyPct": 9.3,
+    "atCapPct": 1
+   },
+   "metal": {
+    "seatRounds": 1512,
+    "emptyPct": 42.8,
+    "atCapPct": 0
+   },
+   "wealth": {
+    "seatRounds": 1512,
+    "emptyPct": 0.6,
+    "atCapPct": 33.5
+   },
+   "knowledge": {
+    "seatRounds": 1512,
+    "emptyPct": 9.5,
+    "atCapPct": 3.4
+   },
+   "influence": {
+    "seatRounds": 1512,
+    "emptyPct": 0.2,
+    "atCapPct": 36.2
+   },
+   "culture": {
+    "seatRounds": 1512,
+    "emptyPct": 5.2,
+    "atCapPct": 0
+   }
+  },
+  "hunger": {
+   "k": 12,
+   "n": 72,
+   "pct": 16.7,
+   "ci": [
+    9.8,
+    26.9
+   ],
+   "enough": true,
+   "flag": null
+  },
+  "revolt": {
+   "k": 21,
+   "n": 72,
+   "pct": 29.2,
+   "ci": [
+    19.9,
+    40.5
+   ],
+   "enough": true,
+   "flag": null
+  },
+  "revoltRoundsShare": 3.5,
+  "orders": {
+   "committed": 6246,
+   "available": 7993,
+   "unusedPct": 21.9,
+   "byCategory": [
+    {
+     "category": "CITY",
+     "n": 3760,
+     "pct": 60.2
+    },
+    {
+     "category": "ADVANCE",
+     "n": 1659,
+     "pct": 26.6
+    },
+    {
+     "category": "EXPEDITION",
+     "n": 827,
+     "pct": 13.2
+    },
+    {
+     "category": "INFLUENCE",
+     "n": 0,
+     "pct": 0
+    },
+    {
+     "category": "LEGACY",
+     "n": 0,
+     "pct": 0
+    }
+   ]
+  },
+  "conflicts": {
+   "pvpBattlesPerGame": 0,
+   "threatAssaultsPerGame": 8.9,
+   "playerAttacksOnThreatsPerGame": 0,
+   "attackWin": {
+    "k": 0,
+    "n": 0,
+    "pct": null,
+    "ci": null,
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   "warsDeclaredPerGame": 0
+  },
+  "victory": {
+   "endReasons": [
+    {
+     "reason": "ROUND_LIMIT",
+     "n": 18,
+     "pct": 100
+    }
+   ],
+   "hegemonyPathsDeclared": []
+  },
+  "legacyWorks": {
+   "seats": 0,
+   "startedPct": null,
+   "completedPct": null,
+   "medianStartRound": null,
+   "note": "dados insuficientes"
+  }
+ },
+ {
+  "fingerprint": "abc00786411b0f2f",
+  "games": 18,
+  "replicates": 0,
+  "seatSamples": 72,
+  "sufficient": false,
+  "warnings": [
+   "Amostra pequena: 18 partidas independentes (< 30). Nenhuma estratégia pode ser declarada dominante com estes dados."
+  ],
+  "winByCivilization": [
+   {
+    "label": "kor",
+    "k": 2,
+    "n": 12,
+    "pct": 16.7,
+    "ci": [
+     4.7,
+     44.8
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "orinth",
+    "k": 4,
+    "n": 12,
+    "pct": 33.3,
+    "ci": [
+     13.8,
+     60.9
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "saren",
+    "k": 5,
+    "n": 12,
+    "pct": 41.7,
+    "ci": [
+     19.3,
+     68
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "nymara",
+    "k": 0,
+    "n": 9,
+    "pct": 0,
+    "ci": [
+     0,
+     29.9
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "thalos",
+    "k": 1,
+    "n": 9,
+    "pct": 11.1,
+    "ci": [
+     2,
+     43.5
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "meridia",
+    "k": 1,
+    "n": 6,
+    "pct": 16.7,
+    "ci": [
+     3,
+     56.4
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "veyra",
+    "k": 2,
+    "n": 6,
+    "pct": 33.3,
+    "ci": [
+     9.7,
+     70
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "solenne",
+    "k": 3,
+    "n": 3,
+    "pct": 100,
+    "ci": [
+     43.8,
+     100
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "valgard",
+    "k": 0,
+    "n": 3,
+    "pct": 0,
+    "ci": [
+     0,
+     56.2
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   }
+  ],
+  "winByGovernment": [
+   {
+    "label": "PROTO_GOVERNANCE",
+    "k": 18,
+    "n": 71,
+    "pct": 25.4,
+    "ci": [
+     16.7,
+     36.6
+    ],
+    "enough": true,
+    "flag": null
+   },
+   {
+    "label": "MONARCHY",
+    "k": 0,
+    "n": 1,
+    "pct": 0,
+    "ci": [
+     0,
+     79.3
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   }
+  ],
+  "winByFigure": [],
+  "winByKind": [
+   {
+    "label": "BOT",
+    "k": 18,
+    "n": 72,
+    "pct": 25,
+    "ci": [
+     16.4,
+     36.1
+    ],
+    "enough": true,
+    "flag": null
+   }
+  ],
+  "advances": {
+   "seats": 0,
+   "most": [],
+   "least": []
+  },
+  "acquisitionOrder": [],
+  "buildings": [],
+  "districts": [],
+  "levelByEra": {
+   "N4": {
+    "1": 0,
+    "2": 0,
+    "3": 1.4,
+    "4": 29.2,
+    "5": 62.5,
+    "6": 83.3,
+    "7": 95.8
+   },
+   "N5": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 6.9,
+    "6": 22.2,
+    "7": 48.6
+   },
+   "N6": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 1.4,
+    "7": 2.8
+   },
+   "N7": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0
+   }
+  },
+  "scarcity": {
+   "food": {
+    "seatRounds": 1512,
+    "emptyPct": 3,
+    "atCapPct": 4.3
+   },
+   "wood": {
+    "seatRounds": 1512,
+    "emptyPct": 11.3,
+    "atCapPct": 11.2
+   },
+   "stone": {
+    "seatRounds": 1512,
+    "emptyPct": 17.7,
+    "atCapPct": 0.8
+   },
+   "metal": {
+    "seatRounds": 1512,
+    "emptyPct": 33.9,
+    "atCapPct": 1.1
+   },
+   "wealth": {
+    "seatRounds": 1512,
+    "emptyPct": 0.9,
+    "atCapPct": 18.5
+   },
+   "knowledge": {
+    "seatRounds": 1512,
+    "emptyPct": 6.3,
+    "atCapPct": 3.1
+   },
+   "influence": {
+    "seatRounds": 1512,
+    "emptyPct": 0.1,
+    "atCapPct": 34.6
+   },
+   "culture": {
+    "seatRounds": 1512,
+    "emptyPct": 5.3,
+    "atCapPct": 0
+   }
+  },
+  "hunger": {
+   "k": 3,
+   "n": 72,
+   "pct": 4.2,
+   "ci": [
+    1.4,
+    11.5
+   ],
+   "enough": true,
+   "flag": null
+  },
+  "revolt": {
+   "k": 18,
+   "n": 72,
+   "pct": 25,
+   "ci": [
+    16.4,
+    36.1
+   ],
+   "enough": true,
+   "flag": null
+  },
+  "revoltRoundsShare": 1.7,
+  "orders": {
+   "committed": 6600,
+   "available": 7994,
+   "unusedPct": 17.4,
+   "byCategory": [
+    {
+     "category": "CITY",
+     "n": 4368,
+     "pct": 66.2
+    },
+    {
+     "category": "ADVANCE",
+     "n": 1755,
+     "pct": 26.6
+    },
+    {
+     "category": "EXPEDITION",
+     "n": 476,
+     "pct": 7.2
+    },
+    {
+     "category": "INFLUENCE",
+     "n": 1,
+     "pct": 0
+    },
+    {
+     "category": "LEGACY",
+     "n": 0,
+     "pct": 0
+    }
+   ]
+  },
+  "conflicts": {
+   "pvpBattlesPerGame": 0,
+   "threatAssaultsPerGame": 9.9,
+   "playerAttacksOnThreatsPerGame": 0,
+   "attackWin": {
+    "k": 0,
+    "n": 0,
+    "pct": null,
+    "ci": null,
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   "warsDeclaredPerGame": 0
+  },
+  "victory": {
+   "endReasons": [
+    {
+     "reason": "ROUND_LIMIT",
+     "n": 18,
+     "pct": 100
+    }
+   ],
+   "hegemonyPathsDeclared": []
+  },
+  "legacyWorks": {
+   "seats": 0,
+   "startedPct": null,
+   "completedPct": null,
+   "medianStartRound": null,
+   "note": "dados insuficientes"
+  }
+ },
+ {
+  "fingerprint": "bb7751782ada7508",
+  "games": 18,
+  "replicates": 0,
+  "seatSamples": 72,
+  "sufficient": false,
+  "warnings": [
+   "Amostra pequena: 18 partidas independentes (< 30). Nenhuma estratégia pode ser declarada dominante com estes dados."
+  ],
+  "winByCivilization": [
+   {
+    "label": "kor",
+    "k": 3,
+    "n": 12,
+    "pct": 25,
+    "ci": [
+     8.9,
+     53.2
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "orinth",
+    "k": 4,
+    "n": 12,
+    "pct": 33.3,
+    "ci": [
+     13.8,
+     60.9
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "saren",
+    "k": 2,
+    "n": 12,
+    "pct": 16.7,
+    "ci": [
+     4.7,
+     44.8
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "nymara",
+    "k": 2,
+    "n": 9,
+    "pct": 22.2,
+    "ci": [
+     6.3,
+     54.7
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "thalos",
+    "k": 1,
+    "n": 9,
+    "pct": 11.1,
+    "ci": [
+     2,
+     43.5
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "meridia",
+    "k": 1,
+    "n": 6,
+    "pct": 16.7,
+    "ci": [
+     3,
+     56.4
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "veyra",
+    "k": 1,
+    "n": 6,
+    "pct": 16.7,
+    "ci": [
+     3,
+     56.4
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "solenne",
+    "k": 3,
+    "n": 3,
+    "pct": 100,
+    "ci": [
+     43.8,
+     100
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   {
+    "label": "valgard",
+    "k": 1,
+    "n": 3,
+    "pct": 33.3,
+    "ci": [
+     6.1,
+     79.2
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   }
+  ],
+  "winByGovernment": [
+   {
+    "label": "PROTO_GOVERNANCE",
+    "k": 17,
+    "n": 70,
+    "pct": 24.3,
+    "ci": [
+     15.8,
+     35.5
+    ],
+    "enough": true,
+    "flag": null
+   },
+   {
+    "label": "MONARCHY",
+    "k": 1,
+    "n": 2,
+    "pct": 50,
+    "ci": [
+     9.5,
+     90.5
+    ],
+    "enough": false,
+    "flag": "dados insuficientes"
+   }
+  ],
+  "winByFigure": [],
+  "winByKind": [
+   {
+    "label": "BOT",
+    "k": 18,
+    "n": 72,
+    "pct": 25,
+    "ci": [
+     16.4,
+     36.1
+    ],
+    "enough": true,
+    "flag": null
+   }
+  ],
+  "advances": {
+   "seats": 0,
+   "most": [],
+   "least": []
+  },
+  "acquisitionOrder": [],
+  "buildings": [],
+  "districts": [],
+  "levelByEra": {
+   "N4": {
+    "1": 0,
+    "2": 0,
+    "3": 5.6,
+    "4": 31.9,
+    "5": 59.7,
+    "6": 79.2,
+    "7": 87.5
+   },
+   "N5": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 1.4,
+    "5": 4.2,
+    "6": 12.5,
+    "7": 37.5
+   },
+   "N6": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0
+   },
+   "N7": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0
+   }
+  },
+  "scarcity": {
+   "food": {
+    "seatRounds": 1512,
+    "emptyPct": 5.4,
+    "atCapPct": 4.4
+   },
+   "wood": {
+    "seatRounds": 1512,
+    "emptyPct": 11.2,
+    "atCapPct": 13
+   },
+   "stone": {
+    "seatRounds": 1512,
+    "emptyPct": 13.3,
+    "atCapPct": 0.7
+   },
+   "metal": {
+    "seatRounds": 1512,
+    "emptyPct": 33.7,
+    "atCapPct": 0.4
+   },
+   "wealth": {
+    "seatRounds": 1512,
+    "emptyPct": 0.9,
+    "atCapPct": 25.5
+   },
+   "knowledge": {
+    "seatRounds": 1512,
+    "emptyPct": 4.2,
+    "atCapPct": 3.6
+   },
+   "influence": {
+    "seatRounds": 1512,
+    "emptyPct": 0,
+    "atCapPct": 32.5
+   },
+   "culture": {
+    "seatRounds": 1512,
+    "emptyPct": 5.4,
+    "atCapPct": 0
+   }
+  },
+  "hunger": {
+   "k": 7,
+   "n": 72,
+   "pct": 9.7,
+   "ci": [
+    4.8,
+    18.7
+   ],
+   "enough": true,
+   "flag": null
+  },
+  "revolt": {
+   "k": 25,
+   "n": 72,
+   "pct": 34.7,
+   "ci": [
+    24.8,
+    46.2
+   ],
+   "enough": true,
+   "flag": null
+  },
+  "revoltRoundsShare": 3.3,
+  "orders": {
+   "committed": 6602,
+   "available": 7990,
+   "unusedPct": 17.4,
+   "byCategory": [
+    {
+     "category": "CITY",
+     "n": 4319,
+     "pct": 65.4
+    },
+    {
+     "category": "ADVANCE",
+     "n": 1747,
+     "pct": 26.5
+    },
+    {
+     "category": "EXPEDITION",
+     "n": 534,
+     "pct": 8.1
+    },
+    {
+     "category": "INFLUENCE",
+     "n": 2,
+     "pct": 0
+    },
+    {
+     "category": "LEGACY",
+     "n": 0,
+     "pct": 0
+    }
+   ]
+  },
+  "conflicts": {
+   "pvpBattlesPerGame": 0,
+   "threatAssaultsPerGame": 10.2,
+   "playerAttacksOnThreatsPerGame": 0,
+   "attackWin": {
+    "k": 0,
+    "n": 0,
+    "pct": null,
+    "ci": null,
+    "enough": false,
+    "flag": "dados insuficientes"
+   },
+   "warsDeclaredPerGame": 0
+  },
+  "victory": {
+   "endReasons": [
+    {
+     "reason": "ROUND_LIMIT",
+     "n": 18,
+     "pct": 100
+    }
+   ],
+   "hegemonyPathsDeclared": []
+  },
+  "legacyWorks": {
+   "seats": 0,
+   "startedPct": null,
+   "completedPct": null,
+   "medianStartRound": null,
+   "note": "dados insuficientes"
+  }
+ }
+]

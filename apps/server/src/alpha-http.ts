@@ -102,6 +102,11 @@ export class AlphaHttp {
           if(!allowed.ok)return respond(allowed,allowed.error.code==='FORBIDDEN'?403:404);
           return this.stream(request,gameId,principal.guestId);
         }
+        if(new URL(request.url).searchParams.get('report')==='1'){
+          // Post-match report: seat membership and FINISHED are checked by the service; it is never part of the live room view.
+          const report=await this.service.readReport(principal,gameId);
+          return respond(report,report.ok?200:report.error.code==='FORBIDDEN'?403:report.error.code==='NOT_FINISHED'?409:404);
+        }
         const result=await this.service.read(principal,gameId,now);return respond(result,result.ok?200:result.error.code==='FORBIDDEN'?403:result.error.code==='VERSION_CONFLICT'?409:404);
       }
       let raw:unknown;try{raw=await readBody(request);}catch{return error('INVALID_INPUT','Envie JSON válido com até 16 KiB.',400);}
