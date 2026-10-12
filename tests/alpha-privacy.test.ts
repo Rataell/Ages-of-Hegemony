@@ -57,7 +57,9 @@ describe('public city marks', () => {
   it('show a visible rival city only by size and walls, and never a city out of sight', () => {
     const state = midRound(), view = alphaPlayerView(state, p2)!;
     for (const mark of view.cityMarks) {
-      expect(Object.keys(mark).sort()).toEqual(['blockaded', 'capacity', 'capital', 'cityId', 'civilization', 'fortification', 'harbor', 'hexId', 'level', 'ownerId', 'work']);
+      // Ânimo is private: only the viewer's own cities carry `mood` and `moodBand`.
+      const base = ['blockaded', 'capacity', 'capital', 'cityId', 'civilization', 'fortification', 'harbor', 'hexId', 'level', 'ownerId', 'work'];
+      expect(Object.keys(mark).sort()).toEqual(mark.ownerId === p2 ? [...base, 'mood', 'moodBand'].sort() : base);
       if (mark.ownerId !== p2) expect(mark.blockaded).toBeNull();
       expect(mark.level).toBeGreaterThanOrEqual(1);
       expect(mark.level).toBeLessThanOrEqual(7);

@@ -31,12 +31,14 @@ export function alphaPlayerView(state:AlphaState,actor:PlayerId) {
     grades:Object.fromEntries(GRADE_FAMILIES.map(kind=>[kind,unitGrade(state,actor,kind)])),
     /** What anyone sees of a visible city from outside: its size and its walls (UXDEC-016/017). Never population details. */
     cityMarks:state.cities.flatMap(meta=>{const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.id===meta.cityId);if(!city||(meta.currentOwnerId!==actor&&!visible.has(city.hexId)&&!state.rules.revealMap))return [];/* A blockade of a rival's port would reveal a war between others: only the owner learns it. */const own=meta.currentOwnerId===actor;return [{cityId:meta.cityId,hexId:city.hexId,ownerId:meta.currentOwnerId,level:CityLevelSchema.options.indexOf(meta.level)+1,capacity:ladderStep(meta.level).capacity,capital:meta.capital,fortification:meta.fortification,blockaded:own?blockadedBy(state,city.hexId,actor)!==null:null,
+      /** Ânimo (0-6) and its band: ONLY the owner's cities (private); the Mesa draws the seal from these, never from a rival. */
+      ...(own?{mood:meta.mood,moodBand:moodBand(meta.mood)}:{}),
       /** Material culture: the civilization's hidden chassis (the client maps it to an architecture), the quay (only with a Distrito Marítimo) and the Obra de Legado on the city. */
       civilization:state.players.find(p=>p.playerId===meta.currentOwnerId)?.civilization??null,harbor:meta.districts.includes('MARITIME')?harborHex(state,city.hexId):null,
       work:(()=>{const progress=state.legacyWorks.find(w=>w.cityId===meta.cityId);return progress?{workId:progress.workId,steps:progress.stepsDone,complete:progress.completedRound!==null}:null;})()}];}),
     culture:culturalPresenceView(state,actor),
     independents:independentPeopleView(state,actor),
-    threats:threatView(state,actor),threatAlerts:threatAlerts(state,actor),explorationHints:explorationHints(state,actor),
+    /** `reorganizing`: a camp that withdrew and cannot launch yet (readyRound ahead). Public, additive: the Mesa draws the hourglass from it. */threats:threatView(state,actor).map(t=>({...t,reorganizing:t.status==='CAMPED'&&!t.fresh&&(state.threats.find(x=>x.id===t.id)?.readyRound??0)>state.core.round})),threatAlerts:threatAlerts(state,actor),explorationHints:explorationHints(state,actor),
     leaderBlock:leaderAbilityBlock(state,actor),
     /** The Era turn is public: the step it waits at, the log of steps already run and who has not confirmed. Reform options are the viewer's own. */
     eraTurn:state.eraTurn?{era:state.eraTurn.era,step:state.eraTurn.step,log:state.eraTurn.log,awaiting:state.players.filter(p=>!p.ready).map(p=>p.playerId)}:null,
