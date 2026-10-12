@@ -41,3 +41,9 @@ Sem teto arbitrário. A queixa do playtest é que o movimento não aceitava o b�
 4. Ficha de Ação e `previewAction`.
 5. Miniaturas, trajetórias e indicadores na mesa.
 6. Validação em desktop, celular e partidas reais. Sem simulações em massa.
+
+## D6 (proposta, aguardando números): pesca em Mar com navios
+Pedido do dono: o Mar também tem peixes, pescados só por navios, com mais Alimento que a pesca da margem, como em Clash of Cultures. O manual de Clash of Cultures (avanço Pesca, edifício Porto) deixa a cidade coletar Alimento de um espaço de Mar adjacente; o AoH hoje só tem Pesqueiro (`FISHERY`, +1 Alimento) sobre Costa com `FISH`. Proposta registrada como V12-UX-05 e desenhada no Artifact (cardume de alto-mar e Pesca de frota). Nada foi implementado: números (+2), limites, exigência de Porto e geração de cardumes dependem de confirmação.
+
+## Costa
+A Costa passa a ser desenhada como águas rasas (turquesa claro com bancos de areia), não areia. Regra de motor inalterada: Costa conta como terra para peças terrestres e é navegável por navios.
