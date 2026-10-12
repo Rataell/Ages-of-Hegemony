@@ -334,7 +334,7 @@ describe('Crônica da Partida (interface contract)', () => {
   });
   it('uses only tokens that already exist (no new colors) and no hard-coded brand colors', () => {
     const css = readFileSync(new URL('../apps/web/app/alpha/alpha.css', import.meta.url), 'utf8');
-    const block = css.slice(css.indexOf('/* Crônica da Partida'));
+    const start = css.indexOf('/* Crônica da Partida'), block = css.slice(start, css.indexOf('/* ', start + 10));   // only the Crônica block
     expect(block).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 });
