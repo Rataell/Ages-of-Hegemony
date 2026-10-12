@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ficha de Ação — mockup</title>
+<style>
+:root{--bg:#1b1a17;--surface:#262420;--glass:rgba(38,36,32,.88);--ink:#efe8d8;--muted:#a89f8c;--accent:#c9a45c;--ok:#7fae6a;--warn:#d9a441;--danger:#c4513f;--line:rgba(201,164,92,.35);
+--food:#8cb35a;--wood:#9a6b3f;--stone:#9a9a9a;--metal:#7f95a8;--wealth:#d9b94a;--culture:#b078b8;--knowledge:#5aa0c4;--influence:#d0704a}
+@media (prefers-color-scheme: light){:root{--bg:#e9e2d0;--surface:#f6f1e3;--glass:rgba(246,241,227,.92);--ink:#2a2620;--muted:#6b6354;--line:rgba(120,90,30,.4)}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,sans-serif;padding:16px}
+h1,h2{font-family:Cinzel,Georgia,serif;font-weight:600;letter-spacing:.03em}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:14px;color:var(--accent);margin:24px 0 8px}
+p.note{color:var(--muted);margin:0 0 12px;max-width:70ch}
+.strip{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:8px 12px;max-width:980px}
+.seal{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;font-family:Georgia,serif;color:var(--accent)}
+.portrait{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#d9b98a 0 28%,transparent 30%),linear-gradient(#5a4a6a,#3a2e4a);border:2px solid var(--accent)}
+.chip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;background:var(--surface)}
+.chip.warn{border-color:var(--warn);color:var(--warn)}.chip.bad{border-color:var(--danger);color:var(--danger)}
+.stage{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));max-width:1100px}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:12px 14px;backdrop-filter:blur(14px)}
+.card header{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.card header b{font-family:Cinzel,Georgia,serif;font-size:15px}
+.band{border-top:1px solid var(--line);padding:8px 0}
+.band>small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:4px}
+.ok{color:var(--ok)}.bad{color:var(--danger)}.warn{color:var(--warn)}
+.costs{display:flex;flex-wrap:wrap;gap:6px}
+.cost{display:inline-flex;gap:6px;align-items:center;border-radius:8px;padding:2px 8px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.dot{width:9px;height:9px;border-radius:50%}
+.pred{border:1.5px dashed var(--accent);border-radius:10px;padding:8px 10px}
+.applied{border:1.5px solid var(--ok);border-radius:10px;padding:8px 10px}
+.pred small,.applied small{color:var(--muted)}
+ul{margin:4px 0 0;padding-left:18px}li{margin:2px 0}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+button{font:inherit;border-radius:10px;padding:6px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.go{background:var(--accent);color:#1b1a17;border-color:var(--accent);font-weight:600}
+button[disabled]{opacity:.5}
+.mood{display:flex;gap:14px;flex-wrap:wrap}
+.mood figure{margin:0;text-align:center;font-size:11px;color:var(--muted)}
+.mood svg{display:block;margin:0 auto 2px}
+.tray{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:8px 12px;max-width:980px}
+.tray .sep{flex:1}
+@media (max-width:600px){body{padding:16px}.strip,.tray{padding:8px}}
+</style>
+</head>
+<body>
+<h1>Ficha de Ação — proposta visual única</h1>
+<p class="note">Seis faixas fixas (Estado · Elegibilidade · Custo · Previsto · Confirmar · Aplicado), ancoradas ao hex dentro da nuvem existente. Os números aqui são ilustrativos; no jogo todos vêm de <code>previewAction</code> no motor.</p>
+
+<h2>HUD: topo, alertas e bandeja</h2>
+<div class="strip" role="banner">
+  <span class="seal" aria-hidden="true">V</span><b>Valdrim</b>
+  <span class="portrait" title="Líder: passiva e Poder 1×/Era" aria-label="Líder"></span>
+  <span class="chip">Era III</span><span class="chip">Rodada 9/21</span><span class="chip">Planejamento</span>
+  <span class="chip bad" title="Revolta">Revolta 1</span>
+  <span class="chip warn" title="Fome">Fome 2 cidades</span>
+  <span class="chip warn" title="Manutenção">Manutenção −1 Metal</span>
+  <span class="chip">Pendências 3</span>
+</div>
+<div class="tray" role="contentinfo">
+  <span class="cost"><i class="dot" style="background:var(--food)"></i>Alimento 12 <small class="ok">+3</small></span>
+  <span class="cost"><i class="dot" style="background:var(--wood)"></i>Madeira 8 <small>0</small></span>
+  <span class="cost"><i class="dot" style="background:var(--stone)"></i>Pedra 4 <small class="bad">−1</small></span>
+  <span class="cost"><i class="dot" style="background:var(--metal)"></i>Metal 2 <small class="bad">−1</small></span>
+  <span class="cost"><i class="dot" style="background:var(--wealth)"></i>Riqueza 9 <small class="ok">+2</small></span>
+  <span class="cost"><i class="dot" style="background:var(--culture)"></i>Cultura 3 <small class="bad">−2</small></span>
+  <span class="cost"><i class="dot" style="background:var(--knowledge)"></i>Conhec. 5 <small class="ok">+1</small></span>
+  <span class="cost"><i class="dot" style="background:var(--influence)"></i>Influência 6 <small>0</small></span>
+  <span class="sep"></span>
+  <span class="chip" title="Ordens globais">Ordens da civilização 3/5</span>
+  <span class="chip" title="Ativações da cidade selecionada">Ativações de Valdrim 1/2</span>
+  <button class="go">Confirmar planejamento</button>
+</div>
+
+<h2>Ficha de Ação: três estados</h2>
+<div class="stage">
+
+  <article class="card" aria-label="Governar, previsto">
+    <header><b>Governar · Valdrim</b><span class="chip">Povoado · Abalada · Ânimo 2/6</span></header>
+    <div class="band"><small>Elegibilidade</small><span class="ok">✓ Pode agir</span> · Ordens da civilização 3/5 · Ativação 1/2</div>
+    <div class="band"><small>Custo</small>
+      <div class="costs">
+        <span class="cost"><i class="dot" style="background:var(--culture)"></i>Cultura 2 <small>3 → 1</small></span>
+        <span class="cost"><i class="dot" style="background:var(--stone)"></i>Pedra 1 <small>4 → 3</small></span>
+        <span class="cost">Ordem Cidade</span><span class="cost">Ativação</span>
+      </div></div>
+    <div class="band pred"><small>Previsto (nada foi aplicado)</small>
+      <ul>
+        <li><b>Ânimo 2 → 4</b> (Abalada → Estável), +2 níveis</li>
+        <li>Produz como Capacidade 2 (hoje 1)</li>
+        <li class="warn">Na manutenção: assalto de Bando pode custar −1 Ânimo</li>
+        <li class="warn">Cultura fica em 1; a 2ª ativação custaria −1 Ânimo</li>
+      </ul></div>
+    <div class="actions"><button>Cancelar</button><button class="go">Confirmar Governar</button></div>
+  </article>
+
+  <article class="card" aria-label="Recrutar, bloqueado">
+    <header><b>Recrutar · Cavalaria ×2</b><span class="chip">Valdrim · Povoado</span></header>
+    <div class="band"><small>Elegibilidade</small>
+      <ul>
+        <li class="bad">✗ Exige o avanço <b>Treino de Manobras</b> <button style="padding:0 8px">ver na Teia</button></li>
+        <li class="bad">✗ Faltam 2 Metal (tem 2, precisa 4) · Riqueza não substitui Metal</li>
+        <li class="ok">✓ Distrito Militar presente · ✓ Soldados disponíveis</li>
+      </ul></div>
+    <div class="band"><small>Custo (×2)</small>
+      <div class="costs">
+        <span class="cost"><i class="dot" style="background:var(--metal)"></i>Metal 4</span>
+        <span class="cost"><i class="dot" style="background:var(--food)"></i>Alimento 2</span>
+        <span class="cost">Ordem Cidade</span>
+        <span class="cost warn">Manutenção futura +2 Metal/rodada</span>
+      </div></div>
+    <div class="band"><small>Previsto</small><span class="muted" style="color:var(--muted)">Indisponível até resolver os bloqueios acima.</span></div>
+    <div class="actions"><button>Cancelar</button><button class="go" disabled>Confirmar Recrutar</button></div>
+  </article>
+
+  <article class="card" aria-label="Governar, aplicado">
+    <header><b>Resultado · Governar</b><span class="chip ok">Resolvido</span></header>
+    <div class="band applied"><small>Aplicado (autoritativo)</small>
+      <ul>
+        <li><b>Ânimo 2 → 4</b> <span class="ok">✓ igual ao previsto</span></li>
+        <li>Cultura −2 <span class="ok">✓</span></li>
+        <li>Pedra −0 <span class="warn">Δ previsto −1: fortificação já íntegra</span></li>
+        <li class="bad">Depois na manutenção: assalto de Bando, Ânimo 4 → 3</li>
+      </ul></div>
+    <p class="note" style="margin-top:8px">Perdas aparecem em vermelho na ficha e como halo no hex. Ex.: Perigo ao explorar mostra "Pioneiro perdido" aqui, nunca só "Região revelada".</p>
+  </article>
+</div>
+
+<h2>Marcadores de Ânimo (forma + cor + número)</h2>
+<div class="mood" role="list">
+  <figure role="listitem"><svg width="56" height="56" viewBox="0 0 56 56" aria-label="Próspera, 6"><circle cx="28" cy="28" r="22" fill="none" stroke="#d9b94a" stroke-width="4" stroke-dasharray="120 20"/><path d="M14 30 Q28 16 42 30" fill="none" stroke="#d9b94a" stroke-width="2.5"/><path d="M20 34 Q28 42 36 34" fill="none" stroke="#d9b94a" stroke-width="2.5"/><text x="28" y="31" text-anchor="middle" font-size="12" fill="currentColor">6</text></svg>Próspera</figure>
+  <figure role="listitem"><svg width="56" height="56" viewBox="0 0 56 56" aria-label="Estável, 4"><circle cx="28" cy="28" r="22" fill="none" stroke="#7fae6a" stroke-width="4"/><path d="M20 36 H36" stroke="#7fae6a" stroke-width="2.5"/><text x="28" y="31" text-anchor="middle" font-size="12" fill="currentColor">4</text></svg>Estável</figure>
+  <figure role="listitem"><svg width="56" height="56" viewBox="0 0 56 56" aria-label="Abalada, 2"><circle cx="28" cy="28" r="22" fill="none" stroke="#d9a441" stroke-width="4" stroke-dasharray="40 6 20 6 30 6"/><path d="M20 38 Q28 32 36 38" fill="none" stroke="#d9a441" stroke-width="2.5"/><text x="28" y="31" text-anchor="middle" font-size="12" fill="currentColor">2</text></svg>Abalada</figure>
+  <figure role="listitem"><svg width="56" height="56" viewBox="0 0 56 56" aria-label="Revolta, 1"><path d="M28 6 A22 22 0 0 1 48 38 M44 46 A22 22 0 0 1 12 46 M8 36 A22 22 0 0 1 22 8" fill="none" stroke="#c4513f" stroke-width="4"/><path d="M42 12 l5 -5 M14 12 l-5 -5 M28 52 v5" stroke="#c4513f" stroke-width="2"/><text x="28" y="32" text-anchor="middle" font-size="12" fill="currentColor">1</text></svg>Revolta</figure>
+</div>
+</body>
+</html>
