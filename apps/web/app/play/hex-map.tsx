@@ -8,6 +8,7 @@ import { DEFAULT_SAFE, cameraBox, clampCentre, clampZoom, fitScale, mapFrame, po
 import { type CivilizationMark } from '@aoh/game-domain';
 import { CIVIL_PIECES, DISCOVERY_MARKERS, bannerArt, borderStrokes, cityPieceArt, dangerMarkArt, discoveryArt, harborArt, orientationArt, pieceArt, seatSealSvg, seedOf, threatFigureArt, threatMarkArt, threatName, THREAT_ROMAN } from '../alpha/table-art';
 import { moodLabel, moodSealArt } from '../alpha/mood-seal';
+import { roadCanStand, roadTileArt } from '../alpha/road-art';
 import { featureId, improvementId, isFeatureKey, isImprovementKey, isTerrainKey, terrainDefs, terrainId, terrainSummary, terrainVariant } from '../alpha/terrain-art';
 
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
@@ -55,7 +56,7 @@ type Props = {
   /** Threats with the intention the engine decided (V51B-05): the map only draws what it receives. */
   threats?: readonly { id: string; hexId: string; kind: 'CAMP' | 'PIRATE'; level: 1 | 2 | 3; status: 'CAMPED' | 'MARCHING'; fresh?: boolean; reorganizing?: boolean; composition?: readonly { kind: string; count: number }[]; intent?: { state: string; targetKind: string | null; targetKnown: boolean; targetId: string | null; targetHexId: string | null; distance: number | null; nextHexId: string | null; /** Planned path, already cut at the fog by the projection. */ pathHexIds?: readonly string[] } }[];
   /** Resolution events of the last resolved round (roundReports[].resolution), already filtered by the projection: MOVEMENT with `fromHexId` draws the step, LOSSES the halo and the ghost pieces. */
-  resolution?: readonly { id: string; round: number; type: string; hexId?: string; fromHexId?: string; cityId?: string; unitIds?: readonly string[]; message: string }[];
+  resolution?: readonly { id: string; round: number; type: string; hexId?: string | undefined; fromHexId?: string | undefined; cityId?: string | undefined; unitIds?: readonly string[] | undefined; message: string }[];
   /** Closed hexes a piece can enter whose `frontierRisk.danger` is POSSIBLE (alphaUnitOptions().frontier): an amber warning, never the fact of a Perigo. */
   dangerHexes?: readonly string[];
   /** The engine's `rules.movementCosts`, for the hex inspector. */
@@ -71,7 +72,9 @@ type Props = {
   onSelfPlate?: (anchor: HTMLElement) => void;
   safe?: SafeInsets;
   /** Interaction V2 target mode: the hexes a pending decision may land on, by kind (move, explore, attack, claim, mission). The map answers the decision. */
-  targets?: { kind: string; hexIds: readonly string[] } | null;
+  targets?: { kind: string; hexIds: readonly string[]; /** Terrain cost of each lit hex, written on it ("3", or "4 · +2" when only a card bonus of this round reaches it). */ labels?: Readonly<Record<string, string>>; tones?: Readonly<Record<string, 'base' | 'bonus'>> } | null;
+  /** Mover coordenado: the legs of the Order being drafted, one coloured trajectory each with an arrow, ghost miniatures and a tag at the destination, and a numbered ring on the origin. */
+  draftLegs?: readonly { index: number; color: string; origin: string; path: readonly string[]; kinds: readonly string[]; tag: string }[] | null;
   /** A click on the table that hit no hex (closes the contextual cloud). */
   onBackground?: () => void;
   /** A click on the player's own pieces drawn on a hex (selects the stack, not the hex). */
@@ -138,6 +141,7 @@ export const HexMap = memo(function HexMap({
   resolution = NONE,
   dangerHexes = NONE,
   movementCosts,
+  draftLegs = null,
   art,
   board,
   seatStatus = {},
@@ -251,7 +255,7 @@ export const HexMap = memo(function HexMap({
   // Pieces the table has seen, so a LOSSES event can draw what was lost as a ghost (the unit is gone from `units` by then).
   const knownPieces = useRef(new Map<string, { kind: string; ownerId: string }>());
   for (const unit of units) knownPieces.current.set(unit.id, { kind: unit.kind, ownerId: unit.ownerId });
-  /** Roads and own routes, per tile, as half-segments toward each linked neighbour: drawn inside the tile, under its pieces. */
+  /** Roads and own routes, per tile: where each link crosses the shared edge (half of the vector to the linked neighbour). A road hex links to ALL neighbours that have a road or a city (six directions); drawn inside the tile, under its pieces (road-art.ts). */
   const ways = useMemo(() => {
     const out = new Map<string, { road: [number, number][]; route: { d: [number, number]; suspended: boolean }[] }>();
     if (!art) return out;
@@ -260,6 +264,7 @@ export const HexMap = memo(function HexMap({
     const half = (from: string, to: string): [number, number] => { const a = coords(from), b = coords(to); return [(b.x - a.x) / 2, (b.y - a.y) / 2]; };
     const roads = new Set<string>(art.roads ?? []), cityHexes = new Set<string>(cities.map(c => c.hexId));
     for (const id of roads) {
+      get(id);
       const [q, r] = id.split(',').map(Number);
       for (const [dq, dr] of NEIGHBOURS) { const n = `${(q ?? 0) + dq},${(r ?? 0) + dr}`; if (roads.has(n) || cityHexes.has(n)) { get(id).road.push(half(id, n)); if (cityHexes.has(n)) get(n).road.push(half(n, id)); } }
     }
@@ -415,7 +420,7 @@ export const HexMap = memo(function HexMap({
             `terrain-${tile.terrain}`,
             `owner-${owner}`,
             isSelected ? 'selected' : '',
-            targetSet.has(tile.id) ? `target target-${targets!.kind}` : '',
+            targetSet.has(tile.id) ? `target target-${targets!.kind}${targets!.tones?.[tile.id] ? ` tone-${targets!.tones[tile.id]}` : ''}` : '',
             eligible ? 'eligible' : '',
             working && !eligible ? 'unavailable' : '',
             isForeign ? 'foreign' : '',
@@ -477,7 +482,7 @@ export const HexMap = memo(function HexMap({
               {art && tile.ownerId && art.seats[tile.ownerId] && <polygon className="owner-contour" points={points} transform="scale(.92)" style={{ stroke: art.seats[tile.ownerId]!.color }} pointerEvents="none" />}
 
               {art && ways.get(tile.id) && <g className="art-ways" aria-hidden="true">
-                {ways.get(tile.id)!.road.map(([dx, dy], k) => <line key={`r${k}`} x1="0" y1="0" x2={dx} y2={dy} className="art-road" />)}
+                {roadCanStand(tile.terrain) && (ways.get(tile.id)!.road.length > 0 || art.roads?.includes(tile.id)) && <g className="art-road-net" data-links={ways.get(tile.id)!.road.length} dangerouslySetInnerHTML={svgFragment(roadTileArt({ mids: ways.get(tile.id)!.road, coast: tile.terrain === 'COAST', river: tile.features.includes('RIVER'), city: Boolean(city) }, 52))} />}
                 {ways.get(tile.id)!.route.map((part, k) => <line key={`t${k}`} x1="0" y1="0" x2={part.d[0]} y2={part.d[1]} className={`art-route${part.suspended ? ' is-suspended' : ''}`} />)}
               </g>}
               {/* Territorial border outline */}
@@ -567,6 +572,7 @@ export const HexMap = memo(function HexMap({
               )}
 
               {targetSet.has(tile.id) && <polygon className="target-pulse" points={innerPoints} />}
+              {targetSet.has(tile.id) && targets?.labels?.[tile.id] !== undefined && <text className={`target-cost tone-${targets.tones?.[tile.id] ?? 'base'}`} y="33" textAnchor="middle" pointerEvents="none">{targets.labels[tile.id]}</text>}
               {/* Claimable frontier indicator */}
               {eligible && !working && (
                 <polygon className="frontier-pulse" points={innerPoints} />
@@ -727,6 +733,21 @@ export const HexMap = memo(function HexMap({
           return <g key={trail.id} className="art-trail">
             {trail.kind && <g transform={`translate(${a.x} ${a.y})`} opacity=".5" dangerouslySetInnerHTML={svgFragment(threatFigureArt(trail.kind, 22, 0, true))} />}
             <line x1={a.x + ux * 20} y1={a.y + uy * 20} x2={b.x - ux * 20} y2={b.y - uy * 20} className="art-trail-line" markerEnd="url(#threat-arrow)" />
+          </g>;
+        })}</g>}
+        {/* Mover coordenado (Cena B): each leg of the draft Order, in its own colour, with an arrow, ghost pieces and a tag (n · custo/orçamento) at the destination. */}
+        {draftLegs && draftLegs.length > 0 && <g className="art-draft" aria-hidden="true" pointerEvents="none">{draftLegs.map(leg => {
+          const chain = [leg.origin, ...leg.path], pts = chain.map(id => { const c = centreOf(id); return `${Math.round(c.x * 10) / 10},${Math.round(c.y * 10) / 10}`; }).join(' ');
+          const end = centreOf(leg.path.at(-1) ?? leg.origin), start = centreOf(leg.origin), seat = art?.seats[data.view.player.id]?.color ?? '#60a3e9', ghosts = leg.kinds.slice(0, 3);
+          const sameOrigin = draftLegs.filter(other => other.origin === leg.origin && other.index < leg.index).length, sameDest = draftLegs.filter(other => other.index < leg.index && (other.path.at(-1) ?? other.origin) === (leg.path.at(-1) ?? leg.origin)).length;
+          const unit = Math.max(1, 0.55 / camera.scale);
+          return <g key={leg.index} className="art-draft-leg" data-leg={leg.index} style={{ ['--leg' as string]: leg.color }}>
+            <defs><marker id={`draft-arrow-${leg.index}`} viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill={leg.color} /></marker></defs>
+            <polyline points={pts} className="art-draft-under" /><polyline points={pts} className="art-draft-line" stroke={leg.color} markerEnd={`url(#draft-arrow-${leg.index})`} />
+            {chain.slice(1, -1).map(id => { const c = centreOf(id); return <circle key={id} cx={c.x} cy={c.y} r={3.2} fill={leg.color} className="art-draft-dot" />; })}
+            <g transform={`translate(${end.x} ${end.y + 4})`}>{ghosts.map((kind, i) => <g key={i} transform={`translate(${Math.round((i - (ghosts.length - 1) / 2) * 20)} 0)`} opacity=".62" dangerouslySetInnerHTML={svgFragment(pieceArt(kind, seat, 24) + `<circle r="15" fill="none" stroke="${leg.color}" stroke-dasharray="3 3" stroke-width="1.6"/>`)} />)}</g>
+            <g transform={`translate(${end.x + 8 + sameDest * 6} ${end.y - 40 - sameDest * 14}) scale(${unit.toFixed(2)})`} className="art-draft-tag"><rect x="-28" y="-8.5" width="56" height="17" rx="8.5" stroke={leg.color} /><text y="4" textAnchor="middle">{leg.tag}</text></g>
+            <g transform={`translate(${start.x - 28 + sameOrigin * 17} ${start.y - 26}) scale(${unit.toFixed(2)})`} className="art-draft-ring"><circle r="8.5" fill={leg.color} /><text y="3.7" textAnchor="middle">{leg.index + 1}</text></g>
           </g>;
         })}</g>}
         {/* Exploring a closed Region may meet a Perigo (frontierRisk POSSIBLE): the amber warning of the concept, never whether one exists. */}
