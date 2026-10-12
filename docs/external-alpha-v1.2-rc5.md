@@ -76,3 +76,9 @@ Reporte o que parecer errado com a rodada, a cidade e a ação.
 - Playwright (desktop e celular, 17 arquivos): 58 passam em uma rodada com 2 trabalhadores; 2 testes (`external-gate` 4 jogadores por SSE e `move-discovery-live` Infantaria sozinha) falharam sob carga e passam isolados (20 s).
 - Fumaça de partida curta com bots (padrão e acelerada) e a Crônica da partida real: `tests/rc5-smoke.test.ts`.
 - Nenhuma simulação em massa foi reexecutada.
+
+## Testes E2E registrados como possíveis instáveis (flaky)
+Na rodada completa com 2 trabalhadores em paralelo, dois testes falharam e passaram isolados (1 trabalhador, 20 s): `e2e/external-gate.spec.ts:126` (4 jogadores, a Mesa abre para todos e uma reação chega a todos por SSE) e `e2e/move-discovery-live.spec.ts:164` (Infantaria sozinha: Mover não destaca Região fechada). Os testes seguem no repositório, sem alteração; a causa suspeita é a carga do servidor de desenvolvimento em paralelo (tempo de espera), não verificada. Se voltarem a falhar isolados, é bug real.
+
+## Frota exige Cartografia: confere com o canon
+Canon V5.1a (`docs/product/rules-v5-proposal.md`): a Galera (Frota Grau I) é Era II e abre com **Cartografia** (linha da tabela de peças e Era II da Teia); Arquitetura Naval (Era III) abre a Galera de Guerra (Frota Grau II), a Nau de Transporte e o Estaleiro. A auditoria antiga (`naval-audit.md`) citava Metalurgia para a Galera e está superada. A RC5 segue o canon; nenhum ajuste de balanceamento foi feito além disso.
