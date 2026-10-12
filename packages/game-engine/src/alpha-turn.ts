@@ -128,7 +128,7 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
       independentAction(state, actor, command);
     } else if (command.type === 'URBAN_ACTION') {
       if(state.phase==='PLANNING'){
-        const params={...(command.build?{build:command.build}:{}),...(command.unit?{unit:command.unit}:{}),...(command.advancementId?{advancementId:command.advancementId}:{}),...(command.count?{count:command.count}:{})};
+        const params={...(command.build?{build:command.build}:{}),...(command.unit?{unit:command.unit}:{}),...(command.advancementId?{advancementId:command.advancementId}:{}),...(command.count?{count:command.count}:{}),...(command.levels?{levels:command.levels}:{})};
         const blocked=urbanBlock(state,actor,command.cityId,command.action,params);if(blocked)throw new Error(blocked);
         player.plannedActions.push({id:command.planId??`action-${state.version}`,type:'URBAN_ACTION',cityId:command.cityId,action:command.action,...params});reservedMainAction=true;
       }else performUrbanAction(state, actor, command);

@@ -133,10 +133,10 @@ describe('E-7 · Cultura and Riqueza together, and what the client is sent', () 
     const state = village(0, 10);
     const view = alphaPlayerView(state, P1)!;
     const option = view.urban.cities[meta(state).cityId]!.find(entry => entry.action === 'PROMOTE_MOOD')!;
-    expect(option.cost).toMatchObject({ culture: 0, wealth: 2 });                    // no Cultura: the shown price is the Riqueza one
+    expect(option.cost).toMatchObject({ culture: 0, wealth: 4 });                    // no Cultura: the shown price is the Riqueza one, for the two levels (D4: the TOTAL the activation charges)
     const rich = village(3, 0);
     const richOption = alphaPlayerView(rich, P1)!.urban.cities[meta(rich).cityId]!.find(entry => entry.action === 'PROMOTE_MOOD')!;
-    expect(richOption.cost).toMatchObject({ culture: 1, wealth: 0 });
+    expect(richOption.cost).toMatchObject({ culture: 2, wealth: 0 });
     expect(richOption.blocked).toBeNull();
     const none = village(0, 0);
     expect(alphaPlayerView(none, P1)!.urban.cities[meta(none).cityId]!.find(entry => entry.action === 'PROMOTE_MOOD')!.blocked).toMatch(/Governar custa/);

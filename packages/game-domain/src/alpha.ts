@@ -111,7 +111,7 @@ export const StrategicOrderSchema = z.discriminatedUnion('type', [
 ]);
 export type StrategicOrder = z.infer<typeof StrategicOrderSchema>;
 export const PlannedActionSchema = z.discriminatedUnion('type',[
-  z.strictObject({id:IdentifierSchema,type:z.literal('URBAN_ACTION'),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),count:z.number().int().min(1).max(6).optional(),advancementId:IdentifierSchema.optional()}),
+  z.strictObject({id:IdentifierSchema,type:z.literal('URBAN_ACTION'),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),count:z.number().int().min(1).max(6).optional(),advancementId:IdentifierSchema.optional(),/** Governar (PROMOTE_MOOD): the Ânimo levels the player chose to recover (1..6, within the city's real reach). Absent = as many as the Capacity and the stock allow. */levels:z.number().int().min(1).max(6).optional()}),
   z.strictObject({id:IdentifierSchema,type:z.literal('PROPOSE_TREATY'),recipientId:PlayerIdSchema,treaty:TreatyTypeSchema,deal:ResourceDealSchema}),
   z.strictObject({id:IdentifierSchema,type:z.literal('DECLARE_WAR'),targetId:PlayerIdSchema}),
   /** An Influência Order reserved in the last round of an Era; it executes at step 5 of the Era turn (canon §16, I-7). */
@@ -373,7 +373,7 @@ function refreshCombatCatalog(input: Record<string, unknown>): Record<string, un
 export const AlphaStateSchema = z.preprocess(upgradeToV51b, AlphaStateBase);
 export type AlphaState = z.infer<typeof AlphaStateBase>;
 export const AlphaCommandSchema = z.discriminatedUnion('type', [
-  z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,planId:IdentifierSchema.optional(),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),count:z.number().int().min(1).max(6).optional(),advancementId:IdentifierSchema.optional()}),
+  z.strictObject({type:z.literal('URBAN_ACTION'),expectedVersion:N,planId:IdentifierSchema.optional(),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),count:z.number().int().min(1).max(6).optional(),advancementId:IdentifierSchema.optional(),/** Governar (PROMOTE_MOOD): the Ânimo levels the player chose to recover (1..6, within the city's real reach). Absent = as many as the Capacity and the stock allow. */levels:z.number().int().min(1).max(6).optional()}),
   z.strictObject({type:z.literal('PROPOSE_TRADE'),expectedVersion:N,recipientId:PlayerIdSchema,offerType:z.enum(['TRADE_INSTANT','GIFT','FUTURE_PROMISE','LOAN']),offer:AlphaResourcePoolSchema,request:AlphaResourcePoolSchema,treatyTerms:z.array(IdentifierSchema).max(4),dueRound:P.nullable()}),
   z.strictObject({type:z.literal('RESPOND_TRADE'),expectedVersion:N,offerId:IdentifierSchema,accept:z.boolean()}),
   z.strictObject({type:z.literal('CONTEST_PRESENCE'),expectedVersion:N,cityId:CityIdSchema,defenderCivilizationId:IdentifierSchema}),

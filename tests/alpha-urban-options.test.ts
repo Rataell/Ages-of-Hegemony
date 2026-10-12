@@ -69,7 +69,9 @@ describe('urban option preview', () => {
     expect(siege.blocked).not.toBeNull();
     expect(siege.cost.metal).toBe(state.rules.units.SIEGE.metal);
     const mood = list!.find(o => o.action === 'PROMOTE_MOOD')!;
-    expect(mood.cost.wealth).toBe(state.rules.balance.publicInvestmentCost);
+    // D4: the shown cost is the TOTAL the activation charges. The founding government (Conselho) makes the first level free, so a Capacidade 1 city shows no price.
+    expect(mood.cost.wealth).toBe(mood.govern!.levels.at(-1)!.costWealth);
+    expect(mood.cost.culture).toBe(mood.govern!.levels.at(-1)!.costCulture);
   });
 
   it('is part of the projection and lists only the viewer\'s cities', () => {

@@ -310,17 +310,119 @@ export function refreshAlphaAdministration(state: AlphaState): void {
   }
 }
 
-/** Governar (canon §4, §10): +1 Ânimo per level paid, 1 Cultura or 2 Riqueza each, up to the activation's Capacity, never above Próspera (6). */
-export function governCost(state: AlphaState, actor: PlayerId): AlphaResourcePool {
-  const progress = state.players.find(player => player.playerId === actor);
-  return progress && progress.resources.culture >= 1 ? { ...emptyAlphaResourcePool(), culture: 1 } : { ...emptyAlphaResourcePool(), wealth: 2 };
+/**
+ * Governar (canon §4, §10): +1 Ânimo per level paid, 1 Cultura or 2 Riqueza each (Cultura first, Riqueza when Cultura runs out), up to the
+ * activation's Capacity, never above Próspera (6). Everything the client shows and the engine charges comes from `governQuote` below.
+ */
+export const GOVERN_MOOD_MAX = 6;
+const GOVERN_WEALTH_PER_LEVEL = 2;
+
+/** Cultura/Riqueza the first `levels` levels cost over `pool`, with the Conselho's free levels: Cultura while there is any, then 2 Riqueza per level. */
+function governSchedule(freeLevels: number, culture: number, levels: number): { culture: number; wealth: number } {
+  let remaining = culture, paidCulture = 0, wealth = 0;
+  for (let level = 0; level < levels; level++) {
+    if (level < freeLevels) continue;
+    if (remaining >= 1) { remaining -= 1; paidCulture += 1; } else wealth += GOVERN_WEALTH_PER_LEVEL;
+  }
+  return { culture: paidCulture, wealth };
 }
-export function governBlock(state: AlphaState, actor: PlayerId, cityId: string): string | null {
+/** The state with the actor's resources replaced by `pool` (shallow: only the affordability checks read it). */
+const withPool = (state: AlphaState, actor: PlayerId, pool: AlphaResourcePool): AlphaState => ({ ...state, players: state.players.map(player => player.playerId === actor ? { ...player, resources: pool } : player) });
+/** The Pedra (and the Riqueza that stands in for a missing Pedra) a fortification repair would take from `pool`, or null when no repair applies or it cannot be paid. */
+function repairCostFor(state: AlphaState, actor: PlayerId, fortification: string, pool: AlphaResourcePool): { stone: number; wealth: number } | null {
+  if (fortification === 'INTACT') return null;
+  if (hasUnlock(state, actor, 'rule:free-repair')) return { stone: 0, wealth: 0 };
+  const cost = { ...emptyAlphaResourcePool(), stone: 1 };
+  if (!alphaCanAfford(withPool(state, actor, pool), actor, cost)) return null;
+  const paid = Math.min(pool.stone, 1);
+  return { stone: paid, wealth: (1 - paid) * state.rules.balance.wealthConversionRate };
+}
+
+/** Total cost of Governar for `levels` levels, paid in order from the actor's stock; with a `cityId`, plus the Pedra of the fortification repair it would also do. */
+export function governCost(state: AlphaState, actor: PlayerId, levels = 1, cityId?: string): AlphaResourcePool {
+  const progress = state.players.find(player => player.playerId === actor);
+  const pool = progress?.resources ?? emptyAlphaResourcePool();
+  const scheduled = governSchedule(governmentEffects(state, actor).governFreeLevels, pool.culture, Math.max(0, levels));
+  const cost = { ...emptyAlphaResourcePool(), culture: scheduled.culture, wealth: scheduled.wealth };
+  const pair = cityId === undefined ? null : cityPair(state, cityId);
+  if (pair) {
+    const after = { ...pool, culture: Math.max(0, pool.culture - scheduled.culture), wealth: Math.max(0, pool.wealth - scheduled.wealth) };
+    const repair = repairCostFor(state, actor, pair.meta.fortification.state, after);
+    if (repair) { cost.stone += repair.stone; cost.wealth += repair.wealth; }
+  }
+  return cost;
+}
+
+export type GovernBlockerCode = 'NOT_OWN_CITY' | 'MOOD_FULL' | 'NO_RESOURCE' | 'REPAIR_NO_STONE' | 'LEVELS_EXCEED';
+export interface GovernBlocker { code: GovernBlockerCode; message: string; missing?: { resource: 'culture' | 'wealth' | 'stone'; amount: number } }
+export interface GovernLevelQuote { levels: number; moodAfter: number; costCulture: number; costWealth: number; stoneRepair?: number }
+export interface GovernQuote {
+  mood: number;
+  /** Levels the activation may recover now: min(Ânimo room, Capacidade, levels the stock can pay). */
+  maxLevels: number;
+  /** Levels Ânimo leaves room for and levels the Capacidade allows (the two non-resource limits). */
+  moodRoom: number; capacityLevels: number;
+  limitedBy: 'MOOD' | 'CAPACITY' | 'RESOURCES';
+  /** One entry per choosable number of levels (1..maxLevels): the Ânimo after, the total Cultura and Riqueza paid, and the Pedra when the fortification repair happens too. */
+  levels: GovernLevelQuote[];
+  /** Ânimo already Próspera: Governar only repairs the fortification. */
+  repairOnly: boolean;
+  blockers: GovernBlocker[];
+}
+const RES_PT: Record<'culture' | 'wealth' | 'stone', string> = { culture: 'Cultura', wealth: 'Riqueza', stone: 'Pedra' };
+/** "1 Cultura, 2 Riqueza, 1 Pedra" for the non-zero parts of a Governar cost; "nada" when free. */
+export const governCostText = (cost: Pick<AlphaResourcePool, 'culture' | 'wealth' | 'stone'>): string => (['culture', 'wealth', 'stone'] as const).filter(key => cost[key] > 0).map(key => `${cost[key]} ${RES_PT[key]}`).join(' + ') || 'nada';
+
+/**
+ * The single reading of what Governar can do in a city right now. The action, the planning gate and the projection all use it, so the number of levels, the
+ * cost shown and the cost charged cannot drift apart (D4). Pure over the state; the planner calls it on a state already carrying the earlier plans.
+ */
+export function governQuote(state: AlphaState, actor: PlayerId, cityId: string): GovernQuote {
   const pair = cityPair(state, cityId);
-  if (!pair || pair.ownerId !== actor) return 'Escolha uma cidade própria.';
-  if (pair.meta.mood >= 6 && pair.meta.fortification.state === 'INTACT') return 'A cidade já está Próspera e íntegra: Governar não tem o que recuperar.';
-  if (pair.meta.mood < 6 && governmentEffects(state, actor).governFreeLevels === 0 && !alphaCanAfford(state, actor, governCost(state, actor))) return 'Governar custa 1 Cultura ou 2 Riqueza por nível de Ânimo.';
-  return null;
+  const empty = (blocker: GovernBlocker): GovernQuote => ({ mood: pair?.meta.mood ?? 0, maxLevels: 0, moodRoom: 0, capacityLevels: 0, limitedBy: 'MOOD', levels: [], repairOnly: false, blockers: [blocker] });
+  if (!pair || pair.ownerId !== actor) return empty({ code: 'NOT_OWN_CITY', message: 'Escolha uma cidade própria.' });
+  const progress = state.players.find(player => player.playerId === actor)!;
+  const pool = progress.resources, freeLevels = governmentEffects(state, actor).governFreeLevels;
+  const mood = pair.meta.mood, moodRoom = Math.max(0, GOVERN_MOOD_MAX - mood), capacityLevels = Math.max(1, operatingCapacity(state, cityId));
+  const ceiling = Math.min(moodRoom, capacityLevels);
+  const levels: GovernLevelQuote[] = [];
+  for (let n = 1; n <= ceiling; n++) {
+    const scheduled = governSchedule(freeLevels, pool.culture, n);
+    if (scheduled.wealth > pool.wealth) break;
+    const repair = repairCostFor(state, actor, pair.meta.fortification.state, { ...pool, culture: pool.culture - scheduled.culture, wealth: pool.wealth - scheduled.wealth });
+    levels.push({ levels: n, moodAfter: mood + n, costCulture: scheduled.culture, costWealth: scheduled.wealth + (repair?.wealth ?? 0), ...(repair ? { stoneRepair: repair.stone } : {}) });
+  }
+  const maxLevels = levels.length;
+  const limitedBy: GovernQuote['limitedBy'] = maxLevels < ceiling ? 'RESOURCES' : moodRoom <= capacityLevels ? 'MOOD' : 'CAPACITY';
+  const blockers: GovernBlocker[] = [];
+  const fortification = pair.meta.fortification.state;
+  const repairOnly = moodRoom === 0 && fortification !== 'INTACT';
+  if (moodRoom === 0) {
+    if (fortification === 'INTACT') blockers.push({ code: 'MOOD_FULL', message: 'A cidade já está Próspera e íntegra: Governar não tem o que recuperar.' });
+    else if (!repairCostFor(state, actor, fortification, pool)) blockers.push({ code: 'REPAIR_NO_STONE', message: `Governar só repararia a fortificação e falta Pedra: custa 1 Pedra e você tem ${pool.stone}. Sem efeito.`, missing: { resource: 'stone', amount: Math.max(1, 1 - pool.stone) } });
+  } else if (maxLevels === 0) {
+    const missing = GOVERN_WEALTH_PER_LEVEL - pool.wealth;
+    blockers.push({ code: 'NO_RESOURCE', message: `Governar custa 1 Cultura ou ${GOVERN_WEALTH_PER_LEVEL} Riqueza por nível de Ânimo: faltam ${missing} Riqueza (ou 1 Cultura); você tem ${pool.culture} Cultura e ${pool.wealth} Riqueza.`, missing: { resource: 'wealth', amount: missing } });
+  }
+  return { mood, maxLevels, moodRoom, capacityLevels, limitedBy, levels, repairOnly, blockers };
+}
+/** Levels one Governar may recover now (0 when it is blocked). */
+export const governReach = (state: AlphaState, actor: PlayerId, cityId: string): number => governQuote(state, actor, cityId).maxLevels;
+
+/** Why Governar cannot be done now (with `levels` when the player chose how many), or null. The messages say which resource is missing and by how much. */
+export function governBlock(state: AlphaState, actor: PlayerId, cityId: string, levels?: number): string | null {
+  const quote = governQuote(state, actor, cityId);
+  if (quote.blockers.length) return quote.blockers[0]!.message;
+  if (levels === undefined) return null;
+  if (quote.repairOnly) return 'A cidade já está Próspera: Governar só repara a fortificação, sem níveis de Ânimo.';
+  if (!Number.isInteger(levels) || levels < 1) return 'Escolha ao menos 1 nível de Ânimo.';
+  if (levels <= quote.maxLevels) return null;
+  if (levels > quote.moodRoom) return `A cidade está com Ânimo ${quote.mood}/6: só cabem ${quote.moodRoom} nível(is).`;
+  if (levels > quote.capacityLevels) return `A Capacidade da cidade permite no máximo ${quote.capacityLevels} nível(is) por Governar.`;
+  const pool = state.players.find(player => player.playerId === actor)!.resources;
+  const cost = governCost(state, actor, levels);
+  const missing = cost.wealth - pool.wealth;
+  return `Governar ${levels} nível(is) custa ${governCostText(cost)}: faltam ${missing} Riqueza (você tem ${pool.culture} Cultura e ${pool.wealth} Riqueza). Máximo agora: ${quote.maxLevels}.`;
 }
 /**
  * Recuperação emergencial de Revolta (E-1). A city in Revolta cannot produce, and Governar needs Cultura or Riqueza that only producing brings, so a city
@@ -351,21 +453,31 @@ export function rearmRevoltEmergency(state: AlphaState): void {
   for (const meta of state.cities) if (meta.revoltEmergencyRound !== null && state.core.round > meta.revoltEmergencyRound && meta.mood >= REVOLT_EMERGENCY_MOOD) meta.revoltEmergencyRound = null;
 }
 
-/** Applies Governar: pays level by level while there is Capacity and Ânimo to recover; repairs one fortification step (1 Pedra, free with Fortificação). Returns what happened. */
-export function governCity(state: AlphaState, actor: PlayerId, cityId: string): { moodGained: number; repaired: boolean } {
-  const blocked = governBlock(state, actor, cityId);
+export interface GovernResult { levels: number; moodBefore: number; moodAfter: number; moodGained: number; repaired: boolean; paid: AlphaResourcePool }
+/**
+ * Applies Governar: pays level by level (`levels` when the player chose, otherwise as many as `governReach` allows) and repairs one fortification step
+ * (1 Pedra, free with Fortificação). Returns what happened, with the Ânimo before and after and what was paid.
+ */
+export function governCity(state: AlphaState, actor: PlayerId, cityId: string, levels?: number): GovernResult {
+  const blocked = governBlock(state, actor, cityId, levels);
   if (blocked) throw new Error(blocked);
   const pair = cityPair(state, cityId)!;
-  const reach = Math.max(1, operatingCapacity(state, cityId));
+  const progress = state.players.find(player => player.playerId === actor)!;
+  const before = { ...progress.resources };
+  const moodBefore = pair.meta.mood;
+  const quote = governQuote(state, actor, cityId);
+  const target = quote.repairOnly ? 0 : levels ?? quote.maxLevels;
   const effects = governmentEffects(state, actor);
   let moodGained = 0;
-  while (moodGained < reach && pair.meta.mood < 6) {
+  while (moodGained < target && pair.meta.mood < GOVERN_MOOD_MAX) {
     // Conselho: the first level of each Governar is free (canon §16 "Governar custa 1 a menos").
     const free = moodGained < effects.governFreeLevels;
-    if (!free && !alphaCanAfford(state, actor, governCost(state, actor))) break;
-    if (!free) alphaPay(state, actor, governCost(state, actor));
+    const price = { ...emptyAlphaResourcePool(), ...(progress.resources.culture >= 1 ? { culture: 1 } : { wealth: GOVERN_WEALTH_PER_LEVEL }) };
+    if (!free && !alphaCanAfford(state, actor, price)) break;
+    if (!free) alphaPay(state, actor, price);
     pair.meta.mood += 1; moodGained += 1;
   }
+  if (levels !== undefined && moodGained < levels) throw new Error(`Governar ${levels} nível(is) não pôde ser pago por inteiro: ${moodGained} aplicado(s).`);
   if (effects.governKnowledge > 0) alphaGain(state, actor, { knowledge: effects.governKnowledge }, { category: 'other' });
   let repaired = false;
   if (pair.meta.fortification.state !== 'INTACT') {
@@ -377,5 +489,7 @@ export function governCity(state: AlphaState, actor: PlayerId, cityId: string): 
       repaired = true;
     }
   }
-  return { moodGained, repaired };
+  const paid = emptyAlphaResourcePool();
+  for (const key of ['culture', 'wealth', 'stone'] as const) paid[key] = Math.max(0, before[key] - progress.resources[key]);
+  return { levels: moodGained, moodBefore, moodAfter: pair.meta.mood, moodGained, repaired, paid };
 }

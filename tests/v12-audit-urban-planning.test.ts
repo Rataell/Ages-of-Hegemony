@@ -128,12 +128,14 @@ describe('U-06 · Avanço plans share one Conhecimento stock', () => {
 });
 
 describe('U-07 · Governar planned twice', () => {
-  it.fails('REPRO U-07 (BUG/UX): [Governar, Governar] on an Estável city is accepted; the first lifts it to Próspera and the second ("já está Próspera") fails', () => {
+  // Fixed by D4 (Governar com escolha explícita): the planner replays the earlier plans, so the second Governar is refused up front instead of dying at resolution.
+  it('FIXED U-07 (D4): [Governar, Governar] on an Estável city: the second is refused while planning, nothing fails at resolution', () => {
     const state = freshGame();
     shape(state, 'VILLAGE', 6, { producers: 3, scholars: 3 }); meta(state).mood = 4; rich(state, { culture: 6 });
     const id = meta(state).cityId;
     const outcome = plan(state, [urban(id, 'PROMOTE_MOOD'), urban(id, 'PROMOTE_MOOD')]);
     expect(outcome.failures).toEqual([]);
+    expect(outcome.refused).toHaveLength(1);
   });
 });
 

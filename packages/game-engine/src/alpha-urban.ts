@@ -7,7 +7,8 @@ import { alphaEvent } from './alpha-events.js';
 import { leaderIntegrationBonus } from './alpha-leaders.js';
 import { recruitBlock, recruitUnit } from './alpha-military.js';
 import { governmentEffects } from './alpha-government.js';
-import { REVOLT_EMERGENCY_MOOD, activationsAllowed, administration, emergencyGovern, emergencyGovernBlock, recruitLimit, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, mirrorDevelopment, mobilizationBlock, mobilize, moodBand } from './alpha-city.js';
+import type { GovernBlocker, GovernLevelQuote } from './alpha-city.js';
+import { REVOLT_EMERGENCY_MOOD, activationsAllowed, administration, emergencyGovern, emergencyGovernBlock, recruitLimit, cityYield, districtSlots, elevateBlock, elevateCity, governBlock, governCity, governCost, governCostText, governQuote, mirrorDevelopment, mobilizationBlock, mobilize, moodBand } from './alpha-city.js';
 import { advanceCost, applyRecurringEffects, hasUnlock, heritageFor, recurringAmounts, researchAdvancement, researchBlock } from './alpha-institutions.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaGain, alphaGainLegacy, alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { alphaActionUsage } from './alpha-actions.js';
@@ -33,7 +34,7 @@ export function syncCityMetadata(state: AlphaState): void {
 
 type UrbanAction = UrbanCommand['action'];
 type BuildTarget = NonNullable<UrbanCommand['build']>;
-interface UrbanParams { build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string; count?: number }
+interface UrbanParams { build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string; count?: number; levels?: number }
 
 /**
  * Activations of one city this round (F-14): the single place that knows how many a city may still take. `count` is what the city already has
@@ -107,6 +108,58 @@ function recruitCountBlock(state: AlphaState, actor: PlayerId, cityId: string, u
   return null;
 }
 
+const ACTION_PT: Record<UrbanAction, string> = { PRODUCE: 'Produzir', BUILD: 'Construir', RECRUIT: 'Recrutar', RESEARCH: 'Pesquisar', ELEVATE: 'Elevar', PROMOTE_MOOD: 'Governar', EMERGENCY_GOVERN: 'Recuperação emergencial', SUPPORT_TRADE: 'Sustentar rota', CIVIC_ACTION: 'Ação cívica', MOVE_CAPITAL: 'Mover a capital' };
+/** What the earlier plans of the round will have done by the time a later one resolves: the state after them and a line per plan that moved Cultura, Riqueza, Pedra or Ânimo. */
+export interface PlanTrial { state: AlphaState; used: { label: string; cityId: string; spent: string; mood: number }[] }
+
+/**
+ * D4 (decision: simulation, not reservation). A plan only reads the stock at the moment it is queued, but the round resolves them one after another, so
+ * Governar queued after a Construir that spends the last Cultura would die at resolution and the Ordem would be lost. While planning, the earlier plans of the
+ * same player are run in order on a clone (`recruitCountBlock` does the same for Recrutar) and the later plan is judged against what is left. A plan that would
+ * already fail is skipped, as the resolver drops it. Nothing is stored in the plan: the queue keeps its shape and old snapshots keep loading. Rivals' plans
+ * cannot touch this player's stock, so only the player's own queue is replayed. Null when there is nothing earlier to replay or the round is not planning.
+ */
+export function plannedTrial(state: AlphaState, actor: PlayerId): PlanTrial | null {
+  if (state.phase !== 'PLANNING') return null;
+  const earlier = state.players.find(player => player.playerId === actor)?.plannedActions.filter((planned): planned is Extract<typeof planned, { type: 'URBAN_ACTION' }> => planned.type === 'URBAN_ACTION') ?? [];
+  if (!earlier.length) return null;
+  const trial = structuredClone(state);
+  trial.phase = 'URBAN_ACTIONS';
+  const progress = trial.players.find(player => player.playerId === actor)!;
+  progress.ready = false;
+  const used: PlanTrial['used'] = [];
+  for (const plan of earlier) {
+    const { id, ...payload } = plan;
+    progress.plannedActions = progress.plannedActions.filter(item => item.id !== id);
+    const stock = { ...progress.resources }, mood = trial.cities.find(candidate => candidate.cityId === plan.cityId)?.mood ?? 0;
+    try { performUrbanAction(trial, actor, { ...payload, planId: id, expectedVersion: trial.version } as UrbanCommand); } catch { continue; }
+    const cityName = trial.core.players.flatMap(player => player.civilization.cities).find(candidate => candidate.id === plan.cityId)?.name ?? plan.cityId;
+    const spent = (['culture', 'wealth', 'stone'] as const).filter(key => stock[key] > progress.resources[key]).map(key => `${stock[key] - progress.resources[key]} ${key === 'culture' ? 'Cultura' : key === 'wealth' ? 'Riqueza' : 'Pedra'}`).join(' + ');
+    const moodDelta = (trial.cities.find(candidate => candidate.cityId === plan.cityId)?.mood ?? 0) - mood;
+    if (spent || moodDelta !== 0) used.push({ label: `${ACTION_PT[plan.action]} em ${cityName}`, cityId: plan.cityId, spent, mood: moodDelta });
+  }
+  return { state: trial, used };
+}
+/** At resolution: what the plans that already ran this round did, so a Governar that lost its resource names who took it. */
+const earlierPlansNote = (state: AlphaState, actor: PlayerId): string => {
+  const done = state.events.filter(event => event.round === state.core.round && event.type === 'URBAN_ACTION' && event.audience?.includes(actor)).map(event => event.message.replace(/\.$/, ''));
+  return done.length ? ` Planos anteriores desta rodada já resolvidos: ${done.join('; ')}.` : '';
+};
+const trialNote = (trial: PlanTrial): string => {
+  const lines = trial.used.map(item => `${item.label}${item.spent ? ` (gasta ${item.spent})` : ''}${item.mood ? ` (Ânimo ${item.mood > 0 ? '+' : ''}${item.mood})` : ''}`);
+  return lines.length ? `Planos anteriores desta rodada: ${lines.join('; ')}.` : 'Planos anteriores desta rodada mudam o cenário.';
+};
+/** Governar's gate while planning: judged on the stock now and on the stock the earlier plans leave, with the plan that took the resource named. */
+function governPlanBlock(state: AlphaState, actor: PlayerId, cityId: string, levels: number | undefined, trial: PlanTrial | null): string | null {
+  const now = governBlock(state, actor, cityId, levels);
+  if (now || !trial) return now;
+  const later = governBlock(trial.state, actor, cityId, levels);
+  if (!later) return null;
+  const missing = governQuote(trial.state, actor, cityId).blockers[0]?.missing?.resource;
+  const lead = missing === 'stone' ? 'Pedra insuficiente na resolução. ' : /custa|faltam/.test(later) ? 'Cultura/Riqueza insuficiente na resolução. ' : 'Na resolução: ';
+  return `${lead}${later} ${trialNote(trial)}`;
+}
+
 /** Route income from the Web: Moeda +1, Economia Comercial +2, Autossuficiência −1 (canon §12). */
 export const webRouteIncome = (state: AlphaState, actor: PlayerId): number => (hasUnlock(state, actor, 'rule:route-plus-1') ? 1 : 0) + (hasUnlock(state, actor, 'rule:route-plus-2') ? 2 : 0) - (hasUnlock(state, actor, 'rule:route-minus-1') ? 1 : 0);
 function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: BuildTarget): string | null {
@@ -152,10 +205,12 @@ function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: B
 }
 
 /** Everything that can stop an urban action, in one pure function shared by the action and the client preview. */
-export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction, params: UrbanParams = {}): string | null {
+export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction, params: UrbanParams = {}, trial?: PlanTrial | null): string | null {
   const gate = cityGate(state, actor, cityId, action);
   if (gate) return gate;
   const meta = state.cities.find(candidate => candidate.cityId === cityId)!;
+  // `levels` belongs to Governar alone; refused here so the Ordem is not queued and lost at resolution (the resolver's rejectExtras would fail it there).
+  if (params.levels !== undefined && action !== 'PROMOTE_MOOD') return `A ação ${action} não aceita o parâmetro levels.`;
   switch (action) {
     case 'PRODUCE': return null;
     case 'ELEVATE': return elevateBlock(state, actor, cityId);
@@ -167,7 +222,7 @@ export function urbanBlock(state: AlphaState, actor: PlayerId, cityId: string, a
       const reserved = state.phase === 'PLANNING' && state.players.find(player => player.playerId === actor)?.plannedActions.some(planned => planned.type === 'URBAN_ACTION' && planned.action === 'RESEARCH' && planned.advancementId === params.advancementId);
       return reserved ? 'Este avanço já está planejado em outra cidade nesta rodada.' : researchBlock(state, actor, params.advancementId);
     }
-    case 'PROMOTE_MOOD': return governBlock(state, actor, cityId);
+    case 'PROMOTE_MOOD': return governPlanBlock(state, actor, cityId, params.levels, trial === undefined ? plannedTrial(state, actor) : trial);
     case 'EMERGENCY_GOVERN': return emergencyGovernBlock(state, actor, cityId);
     case 'SUPPORT_TRADE':
       return state.routes.some(route => route.ownerId === actor && route.fromCityId === cityId && !route.suspended) ? null : 'A cidade não origina nenhuma rota comercial ativa.';
@@ -202,7 +257,11 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
     return Object.fromEntries(ALPHA_RESOURCE_KEYS.map(key => [key, one[key] * count])) as AlphaResourcePool;
   }
   if (action === 'RESEARCH' && params.advancementId) return alphaCostWithMetal(state, actor, advanceCost(state, actor, params.advancementId), 0);
-  if (action === 'PROMOTE_MOOD') return governCost(state, actor);
+  if (action === 'PROMOTE_MOOD') {
+    // The total of what the activation will charge (D4): the chosen levels, or as many as it reaches by default, plus the Pedra of the repair it also does. A blocked Governar shows one level, the price it is missing.
+    const reach = governQuote(state, actor, cityId), quoted = params.levels ?? (reach.maxLevels || (reach.repairOnly ? 0 : 1));
+    return governCost(state, actor, quoted, cityId);
+  }
   if (action === 'CIVIC_ACTION' && cityMeta?.status === 'OCCUPIED') return { ...zero, influence: state.rules.integrationCost.influence };
   return zero;
 }
@@ -217,12 +276,49 @@ export function productionOutput(state: AlphaState, actor: PlayerId, cityId: str
 const RESOURCE_LABEL: Record<string, string> = { food: 'Alimentos', materials: 'Madeira/Pedra', wood: 'Madeira', stone: 'Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura', metal: 'Metal' };
 const listOf = (pool: Record<string, number>) => Object.entries(pool).filter(([, amount]) => amount > 0).map(([key, amount]) => `+${amount} ${RESOURCE_LABEL[key]}`).join(', ');
 
+/**
+ * What Governar offers a city, computed by the engine so the client never recalculates it (D4). `levels` has one entry per choosable number of levels
+ * (the TOTAL cost of that choice, Pedra of the repair when it also happens); it is judged against the stock the earlier plans of the round leave.
+ */
+export interface GovernView {
+  /** Ânimo the levels start from (after the earlier plans of the round) and, when different, the Ânimo today. */
+  mood: number; moodNow?: number;
+  maxLevels: number; moodRoom: number; capacityLevels: number; limitedBy: 'MOOD' | 'CAPACITY' | 'RESOURCES';
+  repairOnly: boolean;
+  levels: GovernLevelQuote[];
+  blockers: (Omit<GovernBlocker, 'code'> & { code: GovernBlocker['code'] | 'GATE' | 'PLANNED' })[];
+  /** The free recovery of a city in Revolta: available when the engine would accept it now; it takes the Ânimo to `moodAfter` and costs no Cultura or Riqueza. */
+  emergency: { available: boolean; moodAfter: number; reason: string | null };
+}
 export interface UrbanOption {
   action: UrbanAction; build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string;
   actionClass:'MAIN'; cost: AlphaResourcePool; effect: string; blocked: string | null;
+  /** Only on PROMOTE_MOOD. */
+  govern?: GovernView;
 }
-function option(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction, params: UrbanParams, effect: string): UrbanOption {
-  return { action, ...params, actionClass:'MAIN', cost: urbanCost(state, actor, cityId, action, params), effect, blocked: urbanBlock(state, actor, cityId, action, params) };
+function option(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction, params: UrbanParams, effect: string, trial?: PlanTrial | null): UrbanOption {
+  // Governar's price is the one the resolution will charge, so it is read from the state the earlier plans leave.
+  const priced = action === 'PROMOTE_MOOD' && trial ? trial.state : state;
+  return { action, ...params, actionClass:'MAIN', cost: urbanCost(priced, actor, cityId, action, params), effect, blocked: urbanBlock(state, actor, cityId, action, params, trial) };
+}
+function governView(state: AlphaState, actor: PlayerId, cityId: string, trial: PlanTrial | null): GovernView {
+  const now = governQuote(state, actor, cityId), later = trial ? governQuote(trial.state, actor, cityId) : now;
+  const blockers: GovernView['blockers'] = [];
+  const gate = cityGate(state, actor, cityId, 'PROMOTE_MOOD');
+  if (gate) blockers.push({ code: 'GATE', message: gate });
+  if (now.blockers.length) blockers.push(...now.blockers);
+  else if (later.blockers.length) blockers.push(...later.blockers.map(blocker => ({ ...blocker, code: 'PLANNED' as const, message: `${blocker.message} ${trial ? trialNote(trial) : ''}`.trim() })));
+  const emergency = urbanBlock(state, actor, cityId, 'EMERGENCY_GOVERN');
+  return {
+    mood: later.mood, ...(later.mood !== now.mood ? { moodNow: now.mood } : {}), maxLevels: later.maxLevels, moodRoom: later.moodRoom, capacityLevels: later.capacityLevels, limitedBy: later.limitedBy, repairOnly: later.repairOnly,
+    levels: later.levels, blockers, emergency: { available: emergency === null, moodAfter: REVOLT_EMERGENCY_MOOD, reason: emergency },
+  };
+}
+function governEffect(view: GovernView): string {
+  const ceiling = Math.min(view.moodRoom, view.capacityLevels);
+  if (view.repairOnly) return 'Governar: a cidade já está Próspera; só repara 1 passo de fortificação por 1 Pedra.';
+  const reach = view.maxLevels > 0 ? `até ${view.maxLevels} nível(is)${view.maxLevels < ceiling ? ` com seus recursos (a Capacidade e o Ânimo permitiriam ${ceiling})` : view.limitedBy === 'MOOD' ? ' (até Próspera)' : ' (limite da Capacidade)'}` : `nenhum nível pago agora (a Capacidade e o Ânimo permitiriam até ${ceiling})`;
+  return `Governar: +1 Ânimo por nível pago (1 Cultura ou 2 Riqueza), ${reach}; repara 1 passo de fortificação por 1 Pedra`;
 }
 
 /** Every urban option for the player's cities (plus research, which is not city-specific), with cost, effect and the reason it is blocked. */
@@ -230,6 +326,8 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
   const territory = state.core.config.territory, balance = state.rules.balance;
   const cities: Record<string, UrbanOption[]> = {};
   const owned = state.cities.filter(meta => meta.currentOwnerId === actor);
+  // Governar is judged against what the earlier plans leave (one replay for all the cities).
+  const trial = plannedTrial(state, actor);
   for (const meta of owned) {
     const id = meta.cityId, list: UrbanOption[] = [];
     const occupied = meta.status === 'OCCUPIED';
@@ -250,7 +348,8 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(meta.fortification.level as never) + 1];
     list.push(option(state, actor, id, 'BUILD', { build: { kind: 'FORTIFICATION' } }, next ? `Fortificação ${next}` : 'Fortificação máxima'));
     for (const unit of AlphaUnitClassSchema.options) list.push(option(state, actor, id, 'RECRUIT', { unit }, `Força ${state.rules.units[unit].strength} · Movimento ${state.rules.units[unit].movement} · até ${recruitLimit(state, actor, id)} peça(s) por ativação`));
-    list.push(option(state, actor, id, 'PROMOTE_MOOD', {}, `Governar: +1 Ânimo por nível pago (1 Cultura ou 2 Riqueza), até ${produced.capacity} nível(is); repara 1 passo de fortificação por 1 Pedra`));
+    const govern = governView(state, actor, id, trial);
+    list.push({ ...option(state, actor, id, 'PROMOTE_MOOD', {}, governEffect(govern), trial), govern });
     list.push(option(state, actor, id, 'EMERGENCY_GOVERN', {}, `Recuperação emergencial: só em Revolta, uma vez por episódio, sem Cultura nem Riqueza. Leva o Ânimo a ${REVOLT_EMERGENCY_MOOD}; não produz nem alimenta — Produza na rodada seguinte.`));
     list.push(option(state, actor, id, 'SUPPORT_TRADE', {}, `Renda de rota: +${state.rules.routeIncome + governmentEffects(state, actor).routeWealth + webRouteIncome(state, actor)} Riqueza por rota originada`));
     list.push(option(state, actor, id, 'MOVE_CAPITAL', {}, `Mover a capital para cá (${governmentEffects(state, actor).moveCapitalOrders} Ordem(ns)); a Administração, a Capacidade da capital e a guarnição acompanham`));
@@ -269,8 +368,8 @@ export function urbanOptions(state: AlphaState, actor: PlayerId): { cities: Reco
   return { cities, research };
 }
 
-function rejectExtras(command: UrbanCommand, allowed: readonly ('build' | 'unit' | 'advancementId' | 'count')[]): void {
-  for (const key of ['build', 'unit', 'advancementId', 'count'] as const) {
+function rejectExtras(command: UrbanCommand, allowed: readonly ('build' | 'unit' | 'advancementId' | 'count' | 'levels')[]): void {
+  for (const key of ['build', 'unit', 'advancementId', 'count', 'levels'] as const) {
     if (command[key] !== undefined && !allowed.includes(key)) throw new Error(`A ação ${command.action} não aceita o parâmetro ${key}.`);
   }
 }
@@ -289,10 +388,11 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
   if (gate) throw new Error(gate);
   if (!meta || !city) throw new Error('Escolha uma cidade própria.');
   const occupied = meta.status === 'OCCUPIED' || state.occupations.some(occupation => occupation.cityId === city.id);
-  const blocked = urbanBlock(state, actor, command.cityId, command.action, { ...(command.build ? { build: command.build } : {}), ...(command.unit ? { unit: command.unit } : {}), ...(command.advancementId ? { advancementId: command.advancementId } : {}), ...(command.count ? { count: command.count } : {}) });
-  if (blocked) throw new Error(blocked);
+  const blocked = urbanBlock(state, actor, command.cityId, command.action, { ...(command.build ? { build: command.build } : {}), ...(command.unit ? { unit: command.unit } : {}), ...(command.advancementId ? { advancementId: command.advancementId } : {}), ...(command.count ? { count: command.count } : {}), ...(command.levels ? { levels: command.levels } : {}) }, null);
+  if (blocked) throw new Error(command.action === 'PROMOTE_MOOD' && state.phase === 'URBAN_ACTIONS' ? `${blocked}${earlierPlansNote(state, actor)}` : blocked);
   const telemetry = state.telemetry;
   let message = '';
+  let governResult: ReturnType<typeof governCity> | null = null;
 
   switch (command.action) {
     case 'PRODUCE': {
@@ -376,9 +476,9 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       break;
     }
     case 'PROMOTE_MOOD': {
-      rejectExtras(command, []);
-      const governed = governCity(state, actor, city.id);
-      message = `${city.name} foi governada: Ânimo +${governed.moodGained}${governed.repaired ? ', fortificação reparada' : ''}.`;
+      rejectExtras(command, ['levels']);
+      const governed = governCity(state, actor, city.id, command.levels);
+      governResult = governed;
       break;
     }
     case 'EMERGENCY_GOVERN': {
@@ -434,6 +534,10 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       if (courtWaives(state, actor, meta)) alphaEvent(state, 'COURT_WAIVER', `Tribunal: a segunda ativação de ${city.name} não custou Ânimo.`, [actor]);
       else meta.mood = Math.max(0, meta.mood - 1);
     }
+  }
+  if (governResult) {
+    const penalty = meta.mood - governResult.moodAfter;
+    message = `${city.name} governou: ${governResult.levels === 0 ? 'sem níveis de Ânimo' : `${governResult.levels} nível(is), Ânimo ${governResult.moodBefore}→${governResult.moodAfter}`}${penalty < 0 ? ` (a 2ª ativação custou ${-penalty} Ânimo: fica ${meta.mood})` : ''}; ${governCostText(governResult.paid) === 'nada' ? 'sem custo' : `pagou ${governCostText(governResult.paid)}`}${governResult.repaired ? '; fortificação reparada' : ''}.`;
   }
   telemetry.actionsByType[command.action] = (telemetry.actionsByType[command.action] ?? 0) + 1;
   alphaEvent(state, 'URBAN_ACTION', message, [actor]);
