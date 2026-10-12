@@ -155,7 +155,7 @@ export function planFrontierMove(state: AlphaState, actor: PlayerId, order: Extr
 }
 
 /** Resolves a validated frontier MOVE on `state` (a candidate copy): flips the Region, resolves its Discovery once, lands the group on the entry hex. */
-export function resolveFrontierMove(state: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>): { plan: FrontierPlan; entered: boolean } {
+export function resolveFrontierMove(state: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>): { plan: FrontierPlan; entered: boolean; lost: string[] } {
   const plan = planFrontierMove(state, actor, order);
   revealRegion(state, actor, plan.region, plan.rotation);
   // A hidden Ameaça on the entry hex keeps the group at the border: the Region is open, the group is not in it.
@@ -164,5 +164,6 @@ export function resolveFrontierMove(state: AlphaState, actor: PlayerId, order: E
   settleCargo(state);
   applyDiscovery(state, actor, state.regions.find(candidate => candidate.id === plan.region.id)!, plan.discoverer.id);
   settleCargo(state);
-  return { plan, entered };
+  // Pieces of the group the Discovery took (Perigo): the caller words the result and the table events already say why.
+  return { plan, entered, lost: order.unitIds.filter(id => !state.units.some(unit => unit.id === id)) };
 }

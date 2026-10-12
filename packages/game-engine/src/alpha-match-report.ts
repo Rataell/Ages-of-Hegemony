@@ -239,15 +239,16 @@ export function buildMatchReport(state: AlphaState, context: MatchReportContext 
   }
   for (const event of state.events) {
     if (event.type === 'WAR_DECLARED') add(event.round, null, 'WAR', 'Uma guerra foi declarada.');
+    else if (event.type === 'DANGER_LOSS' && event.audience?.length === 1) add(event.round, event.audience[0]!, 'DANGER_LOSS', 'Perdeu uma peça ao descobrir uma Região com Perigo.');
     else if (event.type === 'THREAT_DESTROYED' && event.audience?.length === 1) add(event.round, event.audience[0]!, 'THREAT_DESTROYED', 'Destruiu um Acampamento ou Ancoradouro.');
   }
   const decisive = pvp.filter(battle => battle.outcome === 'DECISIVE').slice(0, 12);
   for (const battle of decisive) add(battle.round, battle.winnerId, 'BATTLE', 'Venceu uma batalha decisiva.');
   add(winner.round, winner.playerId, 'FINISH', winner.reason === 'HEGEMONY' ? 'Consolidou a Hegemonia e venceu.' : 'Venceu por Prestígio no limite de rodadas.');
-  const priority: Record<string, number> = { FINISH: 0, HEGEMONY_DECLARED: 1, HEGEMONY_QUALIFIED: 1, ERA: 2, LEGACY_DONE: 3, MILESTONE: 3, CITY_CAPTURED: 4, BATTLE: 5, CITY_LEVEL: 6, THREAT_DESTROYED: 7, WAR: 7, LEGACY_START: 8, CITY_FOUNDED: 9 };
+  const priority: Record<string, number> = { FINISH: 0, HEGEMONY_DECLARED: 1, HEGEMONY_QUALIFIED: 1, ERA: 2, LEGACY_DONE: 3, MILESTONE: 3, CITY_CAPTURED: 4, BATTLE: 5, CITY_LEVEL: 6, THREAT_DESTROYED: 7, DANGER_LOSS: 7, WAR: 7, LEGACY_START: 8, CITY_FOUNDED: 9 };
   const kept = timeline.length > 160 ? [...timeline].sort((a, b) => (priority[a.kind] ?? 9) - (priority[b.kind] ?? 9) || a.round - b.round).slice(0, 160) : timeline;
   kept.sort((a, b) => a.round - b.round || (priority[a.kind] ?? 9) - (priority[b.kind] ?? 9) || (a.seat ?? '').localeCompare(b.seat ?? ''));
-  note('timeline', 'CALCULATED', 'Curated milestones from structured records (Era changes, foundations, captures, levels, Obras, milestones, Hegemony, decisive battles); not a log of operations. Text is generated, never copied from private events.');
+  note('timeline', 'CALCULATED', 'Curated milestones from structured records (Era changes, foundations, captures, levels, Obras, milestones, Hegemony, decisive battles, pieces lost to a Perigo); not a log of operations. Text is generated, never copied from private events.');
 
   const report: MatchReportV1 = {
     schemaVersion: MATCH_REPORT_SCHEMA_VERSION, kind: 'MatchReportV1', reportId: `${state.gameId}:${winner.round}:${fingerprint.slice(0, 8)}`,

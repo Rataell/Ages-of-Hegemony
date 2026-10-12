@@ -6,12 +6,19 @@ import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { canEnter } from './alpha-military.js';
 import { enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { institutionBonus } from './alpha-institutions.js';
-import { stackBlock } from './alpha-stack.js';
+import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { settleWithPioneer } from './alpha-cities.js';
 import { applyCommand } from './engine.js';
 import { alphaCanAfford } from './alpha-resources.js';
 import { disembarkBlock, embarkBlock, isCarried, isCarrierKind } from './alpha-naval.js';
 import { kitFrontierCost, kitMovement } from './alpha-kits.js';
+
+/**
+ * Advance warning (UXB-01): entering any closed Region may meet a Perigo, which removes the exploring piece with `lossChance` (the chance given that the Region holds one). It never says whether THIS Region
+ * holds one (the hidden draw stays hidden; Método Experimental / Observatório hints keep their own channel): `POSSIBLE` is the same for every closed Region.
+ * Método Experimental protects the explorer, so for that civilization the risk is `NONE`.
+ */
+export interface FrontierRisk { danger: 'POSSIBLE' | 'NONE'; lossChance: number; mitigatedBy: 'web-experimental-method' }
 
 export interface AlphaUnitOptions {
   /** Cheapest legal MOVE path (origin excluded) to every hex the piece can reach this round. */
@@ -23,7 +30,7 @@ export interface AlphaUnitOptions {
    * can reach with at least the UNKNOWN cost left, with the cheapest path to it (entry included) and the orientations that give it a way in (one: applied
    * automatically; several: the player chooses). `block` is set when no entry has an orientation ("Requer acesso naval.").
    */
-  frontier: { regionId: string; hexIds: string[]; entries: { hexId: string; path: string[]; rotations: number[] }[]; block: string | null }[];
+  frontier: { regionId: string; hexIds: string[]; entries: { hexId: string; path: string[]; rotations: number[] }[]; block: string | null; frontierRisk?: FrontierRisk }[];
   /** True when this piece can lead a Discovery by itself or as part of a group (Pioneiro; ship with a Pioneiro aboard; any ship after Navegação Oceânica). */
   discoverer: boolean;
   /** Why a closed Region next to the piece cannot be entered yet ("Necessita de um Pioneiro para descobrir."), or null. */
@@ -70,6 +77,8 @@ function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Ma
       const nextId = hexId(point), tile = byId.get(nextId);
       if (!tile || !known.has(nextId) || !canEnter(state, unit, tile.id)) continue;
       if (!movementOpen(state, actor, tile.ownerId) || enemyCityAt(state, actor, nextId) || state.units.some(other => other.hexId === nextId && other.ownerId !== actor)) continue;
+      // Same filter as validateMilitaryOrder: a hidden or visible Ameaça on a path hex refuses the MOVE (use a conflict order), so it is neither listed nor crossed.
+      if (state.threats.some(threat => threat.hexId === nextId)) continue;
       const cost = node.cost + (state.roads.includes(tile.id) && land ? 1 : state.rules.movementCosts[tile.terrain]);
       if (cost > budget || cost >= (best.get(nextId)?.cost ?? Infinity)) continue;
       best.set(nextId, { cost, path: [...node.path, nextId] });
@@ -78,7 +87,7 @@ function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Ma
   }
   const moves: Record<string, string[]> = {};
   for (const [id, node] of [...best.entries()].sort(([a], [b]) => a.localeCompare(b))) {
-    if (id !== unit.hexId && stackBlock(state, actor, [unit], id) === null) moves[id] = node.path;
+    if (id !== unit.hexId && stackBlock(state, actor, [unit], id, pendingArrivals(state, actor, id, '')) === null) moves[id] = node.path;
   }
   return { moves, best, budget };
 }
@@ -90,6 +99,8 @@ function frontierOf(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: M
   const discoverer = discovererOf(state, actor, [unit]) !== null;
   const cost = kitFrontierCost(state, unit, state.rules.movementCosts.UNKNOWN);
   const closed = state.regions.filter(region => !regionOpenFor(state, region, actor));
+  const protectedBy = state.players.find(player => player.playerId === actor)?.research.includes('web-experimental-method') ?? false;
+  const frontierRisk: FrontierRisk = { danger: protectedBy ? 'NONE' : 'POSSIBLE', lossChance: protectedBy ? 0 : 0.5, mitigatedBy: 'web-experimental-method' };
   const frontier = closed.flatMap(region => {
     const entries = region.hexIds.flatMap(id => {
       const tile = byId.get(id);
@@ -104,7 +115,7 @@ function frontierOf(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: M
     });
     if (!entries.length) return [];
     const open = entries.some(entry => entry.rotations.length > 0);
-    return [{ regionId: region.id, hexIds: [...region.hexIds], entries: open ? entries.filter(entry => entry.rotations.length > 0) : entries, block: open ? null : frontierBlockText(mode) }];
+    return [{ regionId: region.id, hexIds: [...region.hexIds], entries: open ? entries.filter(entry => entry.rotations.length > 0) : entries, block: open ? null : frontierBlockText(mode), frontierRisk }];
   }).sort((a, b) => a.regionId.localeCompare(b.regionId));
   return { frontier, discoverer, frontierNote: !discoverer && frontier.length ? (mode === 'LAND' ? FRONTIER_NEEDS_PIONEER : 'Necessita de um Pioneiro embarcado ou de Navegação Oceânica para descobrir.') : null };
 }

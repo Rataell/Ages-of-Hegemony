@@ -129,7 +129,7 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
     const orders = state.players.find(player => player.playerId === id)!.orders.filter(order => order.type === type);
     for (const order of orders) {
       const candidate = structuredClone(state);
-      let found: { plan: FrontierPlan; entered: boolean } | null = null;
+      let found: { plan: FrontierPlan; entered: boolean; lost?: string[] } | null = null;
       try {
         if (order.type === 'EXPLORE') exploreRegion(candidate, id, order);
         else if (order.type === 'TRADE') establishRoute(candidate, id, order);
@@ -143,7 +143,7 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         refreshKnowledge(candidate); refreshHegemony(candidate);
         const before = { units: new Map(state.units.map(unit => [unit.id, unit])), rules: state.rules, names: new Map([...state.core.players.map(player => [player.id as string, player.name] as const), ['world', 'As Ameaças do Mundo'] as const]) };
         const raced = order.type === 'MOVE' && !found && order.rotation !== undefined;
-        const message = order.type === 'ATTACK' ? battleMessage(before.names, candidate.battles.at(-1)!) : found && order.type === 'MOVE' ? discoveryMessage(state, id, order, found.plan.region.templateId, found.entered) : `${orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined)}${raced ? ' A Região já havia sido revelada.' : ''}`;
+        const message = order.type === 'ATTACK' ? battleMessage(before.names, candidate.battles.at(-1)!) : found && order.type === 'MOVE' ? discoveryMessage(state, id, order, found.plan.region.templateId, found.entered, found.lost) : `${orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined)}${raced ? ' A Região já havia sido revelada.' : ''}`;
         Object.assign(state, AlphaStateSchema.parse(candidate));
         const target0=order.type==='MOVE'?order.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:undefined;
         // Moves, exploration and attacks change the shared table: everyone who can see that hex (the whole table in an open Region) reads them. Trade and influence stay with their owner.

@@ -1,5 +1,5 @@
 import { DISCOVERY_NAMES, DISCOVERY_WEIGHTS, ENCOUNTER_CARDS, REGION_TEMPLATES, type AlphaState, type DiscoveryKind, type PlayerId } from '@aoh/game-domain';
-import { alphaEvent } from './alpha-events.js';
+import { alphaEvent, resolutionEvent } from './alpha-events.js';
 import { regionOpenFor } from './alpha-world.js';
 import { alphaRandomInteger } from './alpha-random.js';
 import { alphaGain } from './alpha-resources.js';
@@ -64,7 +64,14 @@ export function applyDiscovery(state: AlphaState, actor: PlayerId, region: Regio
     case 'DANGER': {
       const protectedBy = player.research.includes('web-experimental-method');
       const unit = state.units.find(candidate => candidate.id === unitId && candidate.ownerId === actor);
-      if (!protectedBy && unit && alphaRandomInteger(state, 2) === 0) { state.units = state.units.filter(candidate => candidate.id !== unit.id); say('o perigo custou a peça que explorava.'); }
+      if (!protectedBy && unit && alphaRandomInteger(state, 2) === 0) {
+        // UXB-01: the loss is a table event (LOSSES, like an ambush or a shipwreck) so the client can show where and why the piece vanished.
+        const name = state.rules.units[unit.kind].name, where = REGION_TEMPLATES.find(template => template.id === region.templateId)?.name ?? 'uma Região', hex = unit.hexId;
+        state.units = state.units.filter(candidate => candidate.id !== unit.id);
+        const message = `${DISCOVERY_NAMES.DANGER}: a peça ${name} foi perdida ao entrar em ${where}.`;
+        alphaEvent(state, 'DANGER_LOSS', message, [actor]);
+        resolutionEvent(state, { type: 'LOSSES', actorId: actor, visibleTo: [actor], message, hexId: hex, unitIds: [unit.id] });
+      }
       else say(protectedBy ? 'o Método Experimental evitou o pior.' : 'a expedição escapou por pouco.');
       break;
     }

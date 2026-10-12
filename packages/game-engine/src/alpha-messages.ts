@@ -32,7 +32,8 @@ export function urbanActionMessage(before: AlphaState, after: AlphaState, actor:
     }
     case 'RECRUIT': return `${cityName} recrutou ${action.unit ? before.rules.units[action.unit].name : 'uma peça'}.`;
     case 'RESEARCH': return `${cityName} concluiu a pesquisa ${(ADVANCEMENTS.find(advancement => advancement.id === action.advancementId) ?? heritageAdvance(action.advancementId ?? ''))?.name ?? ''}.`.replace(' .', '.');
-    case 'PROMOTE_MOOD': return `${cityName} investiu no ânimo da população.`;
+    // D4: the engine's own event already says levels, Ânimo before→after and what was paid (from governCity); read it back instead of recomputing from the two states.
+    case 'PROMOTE_MOOD': return after.events.slice(before.events.length).filter(event => event.type === 'URBAN_ACTION' && event.audience?.includes(actor)).at(-1)?.message ?? `${cityName} governou.`;
     case 'EMERGENCY_GOVERN': return `${cityName} saiu da Revolta por recuperação emergencial.`;
     case 'SUPPORT_TRADE': return `${cityName} sustentou o comércio.`;
     case 'CIVIC_ACTION': return `${cityName} realizou uma ação cívica.`;
@@ -54,8 +55,10 @@ export function orderMessage(before: AlphaState, actor: PlayerId, order: Strateg
 }
 
 /** A Move that opened a Region: written for everyone who sees that hex. The Region's name is public once it is face up. */
-export function discoveryMessage(before: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>, templateId: string, entered: boolean): string {
+export function discoveryMessage(before: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>, templateId: string, entered: boolean, lost: readonly string[] = []): string {
   const region = REGION_TEMPLATES.find(template => template.id === templateId)?.name ?? 'uma Região';
+  // UXB-01: a Perigo that removed the exploring piece is said so; the Region still opened, but the move did not end as planned.
+  if (lost.length) return `${playerName(before, actor)}: ${unitNames(before, order.unitIds)} ${entered ? 'entrou em' : 'chegou à fronteira de'} ${region} — Perigo: ${unitNames(before, lost)} perdido(s) na descoberta; a Região foi aberta.`;
   return `${playerName(before, actor)}: ${unitNames(before, order.unitIds)} ${entered ? 'entrou em' : 'chegou à fronteira de'} ${region} — Região revelada.`;
 }
 

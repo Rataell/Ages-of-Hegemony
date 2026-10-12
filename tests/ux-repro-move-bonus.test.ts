@@ -220,7 +220,7 @@ describe('Discovery (Região fechada): the bonus enters the same budget in optio
 describe('DIVERGENCES options.moves vs QUEUE_ORDER (not bonus-specific, but the bonus widens the surface)', () => {
   const camp = (hex: string) => ({ id: 'camp-x', kind: 'CAMP', hexId: hex, homeHexId: hex, level: 1, status: 'CAMPED', composition: [{ kind: 'INFANTRY', count: 1 }], createdRound: 1, lastActedRound: 1, rewardPaid: false, fresh: false, withdrawing: false, readyRound: 0 } as never);
   // EXPECTED (correct): every hex listed in options.moves is accepted by QUEUE_ORDER with the listed path, so a highlighted target is clickable AND valid.
-  it.fails('a world threat (Acampamento) on the strip: options.moves must not list the threat hex nor hexes whose cheapest path crosses it', () => {
+  it('a world threat (Acampamento) on the strip: options.moves must not list the threat hex nor hexes whose cheapest path crosses it', () => {
     const { state, line, ids } = lineCase(['INFANTRY'], 'PLAINS');
     state.threats.push(camp(line[1]!));
     const boosted = play22(state);
@@ -229,7 +229,7 @@ describe('DIVERGENCES options.moves vs QUEUE_ORDER (not bonus-specific, but the 
     dump(`THREAT listed=${JSON.stringify(listed.map(([h, p]) => [h, p.length]))} rejectedByQueue=${JSON.stringify(bad)}`);
     expect(bad).toEqual([]);
   });
-  it.fails('own queued arrivals (pendingArrivals): options.moves must not list a hex whose civilian stack (2) other queued orders already filled', () => {
+  it('own queued arrivals (pendingArrivals): options.moves must not list a hex whose civilian stack (2) other queued orders already filled', () => {
     const { state, line, ids } = lineCase(['PIONEER', 'PIONEER'], 'PLAINS');
     const third: AlphaUnit = { id: 't-pioneer-9', ownerId: p1, kind: 'PIONEER', hexId: line[0] as never, recruitedRound: 1, carrierId: null };
     state.units.push(third);
