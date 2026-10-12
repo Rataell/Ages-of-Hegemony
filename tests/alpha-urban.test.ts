@@ -1,3 +1,4 @@
+import { grant } from './alpha-grant.js';
 import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, PlayerIdSchema, alphaToLegacyResources, cityLevelForPopulation, type AlphaState } from '@aoh/game-domain';
 import { alphaGain, alphaStorageCapacity, applyAlphaCommand, beginAlphaPlanning, cityYield, createAlphaGame, occupyCity, setAlphaPhase, syncCityMetadata } from '@aoh/game-engine';
@@ -240,6 +241,8 @@ describe('urban actions: RECRUIT', () => {
 
   it('keeps military pieces behind their district and era', () => {
     const state = urban();
+    expect(act(state, p1, c1, { action: 'RECRUIT', unit: 'GUARD' })).toMatchObject({ ok: false, error: { message: expect.stringContaining('Formações de Guarda') } });   // RC5: the advance that opens Guarda comes first
+    grant(state, p1, 'web-guard-formations');
     expect(act(state, p1, c1, { action: 'RECRUIT', unit: 'GUARD' })).toMatchObject({ ok: false, error: { message: expect.stringContaining('Militar') } });
     expect(act(state, p1, c1, { action: 'RECRUIT', unit: 'SIEGE' })).toMatchObject({ ok: false });
   });
@@ -248,6 +251,7 @@ describe('urban actions: RECRUIT', () => {
     const state = urban();
     soldier(state);
     state.players[0]!.era = 'CIVILIZATION';
+    grant(state, p1, 'web-engineering');
     coreCity(state).districts.push({ type: 'MILITARY', builtRound: 1 });
     Object.assign(pool(state), { wood: 10, stone: 10, metal: 5, wealth: 10, food: 10 });
     state.core.players[0]!.resources = alphaToLegacyResources(pool(state));
@@ -260,6 +264,7 @@ describe('urban actions: RECRUIT', () => {
     const state = urban();
     soldier(state);
     state.players[0]!.era = 'CIVILIZATION';
+    grant(state, p1, 'web-engineering');
     coreCity(state).districts.push({ type: 'MILITARY', builtRound: 1 });
     Object.assign(pool(state), { wood: 10, stone: 10, metal: 0, wealth: 30, food: 10 });
     state.core.players[0]!.resources = alphaToLegacyResources(pool(state));

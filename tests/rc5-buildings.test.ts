@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ADVANCEMENTS, threatComposition, type AlphaState, type AlphaUnit, type Threat } from '@aoh/game-domain';
 import { blockadedBy, cityYield, courtWaives, explorationHints, hexDistance, kitUnitCost, militaryUpkeep, pillagePort, recruitBlock, recruitUnit, shipyardExemption, urbanCost } from '@aoh/game-engine';
+import { grant } from './alpha-grant.js';
 import { apply, coreCity, freshGame, meta, plan, seat, shape, urban, P1, P2 } from './v12-audit-urban-helpers.js';
 
 /**
@@ -112,7 +113,7 @@ describe('Tribunal · the second activation costs no Ânimo, once per round in t
 });
 
 describe('Arsenal · Cavalaria and Cerco cost 1 Metal less, never more than the price', () => {
-  const barracks = () => { const state = freshGame(); shape(state, 'GREAT_CITY', 10, { producers: 6, soldiers: 4 }); meta(state).districts.push('MILITARY'); coreCity(state).districts.push({ type: 'MILITARY', builtRound: 1 } as never); seat(state).era = 'ASCENSION'; Object.assign(seat(state).resources, { food: 15, wood: 15, stone: 15, metal: 10, wealth: 15 }); return state; };
+  const barracks = () => { const state = freshGame(); shape(state, 'GREAT_CITY', 10, { producers: 6, soldiers: 4 }); meta(state).districts.push('MILITARY'); coreCity(state).districts.push({ type: 'MILITARY', builtRound: 1 } as never); seat(state).era = 'ASCENSION'; grant(state, P1, 'web-engineering', 'web-maneuver-training', 'web-metallurgy', 'web-guard-formations'); Object.assign(seat(state).resources, { food: 15, wood: 15, stone: 15, metal: 10, wealth: 15 }); return state; };
   it('the price shown and the price charged drop by one Metal for Cavalaria and Cerco only', () => {
     const base = barracks(), arsenal = structuredClone(base); meta(arsenal).buildings.push('ARSENAL');
     for (const [kind, drop] of [['CAVALRY', 1], ['SIEGE', 1], ['INFANTRY', 0], ['GUARD', 0], ['RANGED', 0]] as const) {
@@ -125,7 +126,7 @@ describe('Arsenal · Cavalaria and Cerco cost 1 Metal less, never more than the 
   it('never replaces Era or distrito: those are checked before the price', () => {
     const early = structuredClone(barracks()); meta(early).buildings.push('ARSENAL'); seat(early).era = 'FOUNDATION';
     expect(recruitBlock(early, P1, meta(early).cityId, 'SIEGE')).toBe('Sua civilização ainda não alcançou a era exigida.');
-    const noDistrict = freshGame(); meta(noDistrict).buildings.push('ARSENAL'); seat(noDistrict).era = 'ASCENSION';
+    const noDistrict = freshGame(); meta(noDistrict).buildings.push('ARSENAL'); seat(noDistrict).era = 'ASCENSION'; grant(noDistrict, P1, 'web-maneuver-training');
     expect(recruitBlock(noDistrict, P1, meta(noDistrict).cityId, 'CAVALRY')).toBe('Esta peça requer distrito Militar.');
   });
   it('is opened by Ferro (Era IV), the advance of the Fundição and of the infantry upgrade', () => {

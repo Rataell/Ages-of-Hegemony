@@ -1,3 +1,4 @@
+import { grant } from './alpha-grant.js';
 import { describe, expect, it } from 'vitest';
 import { ADVANCEMENTS, AlphaStateSchema, PlayerIdSchema, StackViewSchema, alphaRules, stackCategory, stackViewVerdict, type AlphaState, type AlphaUnit, type StackCategory } from '@aoh/game-domain';
 import { applyAlphaCommand, beginAlphaPlanning, combatPreview, createAlphaGame, createGame, migrateSnapshotV3ToV4, recruitBlock, resolveBattleWithFaces, stackBlock, stackLimit, stackView } from '@aoh/game-engine';
@@ -183,7 +184,7 @@ describe('sea: fleets 4 → 5', () => {
 });
 
 describe('RECRUIT', () => {
-  const recruitable = () => { const state = arena(); state.players[0]!.era = 'EXPANSION'; return state; };
+  const recruitable = () => { const state = arena(); state.players[0]!.era = 'EXPANSION'; grant(state, p1, 'web-cartography'); return state; };   // RC5: Frota needs Cartografia
 
   it('is blocked when the city garrison is full and allowed one below', () => {
     const state = recruitable(); put(state, p1, 'INFANTRY', '0,0', 5);

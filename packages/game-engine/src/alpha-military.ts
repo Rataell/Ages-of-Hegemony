@@ -1,7 +1,7 @@
-import { AlphaEraSchema, type AlphaState, type AlphaUnit, type HexId, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
+import { ADVANCEMENTS, AlphaEraSchema, type AlphaState, type AlphaUnit, type HexId, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaPay } from './alpha-resources.js';
-import { institutionBonus } from './alpha-institutions.js';
+import { hasUnlock, institutionBonus } from './alpha-institutions.js';
 import { atWar, enemyCityAt, movementOpen } from './alpha-diplomacy.js';
 import { leaderSupplyBonus } from './alpha-leaders.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
@@ -13,12 +13,16 @@ import { unitMovement } from './alpha-grades.js';
 import { governmentEffects } from './alpha-government.js';
 
 /** Why a piece cannot be recruited in a city now, or null. Pure: used by the action and by the client preview. */
+/** The Web advance whose `unit:<KIND>` tag opens a recruitable piece, or null when the piece needs none (Infantaria, Pioneiro, Enviado). */
+export const unitAdvance=(kind:AlphaUnit['kind']):{id:string;name:string}|null=>{const node=ADVANCEMENTS.find(candidate=>candidate.unlocks.includes(`unit:${kind}`));return node?{id:node.id,name:node.name}:null;};
 export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):string|null {
   const player=state.core.players.find(p=>p.id===actor)!;const progress=state.players.find(p=>p.playerId===actor)!;
   const city=player.civilization.cities.find(c=>c.id===cityId);
   if(!city||state.occupations.some(o=>o.cityId===cityId))return 'Recrute em uma cidade própria não ocupada.';
   const entry=state.rules.units[kind];const tile=state.core.map.find(t=>t.id===city.hexId)!;
   if(AlphaEraSchema.options.indexOf(progress.era)<AlphaEraSchema.options.indexOf(entry.era))return 'Sua civilização ainda não alcançou a era exigida.';
+  // RC5: the Web advance that opens a piece is a canonical prerequisite (canon §11 table "Peça × Avanço"). Infantaria, Pioneiro and Enviado have none, so every civilization can raise a basic army from the first round.
+  const opening=unitAdvance(kind);if(opening&&!hasUnlock(state,actor,`unit:${kind}`))return `Exige o avanço da Teia ${opening.name}.`;
   if(entry.militaryInfrastructure&&!city.districts.some(d=>d.type==='MILITARY'))return 'Esta peça requer distrito Militar.';
   const naval=entry.domain==='SEA';
   if(naval&&!isPort(state,tile.id))return 'Navios precisam de uma cidade portuária: na Costa ou vizinha ao mar.';

@@ -1,3 +1,4 @@
+import { grant } from './alpha-grant.js';
 import { describe, expect, it } from 'vitest';
 import { AlphaStateSchema, PlayerIdSchema, type AlphaState } from '@aoh/game-domain';
 import { alphaUnitOptions, applyAlphaCommand, resolveBattleWithFaces, beginAlphaPlanning, blockadedBy, createAlphaGame, hexId, hexNeighbors, isPort, launchHex, recruitBlock, recruitUnit, settleCargo, suspendBlockadedRoutes } from '@aoh/game-engine';
@@ -24,6 +25,7 @@ function harbour() {
   for (const player of state.players) for (const id of [coast, sea]) if (!player.knownHexIds.includes(id as never)) player.knownHexIds.push(id as never);
   state.players[0]!.era = 'EXPANSION';
   state.players[0]!.resources = { ...state.players[0]!.resources, wood: 30, stone: 30, wealth: 30, metal: 10, food: 20 };
+  grant(state, 'p1', 'web-cartography'); grant(state, 'p2', 'web-cartography');   // RC5: Frota needs Cartografia, Barca needs Navegação Costeira
   return { state, capital, coast, sea };
 }
 
@@ -138,8 +140,8 @@ describe('naval vertical slice (DEC-014)', () => {
 
   it('launches the Barca de Patrulha from Era I: a light armed ship that carries one piece, fights at Força 1 and blockades like any warship', () => {
     const { state, capital } = harbour();
-    state.players[0]!.era = 'FOUNDATION';
-    expect(recruitBlock(state, p1, capital.id, 'FLEET')).toMatch(/era/);
+    state.players[0]!.era = 'FOUNDATION'; state.players[0]!.research = ['web-coastal-navigation'];   // Era I: only Navegação Costeira, which opens the Barca
+    expect(recruitBlock(state, p1, capital.id, 'FLEET')).toMatch(/era/);       // Era first, then the advance (Cartografia)
     expect(recruitBlock(state, p1, capital.id, 'COASTAL_VESSEL')).toBeNull();
     recruitUnit(state, p1, capital.id, 'COASTAL_VESSEL');
     const boat = state.units.find(unit => unit.kind === 'COASTAL_VESSEL')!;
