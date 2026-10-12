@@ -101,7 +101,7 @@ class Grid {
       q.sort((a, b) => a[0] - b[0]); const [d, [c, r]] = q.shift();
       if (d > cost[key(c, r)]) continue;
       for (const [x, y] of this.nb(c, r)) {
-        const t = this.t(x, y), step = (opts.naval ? (t === 's' || t === 'c' ? 1 : Infinity) : TER[t].cost);
+        const t = this.t(x, y), step = (opts.naval ? (t === 's' || t === 'c' ? 1 : Infinity) : (opts.roads && opts.roads.has(x + ',' + y) && t !== 's' ? 1 : TER[t].cost));
         if (!isFinite(step) || (opts.block && opts.block(x, y))) continue;
         const nd = d + step;
         if (nd <= budget && (cost[key(x, y)] === undefined || nd < cost[key(x, y)])) { cost[key(x, y)] = nd; prev[key(x, y)] = [c, r]; q.push([nd, [x, y]]); }

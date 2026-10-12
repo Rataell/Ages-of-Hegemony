@@ -143,6 +143,9 @@ code{font:500 .9em ui-monospace,Menlo,monospace}
   <h3>Terrenos, recursos e melhorias</h3>
   <p class="note">Cada hex mostra o relevo, o que há nele e o que foi construído. Toque num hex do mapa para ler o tipo, o custo de movimento e o que rende. Traço do hex: borda azul = território de Leontia.</p>
   <div class="cat" id="terrA"></div>
+  <h3>Estradas em rede</h3>
+  <p class="note">Cada hex com estrada liga a todos os vizinhos que tenham estrada ou cidade, nas seis direções: ponta, curva, cruzamento, estrela e anel. Em Costa a estrada vira passadiço; sobre o Rio, ponte. Toque num hex para abrir ou fechar uma estrada.</p>
+  <div class="split"><div class="mesa"><div class="map" id="mapR"></div></div><div class="panel" id="panelR"></div></div>
 </section>
 
 <section id="cena-b">
@@ -616,7 +619,7 @@ class Grid {
       q.sort((a, b) => a[0] - b[0]); const [d, [c, r]] = q.shift();
       if (d > cost[key(c, r)]) continue;
       for (const [x, y] of this.nb(c, r)) {
-        const t = this.t(x, y), step = (opts.naval ? (t === 's' || t === 'c' ? 1 : Infinity) : TER[t].cost);
+        const t = this.t(x, y), step = (opts.naval ? (t === 's' || t === 'c' ? 1 : Infinity) : (opts.roads && opts.roads.has(x + ',' + y) && t !== 's' ? 1 : TER[t].cost));
         if (!isFinite(step) || (opts.block && opts.block(x, y))) continue;
         const nd = d + step;
         if (nd <= budget && (cost[key(x, y)] === undefined || nd < cost[key(x, y)])) { cost[key(x, y)] = nd; prev[key(x, y)] = [c, r]; q.push([nd, [x, y]]); }
@@ -722,7 +725,7 @@ const IMP_ART = {
   QUARRY: () => `<polygon points="-24,12 -20,-2 -4,-6 8,2 6,12" fill="#6e7274" stroke="${IK}" stroke-width="1.1"/><polygon points="-20,-2 -4,-6 -2,0 -16,4" fill="#8e9294"/><rect x="6" y="3" width="10" height="7" fill="#c9cdcd" stroke="${IK}" stroke-width="1"/><rect x="14" y="-3" width="10" height="7" fill="#d6dada" stroke="${IK}" stroke-width="1"/><path d="M20,-14 v10 M12,-14 h14 M12,-14 l-4,5" stroke="#6a5a42" stroke-width="2" stroke-linecap="round" fill="none"/>`,
   MINE: () => `<path d="M-14,13 v-16 a14,14 0 0 1 28,0 v16Z" fill="#171310" stroke="${IK}" stroke-width="1.2"/><path d="M-14,13 v-16 a14,14 0 0 1 28,0 v16 M-9,13 v-14 M9,13 v-14 M-12,-5 h24" fill="none" stroke="#8a5e3a" stroke-width="2.6"/><path d="M-20,15 h40 M-26,12 l12,3" stroke="#555" stroke-width="1.4"/><path d="M14,8 l3,-6 h10 l3,6Z" fill="#6e7a84" stroke="${IK}" stroke-width="1"/><circle cx="19" cy="0" r="2" fill="#9fb7c5"/><circle cx="24" cy="1" r="1.8" fill="#c4d8e4"/><circle cx="17" cy="11" r="2.2" fill="#333"/><circle cx="27" cy="11" r="2.2" fill="#333"/>`,
   FISHERY: () => `<rect x="-24" y="2" width="30" height="5" fill="#9a7d52" stroke="${IK}" stroke-width="1"/><path d="M-20,7 v8 M-8,7 v8 M4,7 v8" stroke="#3a2a18" stroke-width="2"/><path d="M-22,-10 v12 M-4,-10 v12" stroke="#6a4a2a" stroke-width="2"/><path d="M-22,-9 q9,10 18,0 M-22,-5 q9,10 18,0" fill="none" stroke="#e1dcc8" stroke-width="1.1"/><path d="M10,12 q10,5 20,0 l-3,-6 h-14Z" fill="#b98b5a" stroke="${IK}" stroke-width="1"/><path d="M20,6 v-12 l8,8Z" fill="#e8e1cc" stroke="${IK}" stroke-width=".9"/>`,
-  ROAD: () => `<path d="M-36,8 Q-8,-6 36,4" fill="none" stroke="#7a6446" stroke-width="7" stroke-linecap="round"/><path d="M-36,8 Q-8,-6 36,4" fill="none" stroke="#c9b38a" stroke-width="4" stroke-linecap="round"/><path d="M-36,8 Q-8,-6 36,4" fill="none" stroke="#e6d8b0" stroke-width="1" stroke-dasharray="3 5"/>`,
+  ROAD: () => [0, 60, 120, 180, 240, 300].map(a => `<path d="M0,0 L${f1(Math.cos(a * Math.PI / 180) * 34.6)},${f1(Math.sin(a * Math.PI / 180) * 34.6)}" stroke="#4e3f2b" stroke-width="8" stroke-linecap="round"/><path d="M0,0 L${f1(Math.cos(a * Math.PI / 180) * 34.6)},${f1(Math.sin(a * Math.PI / 180) * 34.6)}" stroke="#c9b38a" stroke-width="5" stroke-linecap="round"/>`).join('') + `<circle r="8" fill="#c9b38a" stroke="#4e3f2b" stroke-width="1.6"/><circle r="4.4" fill="none" stroke="#7a6446" stroke-width="1.2" stroke-dasharray="2 2"/>`,
 };
 const TERR_EXTRA = {
   p: () => `<ellipse cx="-14" cy="12" rx="6" ry="3.6" fill="#4d6b3a"/><ellipse cx="18" cy="-10" rx="5" ry="3" fill="#4d6b3a"/>` + [[-4, -12], [12, 6], [-18, 2]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.3" fill="#f0d878"/>`).join(''),
@@ -750,6 +753,33 @@ function hexArt(g, c, r, t, fog = false, det) {
   if (fog) d += `<polygon points="${g.pts(c, r)}" fill="#0a1114" opacity=".62"/>`;
   return d;
 }
+
+/* ===== Rede de estradas: cada hex com estrada liga a TODOS os vizinhos que tenham estrada ou cidade, nas 6 direções. Estrada em Costa vira passadiço; sobre Rio, ponte. ===== */
+function roadLayer(g, roads, cityCells = [], det = {}) {
+  const set = new Set(roads), cities = new Set(cityCells.map(c => c.join(',')));
+  const linked = (c, r) => g.nb(c, r).filter(([x, y]) => set.has(x + ',' + y) || cities.has(x + ',' + y));
+  const mid = (a, b) => { const [x1, y1] = g.xy(...a), [x2, y2] = g.xy(...b); return [(x1 + x2) / 2, (y1 + y2) / 2]; };
+  const stroke = (d, coast) => coast
+    ? `<path d="${d}" fill="none" stroke="#e9fbf8" stroke-opacity=".8" stroke-width="${f1(g.S * .22)}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#6a4a2a" stroke-width="${f1(g.S * .15)}" stroke-linecap="butt"/><path d="${d}" fill="none" stroke="#c9a56e" stroke-width="${f1(g.S * .1)}" stroke-dasharray="${f1(g.S * .05)} ${f1(g.S * .07)}"/>`
+    : `<path d="${d}" fill="none" stroke="#3f3322" stroke-opacity=".9" stroke-width="${f1(g.S * .2)}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#c9b38a" stroke-width="${f1(g.S * .13)}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#efe3bd" stroke-width="${f1(g.S * .02)}" stroke-dasharray="${f1(g.S * .06)} ${f1(g.S * .09)}"/>`;
+  let out = '';
+  const nodes = [...roads.map(k => k.split(',').map(Number)), ...cityCells];
+  for (const [c, r] of nodes) {
+    const t = g.t(c, r); if (!t || t === 's' || t === '?') continue;
+    const isCity = cities.has(c + ',' + r), [x, y] = g.xy(c, r);
+    const nbs = linked(c, r).filter(([a, b]) => !isCity || set.has(a + ',' + b));
+    const mids = nbs.map(n => mid([c, r], n)), coast = t === 'c', river = (det[c + ',' + r] && (det[c + ',' + r].feat || []).includes('RIVER'));
+    if (mids.length === 2 && !isCity) out += stroke(`M${f1(mids[0][0])},${f1(mids[0][1])} Q${f1(x)},${f1(y)} ${f1(mids[1][0])},${f1(mids[1][1])}`, coast);
+    else mids.forEach(m => { out += stroke(`M${f1(m[0])},${f1(m[1])} L${f1(x)},${f1(y)}`, coast); });
+    if (!isCity) {
+      if (mids.length >= 3) out += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .17)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.4"/><circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .09)}" fill="none" stroke="#7a6446" stroke-width="1" stroke-dasharray="2 2"/>`;
+      else if (mids.length === 1) out += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .1)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.2"/>`;
+      else if (mids.length === 0) out += `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(g.S * .22)}" ry="${f1(g.S * .12)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.2"/>`;
+      if (river && mids.length) { const [m0] = mids; const ang = Math.atan2(m0[1] - y, m0[0] - x) * 180 / Math.PI; out += `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(ang)})"><rect x="${f1(-g.S * .3)}" y="${f1(-g.S * .13)}" width="${f1(g.S * .6)}" height="${f1(g.S * .26)}" fill="#9a7d52" stroke="#2a1d10" stroke-width="1.2"/><path d="M${f1(-g.S * .3)},${f1(-g.S * .13)} h${f1(g.S * .6)} M${f1(-g.S * .3)},${f1(g.S * .13)} h${f1(g.S * .6)}" stroke="#3a2a18" stroke-width="2"/>${[-.2, -.07, .07, .2].map(k => `<path d="M${f1(g.S * k)},${f1(-g.S * .13)} v${f1(g.S * .26)}" stroke="#2a1d10" stroke-width=".9"/>`).join('')}</g>`; }
+    }
+  }
+  return `<g class="roads" pointer-events="none">${out}</g>`;
+}
 /* ===== Decisões no topo ===== */
 $('#decisoes').innerHTML = [
   ['D1 · Mover', 'Uma Ordem desloca até 3 peças a destinos diferentes', 'Juntas ou separadas, custo e alcance por peça, confirmação única. Regra nova só em partidas novas.'],
@@ -764,7 +794,8 @@ $('#decisoes').innerHTML = [
   const g = new Grid(['sssccpfh??', 'sscppffhm?', 'sccppppmh?', 'sscpphppf?', 'sssccppfp?', 'ssssccp???', 'sssssc????'], 40);
   const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
   const OWN = '#60a3e9';
-  const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '6,3': { imp: 'ROAD' }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
+  const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
+  const ROADS = ['4,3', '5,3', '5,4', '6,4', '6,3', '6,2'], CITYC = [[3, 3], [6, 5]];
   const sight = Object.values(own);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
   const INFO = {
@@ -780,7 +811,7 @@ $('#decisoes').innerHTML = [
   };
   const hit = (k, x, y, label) => `<g class="ent" data-k="${k}" tabindex="0" role="button" aria-label="${esc(label)}" style="cursor:pointer"><circle cx="${f1(x)}" cy="${f1(y)}" r="27" fill="transparent"/></g>`;
   function map(sel, hexSel) {
-    let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET)}`;
+    let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET)}${roadLayer(g, ROADS, CITYC, DET)}`;
     const P = k => g.xy(...own[k] || k);
     // trilha do Bando (intenção conhecida)
     s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 });
@@ -825,7 +856,7 @@ $('#decisoes').innerHTML = [
   }
   function showHex(c, r) {
     const t = g.t(c, r), det = DET[c + ',' + r] || {}, [nm, mv, yl] = TERR_INFO[t];
-    const lines = [mv, yl, ...(det.feat || []).map(f => FEAT_INFO[f][0] + ': ' + FEAT_INFO[f][1]), ...(det.imp ? [IMP_INFO[det.imp][0] + ': ' + IMP_INFO[det.imp][1]] : []), det.owner ? 'Território de Leontia.' : 'Sem dono.'];
+    const lines = [mv, yl, ...(det.feat || []).map(f => FEAT_INFO[f][0] + ': ' + FEAT_INFO[f][1]), ...(det.imp ? [IMP_INFO[det.imp][0] + ': ' + IMP_INFO[det.imp][1]] : []), ROADS.includes(c + ',' + r) ? 'Estrada: movimento 1 para peças terrestres; liga aos hexes vizinhos com estrada ou cidade, nas 6 direções.' : null, det.owner ? 'Território de Leontia.' : 'Sem dono.'].filter(Boolean);
     const one = new Grid([t === '?' ? '?' : t], 30);
     $('#infoA').innerHTML = `<b>${esc(nm)}${det.imp ? ' · ' + esc(IMP_INFO[det.imp][0]) : ''}</b><div class="row"><svg width="64" height="64" viewBox="-34 -34 68 68">${hexArt(one, 0, 0, t === '?' ? '?' : t, false, det)}</svg><span>${lines.map(esc).join('<br>')}</span></div>`;
     $('#mapA').innerHTML = map(null, [c, r]);
@@ -964,6 +995,39 @@ $('#decisoes').innerHTML = [
       if (t < 1) requestAnimationFrame(tick); else finish();
     })(t0);
   }
+  render();
+})();
+/* ===== Estradas em rede (BUILD_ROAD: 1 Material por hex, 1 Ordem de cidade; custo de movimento 1 para peças terrestres) ===== */
+(function roadsDemo() {
+  const g = new Grid(['ppffhhmpp', 'ppppffhpp', 'pcccppphp', 'pppfpppcp', 'sppppfppp'], 40);
+  const A = [1, 1], B = [6, 3], det = { '4,2': { feat: ['RIVER'] } };
+  let roads = new Set(['2,1', '3,2', '4,2', '5,2', '5,3']);
+  const cityKeys = new Set([A.join(','), B.join(',')]);
+  const PRESETS = { star: ['5,2', '3,2', '4,1', '3,1', '4,3', '3,3', '4,2'], cross: ['4,2', '5,2', '3,2', '4,1', '4,3'], ring: ['5,2', '4,1', '3,1', '3,2', '3,3', '4,3'], line: ['2,1', '3,2', '4,2', '5,2', '5,3'], none: [] };
+  function route(set) { const R = g.reach(A, 99, { roads: set }); const k = B.join(','); return R.cost[k] === undefined ? null : { cost: R.cost[k], path: g.path(R.prev, A, B) }; }
+  function render() {
+    const withR = route(roads), without = route(new Set());
+    let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Rede de estradas">${mapBase(g, null, det)}${roadLayer(g, [...roads], [A, B], det)}`;
+    if (withR) s += pathLine(g, withR.path, '#e6c173', { w: 2.6, dash: '2 6', dots: false });
+    for (const [c, r, nm, lv] of [[...A, 'Aurea', 2], [...B, 'Tirinto', 2]]) { const [x, y] = g.xy(c, r); s += cityArt(x, y, lv, '#60a3e9', nm, 4, { R: g.S }); }
+    s += Array.from({ length: g.R }, (_, r) => Array.from({ length: g.C }, (_, c) => `<polygon data-hex="${c},${r}" points="${g.pts(c, r)}" fill="transparent" style="cursor:pointer"/>`).join('')).join('');
+    $('#mapR').innerHTML = s + '</svg>';
+    let deg = { 0: 0, 1: 0, 2: 0, 3: 0 }, ends = 0, junc = 0;
+    for (const k of roads) { const [c, r] = k.split(',').map(Number); const n = g.nb(c, r).filter(([x, y]) => roads.has(x + ',' + y) || cityKeys.has(x + ',' + y)).length; if (n === 1) ends++; if (n >= 3) junc++; }
+    $('#panelR').innerHTML = `<h4>Rede de estradas</h4>
+      <div class="row"><div class="seg" role="group" aria-label="Exemplos">${[['line', 'Ligação'], ['cross', 'Cruzamento'], ['star', 'Estrela 6 direções'], ['ring', 'Anel'], ['none', 'Limpar']].map(([k, n]) => `<button data-p="${k}">${n}</button>`).join('')}</div></div>
+      <div class="band on"><span class="cap">Marcha de Aurea a Tirinto (infantaria)</span><span>Sem estrada: <b>${without ? without.cost : 'sem caminho'}</b> pontos de movimento · Com esta rede: <b class="${withR && without && withR.cost < without.cost ? 'ok' : ''}">${withR ? withR.cost : 'sem caminho'}</b></span><span class="mute" style="font-size:12.5px">${withR ? 'A linha dourada pontilhada é o caminho mais barato.' : 'A rede não alcança a outra cidade.'}</span></div>
+      <div class="band"><span class="cap">Rede</span><span>${roads.size} hexes com estrada · ${ends} pontas · ${junc} cruzamentos ou estrelas</span><span>Construir: <b>${roads.size} Materiais</b> (1 por hex) e 1 Ordem de cidade por estrada</span></div>
+      <div class="band"><span class="cap">Como se lê</span><span style="font-size:13px">Ponta: hex com estrada ligada a um só vizinho. Curva e reta: dois vizinhos. Cruzamento: 3 ou mais, com cantaria no centro. Passadiço de tábuas em Costa. Ponte sobre o Rio. Estrada em Mar não existe.</span></div>
+      <div class="toast" role="status" id="msgR"></div>`;
+  }
+  $('#mapR').addEventListener('click', e => {
+    const h = e.target.closest('[data-hex]'); if (!h) return; const k = h.dataset.hex, [c, r] = k.split(',').map(Number), t = g.t(c, r);
+    if (cityKeys.has(k)) { render(); $('#msgR').textContent = 'Cidade: já está na rede.'; return; }
+    if (t === 's') { render(); $('#msgR').textContent = 'Mar: estrada não pode ser construída.'; return; }
+    roads.has(k) ? roads.delete(k) : roads.add(k); render();
+  });
+  $('#panelR').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (b) { roads = new Set(PRESETS[b.dataset.p]); render(); } });
   render();
 })();
 /* ===== Cena C1 · Ciclo do Bando ===== */

@@ -47,3 +47,6 @@ Pedido do dono: o Mar também tem peixes, pescados só por navios, com mais Alim
 
 ## Costa
 A Costa passa a ser desenhada como águas rasas (turquesa claro com bancos de areia), não areia. Regra de motor inalterada: Costa conta como terra para peças terrestres e é navegável por navios.
+
+## Estradas em rede (conceito)
+No motor `state.roads` é uma lista de hexes (não SEA/UNKNOWN); o mapa já liga cada hex com estrada a todos os vizinhos com estrada ou cidade (`hex-map.tsx` meias-linhas por vizinho). O conceito (Artifact, "Estradas em rede") define a leitura visual: ponta (1 vizinho), reta e curva (2), cruzamento ou estrela (3 a 6) com cantaria no centro, passadiço de tábuas sobre Costa, ponte sobre Rio, e custo de movimento 1 para peças terrestres. Falta portar `roadLayer` (docs/product/mesa-viva/02b-terrain.js) para o mapa do jogo.

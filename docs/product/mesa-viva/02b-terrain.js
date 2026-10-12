@@ -26,7 +26,7 @@ const IMP_ART = {
   QUARRY: () => `<polygon points="-24,12 -20,-2 -4,-6 8,2 6,12" fill="#6e7274" stroke="${IK}" stroke-width="1.1"/><polygon points="-20,-2 -4,-6 -2,0 -16,4" fill="#8e9294"/><rect x="6" y="3" width="10" height="7" fill="#c9cdcd" stroke="${IK}" stroke-width="1"/><rect x="14" y="-3" width="10" height="7" fill="#d6dada" stroke="${IK}" stroke-width="1"/><path d="M20,-14 v10 M12,-14 h14 M12,-14 l-4,5" stroke="#6a5a42" stroke-width="2" stroke-linecap="round" fill="none"/>`,
   MINE: () => `<path d="M-14,13 v-16 a14,14 0 0 1 28,0 v16Z" fill="#171310" stroke="${IK}" stroke-width="1.2"/><path d="M-14,13 v-16 a14,14 0 0 1 28,0 v16 M-9,13 v-14 M9,13 v-14 M-12,-5 h24" fill="none" stroke="#8a5e3a" stroke-width="2.6"/><path d="M-20,15 h40 M-26,12 l12,3" stroke="#555" stroke-width="1.4"/><path d="M14,8 l3,-6 h10 l3,6Z" fill="#6e7a84" stroke="${IK}" stroke-width="1"/><circle cx="19" cy="0" r="2" fill="#9fb7c5"/><circle cx="24" cy="1" r="1.8" fill="#c4d8e4"/><circle cx="17" cy="11" r="2.2" fill="#333"/><circle cx="27" cy="11" r="2.2" fill="#333"/>`,
   FISHERY: () => `<rect x="-24" y="2" width="30" height="5" fill="#9a7d52" stroke="${IK}" stroke-width="1"/><path d="M-20,7 v8 M-8,7 v8 M4,7 v8" stroke="#3a2a18" stroke-width="2"/><path d="M-22,-10 v12 M-4,-10 v12" stroke="#6a4a2a" stroke-width="2"/><path d="M-22,-9 q9,10 18,0 M-22,-5 q9,10 18,0" fill="none" stroke="#e1dcc8" stroke-width="1.1"/><path d="M10,12 q10,5 20,0 l-3,-6 h-14Z" fill="#b98b5a" stroke="${IK}" stroke-width="1"/><path d="M20,6 v-12 l8,8Z" fill="#e8e1cc" stroke="${IK}" stroke-width=".9"/>`,
-  ROAD: () => `<path d="M-36,8 Q-8,-6 36,4" fill="none" stroke="#7a6446" stroke-width="7" stroke-linecap="round"/><path d="M-36,8 Q-8,-6 36,4" fill="none" stroke="#c9b38a" stroke-width="4" stroke-linecap="round"/><path d="M-36,8 Q-8,-6 36,4" fill="none" stroke="#e6d8b0" stroke-width="1" stroke-dasharray="3 5"/>`,
+  ROAD: () => [0, 60, 120, 180, 240, 300].map(a => `<path d="M0,0 L${f1(Math.cos(a * Math.PI / 180) * 34.6)},${f1(Math.sin(a * Math.PI / 180) * 34.6)}" stroke="#4e3f2b" stroke-width="8" stroke-linecap="round"/><path d="M0,0 L${f1(Math.cos(a * Math.PI / 180) * 34.6)},${f1(Math.sin(a * Math.PI / 180) * 34.6)}" stroke="#c9b38a" stroke-width="5" stroke-linecap="round"/>`).join('') + `<circle r="8" fill="#c9b38a" stroke="#4e3f2b" stroke-width="1.6"/><circle r="4.4" fill="none" stroke="#7a6446" stroke-width="1.2" stroke-dasharray="2 2"/>`,
 };
 const TERR_EXTRA = {
   p: () => `<ellipse cx="-14" cy="12" rx="6" ry="3.6" fill="#4d6b3a"/><ellipse cx="18" cy="-10" rx="5" ry="3" fill="#4d6b3a"/>` + [[-4, -12], [12, 6], [-18, 2]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.3" fill="#f0d878"/>`).join(''),
@@ -53,4 +53,31 @@ function hexArt(g, c, r, t, fog = false, det) {
   }
   if (fog) d += `<polygon points="${g.pts(c, r)}" fill="#0a1114" opacity=".62"/>`;
   return d;
+}
+
+/* ===== Rede de estradas: cada hex com estrada liga a TODOS os vizinhos que tenham estrada ou cidade, nas 6 direções. Estrada em Costa vira passadiço; sobre Rio, ponte. ===== */
+function roadLayer(g, roads, cityCells = [], det = {}) {
+  const set = new Set(roads), cities = new Set(cityCells.map(c => c.join(',')));
+  const linked = (c, r) => g.nb(c, r).filter(([x, y]) => set.has(x + ',' + y) || cities.has(x + ',' + y));
+  const mid = (a, b) => { const [x1, y1] = g.xy(...a), [x2, y2] = g.xy(...b); return [(x1 + x2) / 2, (y1 + y2) / 2]; };
+  const stroke = (d, coast) => coast
+    ? `<path d="${d}" fill="none" stroke="#e9fbf8" stroke-opacity=".8" stroke-width="${f1(g.S * .22)}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#6a4a2a" stroke-width="${f1(g.S * .15)}" stroke-linecap="butt"/><path d="${d}" fill="none" stroke="#c9a56e" stroke-width="${f1(g.S * .1)}" stroke-dasharray="${f1(g.S * .05)} ${f1(g.S * .07)}"/>`
+    : `<path d="${d}" fill="none" stroke="#3f3322" stroke-opacity=".9" stroke-width="${f1(g.S * .2)}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#c9b38a" stroke-width="${f1(g.S * .13)}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#efe3bd" stroke-width="${f1(g.S * .02)}" stroke-dasharray="${f1(g.S * .06)} ${f1(g.S * .09)}"/>`;
+  let out = '';
+  const nodes = [...roads.map(k => k.split(',').map(Number)), ...cityCells];
+  for (const [c, r] of nodes) {
+    const t = g.t(c, r); if (!t || t === 's' || t === '?') continue;
+    const isCity = cities.has(c + ',' + r), [x, y] = g.xy(c, r);
+    const nbs = linked(c, r).filter(([a, b]) => !isCity || set.has(a + ',' + b));
+    const mids = nbs.map(n => mid([c, r], n)), coast = t === 'c', river = (det[c + ',' + r] && (det[c + ',' + r].feat || []).includes('RIVER'));
+    if (mids.length === 2 && !isCity) out += stroke(`M${f1(mids[0][0])},${f1(mids[0][1])} Q${f1(x)},${f1(y)} ${f1(mids[1][0])},${f1(mids[1][1])}`, coast);
+    else mids.forEach(m => { out += stroke(`M${f1(m[0])},${f1(m[1])} L${f1(x)},${f1(y)}`, coast); });
+    if (!isCity) {
+      if (mids.length >= 3) out += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .17)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.4"/><circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .09)}" fill="none" stroke="#7a6446" stroke-width="1" stroke-dasharray="2 2"/>`;
+      else if (mids.length === 1) out += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .1)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.2"/>`;
+      else if (mids.length === 0) out += `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(g.S * .22)}" ry="${f1(g.S * .12)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.2"/>`;
+      if (river && mids.length) { const [m0] = mids; const ang = Math.atan2(m0[1] - y, m0[0] - x) * 180 / Math.PI; out += `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(ang)})"><rect x="${f1(-g.S * .3)}" y="${f1(-g.S * .13)}" width="${f1(g.S * .6)}" height="${f1(g.S * .26)}" fill="#9a7d52" stroke="#2a1d10" stroke-width="1.2"/><path d="M${f1(-g.S * .3)},${f1(-g.S * .13)} h${f1(g.S * .6)} M${f1(-g.S * .3)},${f1(g.S * .13)} h${f1(g.S * .6)}" stroke="#3a2a18" stroke-width="2"/>${[-.2, -.07, .07, .2].map(k => `<path d="M${f1(g.S * k)},${f1(-g.S * .13)} v${f1(g.S * .26)}" stroke="#2a1d10" stroke-width=".9"/>`).join('')}</g>`; }
+    }
+  }
+  return `<g class="roads" pointer-events="none">${out}</g>`;
 }

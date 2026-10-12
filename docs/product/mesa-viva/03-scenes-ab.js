@@ -12,7 +12,8 @@ $('#decisoes').innerHTML = [
   const g = new Grid(['sssccpfh??', 'sscppffhm?', 'sccppppmh?', 'sscpphppf?', 'sssccppfp?', 'ssssccp???', 'sssssc????'], 40);
   const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
   const OWN = '#60a3e9';
-  const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '6,3': { imp: 'ROAD' }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
+  const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
+  const ROADS = ['4,3', '5,3', '5,4', '6,4', '6,3', '6,2'], CITYC = [[3, 3], [6, 5]];
   const sight = Object.values(own);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
   const INFO = {
@@ -28,7 +29,7 @@ $('#decisoes').innerHTML = [
   };
   const hit = (k, x, y, label) => `<g class="ent" data-k="${k}" tabindex="0" role="button" aria-label="${esc(label)}" style="cursor:pointer"><circle cx="${f1(x)}" cy="${f1(y)}" r="27" fill="transparent"/></g>`;
   function map(sel, hexSel) {
-    let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET)}`;
+    let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET)}${roadLayer(g, ROADS, CITYC, DET)}`;
     const P = k => g.xy(...own[k] || k);
     // trilha do Bando (intenção conhecida)
     s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 });
@@ -73,7 +74,7 @@ $('#decisoes').innerHTML = [
   }
   function showHex(c, r) {
     const t = g.t(c, r), det = DET[c + ',' + r] || {}, [nm, mv, yl] = TERR_INFO[t];
-    const lines = [mv, yl, ...(det.feat || []).map(f => FEAT_INFO[f][0] + ': ' + FEAT_INFO[f][1]), ...(det.imp ? [IMP_INFO[det.imp][0] + ': ' + IMP_INFO[det.imp][1]] : []), det.owner ? 'Território de Leontia.' : 'Sem dono.'];
+    const lines = [mv, yl, ...(det.feat || []).map(f => FEAT_INFO[f][0] + ': ' + FEAT_INFO[f][1]), ...(det.imp ? [IMP_INFO[det.imp][0] + ': ' + IMP_INFO[det.imp][1]] : []), ROADS.includes(c + ',' + r) ? 'Estrada: movimento 1 para peças terrestres; liga aos hexes vizinhos com estrada ou cidade, nas 6 direções.' : null, det.owner ? 'Território de Leontia.' : 'Sem dono.'].filter(Boolean);
     const one = new Grid([t === '?' ? '?' : t], 30);
     $('#infoA').innerHTML = `<b>${esc(nm)}${det.imp ? ' · ' + esc(IMP_INFO[det.imp][0]) : ''}</b><div class="row"><svg width="64" height="64" viewBox="-34 -34 68 68">${hexArt(one, 0, 0, t === '?' ? '?' : t, false, det)}</svg><span>${lines.map(esc).join('<br>')}</span></div>`;
     $('#mapA').innerHTML = map(null, [c, r]);
