@@ -82,3 +82,10 @@ Na rodada completa com 2 trabalhadores em paralelo, dois testes falharam e passa
 
 ## Frota exige Cartografia: confere com o canon
 Canon V5.1a (`docs/product/rules-v5-proposal.md`): a Galera (Frota Grau I) é Era II e abre com **Cartografia** (linha da tabela de peças e Era II da Teia); Arquitetura Naval (Era III) abre a Galera de Guerra (Frota Grau II), a Nau de Transporte e o Estaleiro. A auditoria antiga (`naval-audit.md`) citava Metalurgia para a Galera e está superada. A RC5 segue o canon; nenhum ajuste de balanceamento foi feito além disso.
+
+## Prévia pública (Railway, ambiente separado)
+- Projeto Railway `AoH External Alpha`, **ambiente `rc5-preview`** (o RC4 segue em `production`, sem alteração). Serviço `aoh-alpha-rc5` (branch `rc5/alpha-v1.2`) e PostgreSQL próprio `Postgres-7GKq` (volume próprio, rede privada do ambiente). Segredos, código de acesso e sessão próprios, gerados só para esta prévia; nenhum valor do RC4 foi lido ou reaproveitado.
+- URL: https://aoh-alpha-rc5-rc5-preview.up.railway.app/alpha (o código de acesso é entregue ao testador por fora do repositório).
+- O Railway executa `npx prisma migrate deploy` antes de subir (`railway.json`): as três migrações foram aplicadas só no banco novo.
+- Para redeploy use um push no branch (a ação "redeploy" da CLI falhou no Railpack sem tocar na versão que está no ar).
+- Smoke público: `scripts/rc5-public-smoke.mjs` (modos `a1`, `a2` após reinício, `b` com bots); não grava segredos e lê o código de acesso só do ambiente.
