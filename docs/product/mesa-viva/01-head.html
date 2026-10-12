@@ -1,0 +1,186 @@
+<title>AoH Mesa Viva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Source+Sans+3:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+/* Folha de levantamento: a página segue o tema do leitor; toda peça, mapa e ficha vive numa Mesa escura fixa, como nos mockups AoH. */
+:root{
+  --bg:#ebeeed; --panel:#f6f8f7; --ink:#16262b; --muted:#506268; --line:#bccac9; --brass:#7d6130; --ok:#2f7a4f; --bad:#a63d2f; --warn:#8a5a14;
+  --board:#0f181c; --board-2:#162329; --board-line:#2a3d45; --glass:rgba(15,24,28,.9);
+  --b-ink:#e8e3d3; --b-mute:#9db0b3; --b-brass:#c9a867; --b-ok:#7fc79a; --b-bad:#e58a74; --b-warn:#e6b04c;
+  --threat:#b4533c; --own:#60a3e9; --rival:#dd220e;
+  --disp:'Cinzel',Georgia,serif; --serif:'Cormorant Garamond',Georgia,serif; --body:'Source Sans 3',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1519; --panel:#131f25; --ink:#e6eceb; --muted:#97aeb4; --line:#27404a; --brass:#c9a867; --ok:#6fbf8a; --bad:#e08a78; --warn:#e0a03a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1519; --panel:#131f25; --ink:#e6eceb; --muted:#97aeb4; --line:#27404a; --brass:#c9a867; --ok:#6fbf8a; --bad:#e08a78; --warn:#e0a03a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--body);margin:0;padding-inline:max(16px,3.5vw);padding-block:0 72px}
+main{max-width:1240px;margin:0 auto;display:grid;gap:56px;padding-top:28px}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:700;letter-spacing:.05em;text-wrap:balance;margin:0}
+h1{font-size:clamp(26px,4.2vw,40px);text-transform:uppercase;line-height:1.1}
+h2{font-size:20px;text-transform:uppercase;letter-spacing:.09em}
+h3{font-size:14px;text-transform:uppercase;letter-spacing:.1em}
+p{margin:0;max-width:74ch}
+.eyebrow{font:700 11px var(--body);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;color:var(--muted)}
+section{display:grid;gap:16px;min-width:0;scroll-margin-top:64px}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,3.5vw));padding:8px max(16px,3.5vw);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.nav a{font:700 12px var(--body);letter-spacing:.12em;text-transform:uppercase;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.nav a:hover,.nav a:focus-visible{color:var(--ink);border-color:var(--brass);outline:none}
+.nav .sp{flex:1}
+.decisions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.dec{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--brass);border-radius:10px;padding:14px;display:grid;gap:6px;align-content:start;min-width:0}
+.dec b{font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.dec span{font-size:14px;color:var(--muted)}
+.dec strong{font-size:15px}
+.verdict{border-left:3px solid var(--brass);padding:4px 12px;font-size:14.5px;color:var(--muted);max-width:80ch}
+.verdict b{color:var(--ink)}
+/* ---- Mesa (sempre escura) ---- */
+.mesa{position:relative;background:radial-gradient(120% 90% at 50% 40%,#17262d,#0b1317);border:1px solid var(--board-line);border-radius:14px;overflow:hidden;color:var(--b-ink);min-width:0}
+.map>svg,.mesa>svg,.phone>svg{display:block;width:100%;height:auto}
+.mesa .map{touch-action:manipulation}
+.cap{font:700 11px var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--b-mute)}
+.strip,.tray{display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;background:var(--glass);border:1px solid var(--board-line);border-radius:12px;padding:6px 10px;backdrop-filter:blur(10px);z-index:5}
+.strip{position:absolute;top:8px;left:8px;right:8px;font-size:13px}
+.tray{position:absolute;bottom:8px;left:8px;right:8px}
+@media (max-width:760px){.strip,.tray{position:static;border-radius:0;border-inline:0}.tray{border-bottom:0}.strip{border-top:0}}
+.seal{width:30px;height:30px;flex:none}
+.civname{font:700 14px var(--disp);letter-spacing:.06em;color:var(--b-ink)}
+.pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--board-line);border-radius:999px;padding:2px 10px;font:600 12px var(--body);color:var(--b-ink);background:var(--board-2);white-space:nowrap}
+.pill.warn{border-color:var(--b-warn);color:var(--b-warn)}.pill.bad{border-color:var(--b-bad);color:var(--b-bad)}.pill.ok{border-color:var(--b-ok);color:var(--b-ok)}
+button.pill{cursor:pointer;font-family:var(--body)}
+button.pill:hover,button.pill:focus-visible,button.pill[aria-pressed=true]{border-color:var(--b-brass);outline:none}
+.sp{flex:1}
+.res{display:inline-flex;align-items:center;gap:4px;font:600 13px var(--body);font-variant-numeric:tabular-nums;color:var(--b-ink);padding:2px 6px;border-radius:8px;background:var(--board-2);border:1px solid var(--board-line)}
+.res svg{width:15px;height:15px}
+.res i{font-style:normal;font-size:11px}
+.res .up{color:var(--b-ok)}.res .dn{color:var(--b-bad)}
+.res.full{border-color:var(--b-warn)}
+.go{font:700 13px var(--body);letter-spacing:.06em;border:1px solid var(--b-brass);background:var(--b-brass);color:#1b1608;border-radius:10px;padding:6px 14px;cursor:pointer}
+.go:disabled{opacity:.45;cursor:not-allowed}
+.ghost{font:600 13px var(--body);border:1px solid var(--board-line);background:transparent;color:var(--b-ink);border-radius:10px;padding:6px 12px;cursor:pointer}
+.ghost:hover,.ghost:focus-visible,.go:focus-visible{outline:2px solid var(--b-brass);outline-offset:1px}
+.pop{position:absolute;z-index:8;left:8px;top:56px;max-width:min(420px,calc(100% - 16px));background:var(--glass);border:1px solid var(--b-brass);border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--b-ink);backdrop-filter:blur(10px)}
+.pop b{font:700 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--b-brass);display:block;margin-bottom:3px}
+@media (max-width:760px){.pop{position:static;max-width:none;border-radius:0;border-inline:0}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 12px;background:var(--board-2);border-top:1px solid var(--board-line);font-size:12.5px;color:var(--b-mute)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend svg{width:22px;height:22px}
+.info{padding:10px 12px;background:var(--board-2);border-top:1px solid var(--board-line);min-height:64px;font-size:13.5px;color:var(--b-ink);display:grid;gap:4px}
+.info b{font:700 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--b-brass)}
+.split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:14px;align-items:start}
+@media (max-width:900px){.split{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--glass);border:1px solid var(--board-line);border-radius:12px;padding:12px;color:var(--b-ink);display:grid;gap:10px;min-width:0}
+.panel h4{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-brass)}
+.band{border-top:1px solid var(--board-line);padding-top:8px;display:grid;gap:5px}
+.band>.cap{display:flex;gap:8px;align-items:center}
+.band>.cap::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--board-line)}
+.band.on>.cap{color:var(--b-brass)}.band.on>.cap::before{background:var(--b-brass)}
+.band.okb>.cap::before{background:var(--b-ok)}.band.nob>.cap::before{background:var(--b-bad)}
+.costs{display:flex;flex-wrap:wrap;gap:6px}
+.cost{display:inline-flex;gap:6px;align-items:center;border-radius:8px;padding:2px 8px;background:var(--board-2);border:1px solid var(--board-line);font:600 13px var(--body);font-variant-numeric:tabular-nums}
+.cost svg{width:14px;height:14px}.cost small{color:var(--b-mute);font-weight:400}
+.pred{border:1.5px dashed var(--b-brass);border-radius:10px;padding:8px 10px;display:grid;gap:3px}
+.applied{border:1.5px solid var(--b-ok);border-radius:10px;padding:8px 10px;display:grid;gap:3px}
+.bad{color:var(--b-bad)}.ok{color:var(--b-ok)}.warn{color:var(--b-warn)}.mute{color:var(--b-mute)}
+.mesa .bad,.panel .bad{color:var(--b-bad)}
+ul.tight{margin:0;padding-left:18px;display:grid;gap:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip-u{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--board-line);border-radius:10px;padding:3px 8px 3px 4px;background:var(--board-2);color:var(--b-ink);font:600 12.5px var(--body);cursor:pointer}
+.chip-u svg{width:30px;height:30px}
+.chip-u[aria-pressed=true]{border-color:var(--b-brass);box-shadow:0 0 0 1px var(--b-brass) inset}
+.chip-u[disabled]{opacity:.45;cursor:not-allowed}
+.chip-u .n{font-size:11px;color:var(--b-brass)}
+.sw{display:inline-flex;gap:8px;align-items:center;font:600 13px var(--body);color:var(--b-ink);cursor:pointer}
+.sw input{accent-color:#c9a867;width:16px;height:16px}
+.seg{display:inline-flex;border:1px solid var(--board-line);border-radius:10px;overflow:hidden}
+.seg button{font:600 12.5px var(--body);background:transparent;color:var(--b-mute);border:0;padding:6px 12px;cursor:pointer;border-right:1px solid var(--board-line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--b-brass);color:#1b1608}
+.seg button:focus-visible{outline:2px solid var(--b-brass);outline-offset:-2px}
+.step{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.step .pill[aria-pressed=true]{background:var(--b-brass);color:#1b1608;border-color:var(--b-brass)}
+.toast{font-size:13px;color:var(--b-warn);min-height:20px}
+table.mini{border-collapse:collapse;width:100%;font-size:13px}
+table.mini td,table.mini th{padding:4px 6px;border-bottom:1px solid var(--board-line);text-align:left;font-variant-numeric:tabular-nums}
+table.mini th{font:700 10.5px var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--b-mute)}
+.phone{width:min(100%,360px);margin-inline:auto;border:6px solid #222c31;border-radius:30px;overflow:hidden;background:var(--board);position:relative}
+.frames{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px;align-items:start}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;align-items:start}
+.bar{height:10px;border-radius:5px;background:var(--board-2);border:1px solid var(--board-line);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.slider{width:100%;accent-color:#c9a867}
+code{font:500 .9em ui-monospace,Menlo,monospace}
+.note{font-size:13.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.pulse{animation:pl 1.6s ease-in-out infinite}
+@keyframes pl{50%{opacity:.45}}
+</style>
+<main>
+<header style="display:grid;gap:14px">
+  <span class="eyebrow">Ages of Hegemony · Diretriz de UX de Tabuleiro · v2</span>
+  <h1>Mesa viva</h1>
+  <p class="lede">A mesa precisa ser lida pelas peças, não por parágrafos. Cinco cenas navegáveis com as miniaturas, a cultura material e a paleta já aprovadas do AoH; as peças dos jogadores são as silhuetas reais do <code>table-art.ts</code>. Valores numéricos são ilustrativos: no jogo todos vêm do motor.</p>
+  <div class="decisions" id="decisoes"></div>
+</header>
+<nav class="nav" aria-label="Cenas">
+  <a href="#cena-a">A · Mesa</a><a href="#cena-b">B · Movimento</a><a href="#cena-c">C · Ameaças</a><a href="#cena-d">D · Cidade</a><a href="#cena-e">E · Ficha</a>
+</nav>
+
+<section id="cena-a">
+  <span class="eyebrow">Cena A</span><h2>Mesa e visão geral</h2>
+  <p class="note">Toque numa peça, cidade ou alerta. A névoa de guerra continua valendo: o que está fora da vista aparece só como último avistamento. No jogo as barras flutuam sobre o mapa; aqui elas ficam sobre a água para o mapa não ser coberto.</p>
+  <div class="mesa" id="mesaA">
+    <div class="stage" style="position:relative"><div class="strip" id="stripA"></div>
+    <div id="popA" class="pop" hidden></div>
+    <div class="map" id="mapA"></div>
+    <div class="tray" id="trayA"></div></div>
+    <div class="legend" id="legA"></div>
+    <div class="info" id="infoA"></div>
+  </div>
+</section>
+
+<section id="cena-b">
+  <span class="eyebrow">Cena B</span><h2>Movimento coordenado</h2>
+  <p class="note">Uma Ordem de Mover leva até 3 peças a destinos diferentes. Escolha peças (juntas ou separadas), toque no destino e confirme uma única vez. Troque o limite para comparar as duas leituras da regra.</p>
+  <div class="split">
+    <div class="mesa"><div class="map" id="mapB"></div><div class="legend" id="legB"></div></div>
+    <div class="panel" id="panelB"></div>
+  </div>
+</section>
+
+<section id="cena-c">
+  <span class="eyebrow">Cena C</span><h2>Ameaças e descoberta</h2>
+  <div class="frames">
+    <div style="display:grid;gap:10px">
+      <h3>C1 · Ciclo do Bando</h3>
+      <div class="mesa"><div class="map" id="mapC1"></div><div class="info" id="infoC1"></div></div>
+      <div class="panel" id="ctlC1"></div>
+    </div>
+    <div style="display:grid;gap:10px">
+      <h3>C2 · Terra, costa e mar</h3>
+      <div class="mesa"><div class="map" id="mapC2"></div><div class="info" id="infoC2"></div></div>
+      <div class="panel" id="ctlC2"></div>
+    </div>
+  </div>
+  <h3>C3 · Pioneiro revela uma Região</h3>
+  <div class="frames" id="framesC3"></div>
+</section>
+
+<section id="cena-d">
+  <span class="eyebrow">Cena D</span><h2>Economia e cidade</h2>
+  <div class="frames" id="framesD"></div>
+</section>
+
+<section id="cena-e">
+  <span class="eyebrow">Cena E</span><h2>Ficha de Ação</h2>
+  <p class="note">A mesma ficha serve a toda ação: Estado, Elegibilidade, Custo, Prévia, Confirmar, Resultado. Troque a ação e o estado para ver como cada faixa muda.</p>
+  <div class="row"><div class="seg" id="segAct" role="group" aria-label="Ação"></div><div class="seg" id="segState" role="group" aria-label="Estado"></div></div>
+  <div class="frames">
+    <div style="display:grid;gap:8px"><span class="cap">Desktop · ancorada ao hex</span><div class="mesa"><div class="map" id="mapE"></div></div></div>
+    <div style="display:grid;gap:8px"><span class="cap">Celular · folha sobre o mapa</span><div class="phone" id="phoneE"></div></div>
+  </div>
+  <div class="verdict"><b>Regras de leitura.</b> Bloqueio sempre cita a causa e como destravar. Custo mostra saldo (tem → fica). Previsto é tracejado; Aplicado é sólido e traz a diferença para o previsto. Perdas ficam em vermelho na ficha e como halo no hex.</div>
+</section>
+</main>
