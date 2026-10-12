@@ -29,6 +29,13 @@ export interface GrowthForecast {
   cities: CityGrowthForecast[];
 }
 
+/** Alimento the maintenance takes: sustenance of every city (1 per 2 inhabitants) plus the military and kit upkeep. */
+export function foodEatenOf(state: AlphaState, actor: PlayerId): number {
+  const owner = state.core.players.find(player => player.id === actor);
+  const sustenance = owner?.civilization.cities.reduce((total, city) => total + citySustenance(city.population), 0) ?? 0;
+  return sustenance + militaryUpkeep(state, actor).food + kitFoodUpkeep(state, actor);
+}
+
 /**
  * Forecast with the maintenance rule itself (canon §7), assuming every own non-occupied city chooses PRODUCE this round:
  * sustenance 1 per 2 inhabitants, then Crescer for 3 Alimento (2 with Celeiro) biggest city first, once each.
@@ -40,8 +47,7 @@ export function growthForecast(state: AlphaState, actor: PlayerId): GrowthForeca
   const producing = new Set(state.cities.filter(meta => meta.currentOwnerId === actor && meta.status !== 'OCCUPIED').map(meta => meta.cityId as string));
   const produced = new Map(owner.civilization.cities.map(city => [city.id as string, producing.has(city.id) ? productionOutput(state, actor, city.id).output.food : 0]));
   const foodProduced = [...produced.values()].reduce((total, value) => total + value, 0);
-  const sustenance = owner.civilization.cities.reduce((total, city) => total + citySustenance(city.population), 0);
-  const foodEaten = sustenance + militaryUpkeep(state, actor).food + kitFoodUpkeep(state, actor);
+  const foodEaten = foodEatenOf(state, actor);
   const stock = progress.resources.food + foodProduced;
   const shortage = stock < foodEaten;
   let surplus = shortage ? 0 : stock - foodEaten;

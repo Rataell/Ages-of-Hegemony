@@ -19,7 +19,9 @@ import { validateMilitaryOrder } from './alpha-military.js';
 import { resolveBattle } from './alpha-combat.js';
 import { hegemonyWinner, refreshHegemony } from './alpha-hegemony.js';
 import { applyRecurringEffects, passEraByCalendar } from './alpha-institutions.js';
-import { performUrbanAction } from './alpha-urban.js';
+import { performUrbanAction, urbanCost } from './alpha-urban.js';
+import { appliedUrban } from './alpha-applied.js';
+import { alphaActionUsage } from './alpha-actions.js';
 import { kitDroughtRecovery, kitDroughtRelief, kitFoodUpkeep } from './alpha-kits.js';
 import { recordRoundTelemetry, snapshotOrders } from './alpha-telemetry.js';
 import { applyGovernmentRoundStart } from './alpha-government.js';
@@ -198,7 +200,11 @@ function resolvePlannedActions(state:AlphaState,types:readonly PlannedAction['ty
         const city=candidate.core.players.flatMap(player=>player.civilization.cities).find(item=>item.id===action.cityId)!;
         const type=({PRODUCE:'PRODUCTION',BUILD:'CONSTRUCTION',RECRUIT:'RECRUITMENT',RESEARCH:'RESEARCH',ELEVATE:'CONSTRUCTION',PROMOTE_MOOD:'ROUND_EVENT',EMERGENCY_GOVERN:'ROUND_EVENT',SUPPORT_TRADE:'TRADE',CIVIC_ACTION:'ROUND_EVENT',MOVE_CAPITAL:'ROUND_EVENT'} as const)[action.action];
         const visibleTo=action.action==='BUILD'?viewersAt(candidate,city.hexId,[actor]):[actor];
-        resolutionEvent(candidate,{type,actorId:actor,visibleTo,message:urbanActionMessage(state,candidate,actor,action,city.name),hexId:city.hexId,cityId:city.id,unitIds:[]});
+        // Ficha de Ação: what the plan really changed and cost, from the same two-state reading previewAction uses. `state` still holds the plan, so its Order is counted in `used`.
+        const params={...(action.build?{build:action.build}:{}),...(action.unit?{unit:action.unit}:{}),...(action.advancementId?{advancementId:action.advancementId}:{}),...(action.count?{count:action.count}:{}),...(action.levels?{levels:action.levels}:{})};
+        const usage=alphaActionUsage(state,actor);
+        const applied=appliedUrban(state,candidate,actor,{cityId:action.cityId,action:action.action,...params},urbanCost(state,actor,action.cityId,action.action,params),{used:usage.used,limit:usage.limit});
+        resolutionEvent(candidate,{type,actorId:actor,visibleTo,message:urbanActionMessage(state,candidate,actor,action,city.name),hexId:city.hexId,cityId:city.id,unitIds:[],applied});
       }else{
         const {id,...payload}=action;
         manageDiplomacy(candidate,actor,{...payload,planId:id,expectedVersion:candidate.version} as Extract<AlphaCommand,{type:'PROPOSE_TREATY'|'DECLARE_WAR'}>);
@@ -318,7 +324,8 @@ function buildRoundReports(state: AlphaState): void {
       cities: owner.civilization.cities.map(city => {
         const before = ledger.cities.find(entry => entry.cityId === city.id);
         return { cityId: city.id, populationBefore: before?.population ?? city.population, populationAfter: city.population, stabilityBefore: before?.stability ?? city.stability, stabilityAfter: city.stability };
-      }), resolution:state.resolutionEvents.filter(event=>event.round===state.core.round&&(event.visibleTo===null||event.visibleTo.includes(owner.id))),
+      }), // `applied` carries the actor's stock and costs: a rival who merely sees a construction in its hex reads the message, never the numbers.
+      resolution:state.resolutionEvents.filter(event=>event.round===state.core.round&&(event.visibleTo===null||event.visibleTo.includes(owner.id))).map(({applied,...event})=>applied!==undefined&&event.actorId===owner.id?{...event,applied}:event),
     });
   }
 }

@@ -60,16 +60,40 @@ export function syncLegacyResources(state: AlphaState, actor: PlayerId): void {
 /** Where a cost is paid: 'BUILD' is Construir (Mercado Regional lets Riqueza cover 60% there, canon §12). */
 export type PaymentScope = 'BUILD';
 const buildCoverPercent = (state: AlphaState, actor: PlayerId): number => state.players.find(player => player.playerId === actor)?.research.some(id => ADVANCEMENTS.find(node => node.id === id)?.unlocks.includes('rule:wealth-covers-60-build')) ? 60 : 0;
-export function alphaCanAfford(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool, scope?: PaymentScope): boolean {
+/**
+ * The single reading of whether a cost can be paid and, when it cannot, which part fails. `alphaCanAfford` is this `ok`, so the Ficha de Ação (previewAction) explains exactly
+ * what the engine enforces. Cultura, Alimento, Conhecimento and Influência are never covered by Riqueza (E-7); Madeira, Pedra and Metal can be, up to a share of the
+ * material cost, at `wealthConversionRate` Riqueza each.
+ */
+export interface Affordability {
+  ok: boolean;
+  /** The cost in the seven-resource shape (a legacy `materials` cost already split over the pool). */
+  cost: AlphaResourcePool;
+  /** Resources Riqueza can never cover that the pool does not have. */
+  lacking: { resource: AlphaResourceKey; have: number; need: number }[];
+  /** Material units the pool lacks and Riqueza would have to cover. */
+  shortages: Partial<Record<'wood' | 'stone' | 'metal', number>>;
+  /** How many material units Riqueza may cover at most here (the cap), and the total that would need covering. */
+  coverCap: number; covered: number;
+  /** Riqueza the whole payment needs (its own cost plus the covered materials) against what the pool has. */
+  wealthNeeded: number; wealthHave: number;
+}
+export function affordability(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool, scope?: PaymentScope): Affordability {
   const pool = state.players.find(player => player.playerId === actor)?.resources;
-  if (!pool) return false;
+  if (!pool) return { ok: false, cost: emptyAlphaResourcePool(), lacking: [], shortages: {}, coverCap: 0, covered: 0, wealthNeeded: 0, wealthHave: 0 };
   const cost = alphaCost(rawCost, pool);
   // Cultura is never covered by Riqueza (E-7): a cost in Cultura needs the Cultura itself.
-  if (pool.food < cost.food || pool.knowledge < cost.knowledge || pool.influence < cost.influence || pool.culture < cost.culture) return false;
-  const shortages = (['wood', 'stone', 'metal'] as const).reduce((total, key) => total + Math.max(0, cost[key] - pool[key]), 0);
+  const lacking = (['food', 'knowledge', 'influence', 'culture'] as const).filter(key => pool[key] < cost[key]).map(key => ({ resource: key as AlphaResourceKey, have: pool[key], need: cost[key] }));
+  const shortages: Affordability['shortages'] = {};
+  for (const key of ['wood', 'stone', 'metal'] as const) if (cost[key] > pool[key]) shortages[key] = cost[key] - pool[key];
+  const covered = Object.values(shortages).reduce((total, value) => total + value, 0);
   const materialCost = cost.wood + cost.stone + cost.metal;
-  if (shortages > Math.floor(materialCost * Math.max(state.rules.balance.wealthMaterialCostPercentMax, governmentEffects(state, actor).wealthCoverPercent, scope === 'BUILD' ? buildCoverPercent(state, actor) : 0) / 100)) return false;
-  return pool.wealth >= cost.wealth + shortages * state.rules.balance.wealthConversionRate;
+  const coverCap = Math.floor(materialCost * Math.max(state.rules.balance.wealthMaterialCostPercentMax, governmentEffects(state, actor).wealthCoverPercent, scope === 'BUILD' ? buildCoverPercent(state, actor) : 0) / 100);
+  const wealthNeeded = cost.wealth + covered * state.rules.balance.wealthConversionRate;
+  return { ok: lacking.length === 0 && covered <= coverCap && pool.wealth >= wealthNeeded, cost, lacking, shortages, coverCap, covered, wealthNeeded, wealthHave: pool.wealth };
+}
+export function alphaCanAfford(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool, scope?: PaymentScope): boolean {
+  return affordability(state, actor, rawCost, scope).ok;
 }
 
 export function alphaPay(state: AlphaState, actor: PlayerId, rawCost: ResourcePool | AlphaResourcePool, scope?: PaymentScope): void {

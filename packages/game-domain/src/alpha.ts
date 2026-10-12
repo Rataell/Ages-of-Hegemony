@@ -13,7 +13,7 @@ import { RegionDiscoverySchema, ThreatSchema, WORLD_ID, threatComposition } from
 import { PendingChoiceSchema, ResonanceStateSchema, advancementDomains, advancementSource, emptyResonance } from './alpha-resonance.js';
 import { DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
-  ALPHA_ERA_MILESTONES, CityPaceSchema, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, LegacyAlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
+  ALPHA_RESOURCE_KEYS, ALPHA_ERA_MILESTONES, CityPaceSchema, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, LegacyAlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
   BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, TacticalFaceSchema,
   AlphaBuildingSchema, TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, legacyToAlphaResources, type AlphaRoundPhase,
 } from './alpha-concept.js';
@@ -188,6 +188,31 @@ export const AlphaEventSchema = z.strictObject({
   id: IdentifierSchema, round: P, type: IdentifierSchema,
   audience: z.array(PlayerIdSchema).nullable(), message: z.string().max(1000),
 });
+/**
+ * Ficha de Ação (UX board directive, slice 4): what an action changes, in one shape shared by the engine's `previewAction` (before confirming) and the resolution
+ * (`ResolutionEvent.applied`, after). `certainty` says how far the number can be trusted; a HIDDEN effect never carries the hidden value.
+ */
+export const ActionEffectKindSchema = z.enum(['RESOURCE', 'MOOD', 'POPULATION', 'UNITS', 'BUILDING', 'POSITION', 'ADVANCE', 'STATE']);
+export const ActionEffectSchema = z.strictObject({
+  kind: ActionEffectKindSchema, target: z.string().min(1).max(120), label: z.string().max(160).optional(),
+  before: z.union([z.number(), z.string(), z.null()]), after: z.union([z.number(), z.string(), z.null()]),
+  certainty: z.enum(['EXACT', 'RANGE', 'HIDDEN']), note: z.string().max(500).optional(),
+});
+export type ActionEffect = z.infer<typeof ActionEffectSchema>;
+export const ActionCostSchema = z.strictObject({
+  /** TOTAL paid, already with the Riqueza that stood in for missing Madeira/Pedra/Metal. */
+  resources: z.partialRecord(z.enum(ALPHA_RESOURCE_KEYS), z.number()),
+  stockAfter: z.partialRecord(z.enum(ALPHA_RESOURCE_KEYS), z.number()),
+  /** Riqueza that covered a shortage of a material: `units` of `resource` were missing, `wealth` was paid instead. */
+  substitution: z.array(z.strictObject({ resource: z.enum(['wood', 'stone', 'metal']), units: N, wealth: N })).optional(),
+  order: z.strictObject({ type: z.enum(['CITY', 'EXPEDITION', 'ADVANCE', 'INFLUENCE', 'LEGACY']), usedBefore: N, usedAfter: N, limit: N }).nullable(),
+  activation: z.strictObject({ cityId: CityIdSchema, usedBefore: N, usedAfter: N, max: N, moodCost: N }).nullable(),
+  /** Change of the per-round military upkeep this action causes (positive = more expensive). */
+  upkeepDelta: z.strictObject({ food: z.number().int(), wealth: z.number().int() }).optional(),
+});
+export type ActionCost = z.infer<typeof ActionCostSchema>;
+export const AppliedResultSchema = z.strictObject({ effects: z.array(ActionEffectSchema), cost: ActionCostSchema });
+export type AppliedResult = z.infer<typeof AppliedResultSchema>;
 export const ResolutionEventTypeSchema = z.enum(['MOVEMENT','EXPLORATION','DISCOVERY','FOUNDATION','PRODUCTION','CONSTRUCTION','RECRUITMENT','RESEARCH','TRADE','INFLUENCE','COMBAT','LOSSES','RETREAT','ADVANCE','FAILURE','ROUND_EVENT']);
 export const ResolutionEventSchema = z.strictObject({
   id: IdentifierSchema, round: P, type: ResolutionEventTypeSchema, actorId: PlayerIdSchema.nullable(),
@@ -195,6 +220,8 @@ export const ResolutionEventSchema = z.strictObject({
   hexId: HexIdSchema.optional(), cityId: CityIdSchema.optional(), unitIds: z.array(IdentifierSchema).default([]),
   /** Steps of a world threat (Bando): the hex it left; `hexId` is where it arrived. Only for viewers who see both hexes. */
   fromHexId: HexIdSchema.optional(),
+  /** What a planned urban action really changed and cost (same shape as the preview). Only the actor sees it; optional, so older snapshots load unchanged. */
+  applied: AppliedResultSchema.optional(),
 });
 export type ResolutionEvent = z.infer<typeof ResolutionEventSchema>;
 const AlphaStateBase = z.strictObject({

@@ -33,6 +33,8 @@ export * from './alpha-unit-options.js';
 export * from './alpha-messages.js';
 export * from './alpha-trade.js';
 export * from './alpha-growth.js';
+export * from './alpha-preview.js';
+export { appliedUrban, urbanEffects, urbanCostOf, activationOf, resourceDelta, RESOURCE_PT, ERA_PT, LEVEL_PT, eraNumber, advanceName } from './alpha-applied.js';
 export * from './alpha-naval.js';
 export * from './alpha-grades.js';
 export * from './alpha-shock.js';

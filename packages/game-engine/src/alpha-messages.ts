@@ -2,7 +2,7 @@ import { ADVANCEMENTS, ALPHA_RESOURCE_KEYS, BUILDING_NAMES_PT, REGION_TEMPLATES,
 
 /** Player-facing names for resolution messages. Events are read as written, so they never carry enum identifiers. */
 const RESOURCE_NAMES: Record<string, string> = { food: 'Alimento', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
-const DISTRICT_NAMES: Record<string, string> = { AGRARIAN: 'Agrário', COMMERCIAL: 'Comercial', ACADEMIC: 'Acadêmico', ADMINISTRATIVE: 'Administrativo', MILITARY: 'Militar', INDUSTRIAL: 'Industrial', CULTURAL: 'Cultural', MARITIME: 'Marítimo' };
+export const DISTRICT_NAMES: Record<string, string> = { AGRARIAN: 'Agrário', COMMERCIAL: 'Comercial', ACADEMIC: 'Acadêmico', ADMINISTRATIVE: 'Administrativo', MILITARY: 'Militar', INDUSTRIAL: 'Industrial', CULTURAL: 'Cultural', MARITIME: 'Marítimo' };
 const BUILDING_NAMES: Record<string, string> = BUILDING_NAMES_PT;
 
 const playerName = (state: AlphaState, id: PlayerId) => state.core.players.find(player => player.id === id)?.name ?? 'Uma civilização';
@@ -24,7 +24,8 @@ export function resourceGainText(before: AlphaState, after: AlphaState, actor: P
 
 export function urbanActionMessage(before: AlphaState, after: AlphaState, actor: PlayerId, action: Extract<PlannedAction, { type: 'URBAN_ACTION' }>, cityName: string): string {
   switch (action.action) {
-    case 'PRODUCE': { const gained = resourceGainText(before, after, actor); return `${cityName} produziu${gained ? ` ${gained}` : ''}.`; }
+    // The engine's own event says the real gain per resource, what the Capacity left out and what the storage limit discarded (from produceBreakdown); the two-state diff is the fallback.
+    case 'PRODUCE': { const own = after.events.slice(before.events.length).filter(event => event.type === 'URBAN_ACTION' && event.audience?.includes(actor)).at(-1)?.message; if (own) return own; const gained = resourceGainText(before, after, actor); return `${cityName} produziu${gained ? ` ${gained}` : ''}.`; }
     case 'BUILD': {
       const build = action.build;
       const what = !build ? 'uma obra' : build.kind === 'DISTRICT' ? `o distrito ${DISTRICT_NAMES[build.district] ?? build.district}` : build.kind === 'BUILDING' ? `${BUILDING_NAMES[build.building] ?? build.building}` : 'fortificações';

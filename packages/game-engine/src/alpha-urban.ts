@@ -15,7 +15,7 @@ import { alphaActionUsage } from './alpha-actions.js';
 import { isCoastalCity } from './alpha-water.js';
 import { kitFortificationBlock, kitProduceBonus, kitRouteIncome, kitUnitCost } from './alpha-kits.js';
 
-type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
+export type UrbanCommand = Extract<AlphaCommand, { type: 'URBAN_ACTION' }>;
 /** The buildings the economic core builds with its own catalog and prices; the other offered ones come from ALPHA_BUILDING_CATALOG. */
 type CoreBuilding = (typeof BuildingTypeSchema.options)[number];
 
@@ -32,9 +32,9 @@ export function syncCityMetadata(state: AlphaState): void {
 }
 
 
-type UrbanAction = UrbanCommand['action'];
-type BuildTarget = NonNullable<UrbanCommand['build']>;
-interface UrbanParams { build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string; count?: number; levels?: number }
+export type UrbanAction = UrbanCommand['action'];
+export type BuildTarget = NonNullable<UrbanCommand['build']>;
+export interface UrbanParams { build?: BuildTarget; unit?: UrbanCommand['unit']; advancementId?: string; count?: number; levels?: number }
 
 /**
  * Activations of one city this round (F-14): the single place that knows how many a city may still take. `count` is what the city already has
@@ -69,7 +69,7 @@ export function courtWaives(state: AlphaState, actor: PlayerId, meta: AlphaState
 }
 
 /** Gates every urban action shares: phase, readiness, ownership, occupation and remaining city actions. */
-function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction): string | null {
+export function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction): string | null {
   if (state.phase !== 'PLANNING'&&state.phase !== 'URBAN_ACTIONS') return 'Disponível apenas no Planejamento.';
   if (state.players.find(player => player.playerId === actor)?.ready) return 'Suas decisões já estão confirmadas para esta fase.';
   const actions=alphaActionUsage(state,actor);
@@ -90,7 +90,7 @@ function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: Ur
 }
 
 /** Recrutar for `count` pieces: the Capacity rule of canon §4, then every piece must be recruitable in turn (resources, Soldados, stack). */
-function recruitCountBlock(state: AlphaState, actor: PlayerId, cityId: string, unit: NonNullable<UrbanCommand['unit']>, count: number): string | null {
+export function recruitCountBlock(state: AlphaState, actor: PlayerId, cityId: string, unit: NonNullable<UrbanCommand['unit']>, count: number): string | null {
   if (count > recruitLimit(state, actor, cityId)) return `Esta ativação recruta no máximo ${recruitLimit(state, actor, cityId)} peça(s).`;
   // E-1: while planning, nothing is mobilized yet, so pieces already reserved by earlier planned Recrutar in this city must be
   // counted against the Soldados/Disponíveis left, or the second plan would be accepted and lost at resolution.
@@ -162,7 +162,7 @@ function governPlanBlock(state: AlphaState, actor: PlayerId, cityId: string, lev
 
 /** Route income from the Web: Moeda +1, Economia Comercial +2, Autossuficiência −1 (canon §12). */
 export const webRouteIncome = (state: AlphaState, actor: PlayerId): number => (hasUnlock(state, actor, 'rule:route-plus-1') ? 1 : 0) + (hasUnlock(state, actor, 'rule:route-plus-2') ? 2 : 0) - (hasUnlock(state, actor, 'rule:route-minus-1') ? 1 : 0);
-function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: BuildTarget): string | null {
+export function buildBlock(state: AlphaState, actor: PlayerId, cityId: string, build: BuildTarget): string | null {
   const owner = state.core.players.find(player => player.id === actor)!, progress = state.players.find(player => player.playerId === actor)!;
   const city = owner.civilization.cities.find(candidate => candidate.id === cityId)!, meta = state.cities.find(candidate => candidate.cityId === cityId)!;
   const rules = state.core.config.territory;
@@ -271,6 +271,44 @@ export function productionOutput(state: AlphaState, actor: PlayerId, cityId: str
   const yields = cityYield(state, cityId);
   const output = yields.output;
   return { output, metal: yields.metal, capacity: yields.capacity, hexes: yields.hexes, notes: yields.notes, onProduce: recurringAmounts(state, actor, 'ON_PRODUCE', cityId) };
+}
+/**
+ * Everything one PRODUCE activation credits, by origin, before the storage limit: the land and roles (`land`), the recurring ON_PRODUCE effects (`recurring`), the mine (`metal`)
+ * and the civilization kit (`kit`). `gross` is their sum per resource. The activation itself, its message and the Ficha de Ação read this, so none of them recomputes it.
+ */
+export interface ProduceBreakdown {
+  capacity: number; gross: AlphaResourcePool; land: AlphaResourcePool; recurring: AlphaResourcePool; kit: { food: number; stone: number }; metal: number;
+  /** Prospera on its first activation of the round: +1 Capacity (already inside `capacity`). */
+  prosperousBonus: boolean;
+  producers: { total: number; working: number; idle: number }; workedHexes: string[];
+  /** Worked hexes the Capacity leaves out and what they would have yielded; worked hexes held by a world threat. */
+  forgone: { hexes: string[]; output: AlphaResourcePool; metal: number }; threatened: string[];
+  notes: string[];
+}
+export function produceBreakdown(state: AlphaState, actor: PlayerId, cityId: string): ProduceBreakdown {
+  const yields = cityYield(state, cityId), recurring = recurringAmounts(state, actor, 'ON_PRODUCE', cityId), kit = kitProduceBonus(state, actor, cityId);
+  const gross = { ...yields.output, metal: yields.output.metal + yields.metal };
+  for (const key of ALPHA_RESOURCE_KEYS) gross[key] += recurring[key];
+  gross.food += kit.food; gross.stone += kit.stone;
+  const meta = state.cities.find(candidate => candidate.cityId === cityId);
+  const forgone = yields.forgone ?? { hexes: [], output: emptyAlphaResourcePool(), metal: 0 };
+  return {
+    capacity: yields.capacity, gross, land: { ...yields.output, metal: yields.output.metal + yields.metal }, recurring, kit, metal: yields.metal,
+    prosperousBonus: !!meta && moodBand(meta.mood) === 'PROSPEROUS' && meta.urbanActionsUsed === 0,
+    producers: yields.producers ?? { total: 0, working: 0, idle: 0 }, workedHexes: yields.hexes, forgone: { ...forgone, output: { ...forgone.output, metal: forgone.output.metal + forgone.metal } }, threatened: yields.threatened ?? [], notes: yields.notes,
+  };
+}
+const GAIN_NAMES: Record<string, string> = { food: 'Alimento', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
+const gainsText = (pool: Partial<Record<string, number>>): string => ALPHA_RESOURCE_KEYS.filter(key => (pool[key] ?? 0) > 0).map(key => `+${pool[key]} ${GAIN_NAMES[key]}`).join(', ');
+/** The resolution message of PRODUCE: the real gain per resource, then what the Capacity left out and what the storage limit discarded. */
+function produceMessage(cityName: string, gained: Partial<Record<string, number>>, plan: ProduceBreakdown, discarded: Partial<Record<string, number>>): string {
+  const lost = gainsText(plan.forgone.output).replace(/\+/g, '−');
+  const full = gainsText(discarded).replace(/\+/g, '−');
+  const parts = [`${cityName} produziu${gainsText(gained) ? ` ${gainsText(gained)}` : ' nada'}.`];
+  if (plan.forgone.hexes.length) parts.push(`Capacidade ${plan.capacity}: ${plan.forgone.hexes.length} hex(es) sem trabalhador nesta ativação${lost ? ` (${lost} deixados de render)` : ''}.`);
+  if (plan.threatened.length) parts.push(`${plan.threatened.length} hex(es) ocupado(s) por ameaça não renderam.`);
+  if (full) parts.push(`Armazenamento cheio: descartado ${full.replace(/−/g, '')}.`);
+  return parts.join(' ');
 }
 // Legacy "materials" contributions are summed before the split into Madeira and Pedra, so alone they read as both.
 const RESOURCE_LABEL: Record<string, string> = { food: 'Alimentos', materials: 'Madeira/Pedra', wood: 'Madeira', stone: 'Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura', metal: 'Metal' };
@@ -397,6 +435,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
   switch (command.action) {
     case 'PRODUCE': {
       rejectExtras(command, []);
+      const plan = produceBreakdown(state, actor, city.id), stock = { ...progress.resources };
       const { output, metal } = productionOutput(state, actor, city.id);
       alphaGain(state, actor, output, { category: 'production' });
       applyRecurringEffects(state, actor, 'ON_PRODUCE', { cityId: city.id });
@@ -405,7 +444,9 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
       if (kitBonus.food || kitBonus.stone) alphaGain(state, actor, { food: kitBonus.food, stone: kitBonus.stone }, { category: 'production' });
       for (const key of ALPHA_RESOURCE_KEYS) telemetry.productionByResource[key] = (telemetry.productionByResource[key] ?? 0) + output[key];
       telemetry.productionByResource.metal += metal;
-      message = `${city.name} produziu recursos${metal > 0 ? ` e ${metal} de Metal` : ''}.`;
+      // The credited amount is what the pool really gained: the storage limit discards the rest, and the message says so.
+      const gained = Object.fromEntries(ALPHA_RESOURCE_KEYS.map(key => [key, Math.max(0, progress.resources[key] - stock[key])])), discarded = Object.fromEntries(ALPHA_RESOURCE_KEYS.map(key => [key, Math.max(0, plan.gross[key] - (progress.resources[key] - stock[key]))]));
+      message = produceMessage(city.name, gained, plan, discarded);
       break;
     }
     case 'BUILD': {
@@ -532,7 +573,7 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
     // The second activation of the round costs one Ânimo (canon §10), unless this city's Tribunal waives it (once per round in the whole civilization).
     if (meta.urbanActionsUsed === 2) {
       if (courtWaives(state, actor, meta)) alphaEvent(state, 'COURT_WAIVER', `Tribunal: a segunda ativação de ${city.name} não custou Ânimo.`, [actor]);
-      else meta.mood = Math.max(0, meta.mood - 1);
+      else { const was = meta.mood; meta.mood = Math.max(0, meta.mood - 1); if (command.action === 'PRODUCE' && was > meta.mood) message = `${message} 2ª ativação da rodada: −1 Ânimo (fica ${meta.mood}).`; }
     }
   }
   if (governResult) {

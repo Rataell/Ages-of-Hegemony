@@ -75,7 +75,13 @@ const pairs = (count: number, building: string, meta: AlphaCity, perOne = false)
   return meta.buildings.includes(building as never) ? all : Math.min(all, perOne ? 4 : 2);
 };
 
-export interface CityYield { output: AlphaResourcePool; /** Metal from mines on deposits, credited as mining. */ metal: number; hexes: string[]; capacity: number; notes: string[] }
+export interface CityYield {
+  output: AlphaResourcePool; /** Metal from mines on deposits, credited as mining. */ metal: number; hexes: string[]; capacity: number; notes: string[];
+  /** Worked hexes this activation leaves out because the Capacity is smaller than the hexes assigned (what they would have yielded), and worked hexes held by a world threat. */
+  forgone?: { hexes: string[]; output: AlphaResourcePool; metal: number }; threatened?: string[];
+  /** Produtores of the city, hexes actually worked and Produtores left without a hex (they add 1 Alimento per two). */
+  producers?: { total: number; working: number; idle: number };
+}
 /**
  * Produzir (canon §4–§6): the centre plus `capacity` worked hexes yield their terrain, feature and improvement (Fazenda +1 per
  * farm-bonus advance); Produtores without a hex add 1 Alimento per two; Artesãos, Mercadores and Eruditos add 1 of their
@@ -91,25 +97,33 @@ export function cityYield(state: AlphaState, cityId: string): CityYield {
   if (capacity === 0) return { output, metal: 0, hexes: [], capacity, notes: ['Revolta: a cidade não produz.'] };
   const rules = state.core.config;
   const centre = state.core.map.find(tile => tile.id === city.hexId);
-  const worked = city.workedHexIds.slice(0, Math.min(capacity, city.workers.producers)).map(id => state.core.map.find(tile => tile.id === id)).filter((tile): tile is NonNullable<typeof tile> => tile !== undefined && !hexBlockedByThreat(state, tile.id));
+  const assigned = city.workedHexIds.slice(0, Math.min(capacity, city.workers.producers)).map(id => state.core.map.find(tile => tile.id === id)).filter((tile): tile is NonNullable<typeof tile> => tile !== undefined);
+  const worked = assigned.filter(tile => !hexBlockedByThreat(state, tile.id));
   const farmBonus = state.players.find(player => player.playerId === ownerId)?.research.filter(id => ['web-irrigation', 'web-crop-rotation', 'web-agronomy'].includes(id)).length ?? 0;
   const tiles = centre ? [centre, ...worked] : worked;
-  let metal = 0;
-  for (const tile of tiles) {
+  // What one hex yields; shared by the hexes worked now and by the ones the Capacity leaves out (their loss is shown, never guessed).
+  const credit = (tile: NonNullable<typeof centre>, into: AlphaResourcePool): number => {
     const yields = tileYieldBreakdown(tile, rules).total;
-    output.food += yields.food + (tile.improvement === 'FARM' ? farmBonus : 0);
-    output.wealth += yields.wealth;
+    into.food += yields.food + (tile.improvement === 'FARM' ? farmBonus : 0);
+    into.wealth += yields.wealth;
     // Materials from the land split by what the hex is: stone from hills and mountains, wood elsewhere; a mine gives metal.
-    if (tile.improvement === 'MINE' && tile.features.includes('METAL') && tile !== centre) metal += state.rules.balance.metalPerMine;
-    else if (tile.terrain === 'HILLS' || tile.terrain === 'MOUNTAINS' || tile.improvement === 'MINE') output.stone += yields.materials;
-    else output.wood += yields.materials;
-  }
+    if (tile.improvement === 'MINE' && tile.features.includes('METAL') && tile !== centre) return state.rules.balance.metalPerMine;
+    if (tile.terrain === 'HILLS' || tile.terrain === 'MOUNTAINS' || tile.improvement === 'MINE') into.stone += yields.materials;
+    else into.wood += yields.materials;
+    return 0;
+  };
+  let metal = 0;
+  for (const tile of tiles) metal += credit(tile, output);
+  const left = city.workedHexIds.slice(Math.min(capacity, city.workers.producers)).map(id => state.core.map.find(tile => tile.id === id)).filter((tile): tile is NonNullable<typeof tile> => tile !== undefined && !hexBlockedByThreat(state, tile.id));
+  const forgone = { hexes: left.map(tile => tile.id as string), output: emptyAlphaResourcePool(), metal: 0 };
+  for (const tile of left) forgone.metal += credit(tile, forgone.output);
   // Moinho: +1 Alimento per Fazenda actually worked in this activation (the same slice as the yield above: capacity, no centre hex, no hex held by a threat), at most +2.
   if (meta.buildings.includes('MILL')) {
     const mill = Math.min(2, worked.filter(tile => tile.improvement === 'FARM').length);
     if (mill > 0) { output.food += mill; notes.push(`Moinho: +${mill} Alimento.`); }
   }
   const idleProducers = Math.max(0, city.workers.producers - worked.length);
+  const idleProducersNow = idleProducers;
   output.food += Math.floor(idleProducers / 2);
   output.wood += pairs(city.workers.artisans, ROLE_BUILDING.artisans, meta);
   output.wealth += pairs(city.workers.merchants, ROLE_BUILDING.merchants, meta);
@@ -126,7 +140,7 @@ export function cityYield(state: AlphaState, cityId: string): CityYield {
   if (meta.buildings.includes('TEMPLE')) output.culture += 1 + effects.templeCulture;
   if (effects.shakenCitiesProduceNoWealth && moodBand(meta.mood) === 'SHAKEN' && output.wealth > 0) { output.wealth = 0; notes.push('Oligarquia: cidade Abalada não gera Riqueza.'); }
   if (worked.length < city.workedHexIds.length) notes.push(`Capacidade ${capacity}: ${city.workedHexIds.length - worked.length} hex(es) trabalhado(s) ficam fora desta ativação.`);
-  return { output, metal, hexes: tiles.map(tile => tile.id), capacity, notes };
+  return { output, metal, hexes: tiles.map(tile => tile.id), capacity, notes, forgone, threatened: assigned.filter(tile => hexBlockedByThreat(state, tile.id)).map(tile => tile.id as string), producers: { total: city.workers.producers, working: worked.length, idle: idleProducersNow } };
 }
 
 /** Why the city cannot Elevar now, or null (canon §4: population, cost, Web advances, Era). */
