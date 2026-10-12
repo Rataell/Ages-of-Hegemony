@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AlphaPresetSchema, AlphaStateSchema, CityPaceSchema, MatchReportV1Schema, CIVILIZATIONS, figuresOfCivilization, isCore10Chassis, GameIdSchema, MapPresetSchema, MapSizeSchema, NonNegativeIntegerSchema, PlayerIdSchema, MAP_FOOTPRINT, SeedSchema } from '@aoh/game-domain';
+import { COORDINATED_MOVE_MAX_PIECES, HexIdSchema, AlphaPresetSchema, AlphaStateSchema, CityPaceSchema, MatchReportV1Schema, CIVILIZATIONS, figuresOfCivilization, isCore10Chassis, GameIdSchema, MapPresetSchema, MapSizeSchema, NonNegativeIntegerSchema, PlayerIdSchema, MAP_FOOTPRINT, SeedSchema } from '@aoh/game-domain';
 
 export const AlphaRoomSchema=z.strictObject({
   id:GameIdSchema,version:NonNegativeIntegerSchema,name:z.string().trim().min(1).max(80),joinCode:z.string().regex(/^[A-Za-z0-9_-]{22}$/),
@@ -48,6 +48,8 @@ export const lifecycleOf=(room:AlphaRoom):AlphaLifecycle=>room.closedReason!==nu
 /** Stored status column: the engine status as before, plus the two room-level states. */
 export const roomStatus=(room:AlphaRoom):string=>room.closedReason!==null?'CLOSED':room.suspended&&room.game?.core.status!=='FINISHED'?'SUSPENDED':room.game?.core.status??'LOBBY';
 export const CreateAlphaRoomSchema=z.strictObject({name:z.string().trim().min(1).max(80),displayName:z.string().trim().min(1).max(80),preset:AlphaPresetSchema,worldPreset:MapPresetSchema.default('MIXED'),mapSize:MapSizeSchema.optional(),seatLimit:z.number().int().min(2).max(6),seed:SeedSchema,planningSeconds:AlphaRoomSchema.shape.planningSeconds,actionsPerRound:z.number().int().min(3).max(6).default(5),pace:CityPaceSchema.default('STANDARD'),revealMap:z.boolean().default(false)}).refine(input=>input.pace==='STANDARD'||input.preset==='QUICK',{message:'O ritmo acelerado só existe para partidas curtas.'});
+/** Mover coordenado: body of the read-only preview. One path is the legacy Order (any stack up to 24 pieces); two or three are a coordinated Order. */
+export const MovePreviewRequestSchema=z.strictObject({orderId:z.string().max(100).optional(),legs:z.array(z.strictObject({unitIds:z.array(z.string().min(1).max(100)).min(1).max(24),path:z.array(HexIdSchema).min(1).max(12),rotation:z.number().int().min(0).max(5).optional()})).min(1).max(COORDINATED_MOVE_MAX_PIECES)});
 export const LobbyActionSchema=z.discriminatedUnion('type',[
   z.strictObject({type:z.literal('CHOOSE_CIVILIZATION'),expectedVersion:NonNegativeIntegerSchema,civilization:z.string()}),
   z.strictObject({type:z.literal('CHOOSE_FIGURE'),expectedVersion:NonNegativeIntegerSchema,figureId:z.string().max(64)}),

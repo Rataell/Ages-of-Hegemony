@@ -1,8 +1,8 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { CORE10_CHASSIS, GameIdSchema, PlayerIdSchema, figuresOfCivilization, isCore10Chassis, mapSizeAllows, recommendedFigure, recommendedMapSize, type AlphaError, type MatchReportV1 } from '@aoh/game-domain';
-import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, forceContactSetup } from '@aoh/game-engine';
+import { applyAlphaCommand, beginAlphaPlanning, createAlphaGame, forceContactSetup, previewMoveOrder, type MoveOrderPreview } from '@aoh/game-engine';
 import { err, ok, type Result } from '@aoh/shared';
-import { AlphaRoomSchema, CreateAlphaRoomSchema, LEGACY_ROOM_MESSAGE, LobbyActionSchema, RoomActionSchema, isLegacyRoom, lifecycleOf, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
+import { MovePreviewRequestSchema, AlphaRoomSchema, CreateAlphaRoomSchema, LEGACY_ROOM_MESSAGE, LobbyActionSchema, RoomActionSchema, isLegacyRoom, lifecycleOf, type AlphaRepository, type AlphaRoom } from './alpha-room.js';
 import { addNotice, eligibleVoters, maxSeats, maybeTransferHost, nextPlayerId, presenceOf, runGuards, safePoint, tallyVote, voteView } from './alpha-lifecycle.js';
 import { leave as presenceLeave, touch as presenceTouch } from './alpha-presence.js';
 import { publishAlphaEvent } from './alpha-bus.js';
@@ -263,7 +263,7 @@ export class AlphaGameService {
     }else {
       if(!isHost)return forbidden();
       if(room.seats.length<2||room.seats.length>maxSeats()||room.seats.every(s=>s.bot)||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
-      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,actionsPerRound:room.actionsPerRound,pace:room.pace,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!,figureId:s.figureId}))});
+      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,actionsPerRound:room.actionsPerRound,pace:room.pace,revealMap:room.revealMap,coordinatedMove:true,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!,figureId:s.figureId}))});
       // Dev-only test scenario (never in production): a legal Contact between the two nearest Pátrias, from the real proximity rule.
       if(process.env.ALPHA_FORCE_CONTACT==='1'&&process.env.NODE_ENV!=='production')forceContactSetup(created);
       room.game=beginAlphaPlanning(created);
@@ -300,6 +300,18 @@ export class AlphaGameService {
     else if(room.planningSeconds&&(previousPhase!==room.game.phase||previousRound!==room.game.core.round))room.deadline=now+room.planningSeconds*1000;
     if(await this.repository.save(room,expected)){this.armBotTimers(room.id,bots.timers);return ok(roomView(room,principal,now)!);}
     this.unplan(bots);return conflict();
+  }
+  /**
+   * Mover coordenado (V12-UX-04): read-only twin of QUEUE_ORDER for a MOVE. Validates the whole set of paths as one Order and answers per leg (cost, budget, remaining, concrete blockers).
+   * Never writes, never bumps the version, never touches the clock; the seat only sees the answer for its own pieces.
+   */
+  async movePreview(principal:GuestPrincipal,id:string,raw:unknown):Promise<Result<MoveOrderPreview,AlphaError>>{
+    const room=await this.repository.find(id);if(!room)return err({code:'NOT_FOUND',message:'Partida não encontrada.'});
+    const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return forbidden();
+    if(isLegacyRoom(room))return err({code:'LEGACY_ROOM',message:LEGACY_ROOM_MESSAGE});
+    if(!room.game)return err({code:'NOT_STARTED',message:'Aguarde o início da partida.'});
+    const parsed=MovePreviewRequestSchema.safeParse(raw);if(!parsed.success)return err({code:'INVALID_INPUT',message:'Prévia de movimento inválida.'});
+    return ok(previewMoveOrder(room.game,seat.playerId,parsed.data.legs as never,parsed.data.orderId===undefined?{}:{orderId:parsed.data.orderId}));
   }
   /** Room-level actions: leaving, suspending, voting, EM GUARDA, and the social reactions (which are never saved). */
   private readonly cooldown=new Map<string,{reaction:number;ping:number}>();

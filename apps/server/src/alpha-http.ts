@@ -14,6 +14,7 @@ const envelope=z.discriminatedUnion('operation',[
   z.strictObject({operation:z.literal('room'),gameId:z.string().uuid(),payload:z.unknown()}),
   z.strictObject({operation:z.literal('lobby'),gameId:z.string().uuid(),payload:z.unknown()}),
   z.strictObject({operation:z.literal('command'),gameId:z.string().uuid(),payload:z.unknown()}),
+  z.strictObject({operation:z.literal('movePreview'),gameId:z.string().uuid(),payload:z.unknown()}),
   z.strictObject({operation:z.literal('telemetry'),gameId:z.string().uuid(),kind:z.string().max(32),detail:z.string().max(40)}),
 ]);
 class AlphaRateLimit {
@@ -119,6 +120,13 @@ export class AlphaHttp {
         if(!principal)return error('UNAUTHENTICATED','Sua sessão expirou. Entre novamente.',401);
         if(!this.rate.allow(`guest:${principal.guestId}:telemetry`,600,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
         return respond(await this.service.telemetry(principal,action.gameId,action.kind,action.detail));
+      }
+      if(action.operation==='movePreview'){
+        // Read-only: never changes the match, so it has its own generous bucket (a Ficha de Ação may ask on every click).
+        if(!principal)return error('UNAUTHENTICATED','Sua sessão expirou. Entre novamente.',401);
+        if(!this.rate.allow(`guest:${principal.guestId}:preview`,600,now))return error('RATE_LIMIT','Muitas solicitações. Aguarde um minuto.',429);
+        const preview=await this.service.movePreview(principal,action.gameId,action.payload);
+        return respond(preview,preview.ok?200:preview.error.code==='FORBIDDEN'?403:preview.error.code==='NOT_FOUND'?404:preview.error.code==='LEGACY_ROOM'?409:400);
       }
       if(action.operation==='create'&&!this.accessOk(action.accessCode))return error('ACCESS_CODE','Código de acesso do Alpha incorreto.',403);
       let setCookie:string|undefined;
