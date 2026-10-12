@@ -191,15 +191,19 @@ export function seaTarget(state: AlphaState, threat: Threat): { hex: string; pat
  * The authoritative intention of a threat (V51B-05): what the engine will do with it, computed by the very functions `actThreat`
  * uses, so the client never estimates. Unfiltered: the projection decides what a viewer may see.
  */
-export interface ThreatIntent { state: 'FRESH' | 'WAITING' | 'MARCHING' | 'WITHDRAWING' | 'IDLE'; targetKind: 'CITY' | 'ROUTE' | 'PORT' | null; targetId: string | null; targetHexId: string | null; nextHexId: string | null; distance: number | null }
+export interface ThreatIntent {
+  state: 'FRESH' | 'WAITING' | 'MARCHING' | 'WITHDRAWING' | 'IDLE'; targetKind: 'CITY' | 'ROUTE' | 'PORT' | null; targetId: string | null; targetHexId: string | null; nextHexId: string | null; distance: number | null;
+  /** The planned BFS path, hex by hex up to the target (the Bando's position excluded). Unfiltered here; the projection cuts it at the fog. */
+  pathHexIds: string[];
+}
 export function threatIntent(state: AlphaState, threat: Threat): ThreatIntent {
-  const none = { targetKind: null, targetId: null, targetHexId: null, nextHexId: null, distance: null };
+  const none = { targetKind: null, targetId: null, targetHexId: null, nextHexId: null, distance: null, pathHexIds: [] };
   if (threat.status === 'CAMPED') return { state: threat.fresh ? 'FRESH' : 'WAITING', ...none };
   if (threat.withdrawing) return { state: 'WITHDRAWING', ...none };
   const sea = threat.kind === 'PIRATE' ? seaTarget(state, threat) : null, land = threat.kind === 'PIRATE' ? null : landTarget(state, threat);
   const target = sea ?? land;
   if (!target) return { state: 'IDLE', ...none };
-  return { state: 'MARCHING', targetKind: sea ? sea.kind : 'CITY', targetId: target.id, targetHexId: target.hex, nextHexId: target.path[0] ?? null, distance: target.path.length };
+  return { state: 'MARCHING', targetKind: sea ? sea.kind : 'CITY', targetId: target.id, targetHexId: target.hex, nextHexId: target.path[0] ?? null, distance: target.path.length, pathHexIds: [...target.path] };
 }
 
 const speedOf = (threat: Threat): number => threat.kind === 'CAMP' && threat.level >= 2 && threat.composition.some(entry => entry.kind === 'CAVALRY') ? 2 : 1;
@@ -220,11 +224,15 @@ export function activateThreats(state: AlphaState, options: { launch: boolean })
 
 // ---- R1: withdrawal and reorganization of the Bandos --------------------------------------------------------------------------------------------------
 // Cycle: Acampamento -> approach -> assault on a city -> result -> withdrawal (legal steps back to the Acampamento, in the field, attackable, no assault) -> reorganization
-// (camped, one full round) -> a new incursion only when it is launched again (Era turn or ATIVAR AMEAÇAS). Nothing teleports; Piratas are not touched.
+// (camped, one full round) -> a new incursion only when it is launched again (Era turn or ATIVAR AMEAÇAS). Nothing teleports.
+// V12-UX-01..03 (owner, 2026-10-12): all Bandos together assault one city at most once per round (the first in id order, the others wait next to it); the withdrawal
+// also follows an assault on pieces in the field; a Pirata that pillages a port (once per port per round) withdraws to its Ancoradouro and reorganizes like a Bando.
 
 /** The Acampamento is still a place a Bando can come back to: unclaimed, free of pieces, cities and other threats. */
 function homeIsValid(state: AlphaState, threat: Threat, map = tileMap(state)): boolean {
   const tile = map.get(threat.homeHexId);
+  // Piratas anchor on open sea: their Ancoradouro is still valid while it is sea, free of pieces and of other threats.
+  if (threat.kind === 'PIRATE') return !!tile && tile.terrain === 'SEA' && !state.units.some(unit => unit.hexId === tile.id && !unit.carrierId) && !state.threats.some(other => other.id !== threat.id && other.hexId === tile.id);
   if (!tile || tile.ownerId !== null || IMPASSABLE_LAND.has(tile.terrain)) return false;
   return !allCities(state).some(city => city.hexId === tile.id) && !state.units.some(unit => unit.hexId === tile.id && !unit.carrierId) && !state.threats.some(other => other.id !== threat.id && other.hexId === tile.id);
 }
@@ -232,12 +240,16 @@ function homeIsValid(state: AlphaState, threat: Threat, map = tileMap(state)): b
 function rehomeSite(state: AlphaState, threat: Threat, map = tileMap(state)): HexTile | null {
   const from = map.get(threat.hexId)!, cities = allCities(state).map(city => map.get(city.hexId)).filter((tile): tile is HexTile => tile !== undefined);
   const taken = new Set([...state.units.map(unit => unit.hexId as string), ...state.threats.filter(other => other.id !== threat.id).flatMap(other => [other.hexId as string, other.homeHexId as string]), ...state.independents.map(people => people.hexId as string)]);
+  // A Pirata re-anchors on the nearest free open sea at least 2 hexes from every city.
+  if (threat.kind === 'PIRATE') return state.core.map.filter(tile => tile.terrain === 'SEA' && !taken.has(tile.id) && cities.every(city => hexDistance(city, tile) >= 2)).sort((a, b) => hexDistance(from, a) - hexDistance(from, b) || (a.id < b.id ? -1 : 1))[0] ?? null;
   const candidates = state.core.map.filter(tile => !IMPASSABLE_LAND.has(tile.terrain) && tile.terrain !== 'MOUNTAINS' && tile.ownerId === null && !taken.has(tile.id) && cities.every(city => hexDistance(city, tile) >= 3));
   return candidates.sort((a, b) => hexDistance(from, a) - hexDistance(from, b) || (a.id < b.id ? -1 : 1))[0] ?? null;
 }
+/** After an assault (Bando, on a city or on pieces in the field) or a pillage (Pirata): the survivor turns back toward its Acampamento / Ancoradouro (V12-UX-02, V12-UX-03). */
 function beginWithdrawal(state: AlphaState, threat: Threat, victim: PlayerId): void {
   threat.withdrawing = true; threat.lastActedRound = state.core.round;
-  alphaEvent(state, 'THREAT_WITHDRAWING', `${threatName(threat)} recuou depois do assalto e volta ao acampamento.`, threatViewers(state, threat.hexId, [victim]));
+  const text = threat.kind === 'PIRATE' ? 'se retirou depois da pilhagem e volta ao ancoradouro' : 'recuou depois do assalto e volta ao acampamento';
+  alphaEvent(state, 'THREAT_WITHDRAWING', `${threatName(threat)} ${text}.`, threatViewers(state, threat.hexId, [victim]));
 }
 function disperse(state: AlphaState, threat: Threat): void {
   state.threats = state.threats.filter(other => other.id !== threat.id);
@@ -254,7 +266,7 @@ function withdrawThreat(state: AlphaState, threat: Threat): void {
   }
   const arrived = () => {
     threat.hexId = threat.homeHexId; threat.withdrawing = false; threat.status = 'CAMPED'; threat.fresh = false; threat.readyRound = state.core.round + 1;
-    alphaEvent(state, 'THREAT_REGROUPING', `${threatName(threat)} voltou ao acampamento e se reorganiza.`, threatViewers(state, threat.hexId));
+    alphaEvent(state, 'THREAT_REGROUPING', `${threatName(threat)} voltou ao ${threat.kind === 'PIRATE' ? 'ancoradouro' : 'acampamento'} e se reorganiza.`, threatViewers(state, threat.hexId));
   };
   if (threat.hexId === threat.homeHexId) { arrived(); return; }
   // It walks back around cities and pieces (never assaults on the way home); if it is boxed in, it waits for the next activation.
@@ -280,19 +292,44 @@ function actThreat(state: AlphaState, threat: Threat): void {
       const fighters = occupants.filter(unit => !CIVILIANS.has(unit.kind) && state.rules.units[unit.kind].strength > 0);
       if (!city && fighters.length === 0 && threat.kind === 'CAMP') { killExposed(state, threat, occupants, next); moveThreat(state, threat, tile); continue; }
       if (threat.kind === 'PIRATE' && !fighters.length && !city) { moveThreat(state, threat, tile); continue; }
+      // V12-UX-01: one assault per city per round across all Bandos. Activation runs in threat-id order, so the first Bando to reach the city assaults; the rest stay where they are (adjacent) and wait.
+      if (city && cityAssaultedThisRound(state, next)) {
+        alphaEvent(state, 'THREAT_WAITING', `${threatName(threat)} aguarda a vez diante de ${city.name}: outra ameaça já a assaltou nesta rodada.`, threatViewers(state, threat.hexId, [city.ownerId]));
+        break;
+      }
       assault(state, threat, next);
-      // R1: the Bando does not besiege the city: if it survived, it withdraws toward its Acampamento. Pirates and assaults on pieces in the way are unchanged.
-      if (city && threat.kind === 'CAMP' && state.threats.includes(threat)) beginWithdrawal(state, threat, city.ownerId);
+      // R1 + V12-UX-02: the Bando does not besiege: if it survived an assault on a city OR on pieces in the field, it withdraws toward its Acampamento. Pirates follow V12-UX-03.
+      if (threat.kind === 'CAMP' && state.threats.includes(threat)) beginWithdrawal(state, threat, city?.ownerId ?? occupants[0]!.ownerId);
       break;
     }
     moveThreat(state, threat, tile);
   }
-  if (threat.kind === 'PIRATE' && state.threats.includes(threat)) pillagePort(state, threat);
+  if (threat.kind === 'PIRATE' && state.threats.includes(threat) && !threat.withdrawing) {
+    const victim = pillagePort(state, threat);
+    if (victim) beginWithdrawal(state, threat, victim);
+  }
   suspendThreatenedRoutes(state);
 }
 
+/** V12-UX-01: a world assault already resolved on this city hex this round (battles against the world are the record; no extra state). */
+const cityAssaultedThisRound = (state: AlphaState, hex: string): boolean => state.battles.some(battle => battle.attackerId === WORLD_ID && battle.round === state.core.round && battle.hexId === hex);
+
+/**
+ * Readable trail of a Bando's step (origin -> destination) for the table. Everyone who sees both hexes reads the whole step; who sees only the destination reads
+ * the arrival, who sees only the origin reads the departure, so a position outside a viewer's vision never reaches that viewer. Closed Regions: nobody sees, no event.
+ */
+function trailEvent(state: AlphaState, threat: Threat, from: HexId, to: HexId): void {
+  const atFrom = new Set(threatViewers(state, from)), atTo = new Set(threatViewers(state, to)), name = threatName(threat), verb = threat.withdrawing ? 'recuou' : 'marchou';
+  const both = [...atFrom].filter(id => atTo.has(id)), arrival = [...atTo].filter(id => !atFrom.has(id)), departure = [...atFrom].filter(id => !atTo.has(id));
+  if (both.length) resolutionEvent(state, { type: 'MOVEMENT', actorId: null, visibleTo: both, message: `${name} ${verb} de ${from} para ${to}.`, hexId: to, fromHexId: from, unitIds: [threat.id] });
+  if (arrival.length) resolutionEvent(state, { type: 'MOVEMENT', actorId: null, visibleTo: arrival, message: `${name} chegou a ${to}.`, hexId: to, unitIds: [threat.id] });
+  if (departure.length) resolutionEvent(state, { type: 'MOVEMENT', actorId: null, visibleTo: departure, message: `${name} deixou ${from}.`, hexId: from, unitIds: [threat.id] });
+}
+
 function moveThreat(state: AlphaState, threat: Threat, tile: HexTile): void {
+  const from = threat.hexId;
   threat.hexId = tile.id;
+  if (from !== tile.id) trailEvent(state, threat, from, tile.id);
   if (threat.kind === 'CAMP' && !threat.withdrawing && tile.improvement && tile.ownerId) {
     const owner = tile.ownerId; tile.improvement = null;
     alphaEvent(state, 'THREAT_PILLAGE', `Um bando de saqueadores pilhou uma melhoria em ${tile.id}.`, [owner]);
@@ -307,18 +344,28 @@ function killExposed(state: AlphaState, threat: Threat, victims: readonly AlphaU
   resolutionEvent(state, { type: 'LOSSES', actorId: null, visibleTo: threatViewers(state, hex, owners), message: `${threatName(threat)} eliminou peças desprotegidas em ${hex}.`, hexId: hex as HexId, unitIds: victims.map(unit => unit.id) });
 }
 
-/** Piratas: from a hex next to a port they pillage 2 Riqueza from its owner (1 with a Farol), once per activation (I-24). */
-export function pillagePort(state: AlphaState, threat: Threat): void {
+/** Marker of a pillage record, so "once per port per round" is read from the table itself (no extra state). */
+const PILLAGE_RECORD = 'Piratas pilharam o porto de';
+const pillagedThisRound = (state: AlphaState, cityId: string): boolean => state.resolutionEvents.some(event => event.round === state.core.round && event.cityId === cityId && event.type === 'LOSSES' && event.message.startsWith(PILLAGE_RECORD));
+
+/**
+ * Piratas: from a hex next to a port they pillage 2 Riqueza from its owner (1 with a Farol) (I-24). V12-UX-03: a port is pillaged at most once per round, by
+ * all Piratas together (a second Pirata next to it waits), and the Pirata that pillaged withdraws to its Ancoradouro (see actThreat). Returns the owner pillaged, or null.
+ */
+export function pillagePort(state: AlphaState, threat: Threat): PlayerId | null {
   const map = tileMap(state), here = map.get(threat.hexId)!, near = new Set(hexNeighbors(here).map(hexId));
-  const city = allCities(state).filter(candidate => near.has(candidate.hexId) && isPort(state, candidate.hexId)).sort((a, b) => (a.id < b.id ? -1 : 1))[0];
-  if (!city) return;
+  const city = allCities(state).filter(candidate => near.has(candidate.hexId) && isPort(state, candidate.hexId) && !pillagedThisRound(state, candidate.id)).sort((a, b) => (a.id < b.id ? -1 : 1))[0];
+  if (!city) return null;
   const owner = state.players.find(player => player.playerId === city.ownerId);
-  if (!owner) return;
+  if (!owner) return null;
   // Farol: a port with a Farol loses 1 Riqueza to the pillage instead of 2.
   const lighthouse = state.cities.find(meta => meta.cityId === city.id)?.buildings.includes('LIGHTHOUSE') ?? false;
   const loss = Math.min(lighthouse ? 1 : 2, owner.resources.wealth);
   if (loss > 0) alphaLose(state, city.ownerId, { wealth: loss });
-  alphaEvent(state, 'THREAT_PILLAGE', `Piratas pilharam o porto de ${city.name}${loss ? ` (−${loss} Riqueza)` : ''}.`, [city.ownerId]);
+  const message = `${PILLAGE_RECORD} ${city.name}${loss ? ` (−${loss} Riqueza)` : ''}.`;
+  alphaEvent(state, 'THREAT_PILLAGE', message, [city.ownerId]);
+  resolutionEvent(state, { type: 'LOSSES', actorId: null, visibleTo: [city.ownerId], message, hexId: city.hexId as HexId, cityId: city.id, unitIds: [] });
+  return city.ownerId;
 }
 
 /** Routes whose path crosses a threat stay suspended; the maintenance re-evaluates every route first, so they resume when the sea or road clears. */

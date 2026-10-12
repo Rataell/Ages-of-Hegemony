@@ -270,17 +270,19 @@ export function exploreRegion(state:AlphaState,actor:PlayerId,order:Extract<Stra
   applyDiscovery(state,actor,region,order.unitId);
 }
 
+/** The planned path as far as the viewer sees it: it stops at the first hex outside vision, so the line never points into the fog. */
+const visiblePrefix=(path:readonly string[],visible:ReadonlySet<string>,all:boolean):string[]=>{const out:string[]=[];for(const id of path){if(!all&&!visible.has(id))break;out.push(id);}return out;};
 /**
  * Threats move every round, so only those inside current vision are shown; a remembered hex would leak a live position.
  * The intention (target, next hex, distance) is public information decided by the engine, but never reaches past the fog:
- * the target and its distance only when the target hex is in the viewer's vision, the next hex only when it is.
+ * the target and its distance only when the target hex is in the viewer's vision, the next hex only when it is, the planned path only up to the first hex outside vision.
  */
 export function threatView(state:AlphaState,actor:PlayerId){
   const visible=visibleHexIds(state,actor),all=state.rules.revealMap;
   return state.threats.filter(threat=>visible.has(threat.hexId)||all).map(threat=>{
     const intent=threatIntent(state,threat),known=intent.targetHexId!==null&&(all||visible.has(intent.targetHexId));
     return {id:threat.id,kind:threat.kind,hexId:threat.hexId,level:threat.level,status:threat.status,composition:threat.composition,fresh:threat.fresh,
-      intent:{state:intent.state,targetKind:intent.targetKind,targetKnown:known,targetId:known?intent.targetId:null,targetHexId:known?intent.targetHexId:null,distance:known?intent.distance:null,nextHexId:intent.nextHexId!==null&&(all||visible.has(intent.nextHexId))?intent.nextHexId:null}};
+      intent:{state:intent.state,targetKind:intent.targetKind,targetKnown:known,targetId:known?intent.targetId:null,targetHexId:known?intent.targetHexId:null,distance:known?intent.distance:null,nextHexId:intent.nextHexId!==null&&(all||visible.has(intent.nextHexId))?intent.nextHexId:null,pathHexIds:visiblePrefix(intent.pathHexIds,visible,all)}};
   });
 }
 

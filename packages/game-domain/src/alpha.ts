@@ -158,6 +158,8 @@ export const ResolutionEventSchema = z.strictObject({
   id: IdentifierSchema, round: P, type: ResolutionEventTypeSchema, actorId: PlayerIdSchema.nullable(),
   visibleTo: z.array(PlayerIdSchema).nullable(), message: z.string().max(1000),
   hexId: HexIdSchema.optional(), cityId: CityIdSchema.optional(), unitIds: z.array(IdentifierSchema).default([]),
+  /** Steps of a world threat (Bando): the hex it left; `hexId` is where it arrived. Only for viewers who see both hexes. */
+  fromHexId: HexIdSchema.optional(),
 });
 export type ResolutionEvent = z.infer<typeof ResolutionEventSchema>;
 const AlphaStateBase = z.strictObject({

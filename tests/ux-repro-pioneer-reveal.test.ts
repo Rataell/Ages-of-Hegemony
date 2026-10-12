@@ -235,7 +235,7 @@ describe('D2 invariant: no orientation of a Region removes a piece or leaves one
         const rivalHex = region.hexIds.find(id => id !== c.entry && !['SEA', 'UNKNOWN'].includes(tileOf(probe, id).terrain) && !probe.units.some(u => u.hexId === id) && !probe.threats.some(t => t.hexId === id) && !probe.independents.some(i => i.hexId === id));
         if (variant === 'rival-piece') {
           if (!rivalHex) continue;
-          probe.units.push({ id: 'rival-inf', ownerId: 'p2', kind: 'INFANTRY', hexId: rivalHex as never, recruitedRound: 1, carrierId: null } as AlphaUnit);
+          probe.units.push({ id: 'rival-inf', ownerId: PlayerIdSchema.parse('p2'), kind: 'INFANTRY', hexId: rivalHex as never, recruitedRound: 1, carrierId: null });
         }
         const terrainBefore = region.hexIds.map(id => tileOf(probe, id).terrain);
         const unitsBefore = probe.units.length;
