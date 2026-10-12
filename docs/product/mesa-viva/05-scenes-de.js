@@ -11,7 +11,7 @@
     let end = eco.stock + gain - sust; const famine = end < 0; const willGrow = !famine && end >= grow; if (willGrow) end -= grow;
     const rows = [['food', 'Fazenda ×2 e Moinho', 5, 0], ['wood', 'Floresta trabalhada', 2, 2], ['stone', 'Colina', 1, 0], ['wealth', 'Mercado', 2, 0]];
     $('#dEco').innerHTML = `<h4>Mikena · Produção e consumo</h4>
-      <div class="row"><svg width="92" height="70" viewBox="-40 -34 80 64" aria-hidden="true">${cityArt(0, 6, 3, '#60a3e9', 'Mikena', 4)}</svg>${moodSeal(4, 40)}<span><b>Estável</b> · 8 habitantes<br><span class="mute">Capacidade 2 · 3 hexes produtivos</span></span></div>
+      <div class="row"><svg width="92" height="76" viewBox="-40 -34 80 70" aria-hidden="true">${cityArt(0, 4, 3, '#60a3e9', 'Mikena', 4, { R: 26, label: false, port: 3, districts: [{ d: 'MARITIME', b: ['PORT'] }, { d: 'COMMERCIAL', b: ['MARKET'] }] })}</svg>${moodSeal(4, 40)}<span><b>Estável</b> · 8 habitantes<br><span class="mute">Capacidade 2 · 3 hexes produtivos</span></span></div>
       <div class="row" style="gap:16px"><span title="Limite global da civilização" class="pill">Ordens da civilização ${pips(5, 3)} 3/5</span><span title="Limite desta cidade" class="pill">Ativações de Mikena ${wheels(2, 1)} 1/2</span></div>
       <p class="mute" style="font-size:12.5px">Selos hexagonais dourados são Ordens (valem para toda a civilização). Rodas verde-água são ativações (valem só nesta cidade).</p>
       <div class="seg" role="group" aria-label="Plano da cidade"><button data-s="prod" aria-pressed="${prod}">Produzir</button><button data-s="gov" aria-pressed="${eco.scn === 'gov'}">Governar</button><button data-s="build" aria-pressed="${eco.scn === 'build'}">Construir</button></div>
@@ -74,7 +74,7 @@
       <div class="row"><span class="cap">Quantidade</span><button class="ghost" data-q="-1" aria-label="Menos uma peça" ${rc.qty <= 1 ? 'disabled' : ''}>−</button><b style="min-width:2ch;text-align:center">${rc.qty}</b><button class="ghost" data-q="1" aria-label="Mais uma peça" ${rc.qty >= 4 ? 'disabled' : ''}>+</button><span class="mute">Soldados livres: ${SOLD}</span></div>
       <div class="band ${bl.length ? 'nob' : 'okb'}"><span class="cap">Elegibilidade</span>${bl.length ? bl.map(b => `<span class="bad">✗ ${esc(b)}</span>`).join('') : '<span class="ok">✓ Pode agir</span>'}<span class="mute">Distrito Militar ✓${d.adv ? (d.own ? ' · ' + d.adv + ' ✓' : '') : ''}</span></div>
       <div class="band on"><span class="cap">Custo (×${rc.qty})</span><div class="costs">${Object.entries(d.c).map(([k, n]) => chipCost(k, n * rc.qty, STOCK[k], STOCK[k] - n * rc.qty)).join('')}<span class="cost">Ordem Cidade</span><span class="cost">Ativação 1/2 → 2/2</span></div><span class="warn" style="font-size:13px">2ª ativação: −1 Ânimo (4 → 3). Manutenção futura: +${rc.qty} por rodada.</span></div>
-      <div class="band"><span class="cap">${rc.done ? 'Resultado' : 'Previsto na cidade'}</span><svg viewBox="0 0 240 64" width="100%" style="max-width:300px;background:#121b20;border-radius:8px;border:${rc.done ? '1px solid #7fc79a' : '1px dashed #c9a867'}" aria-label="Peças recrutadas na cidade"><g opacity="${rc.done ? 1 : .6}">${cityArt(26, 30, 3, '#60a3e9', 'Mikena', 4)}${minis}</g></svg></div>
+      <div class="band"><span class="cap">${rc.done ? 'Resultado' : 'Previsto na cidade'}</span><svg viewBox="0 0 240 64" width="100%" style="max-width:300px;background:#121b20;border-radius:8px;border:${rc.done ? '1px solid #7fc79a' : '1px dashed #c9a867'}" aria-label="Peças recrutadas na cidade"><g opacity="${rc.done ? 1 : .6}">${cityArt(26, 30, 3, '#60a3e9', 'Mikena', 4, { R: 22, label: false })}${minis}</g></svg></div>
       <div class="row"><button class="go" id="okR" ${bl.length || rc.done ? 'disabled' : ''}>Confirmar Recrutar</button>${rc.done ? '<button class="ghost" id="rstR">Refazer</button>' : ''}</div><p class="mute" style="font-size:12px">Custos, avanços e Soldados são ilustrativos; no jogo vêm de <code>previewAction</code>.</p>`;
   }
   $('#dRec').addEventListener('click', e => {
@@ -141,11 +141,11 @@
     return `<div class="panel" style="${compact ? 'gap:7px;padding:10px;font-size:13px' : ''}"><div class="row" style="justify-content:space-between"><h4>${a.n} · ${a.who}</h4><span class="pill">${esc(a.est.split(' · ')[1] || '')}</span></div>${compact ? '' : flow}<div class="band"><span class="cap">Estado atual</span><span class="mute">${esc(a.est)}</span></div>${elig}${cost}${prev}${act}</div>`;
   }
   function mini(w) {
-    const g = new Grid(['sccppp', 'sscppf', 'sccppp'], w === 'phone' ? 30 : 36);
+    const g = new Grid(['sccppp', 'sscppf', 'sccppp'], w === 'phone' ? 36 : 40);
     let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Contexto no mapa">${mapBase(g)}`;
     const [cx, cy] = g.xy(3, 1);
-    if (S.a === 'governar') s += cityArt(cx, cy, 2, '#60a3e9', 'Tirinto', S.s === 'done' ? 2 : 1);
-    else s += cityArt(cx, cy, 3, '#60a3e9', 'Mikena', S.a === 'produzir' && S.s === 'done' ? 3 : 4);
+    if (S.a === 'governar') s += cityArt(cx, cy, 2, '#60a3e9', 'Tirinto', S.s === 'done' ? 2 : 1, { R: g.S });
+    else s += cityArt(cx, cy, 3, '#60a3e9', 'Mikena', S.a === 'produzir' && S.s === 'done' ? 3 : 4, { R: g.S });
     if (S.a === 'mover') { const [ax, ay] = g.xy(2, 1), [bx, by] = g.xy(4, 2); s += `<defs>${arrowDefs('arE', '#e6c173')}</defs>` + pathLine(g, [[2, 1], [3, 2], [4, 2]], '#e6c173', { w: 3, marker: 'arE', dots: true }) + ownFigure('INFANTRY', ax, ay + 4, 24) + (S.s === 'done' ? ownFigure('CAVALRY', bx, by + 4, 24) : ownFigure('CAVALRY', bx, by + 4, 24, 0, '#60a3e9', { ghost: true })); }
     if (S.a === 'recrutar' && S.s === 'done') s += ownFigure('GUARD', cx - 14, cy + 22, 22) + ownFigure('GUARD', cx + 12, cy + 22, 22);
     if (S.s === 'block') s += `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${S.a === 'mover' ? 0 : 40}" fill="none" stroke="#e58a74" stroke-width="2" stroke-dasharray="5 4"/>`;

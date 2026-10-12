@@ -1,6 +1,6 @@
 /* ===== Cena C1 · Ciclo do Bando ===== */
 (function sceneC1() {
-  const g = new Grid(['sccpphhh', 'sscppfhh', 'sccpppmh', 'sscppfpp', 'sssccppp'], 36);
+  const g = new Grid(['sccpphhh', 'sscppfhh', 'sccpppmh', 'sscppfpp', 'sssccppp'], 40);
   const CITY = [4, 2], CAMP = [6, 1], ARMY0 = [3, 3];
   const own = (f) => [CITY, f === 5 ? CAMP : ARMY0];
   const FR = [
@@ -17,7 +17,7 @@
     const e = (c, r) => g.xy(c, r);
     let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Ciclo do Bando, quadro ${f + 1} de 6"><defs>${arrowDefs('arC', '#e0724f')}${arrowDefs('arW', '#9db0b3')}</defs>${mapBase(g, (c, r) => !vis(c, r, f))}`;
     let [x, y] = e(...CITY);
-    s += cityArt(x, y, 3, '#60a3e9', 'Mikena', f >= 2 && f <= 4 ? 3 : 4);
+    s += cityArt(x, y, 3, '#60a3e9', 'Mikena', f >= 2 && f <= 4 ? 3 : 4, { R: g.S });
     if (f >= 2 && f <= 4) s += `<g transform="translate(${f1(x + 26)} ${f1(y - 24)})"><rect x="-22" y="-8" width="44" height="16" rx="8" fill="#0f181c" stroke="#e58a74" stroke-width="1.3"/><text text-anchor="middle" y="4" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="10" fill="#f0b8a8">Ânimo −1</text></g>`;
     if (f !== 5) { [x, y] = e(...ARMY0); s += ownFigure('INFANTRY', x - 11, y + 2, 26, 2) + ownFigure('CAVALRY', x + 11, y + 4, 26); }
     else { [x, y] = e(...CAMP); s += ownFigure('INFANTRY', x - 14, y + 8, 26, 2) + ownFigure('CAVALRY', x + 4, y + 10, 26); }
@@ -54,7 +54,7 @@
   const T = c => TER[g.t(...c)].n;
   function render() {
     let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Travessia legal e ilegal"><defs>${arrowDefs('okC', '#7fc79a')}${arrowDefs('noC', '#e58a74')}</defs>${mapBase(g)}`;
-    let [x, y] = g.xy(7, 1); s += cityArt(x, y, 2, '#60a3e9', 'Tirinto', 4);
+    let [x, y] = g.xy(7, 1); s += cityArt(x, y, 2, '#60a3e9', 'Tirinto', 4, { R: g.S });
     let msg, rows;
     if (who === 'band') {
       const legal = [[0, 1], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, 1]];
@@ -84,43 +84,39 @@
   render();
 })();
 
-/* ===== Cena C3 · Pioneiro e descoberta ===== */
+/* ===== Cena C3 · Pioneiro e descoberta (Região de 7 hexes, peças e marcadores do artifact de cultura material) ===== */
 (function sceneC3() {
   const st = { method: false, rot: 0, lost: true };
-  const INVALID = [2, 3];
-  const closed = new Grid(['p??', 'p?'], 44), open = new Grid(['pcs', 'pp'], 44);
-  function ring(rot) {
-    const dots = Array.from({ length: 6 }, (_, i) => { const a = (i * 60 - 90) * Math.PI / 180, x = Math.cos(a) * 26, y = Math.sin(a) * 26, bad = INVALID.includes(i), on = i === rot;
-      return `<g data-rot="${i}" tabindex="${bad ? -1 : 0}" role="button" aria-label="Orientação ${i + 1}${bad ? ': sem entrada terrestre' : ''}" style="cursor:${bad ? 'not-allowed' : 'pointer'}"><circle cx="${f1(x)}" cy="${f1(y)}" r="9" fill="${on ? '#c9a867' : '#0f181c'}" stroke="${bad ? '#e58a74' : '#c9a867'}" stroke-width="1.6"/>${bad ? `<path d="M${f1(x - 4)},${f1(y - 4)} l8,8 M${f1(x + 4)},${f1(y - 4)} l-8,8" stroke="#e58a74" stroke-width="1.8"/>` : ''}</g>`; }).join('');
-    return `<svg width="86" height="86" viewBox="-40 -40 80 80" aria-label="Seletor de orientação"><circle r="14" fill="#0f181c" stroke="#e8dcc0" stroke-opacity=".5"/><g transform="rotate(${st.rot * 60})"><path d="M0,-19 L5.5,-9 L2,-9 L2,6 L-2,6 L-2,-9 L-5.5,-9Z" fill="#e8dcc0"/></g>${dots}</svg>`;
+  const R = 30, INVALID = [1, 3, 5], LET = ['P', 'H', 'F', 'M', 'C', 'S', 'S'];
+  const pos = FP(R), px = -2 * SQ3 * R;
+  const ctx = [[-2, 0, 'PLAINS'], [-2, 1, 'FOREST'], [-3, 1, 'PLAINS'], [-3, 0, 'HILLS'], [-2, -1, 'PLAINS']].map(([q, r, t], i) => `<g transform="translate(${n2(SQ3 * R * (q + r / 2))},${n2(1.5 * R * r)})">${terrainHex(R, t, 40 + i)}</g>`).join('');
+  function chips() {
+    return `<div class="row" style="gap:8px">${[0, 1, 2, 3, 4, 5].map(k => { const bad = INVALID.includes(k), on = k === st.rot;
+      return `<button class="chip-u" data-rot="${k}" aria-pressed="${on}" ${bad ? 'disabled' : ''} aria-label="Orientação ${k + 1}${bad ? ', sem entrada terrestre' : ''}" style="padding:4px;flex-direction:column;gap:2px;position:relative"><svg viewBox="-34 -34 68 68" width="52" height="52"><g transform="scale(.34)">${regionBack(40, on)}</g><g transform="rotate(${k * 60})"><path d="M0,-30 l-5,-7 h10z" fill="#d1a95a"/></g>${bad ? '<path d="M-26 -26 L26 26 M26 -26 L-26 26" stroke="#e58a74" stroke-width="3" stroke-linecap="round"/>' : ''}</svg><span style="font-size:10.5px">${bad ? 'sem entrada' : 'Orientação ' + (k + 1)}</span></button>`; }).join('')}</div>`;
   }
   function p1() {
-    let s = `<svg viewBox="${viewBox(closed, 14)}" role="img" aria-label="Pioneiro ao lado de Região fechada">${mapBase(closed)}`;
-    [[1, 0], [2, 0], [1, 1]].forEach(([c, r]) => { s += `<polygon points="${closed.pts(c, r, .98)}" fill="none" stroke="#c9a867" stroke-opacity=".7" stroke-width="2"/>`; });
-    const [x, y] = closed.xy(0, 0); s += ownFigure('PIONEER', x, y + 2, 32);
-    const [rx, ry] = closed.xy(1, 1); s += `<text x="${f1(rx + 20)}" y="${f1(ry + 6)}" text-anchor="middle" font-family="Cinzel,serif" font-size="22" fill="#c9a867" opacity=".8">?</text>`;
-    return s + '</svg>';
+    const [ex, ey] = pos[4];
+    return `<svg viewBox="0 0 380 250" role="img" aria-label="Pioneiro ao lado de Região fechada"><rect width="380" height="250" fill="#0f181c"/><g transform="translate(250,124)">${ctx}${regionBack(R, true)}<polygon points="${P(hexPts(R * .97).map(p => [p[0] + ex, p[1] + ey]))}" fill="none" stroke="#d1a95a" stroke-width="3"/><g transform="translate(${n2(px)},0)">${terrainHex(R, 'PLAINS', 77)}${ownFigure('PIONEER', 0, 2, 32)}</g></g><text x="14" y="24" fill="#9fb1b5" font-size="12" font-family="Source Sans 3,sans-serif">Pioneiro a 1 hex da Região fechada</text></svg>`;
   }
-  function danger() { return st.method ? '<span class="ok">Método Experimental: Perigo não custa a peça.</span>' : '<span class="warn">Perigo possível: se a Região esconder Perigo, 50% de perder o Pioneiro.</span>'; }
+  function p2(eff) {
+    const [ex, ey] = pos[4], bad = eff === 'perdeu';
+    return `<svg viewBox="0 0 380 250" role="img" aria-label="Região revelada com Perigo"><rect width="380" height="250" fill="#0f181c"/><g transform="translate(250,124)">${ctx}${regionFront(R, LET, 70)}<polygon points="${P(hexPts(R * .97).map(p => [p[0] + ex, p[1] + ey]))}" fill="${bad ? '#e0583f' : '#7fc79a'}" fill-opacity=".22" stroke="${bad ? '#e58a74' : '#7fc79a'}" stroke-width="3" class="pulse"/><g transform="translate(${n2(pos[2][0])},${n2(pos[2][1] + R * .1)}) scale(${n2(R / 38)})" opacity="${st.method ? .5 : 1}">${MK.danger()}</g>`
+      + `<g transform="translate(${n2(px)},0)">${terrainHex(R, 'PLAINS', 77)}</g>`
+      + (bad ? `<g transform="translate(${n2(ex)},${n2(ey)})">${ownFigure('PIONEER', 0, 2, 30, 0, '#60a3e9', { ghost: true })}<path d="M-14 -14 l28 28 M14 -14 l-28 28" stroke="#e58a74" stroke-width="3" stroke-linecap="round"/></g>` : `<g transform="translate(${n2(ex)},${n2(ey)})">${ownFigure('PIONEER', 0, 2, 32)}</g>`)
+      + `</g><text x="14" y="24" fill="#9fb1b5" font-size="12" font-family="Source Sans 3,sans-serif">Região revelada: Costa, Planície, Colinas, Mar</text></svg>`;
+  }
   function render() {
-    const lostTxt = st.lost ? 'O perigo custou o Pioneiro.' : 'O Pioneiro escapou do perigo.';
     const eff = st.method ? 'escapou' : st.lost ? 'perdeu' : 'escapou';
+    const risk = st.method ? '<span class="ok">Método Experimental: Perigo não custa a peça.</span>' : '<span class="warn">Perigo possível: se a Região esconder Perigo, 50% de perder o Pioneiro.</span>';
     $('#framesC3').innerHTML = `
-    <div style="display:grid;gap:8px"><span class="cap">1 · Antes: aviso e orientação</span><div class="mesa">${p1()}<div class="info"><b>Explorar Região fechada</b><div class="row">${ring(st.rot)}<span>Escolha como a Região se encaixa. Orientações marcadas ✕ deixariam o Pioneiro sem entrada em terra: o motor as bloqueia, nunca aplica.</span></div>${danger()}<label class="sw"><input type="checkbox" id="metC3" ${st.method ? 'checked' : ''}> Tenho Método Experimental</label></div></div></div>
-    <div style="display:grid;gap:8px"><span class="cap">2 · Revelação</span><div class="mesa" id="revC3"></div></div>
-    <div style="display:grid;gap:8px"><span class="cap">3 · Resultado e Crônica</span><div class="panel"><div class="seg" role="group" aria-label="Sorteio"><button data-lost="1" aria-pressed="${st.lost}" ${st.method ? 'disabled' : ''}>Sorteio: perdeu</button><button data-lost="0" aria-pressed="${!st.lost}">Sorteio: escapou</button></div>
+    <div style="display:grid;gap:8px"><span class="cap">1 · Antes: aviso e orientação</span><div class="mesa">${p1()}<div class="info"><b>Explorar Região fechada</b>${chips()}<span style="font-size:13px">Só orientações com entrada terrestre são oferecidas. As marcadas ✕ deixariam o Pioneiro sem entrada: o motor as bloqueia, nunca as aplica nem remove a peça.</span>${risk}<label class="sw"><input type="checkbox" id="metC3" ${st.method ? 'checked' : ''}> Tenho Método Experimental</label></div></div></div>
+    <div style="display:grid;gap:8px"><span class="cap">2 · Revelação</span><div class="mesa">${p2(eff)}<div class="legend"><span>Marcador de Perigo (do artifact)</span><span class="${eff === 'perdeu' ? 'bad' : 'ok'}">${eff === 'perdeu' ? 'Pioneiro perdido' : 'Pioneiro seguro'}</span></div></div></div>
+    <div style="display:grid;gap:8px"><span class="cap">3 · Resultado e Crônica</span><div class="panel"><div class="seg" role="group" aria-label="Sorteio"><button data-lost="1" aria-pressed="${st.lost && !st.method}" ${st.method ? 'disabled' : ''}>Sorteio: perdeu</button><button data-lost="0" aria-pressed="${!st.lost || st.method}">Sorteio: escapou</button></div>
       <div class="${eff === 'perdeu' ? 'pred' : 'applied'}" style="${eff === 'perdeu' ? 'border:1.5px solid var(--b-bad)' : ''}"><b class="${eff === 'perdeu' ? 'bad' : 'ok'}">Perigo · Terraços do Cobre</b><span>${eff === 'perdeu' ? 'Pioneiro perdido ao entrar na Região.' : st.method ? 'Perigo evitado pelo Método Experimental.' : 'Pioneiro escapou e ocupa o hex de entrada (Costa).'}</span><span class="mute">Evento de perda explícito (LOSSES) com o hex de entrada e a peça.</span></div>
-      <div class="band"><span class="cap">Crônica</span><span style="font:italic 500 17px var(--serif);color:var(--b-ink)">Rodada 9 · Leontia explorou os Terraços do Cobre. ${eff === 'perdeu' ? lostTxt : 'O Pioneiro seguiu em frente.'}</span></div>
-      <div class="band"><span class="cap">No mapa</span><span>${eff === 'perdeu' ? 'Halo vermelho 1 rodada no hex de entrada, peça fantasma tracejada.' : 'Peça sobre a Costa, visível, com anel verde.'}</span></div></div></div>`;
-    let s = `<svg viewBox="${viewBox(open, 14)}" role="img" aria-label="Região revelada">${mapBase(open)}`;
-    const [ex, ey] = open.xy(1, 0), [px, py] = open.xy(0, 0);
-    s += `<polygon points="${open.pts(1, 0, 1)}" fill="${eff === 'perdeu' ? '#e0583f' : '#7fc79a'}" fill-opacity=".22" stroke="${eff === 'perdeu' ? '#e58a74' : '#7fc79a'}" stroke-width="2.6" class="pulse"/>`;
-    const [wx, wy] = open.xy(2, 1); s += `<g transform="translate(${f1(ex + 4)} ${f1(ey - 2)})"><path d="M0,-15 L14,10 H-14Z" fill="#e6b04c" stroke="${INK}" stroke-width="1.6"/><path d="M0,-6 V3" stroke="${INK}" stroke-width="2.2"/><circle cy="7" r="1.4" fill="${INK}"/></g>`;
-    s += ownFigure('PIONEER', px, py + 2, 30);
-    if (eff === 'perdeu') s += ownFigure('PIONEER', ex + 2, ey + 24, 26, 0, '#60a3e9', { ghost: true }) + `<path d="M${f1(ex - 10)},${f1(ey + 14)} l24,22 M${f1(ex + 14)},${f1(ey + 14)} l-24,22" stroke="#e58a74" stroke-width="2.4" stroke-linecap="round"/>`; else s += ownFigure('PIONEER', ex, ey + 20, 30);
-    $('#revC3').innerHTML = s + `</svg><div class="legend"><span>Região: Costa · Mar · Planície</span><span class="${eff === 'perdeu' ? 'bad' : 'ok'}">${eff === 'perdeu' ? 'Perdida' : 'Intacta'}</span></div>`;
+      <div class="band"><span class="cap">Crônica</span><span style="font:italic 500 17px var(--serif);color:var(--b-ink)">Rodada 9 · Leontia explorou os Terraços do Cobre. ${eff === 'perdeu' ? 'O perigo custou o Pioneiro.' : 'O Pioneiro seguiu em frente.'}</span></div>
+      <div class="band"><span class="cap">No mapa</span><span>${eff === 'perdeu' ? 'Halo vermelho 1 rodada no hex de entrada, peça fantasma tracejada.' : 'Peça sobre a Costa (areia), visível, com anel verde.'}</span></div></div></div>`;
   }
-  $('#framesC3').addEventListener('click', e => { const r = e.target.closest('[data-rot]'); if (r && !INVALID.includes(+r.dataset.rot)) { st.rot = +r.dataset.rot; render(); } const l = e.target.closest('[data-lost]'); if (l) { st.lost = l.dataset.lost === '1'; render(); } });
+  $('#framesC3').addEventListener('click', e => { const r = e.target.closest('[data-rot]'); if (r && !r.disabled) { st.rot = +r.dataset.rot; render(); } const l = e.target.closest('[data-lost]'); if (l && !l.disabled) { st.lost = l.dataset.lost === '1'; render(); } });
   $('#framesC3').addEventListener('change', e => { if (e.target.id === 'metC3') { st.method = e.target.checked; render(); } });
   render();
 })();

@@ -1,6 +1,6 @@
 /* ===== Biblioteca: arte, grade hexagonal, ícones ===== */
 const $ = (s, r = document) => r.querySelector(s);
-const SQ3 = Math.sqrt(3), INK = '#0b1114', LIGHT = '#f4ecd8';
+const INK = '#0b1114', LIGHT = '#f4ecd8';
 const f1 = n => Math.round(n * 10) / 10;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -70,12 +70,12 @@ function moodSeal(n, px = 34, showNum = true) {
   return `<svg viewBox="-24 -24 48 48" width="${px}" height="${px}" role="img" aria-label="Ânimo ${n} de 6, ${name}">${ring}${face}${num}</svg>`;
 }
 
-/* Retrato do Líder (miniatura): busto com coroa de louros. Provisório, como no jogo. */
+/* Retrato do Líder: arte real do jogo (figure-portraits.ts, Agamenon). Selo da civilização: sealArt real com o emblema aspis. */
 function portrait(px = 34) {
-  return `<svg viewBox="-20 -20 40 40" width="${px}" height="${px}" role="img" aria-label="Retrato do Líder Agamenon"><defs><clipPath id="pc${px}"><circle r="17"/></clipPath></defs><circle r="18" fill="#1a2a30" stroke="#c9a867" stroke-width="2"/><g clip-path="url(#pc${px})"><path d="M-18 20 Q-16 6 0 5 Q16 6 18 20Z" fill="#6b3d33"/><path d="M-5 5 L0 11 L5 5Z" fill="#d9b98a"/><circle cy="-3" r="8.5" fill="#d9b98a"/><path d="M-9 -4 Q-9 -13 0 -13 Q9 -13 9 -4 Q5 -8 0 -8 Q-5 -8 -9 -4Z" fill="#2c211c"/></g><path d="M-12 -4 Q-14 -10 -6 -14 M12 -4 Q14 -10 6 -14" fill="none" stroke="#c9a867" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+  return `<span style="display:inline-block;width:${px}px;height:${px}px;border-radius:50%;overflow:hidden;border:2px solid #c9a867;background:#1a2a30;flex:none" role="img" aria-label="Retrato do Líder Agamenon"><span style="display:block;width:${px}px;height:${px * 1.25}px;margin-top:${f1(-px * .04)}px">${PORTRAIT_AGAMENON.replace('<svg ', '<svg width="100%" height="100%" ')}</span></span>`;
 }
 function sealCiv(px = 30, color = '#60a3e9') {
-  return `<svg class="seal" viewBox="-18 -18 36 36" width="${px}" height="${px}" role="img" aria-label="Selo de Leontia"><path d="M0 -16 L14 -8 L14 8 L0 16 L-14 8 L-14 -8Z" fill="#0f181c" stroke="${color}" stroke-width="2.4"/><circle r="8" fill="none" stroke="${color}" stroke-width="2"/><circle r="3" fill="${color}"/><path d="M-8 0 H8" stroke="${color}" stroke-width="1.4" stroke-dasharray="1.5 2"/></svg>`;
+  return `<svg class="seal" viewBox="-18 -18 36 36" width="${px}" height="${px}" role="img" aria-label="Selo de Leontia">${SEAL_AEGIS_INNER}</svg>`;
 }
 
 /* Grade hexagonal "odd-r", hex de ponta para cima (mesma orientação do mapa do jogo). */
@@ -112,18 +112,19 @@ class Grid {
   path(prev, from, to) { const key = (c, r) => c + ',' + r, out = [to]; let cur = to; while (key(...cur) !== key(...from)) { cur = prev[key(...cur)]; if (!cur) return null; out.unshift(cur); } return out; }
 }
 
-/* Arte de terreno: cada tipo se lê sem rótulo; COSTA tem areia e espuma (pisa-se), MAR tem ondas fundas (não se pisa). */
+/* Terreno: o desenho do artifact de cultura material (terrainHex). COSTA é areia e espuma (pisa-se); MAR é azul fundo com ondas (só navios). */
+const TNAME = { p: 'PLAINS', f: 'FOREST', h: 'HILLS', m: 'MOUNTAINS', c: 'COAST', s: 'SEA' };
 function hexArt(g, c, r, t, fog = false) {
-  const [x, y] = g.xy(c, r), S = g.S, k = TER[t].c;
-  let d = `<polygon points="${g.pts(c, r)}" fill="${k}" stroke="#0b1114" stroke-opacity=".55" stroke-width="1"/>`;
-  const seed = (c * 7 + r * 13) % 5;
-  if (t === 'p') d += [[-9, 4], [5, 8], [10, -6], [-3, -9]].map(([a, b], i) => `<path d="M${f1(x + a)},${f1(y + b)} l1.6,-4.4 m2.2,4.4 l1.2,-3.4" stroke="#7f9558" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="${(i + seed) % 2 ? .9 : .5}"/>`).join('');
-  if (t === 'f') d += [[-9, 5], [4, 7], [-2, -4], [11, -2]].map(([a, b]) => `<path d="M${f1(x + a)},${f1(y + b)} l4.4,-9.6 l4.4,9.6Z" fill="#1d3322" stroke="#0b1114" stroke-width=".8"/><path d="M${f1(x + a + 4.4)},${f1(y + b)} v3" stroke="#4a3322" stroke-width="1.5"/>`).join('');
-  if (t === 'h') d += `<path d="M${f1(x - 14)},${f1(y + 7)} q7,-12 14,0 M${f1(x - 2)},${f1(y + 9)} q8,-14 15,0" fill="none" stroke="#8d7a50" stroke-width="2" stroke-linecap="round"/>`;
-  if (t === 'm') d += `<path d="M${f1(x - 15)},${f1(y + 9)} l9,-19 l9,19Z M${f1(x - 2)},${f1(y + 9)} l9,-14 l8,14Z" fill="#6c7482" stroke="#0b1114" stroke-width="1"/><path d="M${f1(x - 6)},${f1(y - 10)} l-3.2,6.2 l3,-1.4 l2.6,1.4Z" fill="#eef0f2"/>`;
-  if (t === 'c') d += `<polygon points="${g.pts(c, r, .88)}" fill="none" stroke="#e1cf9d" stroke-opacity=".75" stroke-width="2.6" stroke-dasharray="1 5" stroke-linecap="round"/><path d="M${f1(x - 13)},${f1(y + 4)} q4,-4 8,0 t8,0 t8,0 M${f1(x - 11)},${f1(y - 6)} q4,-4 8,0 t8,0" fill="none" stroke="#d8f0ee" stroke-opacity=".7" stroke-width="1.5" stroke-linecap="round"/>`;
-  if (t === 's') d += `<path d="M${f1(x - 15)},${f1(y + 3)} q5,-5 10,0 t10,0 t10,0 M${f1(x - 11)},${f1(y - 8)} q5,-5 10,0 t10,0 M${f1(x - 9)},${f1(y + 12)} q5,-5 10,0 t8,0" fill="none" stroke="#2e6188" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>`;
-  if (t === '?') d = `<polygon points="${g.pts(c, r)}" fill="#121b20" stroke="#2a3d45" stroke-width="1"/><path d="M${f1(x - 18)},${f1(y)} h36 M${f1(x - 9)},${f1(y - 16)} l18,32 M${f1(x + 9)},${f1(y - 16)} l-18,32" stroke="#1d2b32" stroke-width="1"/>`;
+  const [x, y] = g.xy(c, r), S = g.S;
+  let d;
+  if (t === '?') {
+    d = `<polygon points="${g.pts(c, r)}" fill="#121b20" stroke="#2a3d45" stroke-width="1"/><path d="M${f1(x - S * .5)},${f1(y)} h${S} M${f1(x - S * .25)},${f1(y - S * .45)} l${S * .5},${S * .9} M${f1(x + S * .25)},${f1(y - S * .45)} l${-S * .5},${S * .9}" stroke="#1d2b32" stroke-width="1"/>`;
+  } else {
+    d = `<g transform="translate(${f1(x)} ${f1(y)})">${terrainHex(S, TNAME[t], (c * 31 + r * 17) % 97 + 3)}`;
+    if (t === 'm') { const u = S / 40; d += `<g transform="scale(${f1(u * 100) / 100})"><path d="M-15,9 l9,-19 l9,19Z M-2,9 l9,-14 l8,14Z" fill="#6c7482" stroke="#0b1114" stroke-width="1"/><path d="M-6,-10 l-3.2,6.2 l3,-1.4 l2.6,1.4Z" fill="#eef0f2"/></g>`; }
+    if (t === 'c') d += `<polygon points="${hexPts(S * .86).map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none" stroke="#fff6dc" stroke-opacity=".7" stroke-width="2.4" stroke-dasharray="1 5" stroke-linecap="round"/>`;
+    d += '</g>';
+  }
   if (fog) d += `<polygon points="${g.pts(c, r)}" fill="#0a1114" opacity=".62"/>`;
   return `<g data-hex="${c},${r}">${d}</g>`;
 }
@@ -136,35 +137,30 @@ function pathLine(g, cells, color, o = {}) {
   return `<path d="${dd}" fill="none" stroke="${INK}" stroke-width="${(o.w || 3) + 3}" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/><path d="${dd}" fill="none" stroke="${color}" stroke-width="${o.w || 3}" stroke-linecap="round" stroke-linejoin="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''}${o.marker ? ` marker-end="url(#${o.marker})"` : ''}/>` + (o.dots ? pts.slice(0, -1).map(p => `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="2.6" fill="${color}" stroke="${INK}" stroke-width="1"/>`).join('') : '');
 }
 
-/* Cidade: platô, casas e muralha crescem com o nível; faixa de nível e selo de Ânimo ficam no hex, legíveis no relance. */
+/* Cidade: o desenho do artifact de cultura material (city(), pele de Leontia). Distritos e edifícios reais do catálogo; o Ânimo e o nome ficam no hex. */
+const CITY_DEF = {
+  1: [{ d: 'AGRARIAN', b: ['GRANARY'] }], 2: [{ d: 'AGRARIAN', b: ['GRANARY', 'MILL'] }],
+  3: [{ d: 'COMMERCIAL', b: ['MARKET'] }, { d: 'AGRARIAN', b: ['GRANARY'] }],
+  4: [{ d: 'COMMERCIAL', b: ['MARKET'] }, { d: 'MILITARY', b: ['BARRACKS'] }, { d: 'AGRARIAN', b: ['GRANARY'] }],
+  5: [{ d: 'COMMERCIAL', b: ['MARKET', 'TREASURY'] }, { d: 'MILITARY', b: ['BARRACKS'] }, { d: 'CULTURAL', b: ['TEMPLE'] }, { d: 'AGRARIAN', b: ['GRANARY'] }],
+};
 function cityArt(x, y, level, color, name, mood, o = {}) {
-  const houses = [[-11, 5], [2, 7], [-3, -1], [10, 1], [-13, -4], [6, -6]].slice(0, 2 + Math.min(4, Math.ceil(level / 1.5)));
-  let s = `<g transform="translate(${f1(x)} ${f1(y)})"><ellipse cy="11" rx="25" ry="8" fill="#000" opacity=".35"/><path d="M-24 8 Q-24 -4 0 -4 Q24 -4 24 8 Q24 15 0 15 Q-24 15 -24 8Z" fill="#6b6246" stroke="${INK}" stroke-width="1.4"/>`;
-  if (level >= 3) s += `<path d="M-22 5 Q-22 -2 0 -2 Q22 -2 22 5" fill="none" stroke="#b7ab86" stroke-width="3.4"/><path d="M-22 5 Q-22 -2 0 -2 Q22 -2 22 5" fill="none" stroke="${INK}" stroke-width=".8" stroke-dasharray="3 2"/>`;
-  s += houses.map(([a, b], i) => { const w = 7 + (i % 3), h = 5 + ((i * 2) % 4) + Math.floor(level / 3); return `<path d="M${a - w / 2},${b} v${-h} l${w / 2},-4 l${w / 2},4 v${h}Z" fill="${i % 2 ? '#d8cba3' : '#c8b88c'}" stroke="${INK}" stroke-width="1"/><path d="M${a - w / 2 - 1},${b - h} l${w / 2 + 1},-4.6 l${w / 2 + 1},4.6Z" fill="${i % 2 ? '#9c4e3c' : '#7f4036'}" stroke="${INK}" stroke-width=".9"/>`; }).join('');
-  if (level >= 5) s += `<path d="M-2 -7 v-11 h4 v11Z" fill="#cfc29b" stroke="${INK}" stroke-width="1"/><path d="M-3 -18 h6 l-3 -5Z" fill="#7f4036" stroke="${INK}" stroke-width=".9"/>`;
-  if (o.port) s += `<path d="M-30 12 h14 M-30 15 h12" stroke="#8a6b43" stroke-width="2.4" stroke-linecap="round"/>`;
-  s += `<path d="M18 -1 v-20" stroke="#c9b48a" stroke-width="1.8"/><path d="M18 -21 l9 3.5 l-9 3.5Z" fill="${color}" stroke="${INK}" stroke-width="1"/>`;
-  s += `<g transform="translate(-40 -30)">${moodSeal(mood, 32, true)}</g>`;
-  s += `<g transform="translate(0 21)"><rect x="-27" y="-7" width="54" height="13" rx="6.5" fill="#0f181c" stroke="${color}" stroke-width="1.2"/><text text-anchor="middle" y="2.8" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="8.4" fill="#e8e3d3">${esc(name)} · N${level}</text></g></g>`;
-  return s;
+  const R = o.R || 40, g = city(R * 1.28, { skin: 'valgard', L: level, districts: o.districts || CITY_DEF[Math.min(5, level)], port: o.port, fort: o.fort, acc: color, seed: o.seed || 7 });
+  let s = `<g transform="translate(${f1(x)} ${f1(y)})">${g}`;
+  if (o.seal !== false) s += `<g transform="translate(${f1(-R * .66)} ${f1(-R * .62)})">${moodSeal(mood, Math.max(22, R * .78), true).replace('<svg ', '<svg x="' + f1(-Math.max(22, R * .78) / 2) + '" y="' + f1(-Math.max(22, R * .78) / 2) + '" ')}</g>`;
+  if (o.label !== false) s += `<g transform="translate(0 ${f1(R * .98)})"><rect x="-${f1(R * .78)}" y="-7" width="${f1(R * 1.56)}" height="13" rx="6.5" fill="#0f181c" stroke="${color}" stroke-width="1.2"/><text text-anchor="middle" y="2.8" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="8.4" fill="#e8dcc0">${esc(name)} · N${level}</text></g>`;
+  return s + '</g>';
 }
-/* Acampamento de Saqueadores: paliçada baixa, duas tendas, fogueira e estandarte rasgado. Estados: ativo, reorganizando, destruído. */
+/* Acampamento de Saqueadores: o marcador de campo do artifact (MK.camp) com estandarte rasgado; ruína = tenda caída e paliçada quebrada. */
 function campArt(x, y, state = 'active', n = 3) {
-  const stakes = Array.from({ length: 11 }, (_, i) => { const a = Math.PI * 2 * i / 11; return [Math.cos(a) * 20, Math.sin(a) * 10 + 6]; });
-  let s = `<g transform="translate(${f1(x)} ${f1(y)})"><ellipse cy="9" rx="24" ry="11" fill="#000" opacity=".35"/>`;
+  let s = `<g transform="translate(${f1(x)} ${f1(y)})">`;
   if (state === 'ruin') {
-    s += `<ellipse cy="7" rx="21" ry="9" fill="#2b2420" opacity=".85"/>` + stakes.map(([a, b], i) => i % 3 ? '' : `<path d="M${f1(a)},${f1(b)} l${i % 2 ? 2 : -2},-5" stroke="#3a2c22" stroke-width="2" stroke-linecap="round"/>`).join('')
-      + `<path d="M-14 11 l8 -3 l7 4Z M3 12 l9 -4 l5 5Z" fill="#6a2f24" stroke="${INK}" stroke-width="1" opacity=".9"/><path d="M-4 5 q3 -6 0 -12 M2 6 q4 -7 1 -14" stroke="#8d8f90" stroke-width="2" fill="none" opacity=".5" stroke-linecap="round"/><path d="M12 -2 l8 8" stroke="#2a1511" stroke-width="3"/><path d="M8 -1 q4 -2 8 1 l-4 4Z" fill="#7a3224" stroke="${INK}" stroke-width=".8"/>`;
+    s += `<ellipse cy="5" rx="22" ry="8" fill="#2b2420" opacity=".85"/><path d="M-16 8 l9 -3 l8 4Z M4 9 l10 -4 l6 5Z" fill="#6a2f24" stroke="${INK}" stroke-width="1"/>` + [-18, -9, 12, 19].map((a, i) => `<path d="M${a},7 l${i % 2 ? 2 : -2},-5" stroke="#3a2c22" stroke-width="2" stroke-linecap="round"/>`).join('') + `<path d="M-4 3 q3 -6 0 -12 M2 4 q4 -7 1 -14" stroke="#8d8f90" stroke-width="2" fill="none" opacity=".5" stroke-linecap="round"/><path d="M12 -1 l8 8" stroke="#2a1511" stroke-width="3"/><path d="M8 0 q4 -2 8 1 l-4 4Z" fill="#7a3224" stroke="${INK}" stroke-width=".8"/>`;
   } else {
-    s += stakes.map(([a, b]) => `<path d="M${f1(a)},${f1(b)} v-7" stroke="#6b4a31" stroke-width="2.4" stroke-linecap="round"/><path d="M${f1(a)},${f1(b - 7)} l-1.4,-2.4 l2.8,0Z" fill="#6b4a31"/>`).join('')
-      + `<path d="M-15 8 l9 -15 l9 15Z" fill="#8a3b2c" stroke="${INK}" stroke-width="1.2"/><path d="M-6 8 l0 -9" stroke="${INK}" stroke-width="1"/><path d="M3 9 l8 -12 l8 12Z" fill="#9c5b36" stroke="${INK}" stroke-width="1.2"/><path d="M11 9 l0 -8" stroke="${INK}" stroke-width="1"/>`
-      + `<circle cx="-1" cy="11" r="2.6" fill="#f0a448" class="${state === 'active' ? 'pulse' : ''}"/><path d="M-1 7 q-2 -4 0 -8" stroke="#aeb2b2" stroke-width="1.6" fill="none" opacity=".55" stroke-linecap="round"/>`
-      + `<path d="M0 -3 v-24" stroke="#c9b48a" stroke-width="1.8"/><path d="M0 -27 l12 2 l-3 3 l3 3 l-3 3 l3 3 l-12 -1Z" fill="#7a2c20" stroke="${INK}" stroke-width="1"/><path d="M3 -22 l4 4 M7 -22 l-4 4" stroke="#e6c9a0" stroke-width="1.1"/>`;
+    s += `<g transform="scale(1.3)">${MK.camp()}</g><path d="M0 -4 v-26" stroke="#c9b48a" stroke-width="1.8"/><path d="M0 -30 l12 2 l-3 3 l3 3 l-3 3 l3 3 l-12 -1Z" fill="#7a2c20" stroke="${INK}" stroke-width="1"/><path d="M3 -25 l4 4 M7 -25 l-4 4" stroke="#e6c9a0" stroke-width="1.1"/>`;
+    if (state === 'rest') s += `<g transform="translate(26 -18)"><circle r="8" fill="#0f181c" stroke="#e6b04c" stroke-width="1.4"/><path d="M-3.5 -4.5 h7 l-3.5 4.5 l3.5 4.5 h-7 l3.5 -4.5Z" fill="none" stroke="#e6b04c" stroke-width="1.3"/></g>`;
   }
-  if (state === 'rest') s += `<g transform="translate(24 -16)"><circle r="8" fill="#0f181c" stroke="#e6b04c" stroke-width="1.4"/><path d="M-3.5 -4.5 h7 l-3.5 4.5 l3.5 4.5 h-7 l3.5 -4.5Z" fill="none" stroke="#e6b04c" stroke-width="1.3"/></g>`;
-  s += `</g>`;
-  return s;
+  return s + '</g>';
 }
 /* Clash: estrelas de impacto sobre o hex atacado. */
 function burst(x, y, k = 1) {

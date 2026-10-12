@@ -9,7 +9,7 @@ $('#decisoes').innerHTML = [
 
 /* ===== Cena A · Mesa e visão geral ===== */
 (function sceneA() {
-  const g = new Grid(['sssccpfh??', 'sscppffhm?', 'sccppppmh?', 'sscpphppf?', 'sssccppfp?', 'ssssccp???', 'sssssc????'], 36);
+  const g = new Grid(['sssccpfh??', 'sscppffhm?', 'sccppppmh?', 'sscpphppf?', 'sssccppfp?', 'ssssccp???', 'sssssc????'], 40);
   const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
   const sight = Object.values(own);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
@@ -31,7 +31,7 @@ $('#decisoes').innerHTML = [
     // trilha do Bando (intenção conhecida)
     s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 });
     // cidades
-    for (const [k, nm, lv, mood, port] of [['mikena', 'Mikena', 3, 4, true], ['tirinto', 'Tirinto', 2, 1, false]]) { const [x, y] = P(k); s += cityArt(x, y, lv, '#60a3e9', nm, mood, { port }) + hit(k, x, y, nm); }
+    for (const [k, nm, lv, mood, o] of [['mikena', 'Mikena', 3, 4, { port: 3, fort: 1, districts: [{ d: 'MARITIME', b: ['PORT'] }, { d: 'COMMERCIAL', b: ['MARKET'] }] }], ['tirinto', 'Tirinto', 2, 1, {}]]) { const [x, y] = P(k); s += cityArt(x, y, lv, '#60a3e9', nm, mood, { R: g.S, ...o }) + hit(k, x, y, nm); }
     // exército (2 figuras próprias lado a lado)
     let [x, y] = P('army'); s += ownFigure('INFANTRY', x - 11, y + 2, 28, 2) + ownFigure('CAVALRY', x + 11, y + 4, 28) + hit('army', x, y, 'Exército próprio');
     [x, y] = P('pioneer'); s += ownFigure('PIONEER', x, y, 28) + hit('pioneer', x, y, 'Pioneiro');
