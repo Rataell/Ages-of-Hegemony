@@ -156,7 +156,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await boardB.getByRole('button',{name:/Pesquisar · Ordem Avanço/}).click();
     await expect(pb.locator('.alpha-order-chip.is-used').filter({hasText:'Avanço'})).toHaveCount(1);
     await pb.keyboard.press('Escape');
-    await expect(urbanB).toContainText('Ações planejáveis da cidade: 1 / 2');
+    await expect(urbanB).toContainText('Ações planejáveis da cidade: 2 / 2');   // F-14: Avanço is its own Order and no longer uses a city activation
     {
       const planned=await game();
       // Only the two starting Pioneiros exist until the planned recruitment resolves.

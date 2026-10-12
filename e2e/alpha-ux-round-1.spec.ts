@@ -51,7 +51,7 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     await expect(pb.getByRole('heading', { name: 'Seu tabuleiro de civilização' })).toBeVisible();
     const seated = (await repository.find(roomId))!;
     expect(seated.seats.map(seat => seat.name)).toEqual(['Ana', 'Beto']);
-    await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click();
+    await pb.locator('.alpha-leave').click();
     await pb.getByRole('button', { name: 'Sair e poder voltar', exact: true }).click();
     await expect(pb.getByRole('heading', { name: 'Nova mesa' })).toBeVisible();
     expect(new URL(pb.url()).search).toBe('');
@@ -122,11 +122,11 @@ test('lobby invites, creation options, leaving and returning, and the atlas at t
     // Leaving a running match forgets it in this browser only; the code brings the person back to the same match.
     const running = (await repository.find(roomId))!;
     await pb.getByRole('dialog', { name: 'Escolha duas ambições secretas' }).getByRole('button', { name: 'Ver o mapa primeiro', exact: true }).click();
-    await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click();
+    await pb.locator('.alpha-leave').click();
     await expect(pb.getByRole('dialog', { name: 'SAIR DESTA SESSÃO?' })).toBeVisible();
     await pb.getByRole('button', { name: 'Cancelar', exact: true }).click();
     await expect(pb.locator('.alpha-player-board h1')).toHaveText(/Helênicos/);
-    await pb.getByRole('button', { name: 'Sair da partida', exact: true }).click(); await pb.getByRole('button', { name: 'Sair e poder voltar', exact: true }).click();
+    await pb.locator('.alpha-leave').click(); await pb.getByRole('button', { name: 'Sair e poder voltar', exact: true }).click();
     await expect(pb.getByRole('heading', { name: 'Nova mesa' })).toBeVisible();
     expect(new URL(pb.url()).search).toBe('');
     const afterRunningLeave = (await repository.find(roomId))!;

@@ -110,3 +110,6 @@
 .alpha-compendium-table thead th { color: var(--text-muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
 .alpha-compendium-table tbody th { color: var(--gc-accent); }
 @media (max-width: 760px) { .alpha-compendium-split { grid-template-columns: 1fr; } }
+/* Figura portrait (the approved illustration language): portrait ratio, a little taller than the seals of the other cards. */
+.alpha-gcard.is-figure .alpha-gcard-art-svg { max-width: 104px; max-height: 130px; border-radius: 6px; overflow: hidden; }
+.alpha-gcard.is-figure.is-compact .alpha-gcard-art-svg { max-width: 72px; max-height: 90px; }

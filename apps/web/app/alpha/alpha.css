@@ -758,3 +758,6 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
   .alpha-tray-cofre .resource b { font-size: 12px; }
   .alpha-mesa .alpha-cofre { bottom: calc(12px + var(--tray-height, 96px) + 8px); left: 8px; right: 8px; width: auto; }
 }
+.alpha-hand-portrait.is-art { overflow: hidden; border-radius: 6px; border: 1px solid #7d5c33; background: #0e1519; }
+.alpha-hand-portrait.is-art svg { display: block; width: 100%; height: 100%; }
+.alpha-hand-card.is-figure .nm { padding-top: 4px; }

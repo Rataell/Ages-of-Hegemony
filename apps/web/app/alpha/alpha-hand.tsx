@@ -5,6 +5,7 @@ import type { AlphaRoomView } from '@aoh/server/alpha';
 import type { AlphaSend } from './alpha-board';
 import { bannerArt, sealArt } from './table-art';
 import { InitialsSeal } from './alpha-card';
+import { figurePortraitSvg } from './figure-portraits';
 
 type Game = NonNullable<AlphaRoomView['game']>;
 const RESOURCE: Record<string, string> = { food: 'Alimento', materials: 'Madeira/Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
@@ -54,7 +55,12 @@ export function AlphaHand({ game, locked, send, seatColor, onFocus }: { game: Ga
   const focused = cards.find(card => card.key === focus) ?? null;
   const banner = kit ? bannerArt(kit.mark, seatColor, 26) : '';
   /** The Figura's illustration: the seal of her civilization, with the Figura's initials as the provisional portrait. */
-  const portrait = (face: FigureFace, size: number) => <span className="alpha-hand-portrait" style={{ width: size, height: size }} aria-hidden="true">{kit && <svg viewBox="-34 -34 68 68" width={size} height={size} dangerouslySetInnerHTML={{ __html: sealArt(kit.mark, seatColor, 28) }} />}<InitialsSeal name={face.name} size={Math.round(size * 0.5)} /></span>;
+  const portrait = (face: FigureFace, size: number) => {
+    const art = figurePortraitSvg(face.name);
+    // The approved portrait of the Figura; only a Figura the concept has no portrait for falls back to the civilization seal with her initials.
+    if (art) return <span className="alpha-hand-portrait is-art" style={{ width: size, height: Math.round(size * 1.25) }} role="img" aria-label={`Retrato de ${face.name}`} dangerouslySetInnerHTML={{ __html: art }} />;
+    return <span className="alpha-hand-portrait" style={{ width: size, height: size }} aria-hidden="true">{kit && <svg viewBox="-34 -34 68 68" width={size} height={size} dangerouslySetInnerHTML={{ __html: sealArt(kit.mark, seatColor, 28) }} />}<InitialsSeal name={face.name} size={Math.round(size * 0.5)} /></span>;
+  };
   return <>
     <button type="button" className="alpha-hand-toggle" aria-expanded={open} onClick={() => { setOpen(!open); setFocus(null); }}>Cartas · {cards.filter(card => !card.blocked).length}/{cards.length}</button>
     <div className={`alpha-hand-fan${open ? ' is-open' : ''}${focused ? ' has-focus' : ''}`} role="group" aria-label="Mão de cartas">
@@ -62,11 +68,11 @@ export function AlphaHand({ game, locked, send, seatColor, onFocus }: { game: Ga
         style={{ ['--i' as string]: i, ['--a' as string]: i - (cards.length - 1) / 2 }} aria-pressed={focused?.key === card.key} aria-label={`${card.name}: ${card.text}${card.blocked ? ` (${card.blocked})` : ''}`}
         onClick={() => setFocus(focused?.key === card.key ? null : card.key)}>
         <span className="hd">{card.family}{card.civ && <svg width="16" height="22" viewBox="-12 -36 24 38" aria-hidden="true" dangerouslySetInnerHTML={{ __html: banner }} />}</span>
-        {card.figure && portrait(card.figure, 44)}
+        {card.figure && portrait(card.figure, 56)}
         <span className="nm">{card.name}</span><span className="tx">{card.text}</span>
       </button>)}
       {focused && <div className="alpha-hand-play" role="dialog" aria-label={focused.name}>
-        {focused.figure && portrait(focused.figure, 64)}
+        {focused.figure && portrait(focused.figure, 84)}
         <b>{focused.name}</b>
         {focused.figure
           ? <>{focused.figure.passive && <span><i>Passiva · {focused.figure.passive.name}.</i> {focused.figure.passive.text}</span>}{focused.figure.power && <span><i>Poder 1× por Era · {focused.figure.power.name}.</i> {focused.figure.power.text}</span>}</>

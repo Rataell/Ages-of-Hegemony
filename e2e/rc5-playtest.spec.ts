@@ -34,6 +34,10 @@ async function submit(page: Page) {
 async function startWithBot(page: Page) {
   await page.getByRole('button', { name: 'Adicionar bot', exact: true }).click();
   await page.locator('.alpha-civilizations button:not([disabled])').nth(3).click();
+  if (await page.locator('.alpha-figures').first().isVisible().catch(() => false)) {
+    await expect(page.locator('.alpha-figures .alpha-gcard-art-svg svg').first()).toBeAttached();       // Figura selection shows the approved portraits
+    await page.screenshot({ path: `test-results/rc5-lobby-figuras-${page.viewportSize()?.width}.png` });
+  }
   await page.getByRole('button', { name: 'Estou pronto', exact: true }).click();
   await page.getByRole('button', { name: 'Iniciar partida', exact: true }).click();
   await page.locator('.alpha-mesa').waitFor();
@@ -113,11 +117,11 @@ for (const [name, viewport] of VIEWPORTS) {
       if (await toggle.isVisible().catch(() => false)) await toggle.click();
       const figure = page.locator('.alpha-hand-card.is-figure');
       await expect(figure).toHaveCount(1);
-      await expect(figure.locator('.alpha-hand-portrait svg').first()).toBeAttached();
-      await expect(figure.locator('.alpha-gcard-seal')).toBeAttached();
+      await expect(figure.locator('.alpha-hand-portrait.is-art svg')).toBeAttached();                 // the approved Figura portrait, not the initials
       await figure.dispatchEvent('click');
       const focus = page.locator('.alpha-hand-play');
       await expect(focus).toContainText(/Passiva/); await expect(focus).toContainText(/Poder 1× por Era/);
+      await expect(focus.locator('.alpha-hand-portrait.is-art svg')).toBeAttached();
       await expect(focus.getByRole('button', { name: 'Usar o Poder', exact: true })).toBeVisible();
       await page.screenshot({ path: `test-results/rc5-figure-${name}.png` });
     } finally { await context.close(); }

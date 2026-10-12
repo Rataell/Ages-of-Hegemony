@@ -166,7 +166,7 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
       await chronicle.getByRole('button',{name:'Fechar',exact:true}).click();
       await expect(chronicle).toBeHidden();
       await finale.getByRole('button',{name:'Ver o mapa final',exact:true}).click();
-      await expect(page.locator('.alpha-round-bar button')).toBeDisabled();
+      await expect(page.locator('.alpha-round-bar .advance-phase-btn')).toBeDisabled();   // RC5: the tray also carries the Cofre button
     }
     await a.screenshot({path:`${evidence}/1440-finished.png`});
   }finally{await Promise.allSettled(contexts.map(context=>context.close()));}

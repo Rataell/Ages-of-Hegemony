@@ -1,4 +1,5 @@
 'use client';
+import { figurePortraitSvg } from './figure-portraits';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { FIGURE_CLASS_LABELS, LEADERS, LEGACY_WORKS, alphaGainOf, civilizationKit, core10OfChassis, figureById, heritageOf, type FigureClass } from '@aoh/game-domain';
 import * as tableArt from './table-art';
@@ -121,7 +122,7 @@ export function FigureCard({ figureId, used = null, compact, selected, disabled,
   const passive = figure ? { name: figure.passive.name, text: leader?.passiveAbility.description ?? figure.passive.text } : leader ? { name: leader.passiveAbility.name, text: leader.passiveAbility.description } : null;
   const power = figure ? { name: figure.power.name, text: leader?.eraAbility.description ?? figure.power.text } : leader ? { name: leader.eraAbility.name, text: leader.eraAbility.description } : null;
   return <AlphaCard kind="figure" name={name} subtitle={[cls, figure?.archetype ?? leader?.title].filter(Boolean).join(' · ')} identity={figure?.style}
-    art={<InitialsSeal name={name} size={compact ? 46 : 60} />} recommended={figure?.recommended} selected={selected} disabled={disabled} compact={compact} onClick={onClick}
+    art={figurePortraitSvg(name) ?? <InitialsSeal name={name} size={compact ? 46 : 60} />} recommended={figure?.recommended} selected={selected} disabled={disabled} compact={compact} onClick={onClick}
     effects={[...(passive ? [{ key: 'passive', label: `Passiva · ${passive.name}`, text: passive.text }] : []), ...(power ? [{ key: 'power', label: `Poder 1× por Era · ${power.name}`, text: power.text }] : [])]}
     icons={used === null ? (figure && !compact ? <span title="Fonte">{figure.source}</span> : undefined) : <span role="status"><b>{used ? 'Poder usado nesta Era' : 'Poder disponível'}</b></span>}>{children}</AlphaCard>;
 }
