@@ -16,7 +16,7 @@ import { playtestEnabled, playtestRecorderFor, UI_KINDS, type UiKind } from './p
 export function roomView(room:AlphaRoom,principal:GuestPrincipal,now=Date.now()){
   const seat=room.seats.find(s=>s.guestId===principal.guestId);if(!seat)return null;
   const lifecycle=lifecycleOf(room),safe=room.game?safePoint(room):null;
-  return {playtest:playtestEnabled(),id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,seed:room.seed,seatLimit:room.seatLimit,maxSeats:maxSeats(),actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,planningSeconds:room.planningSeconds,deadline:room.deadline,
+  return {playtest:playtestEnabled(),id:room.id,version:room.version,name:room.name,joinCode:room.joinCode,preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,seed:room.seed,seatLimit:room.seatLimit,maxSeats:maxSeats(),actionsPerRound:room.actionsPerRound,pace:room.pace,revealMap:room.revealMap,planningSeconds:room.planningSeconds,deadline:room.deadline,
     contentVersion:room.contentVersion,legacy:isLegacyRoom(room),legacyMessage:isLegacyRoom(room)?LEGACY_ROOM_MESSAGE:null,
     selfPlayerId:seat.playerId,isHost:room.hostGuestId===principal.guestId,
     lifecycle,suspended:room.suspended,closedReason:room.closedReason,selfOnGuard:room.onGuard.includes(seat.playerId),
@@ -263,7 +263,7 @@ export class AlphaGameService {
     }else {
       if(!isHost)return forbidden();
       if(room.seats.length<2||room.seats.length>maxSeats()||room.seats.every(s=>s.bot)||room.seats.some(s=>!s.ready||!s.civilization))return err({code:'NOT_READY',message:'Pelo menos duas pessoas precisam escolher civilização e confirmar Pronto.'});
-      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,actionsPerRound:room.actionsPerRound,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!,figureId:s.figureId}))});
+      const created=createAlphaGame({gameId:room.id,seed:room.seed,privateSeed:randomBytes(32).toString('hex'),preset:room.preset,worldPreset:room.worldPreset,mapSize:room.mapSize,actionsPerRound:room.actionsPerRound,pace:room.pace,revealMap:room.revealMap,players:room.seats.map(s=>({id:s.playerId,name:s.name,civilization:s.civilization!,figureId:s.figureId}))});
       // Dev-only test scenario (never in production): a legal Contact between the two nearest Pátrias, from the real proximity rule.
       if(process.env.ALPHA_FORCE_CONTACT==='1'&&process.env.NODE_ENV!=='production')forceContactSetup(created);
       room.game=beginAlphaPlanning(created);

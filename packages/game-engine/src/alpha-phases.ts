@@ -250,7 +250,7 @@ function maintainCivilizations(state: AlphaState): void {
       const fed = [...owner.civilization.cities].sort((a, b) => b.population - a.population);
       for (const city of fed) {
         const meta = metas.find(candidate => candidate.cityId === city.id);
-        if (!meta || meta.status === 'OCCUPIED' || !canGrow(meta, city)) continue;
+        if (!meta || meta.status === 'OCCUPIED' || !canGrow(meta, city, state.rules.pace)) continue;
         const cost = growCost(state, city.id);
         if (progress.resources.food < cost) continue;
         alphaDrain(state, owner.id, { ...zero, food: cost }, 'expenses');

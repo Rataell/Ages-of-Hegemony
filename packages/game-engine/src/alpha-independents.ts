@@ -53,7 +53,7 @@ function createIndependentCity(state: AlphaState, actor: PlayerId, people: Peopl
   const identity = state.players.find(player => player.playerId === actor)?.civilization ?? `native-${actor}`;
   state.cities.push({
     cityId, originalOwnerId: actor, currentOwnerId: actor, nativeIdentity: people.id, status: 'OWNED', integration: 100,
-    mood: peaceful ? 3 : 1, level: cityLevelForPopulation(population), capital: owner.civilization.capitalCityId === cityId,
+    mood: peaceful ? 3 : 1, level: cityLevelForPopulation(population, state.rules.pace), capital: owner.civilization.capitalCityId === cityId,
     districts: [], buildings: [], fortification: { level: 'NONE', state: 'INTACT' }, foreignPresence: [],
     localCohesion: peaceful ? 60 : 30, culturalAnchor: identity, urbanActionsUsed: 0, allocationRound: 0, portBlockedUntil: 0, portBlockedBy: null, revoltEmergencyRound: null,
   });

@@ -77,11 +77,22 @@ export const MoodStateSchema = z.enum(['REVOLTING', 'DESPONDENT', 'RESTLESS', 'S
 export const CityLevelSchema = z.enum(['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS']);
 export type CityLevel = z.infer<typeof CityLevelSchema>;
 /**
- * Level a population supports on the V5.1a ladder (2/4/6/8/11/14/18). Kept for callers that still size a city by its people;
+ * The pace of a match's city ladder. STANDARD is the V5.1a ladder (2/4/6/8/11/14/18 inhabitants). ACCELERATED is the RC5 experimental pace for short matches, selectable when
+ * the table is created: the capital starts as a Povoado with 4 inhabitants and Agricultura (M1) and every level asks for ~15% fewer inhabitants (M4: 2/3/5/7/9/12/15). Only the
+ * population minimums change; capacity, slots, costs and advances are the same. A rules object without the field is STANDARD.
+ */
+export const CityPaceSchema = z.enum(['STANDARD', 'ACCELERATED']);
+export type CityPace = z.infer<typeof CityPaceSchema>;
+export const STANDARD_CITY_THRESHOLDS: readonly number[] = [2, 4, 6, 8, 11, 14, 18];
+/** M4: each level asks 85% of the standard minimum (rounded), never less than the previous level + 1. */
+const ACCELERATED_CITY_THRESHOLDS: readonly number[] = STANDARD_CITY_THRESHOLDS.reduce<number[]>((list, minimum, index) => { list.push(index === 0 ? minimum : Math.max(list[index - 1]! + 1, Math.round(minimum * 0.85))); return list; }, []);
+export const cityThresholds = (pace: CityPace = 'STANDARD'): readonly number[] => pace === 'ACCELERATED' ? ACCELERATED_CITY_THRESHOLDS : STANDARD_CITY_THRESHOLDS;
+/**
+ * Level a population supports on the city ladder of the match's pace. Kept for callers that still size a city by its people;
  * the built level itself rises only through Elevar (alpha-city-ladder.ts).
  */
-export function cityLevelForPopulation(population: number): CityLevel {
-  const thresholds = [2, 4, 6, 8, 11, 14, 18];
+export function cityLevelForPopulation(population: number, pace: CityPace = 'STANDARD'): CityLevel {
+  const thresholds = cityThresholds(pace);
   let index = 0;
   for (let step = 0; step < thresholds.length; step++) if (population >= thresholds[step]!) index = step;
   return CityLevelSchema.options[index]!;

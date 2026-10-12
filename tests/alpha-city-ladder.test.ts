@@ -16,7 +16,7 @@ describe('city ladder (canon V5.1a §4)', () => {
     expect(CITY_LADDER.map(step => step.supplyReach)).toEqual([2, 2, 3, 3, 4, 4, 5]);
   });
   it("caps population at the next level's minimum (I-37), 20 for the Imperial Metropolis", () => {
-    expect(CityLevelSchema.options.map(populationCeiling)).toEqual([4, 6, 8, 11, 14, 18, 20]);
+    expect(CityLevelSchema.options.map(level => populationCeiling(level))).toEqual([4, 6, 8, 11, 14, 18, 20]);
   });
   it('never drops the built level but operates at the level the population supports', () => {
     expect(levelSupportedByPopulation(7)).toBe('VILLAGE');

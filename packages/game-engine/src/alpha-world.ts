@@ -1,5 +1,6 @@
 import { liftLegacyCityCaps } from './alpha-turn.js';
-import { layoutBoard, HOME_SLOTS, MAP_FOOTPRINT, featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type AlphaState, type AlphaUnit, type AlphaRules, type MapPreset, type MapSize, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
+import { replaceCity } from './alpha-city.js';
+import { layoutBoard, HOME_SLOTS, MAP_FOOTPRINT, featureFits, REGION_TEMPLATES, leaderStateFor, rotatedRegionContent, CIVILIZATIONS, HexIdSchema, PlayerIdSchema, AlphaStateSchema, alphaRules, type CityPace, type AlphaState, type AlphaUnit, type AlphaRules, type MapPreset, type MapSize, type PlayerId, type StrategicOrder, type TerrainFeature, type TerrainType } from '@aoh/game-domain';
 import { createGame } from './engine.js';
 import { presetTerrain, worldShape } from './alpha-presets.js';
 import { isLandTerrain, isNavigableTerrain } from './alpha-water.js';
@@ -13,7 +14,7 @@ import { alphaGainLegacy } from './alpha-resources.js';
 import { applyDiscovery, generateDiscoveries } from './alpha-discoveries.js';
 import { spawnThreat, threatIntent } from './alpha-threats.js';
 
-export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string;figureId?:string|null|undefined}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;mapSize?:MapSize;actionsPerRound?:number;revealMap?:boolean;startingPioneers?:number}):AlphaState {
+export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:string;players:{id:string;name:string;civilization?:string;figureId?:string|null|undefined}[];preset:AlphaRules['preset'];worldPreset?:MapPreset;mapSize?:MapSize;actionsPerRound?:number;revealMap?:boolean;startingPioneers?:number;pace?:CityPace}):AlphaState {
   if(input.privateSeed!==undefined&&!/^[a-f0-9]{64}$/.test(input.privateSeed))throw new Error('Invalid private alpha seed');
   const random:Pick<AlphaState,'privateRng'>={privateRng:{algorithm:'hmac-sha256-counter-v1',seed:input.privateSeed?combineAlphaSeed(input.seed,input.privateSeed):deterministicAlphaSeed(input.seed,input.gameId),counter:0}};
   const mapSizeIn:MapSize=input.mapSize??'STANDARD';
@@ -58,7 +59,7 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
     initialCities:input.players.map((p,i)=>({id:`capital-${i+1}`,ownerId:p.id,name:(CIVILIZATIONS.find(civ=>civ.id===p.civilization)??CIVILIZATIONS[i]!).capital,hexId:capitalSites[i]!,workers:{producers:1,artisans:0,merchants:0,scholars:1,soldiers:0,unassigned:0}}))});
   if(!created.ok)throw new Error(created.error.message);
   const migrated=migrateSnapshotV3ToV4(created.value);if(!migrated.ok)throw new Error(migrated.error.message);
-  const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED',input.actionsPerRound??5);state.rules.revealMap=input.revealMap??false;state.rules.mapSize=mapSize;if(input.startingPioneers!==undefined)state.rules.startingPioneers=input.startingPioneers;state.rulesVersion='v5.1b';liftLegacyCityCaps(state);state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
+  const state=migrated.value;state.rules=alphaRules(input.preset,input.worldPreset??'MIXED',input.actionsPerRound??5,input.pace??'STANDARD');state.rules.revealMap=input.revealMap??false;state.rules.mapSize=mapSize;if(input.startingPioneers!==undefined)state.rules.startingPioneers=input.startingPioneers;state.rulesVersion='v5.1b';liftLegacyCityCaps(state);state.regions=regions;state.privateRng=random.privateRng;state.telemetry.preset=state.rules.worldPreset;
   // Every civilization starts with `startingPioneers` Pioneiros: one can scout while another founds, so first contact does not wait on recruitment.
   state.players.forEach((p,i)=>{p.civilization=input.players[i]!.civilization??CIVILIZATIONS[i]!.id;p.leader=leaderStateFor(p.civilization,input.players[i]!.figureId);if(p.leader===null)throw new Error('Figura inválida para esta civilização.');const center=state.core.players[i]!.civilization.cities[0]!.hexId;for(let k=0;k<state.rules.startingPioneers;k++)state.units.push({id:`pioneer-${i+1}-${k+1}`,ownerId:p.playerId,kind:'PIONEER',hexId:center,recruitedRound:1});const city=state.cities.find(city=>city.currentOwnerId===p.playerId)!;city.nativeIdentity=p.civilization;});
   const occupied=new Set(state.core.players.flatMap(player=>player.civilization.cities.map(city=>city.hexId)));
@@ -73,7 +74,21 @@ export function createAlphaGame(input:{gameId:string;seed:number;privateSeed?:st
   state.independents=peoples.map((tile,index)=>({id:`independent-${index+1}`,hexId:tile.id,type:(['VILLAGE','TOWN','CITY_STATE'] as const)[index]!,attitude:'NEUTRAL',influenceByPlayer:{},protectorId:null,integratedBy:null}));
   // The two opening Acampamentos obey the same site rule as every later one (canon §21b: unclaimed, 3–5 hexes from a city, out of sight), not "as far as possible" (E-2).
   state.threats=[];for(let index=0;index<2;index++)spawnThreat(state,'CAMP');state.threats.forEach(threat=>{threat.fresh=false;});state.telemetry.threatsSpawned=0;
-  applyCivilizationHeritage(state);initializeAlphaCards(state);generateDiscoveries(state);refreshKnowledge(state);return AlphaStateSchema.parse(state);
+  applyCivilizationHeritage(state);if(state.rules.pace==='ACCELERATED')applyAcceleratedStart(state);initializeAlphaCards(state);generateDiscoveries(state);refreshKnowledge(state);return AlphaStateSchema.parse(state);
+}
+/**
+ * RC5 experimental pace (M1): every capital starts as a Povoado (level 2) with 4 inhabitants (2 Produtores, 2 Eruditos), development 1, and Agricultura already researched.
+ * Stocks, Figura, pieces and every other city are untouched. The M4 half of the pace (fewer inhabitants per level) lives in `cityThresholds`.
+ * The free advance gives no resonance mark and no telemetry count: it is a starting condition, not an Order.
+ */
+function applyAcceleratedStart(state:AlphaState):void {
+  for(const player of state.players)if(!player.research.includes('web-agriculture'))player.research.push('web-agriculture');
+  for(const owner of state.core.players){
+    const capital=owner.civilization.cities[0]!;
+    const meta=state.cities.find(candidate=>candidate.cityId===capital.id);if(!meta)continue;
+    meta.level='HAMLET';
+    replaceCity(state,capital.id,{...capital,population:4,development:1,workers:{producers:2,artisans:0,merchants:0,scholars:2,soldiers:0,unassigned:0}});
+  }
 }
 /**
  * SHARED TABLE (canon 2026-10-05): the board is public, planning is private. A Region is "open" once anyone other than its own seat has

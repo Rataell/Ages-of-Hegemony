@@ -131,13 +131,9 @@ function applyVariant(state, variant, D = null) {
     scalePool(t.foundingCost, 0.6);
     for (const u of Object.values(state.rules.units)) scalePool(u.cost, 0.6);
   }
-  if (['sprint', 'candA'].includes(variant) && D) {
-    // The tables are shared by the engine and the policies in this process only; each match runs in its own child process, so nothing leaks.
-    let previous = D.CITY_LADDER[0].minPopulation;
-    const factor = variant === 'candA' ? 0.85 : 0.75, round = variant === 'candA' ? Math.round : Math.ceil;
-    for (const step of D.CITY_LADDER.slice(1)) { step.minPopulation = Math.max(previous + 1, round(step.minPopulation * factor)); previous = step.minPopulation; }
-    for (const entry of D.ELEVATE_TABLE) entry.minPopulation = D.ladderStep(entry.to).minPopulation;
-  }
+  // RC5: the accelerated ladder is a per-match rule (state.rules.pace), no longer a mutation of the shared tables. 'candA' = M1 (below) + M4 15% = ACCELERATED; the old 25% 'sprint' variant was only a measurement and is gone.
+  if (variant === 'sprint') throw new Error("variant 'sprint' was removed in RC5 (the ladder is per match now); use candA");
+  if (variant === 'candA') state.rules.pace = 'ACCELERATED';
   if (variant === 'stock150') for (const p of state.players) for (const k of Object.keys(p.resources)) p.resources[k] = up(p.resources[k], 1.5);
   if (variant === 'startvillage') {
     for (const p of state.players) for (const id of ['web-agriculture', 'web-masonry']) if (!p.research.includes(id)) p.research.push(id);

@@ -65,7 +65,7 @@ export function applyOps(state: AlphaState, actor: PlayerId, ops: readonly Reper
       for (let i = 0; i < op.n; i++) {
         const city = owner.civilization.cities.find(item => item.id === owner.civilization.capitalCityId) ?? owner.civilization.cities[0];
         const meta = city && state.cities.find(item => item.cityId === city.id);
-        if (city && meta && canGrow(meta, city)) replaceCity(state, city.id, { ...city, population: city.population + 1, workers: { ...city.workers, unassigned: city.workers.unassigned + 1 } });
+        if (city && meta && canGrow(meta, city, state.rules.pace)) replaceCity(state, city.id, { ...city, population: city.population + 1, workers: { ...city.workers, unassigned: city.workers.unassigned + 1 } });
         else alphaGain(state, actor, { food: 2 });
       }
     } else applyThreatCommand(state, actor, op);

@@ -11,6 +11,12 @@ export const WORLD_OPTIONS: readonly (readonly [string, string, string])[] = [
 export const PLANNING_OPTIONS: readonly (readonly [number, string])[] = [[0, 'Sem prazo'], [180, '3 minutos'], [300, '5 minutos'], [480, '8 minutos'], [3600, '1 hora'], [14400, '4 horas'], [28800, '8 horas']];
 /** Match length: value, name, rhythm. */
 export const PRESET_OPTIONS: readonly (readonly [string, string, string])[] = [['QUICK', 'Rápida', '7 Eras × 3 rodadas'], ['STANDARD', 'Padrão', '7 Eras × 5 rodadas'], ['EPIC', 'Épica', '7 Eras × 7 rodadas']];
+/** City pace of a short match (RC5, experimental): value, name, what changes. Only offered with the Rápida (21 rounds) duration. */
+export const PACE_OPTIONS: readonly (readonly [string, string, string])[] = [
+  ['STANDARD', 'Padrão (ritmo anterior)', 'Capital Posto de 2 habitantes; Elevar pede 4, 6, 8, 11, 14 e 18 habitantes.'],
+  ['ACCELERATED', 'Acelerado (experimental)', 'Capital já Povoado com 4 habitantes e Agricultura; Elevar pede 3, 5, 7, 9, 12 e 15 habitantes.'],
+];
+export const paceName = (value: string) => PACE_OPTIONS.find(([v]) => v === value)?.[1] ?? value;
 export const ORDER_OPTIONS: readonly number[] = [3, 4, 5, 6];
 export const MAP_SIZES: readonly MapSize[] = ['COMPACT', 'STANDARD', 'WIDE'];
 

@@ -109,7 +109,7 @@ export function reportFromRun(run, { tag = '', engine = 'sim' } = {}) {
     schemaVersion: MATCH_REPORT_SCHEMA_VERSION, kind: 'MatchReportV1', reportId: `${meta.variant}:${meta.policy}:${meta.profile}:p${meta.players}:s${meta.seed}:${fingerprint.slice(0, 6)}`,
     origin: 'IMPORTED_RUN', generator: { id: 'match-report-1', source: 'RUN_ROWS' },
     match: {
-      gameId: `sim-${meta.variant}-${meta.policy}-${meta.profile}-p${meta.players}-s${meta.seed}`, seed: meta.seed, worldPreset: 'MIXED', mapSize: null, preset: meta.preset,
+      gameId: `sim-${meta.variant}-${meta.policy}-${meta.profile}-p${meta.players}-s${meta.seed}`, seed: meta.seed, worldPreset: 'MIXED', mapSize: null, preset: meta.preset, pace: ['starthamlet', 'candA'].includes(meta.variant) ? (meta.variant === 'candA' ? 'ACCELERATED' : 'M1_ONLY') : 'STANDARD',
       roundLimit: meta.roundLimit, roundsPerEra: meta.roundsPerEra, actionsPerRound: meta.actionsPerRound, players: seats.length, roundsPlayed: winner.round,
       endReason: winner.reason, finishedAt: null, version: { content: null, rules: 'v5.1b', engine, app: null }, economyFingerprint: fingerprint, configKey,
     },

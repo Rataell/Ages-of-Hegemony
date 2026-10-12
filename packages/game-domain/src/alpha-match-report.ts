@@ -42,6 +42,8 @@ export const MatchReportV1Schema = z.strictObject({
   match: z.strictObject({
     gameId: z.string().min(1).max(80),
     seed: N, worldPreset: z.string(), mapSize: z.string().nullable(), preset: z.string(),
+    /** City-ladder pace of the match (RC5): STANDARD or the experimental ACCELERATED pace. A different pace is a different economy (it is part of the fingerprint). Reports without it read STANDARD. */
+    pace: z.string().default('STANDARD'),
     roundLimit: N, roundsPerEra: N, actionsPerRound: N, players: N,
     roundsPlayed: N,
     endReason: z.enum(['HEGEMONY', 'ROUND_LIMIT', 'OTHER']),
@@ -171,7 +173,7 @@ export function matchReportRows(report: MatchReportV1): Record<string, string | 
       attacks: fight?.attacks ?? null, attackWins: fight?.attackWins ?? null, assaultsSuffered: fight?.assaultsSuffered ?? null,
       foodShortageRounds: eco?.shortage.foodRounds ?? null, revoltRounds: eco?.mood.revoltRounds ?? null,
       finalWealth: last(eco?.stock.wealth), finalKnowledge: last(eco?.stock.knowledge), finalCulture: last(eco?.stock.culture),
-      players: report.match.players, roundsPlayed: report.match.roundsPlayed, endReason: report.match.endReason, economyFingerprint: report.match.economyFingerprint,
+      players: report.match.players, pace: report.match.pace, roundsPlayed: report.match.roundsPlayed, endReason: report.match.endReason, economyFingerprint: report.match.economyFingerprint,
     };
   });
 }
@@ -190,7 +192,7 @@ export function matchReportToMarkdown(report: MatchReportV1): string {
   const m = report.match, seatLabel = (seat: string) => { const s = report.seats.find(entry => entry.seat === seat); return `${seat}${s?.civilization ? ` (${s.civilization}${s.kind === 'BOT' ? ', bot' : ''})` : ''}`; };
   const lines = [
     `# Crônica da partida ${m.gameId}`, '',
-    `${m.endReason === 'HEGEMONY' ? `Hegemonia consolidada na rodada ${m.roundsPlayed}` : `Maior Prestígio ao fim de ${m.roundsPlayed} rodadas`} · ${m.players} civilizações · semente ${m.seed} · mundo ${m.worldPreset}${m.mapSize ? `, mapa ${m.mapSize}` : ''} · economia ${m.economyFingerprint} · origem ${report.origin}.`, '',
+    `${m.endReason === 'HEGEMONY' ? `Hegemonia consolidada na rodada ${m.roundsPlayed}` : `Maior Prestígio ao fim de ${m.roundsPlayed} rodadas`} · ${m.players} civilizações${m.pace === 'ACCELERATED' ? ' · ritmo acelerado (experimental)' : ''} · semente ${m.seed} · mundo ${m.worldPreset}${m.mapSize ? `, mapa ${m.mapSize}` : ''} · economia ${m.economyFingerprint} · origem ${report.origin}.`, '',
     `**Vencedor: ${seatLabel(report.result.winner)}.**`, '',
     '## Ranking', md(report.result.ranking.map(r => [r.rank, seatLabel(r.seat), r.prestige, r.researched, r.population, r.wealth, r.decidedBy ? DECIDED_PT[r.decidedBy] ?? r.decidedBy : '–']), ['#', 'Civilização', 'Prestígio', 'Pesquisas', 'População', 'Riqueza', 'Desempate']), '',
     '## De onde veio o Prestígio', md(report.result.prestige.map(p => [seatLabel(p.seat), p.milestones, p.ambitions, p.works, p.explored, p.other, p.total]), ['Civilização', 'Marcos ★', 'Ambições', 'Obras', 'Regiões', 'Outras fontes', 'Total']), '',

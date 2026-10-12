@@ -47,11 +47,11 @@ export function growthForecast(state: AlphaState, actor: PlayerId): GrowthForeca
   let surplus = shortage ? 0 : stock - foodEaten;
   const cities = [...owner.civilization.cities].sort((a, b) => b.population - a.population).map(city => {
     const pair = cityPair(state, city.id);
-    const capped = !pair || !canGrow(pair.meta, city);
+    const capped = !pair || !canGrow(pair.meta, city, state.rules.pace);
     const cost = growCost(state, city.id);
     const willGrow = !shortage && !capped && producing.has(city.id) && surplus >= cost;
     if (willGrow) surplus -= cost;
-    return { cityId: city.id, population: city.population, ceiling: pair ? pair.meta && canGrow(pair.meta, city) ? cityCeiling(state, city.id) : city.population : city.population, producedFood: produced.get(city.id) ?? 0, eats: citySustenance(city.population), growCost: cost, capped, willGrow };
+    return { cityId: city.id, population: city.population, ceiling: pair ? pair.meta && canGrow(pair.meta, city, state.rules.pace) ? cityCeiling(state, city.id) : city.population : city.population, producedFood: produced.get(city.id) ?? 0, eats: citySustenance(city.population), growCost: cost, capped, willGrow };
   });
   return { foodProduced, foodEaten, shortage, surplus: shortage ? 0 : stock - foodEaten, cities };
 }
@@ -59,7 +59,7 @@ function cityCeiling(state: AlphaState, cityId: string): number {
   const pair = cityPair(state, cityId);
   if (!pair) return 0;
   // Imported lazily to keep the forecast's dependencies on the ladder in one place.
-  return ceilingOf(pair.meta.level);
+  return ceilingOf(pair.meta.level, state.rules.pace);
 }
 import { populationCeiling } from '@aoh/game-domain';
 const ceilingOf = populationCeiling;

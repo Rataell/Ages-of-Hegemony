@@ -28,7 +28,7 @@ export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,
   if(!founded.ok)throw new Error(FOUNDING_REFUSALS[founded.error.code]?.(state.core.config.territory.minimumCityDistance)??founded.error.message);
   state.units=state.units.filter(u=>u.id!==unitId);
   const newCity=player.civilization.cities.find(c=>c.hexId===tile.id)!;
-  state.cities.push({cityId:newCity.id,originalOwnerId:actor,currentOwnerId:actor,nativeIdentity:state.players.find(p=>p.playerId===actor)!.civilization??`native-${actor}`,status:'OWNED',integration:100,mood:4,level:cityLevelForPopulation(newCity.population),capital:player.civilization.capitalCityId===newCity.id,districts:newCity.districts.map(d=>d.type),buildings:[],fortification:{level:'NONE',state:'INTACT'},foreignPresence:[],localCohesion:50,culturalAnchor:null,urbanActionsUsed:0,allocationRound:0,portBlockedUntil:0,portBlockedBy:null,revoltEmergencyRound:null});
+  state.cities.push({cityId:newCity.id,originalOwnerId:actor,currentOwnerId:actor,nativeIdentity:state.players.find(p=>p.playerId===actor)!.civilization??`native-${actor}`,status:'OWNED',integration:100,mood:4,level:cityLevelForPopulation(newCity.population,state.rules.pace),capital:player.civilization.capitalCityId===newCity.id,districts:newCity.districts.map(d=>d.type),buildings:[],fortification:{level:'NONE',state:'INTACT'},foreignPresence:[],localCohesion:50,culturalAnchor:null,urbanActionsUsed:0,allocationRound:0,portBlockedUntil:0,portBlockedBy:null,revoltEmergencyRound:null});
   state.core.version++;state.core.eventLog.push(founded.value);state.telemetry.citiesFounded++;
   player.civilization=refreshAdministration(player.civilization,state.core.config,state.core.map);
 }

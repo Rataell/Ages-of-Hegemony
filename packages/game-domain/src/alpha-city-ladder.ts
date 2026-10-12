@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AlphaBuildingSchema, AlphaDistrictSchema, AlphaEraSchema, AlphaResourcePoolSchema, CityLevelSchema, emptyAlphaResourcePool, type AlphaResourcePool, type CityLevel } from './alpha-concept.js';
+import { AlphaBuildingSchema, AlphaDistrictSchema, AlphaEraSchema, AlphaResourcePoolSchema, CityLevelSchema, cityThresholds, emptyAlphaResourcePool, type AlphaResourcePool, type CityLevel, type CityPace } from './alpha-concept.js';
 
 /**
  * The city ladder of V5.1a (canon §4). A city has a BUILT level, raised only by Elevar, and a population. Capacity is the power
@@ -23,23 +23,25 @@ export const levelIndex = (level: CityLevel): number => CityLevelSchema.options.
 export const ladderStep = (level: CityLevel): CityLadderStep => CITY_LADDER[levelIndex(level)]!;
 export const nextLevel = (level: CityLevel): CityLevel | null => CityLevelSchema.options[levelIndex(level) + 1] ?? null;
 /** Highest level whose minimum population the city still has (never below Posto). */
-export function levelSupportedByPopulation(population: number): CityLevel {
+export function levelSupportedByPopulation(population: number, pace: CityPace = 'STANDARD'): CityLevel {
   let supported: CityLevel = 'OUTPOST';
-  for (const step of CITY_LADDER) if (population >= step.minPopulation) supported = step.level;
+  cityThresholds(pace).forEach((minimum, index) => { if (population >= minimum) supported = CITY_LADDER[index]!.level; });
   return supported;
 }
+/** Minimum population of a level in the pace of the match (the ladder table holds the STANDARD one). */
+export const minPopulationOf = (level: CityLevel, pace: CityPace = 'STANDARD'): number => cityThresholds(pace)[levelIndex(level)]!;
 /**
  * Habitants a city of this built level can hold before it must Elevar. I-37: the ceiling is the next level's minimum (a Posto
  * grows to 4 and waits for Elevar); the canon's "minimum − 1" made Elevar unreachable.
  */
-export function populationCeiling(level: CityLevel): number {
+export function populationCeiling(level: CityLevel, pace: CityPace = 'STANDARD'): number {
   const next = nextLevel(level);
-  return next ? ladderStep(next).minPopulation : IMPERIAL_POPULATION_CEILING;
+  return next ? minPopulationOf(next, pace) : IMPERIAL_POPULATION_CEILING;
 }
 /** Effective level = the lower of the built level and the level the population supports; the built level never drops by itself. */
-export const effectiveLevel = (built: CityLevel, population: number): CityLevel =>
-  levelIndex(built) <= levelIndex(levelSupportedByPopulation(population)) ? built : levelSupportedByPopulation(population);
-export const effectiveCapacity = (built: CityLevel, population: number): number => ladderStep(effectiveLevel(built, population)).capacity;
+export const effectiveLevel = (built: CityLevel, population: number, pace: CityPace = 'STANDARD'): CityLevel =>
+  levelIndex(built) <= levelIndex(levelSupportedByPopulation(population, pace)) ? built : levelSupportedByPopulation(population, pace);
+export const effectiveCapacity = (built: CityLevel, population: number, pace: CityPace = 'STANDARD'): number => ladderStep(effectiveLevel(built, population, pace)).capacity;
 /** `1 + ceil(N / 2)` written out so the table and the formula can never disagree. */
 export const supplyReach = (level: CityLevel): number => 1 + Math.ceil((levelIndex(level) + 1) / 2);
 
@@ -61,7 +63,8 @@ export const ELEVATE_TABLE: readonly ElevateRequirement[] = [
   { to: 'METROPOLIS', minPopulation: 14, cost: cost({ wood: 8, stone: 6, wealth: 5, knowledge: 3 }), advances: ['web-sanitation'], era: 'EMPIRES' },
   { to: 'IMPERIAL_METROPOLIS', minPopulation: 18, cost: cost({ wood: 10, stone: 8, wealth: 8, knowledge: 4 }), advances: ['web-sanitation', 'web-world-metropolises'], era: 'ASCENSION' },
 ].map(entry => ElevateRequirementSchema.parse(entry));
-export const elevateRequirement = (to: CityLevel): ElevateRequirement | null => ELEVATE_TABLE.find(entry => entry.to === to) ?? null;
+/** The Elevar requirement of a level; its population minimum follows the pace of the match (cost, advances and Era never change). */
+export const elevateRequirement = (to: CityLevel, pace: CityPace = 'STANDARD'): ElevateRequirement | null => { const entry = ELEVATE_TABLE.find(candidate => candidate.to === to); return entry ? (pace === 'STANDARD' ? entry : { ...entry, minPopulation: minPopulationOf(to, pace) }) : null; };
 
 /**
  * Districts (canon §5): one slot each, a family of buildings, the Web advance that opens it. Coastal only for the Marítimo.

@@ -43,7 +43,7 @@ export function shortHash(text: string): string {
 /** Everything that changes the economy or the balance of a match. Two reports with different fingerprints must never be pooled silently. */
 export function economyFingerprint(state: AlphaState): string {
   const rules = state.rules;
-  return shortHash(stable({ balance: rules.balance, units: rules.units, hegemony: rules.hegemonyRequirements, combat: rules.combat, move: rules.movementCosts, calendar: [rules.preset, rules.roundLimit, rules.roundsPerEra, rules.actionsPerRound, rules.handLimit, rules.unitLimit], integration: rules.integrationCost, rulesVersion: state.rulesVersion }));
+  return shortHash(stable({ balance: rules.balance, units: rules.units, hegemony: rules.hegemonyRequirements, combat: rules.combat, move: rules.movementCosts, calendar: [rules.preset, rules.roundLimit, rules.roundsPerEra, rules.actionsPerRound, rules.handLimit, rules.unitLimit], integration: rules.integrationCost, rulesVersion: state.rulesVersion, ...(rules.pace !== 'STANDARD' ? { pace: rules.pace } : {}) }));
 }
 
 export function buildMatchReport(state: AlphaState, context: MatchReportContext = {}): MatchReportV1 {
@@ -62,7 +62,7 @@ export function buildMatchReport(state: AlphaState, context: MatchReportContext 
     const player = state.players.find(candidate => candidate.playerId === id)!, meta = seatMeta.get(id);
     return { seat: id, civilization: player.civilization ?? null, leader: player.leader?.leaderId ?? null, kind: meta?.kind ?? 'UNKNOWN' as const, botPersona: meta?.botPersona ?? null, policy: meta?.policy ?? null };
   });
-  const configKey = shortHash(stable({ seed: state.core.seed, world: state.rules.worldPreset, map: state.rules.mapSize, preset: state.rules.preset, seats: seats.map(seat => [seat.seat, seat.civilization, seat.kind, seat.botPersona ?? seat.policy]) }));
+  const configKey = shortHash(stable({ seed: state.core.seed, world: state.rules.worldPreset, map: state.rules.mapSize, preset: state.rules.preset, ...(state.rules.pace !== 'STANDARD' ? { pace: state.rules.pace } : {}), seats: seats.map(seat => [seat.seat, seat.civilization, seat.kind, seat.botPersona ?? seat.policy]) }));
   const fingerprint = economyFingerprint(state);
   if (!context.seats) note('seats.kind', 'UNAVAILABLE', 'The room metadata was not given: human/bot is UNKNOWN (the game state does not record it).');
   if (!context.finishedAt) note('match.finishedAt', 'UNAVAILABLE', 'The final state carries no clock and the caller gave no date.');
@@ -253,7 +253,7 @@ export function buildMatchReport(state: AlphaState, context: MatchReportContext 
     schemaVersion: MATCH_REPORT_SCHEMA_VERSION, kind: 'MatchReportV1', reportId: `${state.gameId}:${winner.round}:${fingerprint.slice(0, 8)}`,
     origin: context.origin ?? 'LIVE', generator: { id: 'match-report-1', source: 'FINAL_STATE' },
     match: {
-      gameId: state.gameId, seed: state.core.seed, worldPreset: state.rules.worldPreset, mapSize: state.rules.mapSize ?? null, preset: state.rules.preset,
+      gameId: state.gameId, seed: state.core.seed, worldPreset: state.rules.worldPreset, mapSize: state.rules.mapSize ?? null, preset: state.rules.preset, pace: state.rules.pace,
       roundLimit: state.rules.roundLimit, roundsPerEra: state.rules.roundsPerEra, actionsPerRound: state.rules.actionsPerRound ?? 5, players: seatIds.length,
       roundsPlayed: winner.round, endReason: winner.reason, finishedAt: context.finishedAt ?? null,
       version: { content: context.contentVersion ?? null, rules: state.rulesVersion, engine: state.alphaVersion, app: context.appVersion ?? null },

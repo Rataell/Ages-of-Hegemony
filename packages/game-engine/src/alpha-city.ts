@@ -1,6 +1,6 @@
 import {
-  ALPHA_RESOURCE_KEYS, effectiveCapacity, effectiveLevel, elevateRequirement, emptyAlphaResourcePool, ladderStep, nextLevel, populationCeiling,
-  type AlphaCity, type AlphaResourcePool, type AlphaState, type CityLevel, type CityState, type PlayerId,
+  ALPHA_RESOURCE_KEYS, effectiveCapacity, effectiveLevel, elevateRequirement, emptyAlphaResourcePool, ladderStep, levelIndex, nextLevel, populationCeiling,
+  type AlphaCity, type AlphaResourcePool, type AlphaState, type CityLevel, type CityPace, type CityState, type PlayerId,
 } from '@aoh/game-domain';
 import { tileYieldBreakdown } from './economy.js';
 import { alphaCanAfford, alphaGain, alphaPay } from './alpha-resources.js';
@@ -29,9 +29,9 @@ export function cityPair(state: AlphaState, cityId: string): { meta: AlphaCity; 
 }
 
 /** Built level, the level the population supports, and the Capacity the city operates with before Ânimo. */
-export function cityLevels(meta: AlphaCity, city: CityState): { built: CityLevel; effective: CityLevel; capacity: number; ceiling: number; degraded: boolean } {
-  const effective = effectiveLevel(meta.level, city.population);
-  return { built: meta.level, effective, capacity: effectiveCapacity(meta.level, city.population), ceiling: populationCeiling(meta.level), degraded: effective !== meta.level };
+export function cityLevels(meta: AlphaCity, city: CityState, pace: CityPace = 'STANDARD'): { built: CityLevel; effective: CityLevel; capacity: number; ceiling: number; degraded: boolean } {
+  const effective = effectiveLevel(meta.level, city.population, pace);
+  return { built: meta.level, effective, capacity: effectiveCapacity(meta.level, city.population, pace), ceiling: populationCeiling(meta.level, pace), degraded: effective !== meta.level };
 }
 
 /**
@@ -41,7 +41,7 @@ export function cityLevels(meta: AlphaCity, city: CityState): { built: CityLevel
 export function operatingCapacity(state: AlphaState, cityId: string): number {
   const pair = cityPair(state, cityId);
   if (!pair) return 0;
-  let capacity = cityLevels(pair.meta, pair.city).capacity;
+  let capacity = cityLevels(pair.meta, pair.city, state.rules.pace).capacity;
   const owner = state.core.players.find(player => player.id === pair.ownerId);
   if (owner && owner.civilization.capitalCityId === cityId) {
     const effects = governmentEffects(state, pair.ownerId);
@@ -135,7 +135,7 @@ export function elevateBlock(state: AlphaState, actor: PlayerId, cityId: string)
   if (!pair || pair.ownerId !== actor) return 'Escolha uma cidade própria.';
   const next = nextLevel(pair.meta.level);
   if (!next) return 'A cidade já é uma Metrópole Imperial.';
-  const requirement = elevateRequirement(next)!;
+  const requirement = elevateRequirement(next, state.rules.pace)!;
   const progress = state.players.find(player => player.playerId === actor)!;
   const eras = ['FOUNDATION', 'EXPANSION', 'CONSOLIDATION', 'CIVILIZATION', 'EMPIRES', 'POWERS', 'ASCENSION'];
   if (pair.city.population < requirement.minPopulation) return `Elevar exige ${requirement.minPopulation} habitantes (a cidade tem ${pair.city.population}).`;
@@ -159,7 +159,8 @@ export function elevateCity(state: AlphaState, actor: PlayerId, cityId: string):
 export function districtSlots(state: AlphaState, cityId: string): number {
   const pair = cityPair(state, cityId);
   if (!pair) return 0;
-  const bonus = hasUnlock(state, pair.ownerId, 'rule:slots-plus-1-village-up') && ladderStep(pair.meta.level).minPopulation >= 6 ? 1 : 0;
+  // Federalização: +1 slot from Vila up. By level, not by the standard population minimum: the accelerated pace lowers that minimum.
+  const bonus = hasUnlock(state, pair.ownerId, 'rule:slots-plus-1-village-up') && levelIndex(pair.meta.level) >= levelIndex('VILLAGE') ? 1 : 0;
   return ladderStep(pair.meta.level).slots + bonus;
 }
 
@@ -198,8 +199,8 @@ export function growCost(state: AlphaState, cityId: string): number {
   if (!pair) return 3;
   return pair.meta.buildings.includes('GRANARY') ? 2 : 3;
 }
-export function canGrow(meta: AlphaCity, city: CityState): boolean {
-  return city.population < populationCeiling(meta.level);
+export function canGrow(meta: AlphaCity, city: CityState, pace: CityPace = 'STANDARD'): boolean {
+  return city.population < populationCeiling(meta.level, pace);
 }
 
 /**

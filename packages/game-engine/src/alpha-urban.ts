@@ -196,7 +196,7 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
     const next = FORTIFICATION_UPGRADES[FORTIFICATION_UPGRADES.indexOf(cityMeta.fortification.level as never) + 1];
     return next ? alphaCostWithMetal(state, actor, balance.fortification[next].cost, balance.fortification[next].metal) : zero;
   }
-  if (action === 'ELEVATE') { const next = nextLevel(cityMeta?.level ?? 'OUTPOST'); return next ? elevateRequirement(next)!.cost : zero; }
+  if (action === 'ELEVATE') { const next = nextLevel(cityMeta?.level ?? 'OUTPOST'); return next ? elevateRequirement(next, state.rules.pace)!.cost : zero; }
   if (action === 'RECRUIT' && params.unit) {
     const price = kitUnitCost(state, actor, params.unit, cityId), one = alphaCostWithMetal(state, actor, price.cost, price.metal), count = params.count ?? 1;
     return Object.fromEntries(ALPHA_RESOURCE_KEYS.map(key => [key, one[key] * count])) as AlphaResourcePool;

@@ -6,7 +6,7 @@ import type { AlphaRoomView } from '@aoh/server/alpha';
 import AlphaBoard from './alpha-board';
 import { ruleMessage } from '../play/presentation';
 import { sendWithRecovery, type Reply } from './send-command';
-import { MAP_SIZES, ORDER_OPTIONS, PLANNING_OPTIONS, PRESET_OPTIONS, WORLD_OPTIONS } from './alpha-options';
+import { MAP_SIZES, ORDER_OPTIONS, PACE_OPTIONS, PLANNING_OPTIONS, PRESET_OPTIONS, WORLD_OPTIONS } from './alpha-options';
 import type { TableEvent } from './alpha-social';
 
 const feedbackUrl=process.env.NEXT_PUBLIC_ALPHA_FEEDBACK_URL||'';
@@ -28,7 +28,7 @@ const Mark=({className}:{className:string})=><svg className={className} viewBox=
 
 export default function AlphaShell(){
   const [room,setRoom]=useState<AlphaRoomView|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  const [name,setName]=useState(''),[title,setTitle]=useState('Mesa dos Horizontes'),[code,setCode]=useState(''),[preset,setPreset]=useState('QUICK'),[count,setCount]=useState(2),[timer,setTimer]=useState(0),[seed,setSeed]=useState(42),[world,setWorld]=useState('MIXED'),[mapSize,setMapSize]=useState<MapSize|''>(''),[actionsPerRound,setActionsPerRound]=useState(5),[revealMap,setRevealMap]=useState(false),[copied,setCopied]=useState<'code'|'link'|null>(null);
+  const [name,setName]=useState(''),[title,setTitle]=useState('Mesa dos Horizontes'),[code,setCode]=useState(''),[preset,setPreset]=useState('QUICK'),[count,setCount]=useState(2),[timer,setTimer]=useState(0),[seed,setSeed]=useState(42),[world,setWorld]=useState('MIXED'),[mapSize,setMapSize]=useState<MapSize|''>(''),[actionsPerRound,setActionsPerRound]=useState(5),[pace,setPace]=useState('STANDARD'),[revealMap,setRevealMap]=useState(false),[copied,setCopied]=useState<'code'|'link'|null>(null);
   const [theme,setTheme]=useState<string|null>(null),[options,setOptions]=useState(false);
   const [info,setInfo]=useState<{accessRequired:boolean;maxSeats:number}>({accessRequired:false,maxSeats:6}),[access,setAccess]=useState(''),[accessKnown,setAccessKnown]=useState(false);
   const [phase,setPhase]=useState<Phase>('boot'),[invite,setInvite]=useState(''),[knownName,setKnownName]=useState(''),[inviteError,setInviteError]=useState<ErrorInfo|null>(null);
@@ -145,7 +145,7 @@ export default function AlphaShell(){
   }
   function create(){
     const size=mapSize&&mapSizeAllows(mapSize,count)?mapSize:undefined;
-    void request({operation:'create',...(info.accessRequired?{accessCode:access}:{}),payload:{name:title,displayName:name,preset,worldPreset:world,...(size?{mapSize:size}:{}),seatLimit:count,seed,planningSeconds:timer,actionsPerRound,revealMap}},failure=>{
+    void request({operation:'create',...(info.accessRequired?{accessCode:access}:{}),payload:{name:title,displayName:name,preset,worldPreset:world,...(size?{mapSize:size}:{}),seatLimit:count,seed,planningSeconds:timer,actionsPerRound,...(preset==='QUICK'&&pace!=='STANDARD'?{pace}:{}),revealMap}},failure=>{
       // A remembered access code that stopped working is forgotten and the field comes back.
       if(failure.code==='ACCESS_CODE'){store.drop(ACCESS_KEY);setAccessKnown(false);setAccess('');}
       return false;
@@ -209,6 +209,7 @@ export default function AlphaShell(){
               <label>Tamanho do mapa<select value={mapSize} onChange={e=>setMapSize(e.target.value as MapSize|'')}><option value="">Automático · {MAP_SIZE_NAMES[recommended]}</option>{MAP_SIZES.map(size=><option key={size} value={size} disabled={!mapSizeAllows(size,count)}>{MAP_SIZE_NAMES[size]}{mapSizeAllows(size,count)?'':' · até 4 jogadores'}</option>)}</select></label></div>
             <small className="alpha-entry-hint">{WORLD_OPTIONS.find(([value])=>value===world)?.[2]}</small>
             <div className="alpha-form-row"><label>Ordens por rodada<select value={actionsPerRound} onChange={e=>setActionsPerRound(Number(e.target.value))}>{ORDER_OPTIONS.map(n=><option key={n} value={n}>{n}</option>)}</select></label><label>Prazo por fase<select value={timer} onChange={e=>setTimer(Number(e.target.value))}>{PLANNING_OPTIONS.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select></label></div>
+            {preset==='QUICK'&&<><label>Ritmo das cidades<select value={pace} onChange={e=>setPace(e.target.value)}>{PACE_OPTIONS.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select></label><small className="alpha-entry-hint">{PACE_OPTIONS.find(([value])=>value===pace)?.[2]}</small></>}
             <div className="alpha-form-row"><label>Semente<input type="number" min={0} max={4294967295} value={seed} onChange={e=>setSeed(Number(e.target.value))}/></label><label className="alpha-check"><input type="checkbox" checked={revealMap} onChange={e=>setRevealMap(e.target.checked)}/> Mapa revelado (teste)</label></div>
           </div>}
           <div className="alpha-entry-actions"><button type="button" className="alpha-options-toggle" aria-expanded={options} aria-controls="alpha-entry-options" onClick={()=>setOptions(o=>!o)}>Opções da mesa</button><button className="primary" disabled={busy||!name.trim()||!title.trim()||(showAccess&&!access.trim())}>Criar partida</button></div>

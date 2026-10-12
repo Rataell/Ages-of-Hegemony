@@ -140,11 +140,14 @@ describe('districts and buildings', () => {
     expect(production(state).sources.find((source) => source.source === 'district')?.delta[resource]).toBe(1);
     expect(production(state).sources.find((source) => source.source === 'building')?.delta[resource]).toBe(1);
   });
+  it('the ADMINISTRATIVE district still raises the civilization administrative capacity by 1 (the Arquivo left that family in RC5)', () => {
+    const before = territorialPlanning(), after = execute(before, { type: 'BUILD_DISTRICT', cityId, district: 'ADMINISTRATIVE' });
+    expect(firstPlayer(after).civilization.administrativeCapacity - firstPlayer(before).civilization.administrativeCapacity).toBe(1);
+  });
   it.each([['AGRARIAN', 'GRANARY', 'growthThreshold', 8], ['ACADEMIC', 'ARCHIVE', 'administrativeCapacity', 1], ['MILITARY', 'BARRACKS', 'garrisonCapacity', 3]] as const)('applies %s and %s infrastructure effects', (district, building, field, expected) => {
     let state = execute(territorialPlanning(), { type: 'BUILD_DISTRICT', cityId, district });
     state = execute(state, { type: 'BUILD_BUILDING', cityId, building });
     expect(infrastructureStats(firstCity(state), state.config)[field]).toBe(expected);
-    if (district === 'ADMINISTRATIVE') expect(firstPlayer(state).civilization.administrativeCapacity).toBe(5);
     if (district === 'MILITARY') {
       expect(firstCity(state).workers.soldiers).toBe(0);
       expect(state.eventLog.slice(-2).map((event) => event.type)).toEqual(['DISTRICT_BUILT', 'BUILDING_BUILT']);

@@ -36,8 +36,14 @@ export function encodeRoom(room:AlphaRoom):AlphaRoom {
   // A room of the V1.1 generation keeps exactly the V1 shape on disk: no content version, no Figura, no map size (it is always the original Padrão).
   const withoutFigure=(seat:typeof parsed.seats[number])=>{const copy:Record<string,unknown>={...seat};delete copy.figureId;return copy as typeof seat;};
   const seats=parsed.seats.map(seat=>legacy?(seat.bot?withoutFigure(seat):{guestId:seat.guestId,playerId:seat.playerId,name:seat.name,civilization:seat.civilization,ready:seat.ready} as typeof seat):seat);
-  if(legacy){const copy:Record<string,unknown>={...parsed,seats};delete copy.contentVersion;delete copy.mapSize;delete copy.report;return copy as AlphaRoom;}
-  return {...parsed,seats};
+  // Reversibility: everything RC5 added is written ONLY when it carries information, so a table that does not use it keeps exactly the RC4 on-disk shape and an RC4 build can still read
+  // it after a rollback (the strict RC4 schemas would reject unknown keys): no `report` until the match is finished, no `pace` at the standard pace (room and rules). The defaults restore them on read.
+  const copy:Record<string,unknown>={...parsed,seats};
+  if(legacy){delete copy.contentVersion;delete copy.mapSize;}
+  if(copy.report===null||legacy)delete copy.report;
+  if(parsed.pace==='STANDARD'){delete copy.pace;}
+  if(parsed.game&&parsed.game.rules.pace==='STANDARD'){const {pace:_pace,...rules}=parsed.game.rules;void _pace;copy.game={...parsed.game,rules};}
+  return copy as AlphaRoom;
 }
 class StaleWrite extends Error {}
 /** A stored payload that no longer parses as the current room is a legacy snapshot that this save is about to migrate. */

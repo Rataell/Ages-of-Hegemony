@@ -13,7 +13,7 @@ import { RegionDiscoverySchema, ThreatSchema, WORLD_ID, threatComposition } from
 import { PendingChoiceSchema, ResonanceStateSchema, advancementDomains, advancementSource, emptyResonance } from './alpha-resonance.js';
 import { DistrictTypeSchema, EconomyBreakdownSchema } from './territory.js';
 import {
-  ALPHA_ERA_MILESTONES, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, LegacyAlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
+  ALPHA_ERA_MILESTONES, CityPaceSchema, FortificationLevelSchema, FortificationStateSchema, AlphaBalanceSchema, AlphaCitySchema, CombatConfigSchema, alphaCombatConfig, AlphaEraMilestoneSchema, AlphaEraSchema, LegacyAlphaEraSchema, AlphaResourcePoolSchema, AlphaRoundPhaseSchema, AlphaTelemetrySchema,
   BattleModifierSchema, BattlePostureSchema, IndependentPeopleSchema, MapPresetSchema, TacticalFaceSchema,
   AlphaBuildingSchema, TradeOfferSchema, UrbanActionTypeSchema, WorldPulseCardSchema, alphaBalance, emptyAlphaResourcePool, legacyToAlphaResources, type AlphaRoundPhase,
 } from './alpha-concept.js';
@@ -37,6 +37,8 @@ export const AlphaRulesSchema = z.strictObject({
   /** Orders per round (canon §1: 5 by default, 3–6 configurable). Matches saved with the old 7-action economy read 6. */
   actionsPerRound: z.preprocess(value => typeof value === 'number' ? Math.min(6, Math.max(3, value)) : value, z.number().int().min(3).max(6).optional()),
   hegemonyHoldRounds: P, handLimit: P, advisorLimit: P, unitLimit: P,
+  /** City-ladder pace of the match (RC5): STANDARD, or the experimental ACCELERATED pace of short matches. Chosen when the table is created and never changed. Saves without it read STANDARD. */
+  pace: CityPaceSchema.default('STANDARD'),
   /** Pioneiros each civilization starts with (canon change 2026-10-05: one civil piece replaces Explorador + Pioneiro). Older saves read 2. */
   startingPioneers: z.number().int().min(1).max(3).default(STARTING_PIONEERS_DEFAULT),
   integrationCost:ResourcePoolSchema,occupationStabilityPenalty:N,
@@ -56,10 +58,10 @@ export const AlphaRulesSchema = z.strictObject({
   combat: CombatConfigSchema,
 });
 export type AlphaRules = z.infer<typeof AlphaRulesSchema>;
-export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED', actionsPerRound = 5): AlphaRules {
+export function alphaRules(preset: z.infer<typeof AlphaPresetSchema> = 'STANDARD', worldPreset: z.infer<typeof MapPresetSchema> = 'MIXED', actionsPerRound = 5, pace: z.infer<typeof CityPaceSchema> = 'STANDARD'): AlphaRules {
   const roundsPerEra = { QUICK: 3, STANDARD: 5, EPIC: 7 }[preset];
   return AlphaRulesSchema.parse({ preset, roundLimit: AlphaEraSchema.options.length * roundsPerEra, roundsPerEra, baseCommandPoints: 4, actionsPerRound,
-    hegemonyHoldRounds: 2, startingPioneers: STARTING_PIONEERS_DEFAULT, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
+    hegemonyHoldRounds: 2, pace, startingPioneers: STARTING_PIONEERS_DEFAULT, handLimit: 5, advisorLimit: 2, unitLimit: 24, planningSeconds: 0,
     integrationCost:{food:0,materials:0,wealth:0,knowledge:0,influence:3},occupationStabilityPenalty:15,
     hegemonyRequirements:{
       MILITARY:[{metric:'strength',minimum:12},{metric:'victories',minimum:2},{metric:'foreignPresence',minimum:2}],

@@ -5,7 +5,7 @@ import type { AlphaRoomView } from '@aoh/server/alpha';
 import { CivilizationCard, FigureCard } from './alpha-card';
 import { sealArt, seatColor } from './table-art';
 import { LeaveGame } from './alpha-leave';
-import { MAP_SIZES, WORLD_OPTIONS, mapSizeChoice, planningName, presetName } from './alpha-options';
+import { MAP_SIZES, WORLD_OPTIONS, mapSizeChoice, paceName, planningName, presetName } from './alpha-options';
 
 /**
  * The lobby (RC 1.2): one fixed-viewport table — seats strip on top, Core 10 civilizations, the three Figuras of the chosen one and the
@@ -126,6 +126,7 @@ function TablePanel({ room, busy, lobby }: { room: AlphaRoomView; busy: boolean;
     <dl className="alpha-lobby-rules">
       <div><dt>Duração</dt><dd>{presetName(room.preset)}</dd></div>
       <div><dt>Ordens por rodada</dt><dd>{room.actionsPerRound}</dd></div>
+      {room.pace!=='STANDARD'&&<div><dt>Ritmo das cidades</dt><dd>{paceName(room.pace)}</dd></div>}
       <div><dt>Prazo por fase</dt><dd>{planningName(room.planningSeconds)}</dd></div>
       <div><dt>Semente</dt><dd>{room.seed}</dd></div>
       {room.revealMap && <div><dt>Mapa</dt><dd>revelado (teste)</dd></div>}
@@ -155,7 +156,7 @@ export function AlphaLobby({ room, busy, lobby, copy, copied, onLeave }: { room:
       <div className="alpha-lobby-title">
         <p className="aoh-eyebrow">PREPARAÇÃO DA MESA</p>
         <h1>{room.name}</h1>
-        <small>{room.seats.length}/{room.seatLimit} pessoas · {presetName(room.preset)} · {room.actionsPerRound} ordens por rodada · {planningName(room.planningSeconds)}</small>
+        <small>{room.seats.length}/{room.seatLimit} pessoas · {presetName(room.preset)}{room.pace!=='STANDARD'?' · ritmo acelerado':''} · {room.actionsPerRound} ordens por rodada · {planningName(room.planningSeconds)}</small>
       </div>
       <div className="alpha-invite" role="group" aria-label="Convite">
         <span className="alpha-invite-label">Convite</span>
