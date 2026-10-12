@@ -15,7 +15,7 @@
   const vis = (c, r, f) => !fog || own(f).some(p => g.dist(p, [c, r]) <= 3);
   function render() {
     const e = (c, r) => g.xy(c, r);
-    let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Ciclo do Bando, quadro ${f + 1} de 6"><defs>${arrowDefs('arC', '#e0724f')}${arrowDefs('arW', '#9db0b3')}</defs>${mapBase(g, (c, r) => !vis(c, r, f))}`;
+    let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Ciclo do Bando, quadro ${f + 1} de 6"><defs>${arrowDefs('arC', '#e0724f')}${arrowDefs('arW', '#9db0b3')}</defs>${mapBase(g, (c, r) => !vis(c, r, f), null, new Set([CITY, ARMY0, CAMP, [5, 1], [5, 2], [4, 1], [7, 4]].map(q => q.join(','))))}`;
     let [x, y] = e(...CITY);
     s += cityArt(x, y, 3, '#60a3e9', 'Mikena', f >= 2 && f <= 4 ? 3 : 4, { R: g.S });
     if (f >= 2 && f <= 4) s += `<g transform="translate(${f1(x + 26)} ${f1(y - 24)})"><rect x="-22" y="-8" width="44" height="16" rx="8" fill="#0f181c" stroke="#e58a74" stroke-width="1.3"/><text text-anchor="middle" y="4" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="10" fill="#f0b8a8">Ânimo −1</text></g>`;
@@ -53,7 +53,7 @@
   let who = 'band', old = false;
   const T = c => TER[g.t(...c)].n;
   function render() {
-    let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Travessia legal e ilegal"><defs>${arrowDefs('okC', '#7fc79a')}${arrowDefs('noC', '#e58a74')}</defs>${mapBase(g)}`;
+    let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Travessia legal e ilegal"><defs>${arrowDefs('okC', '#7fc79a')}${arrowDefs('noC', '#e58a74')}</defs>${mapBase(g, null, null, new Set(['7,1', '0,1', '5,1', '4,2', '3,0']))}`;
     let [x, y] = g.xy(7, 1); s += cityArt(x, y, 2, '#60a3e9', 'Tirinto', 4, { R: g.S });
     let msg, rows;
     if (who === 'band') {

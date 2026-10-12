@@ -13,6 +13,7 @@ $('#decisoes').innerHTML = [
   const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
   const OWN = '#60a3e9';
   const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
+  const OCC = new Set(['3,3', '6,5', '4,3', '4,2', '1,3', '7,0', '6,1', '1,5', '8,3']);
   const ROADS = ['4,3', '5,3', '5,4', '6,4'], CITYC = [[3, 3], [6, 5]];
   const sight = Object.values(own);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
@@ -29,7 +30,7 @@ $('#decisoes').innerHTML = [
   };
   const hit = (k, x, y, label) => `<g class="ent" data-k="${k}" tabindex="0" role="button" aria-label="${esc(label)}" style="cursor:pointer"><circle cx="${f1(x)}" cy="${f1(y)}" r="27" fill="transparent"/></g>`;
   function map(sel, hexSel) {
-    let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET)}${roadLayer(g, ROADS, CITYC, DET)}`;
+    let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET, OCC)}${roadLayer(g, ROADS, CITYC, DET, OCC)}`;
     const P = k => g.xy(...own[k] || k);
     // trilha do Bando (intenção conhecida)
     s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 });
@@ -108,7 +109,7 @@ $('#decisoes').innerHTML = [
   function selReach() { if (!st.sel.length) return null; const o = U[st.sel[0]].cell; return { o, ...g.reach(o, budget(st.sel) + (st.bonus ? 0 : 2)) }; }
   function draw() {
     const R = selReach();
-    let s = `<svg viewBox="${viewBox(g, 10)}" role="img" aria-label="Mapa de movimento coordenado"><defs>${COLORS.map((c, i) => arrowDefs('arB' + i, c)).join('')}</defs>${mapBase(g)}`;
+    let s = `<svg viewBox="${viewBox(g, 10)}" role="img" aria-label="Mapa de movimento coordenado"><defs>${COLORS.map((c, i) => arrowDefs('arB' + i, c)).join('')}</defs>${mapBase(g, null, null, new Set([...Object.values(U).map(u => key(u.cell)), ...st.legs.map(l => key(l.dest))]))}`;
     if (R) {
       const b = budget(st.sel), bb = base(st.sel);
       for (const k of Object.keys(R.cost)) {

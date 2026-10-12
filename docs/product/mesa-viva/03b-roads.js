@@ -1,6 +1,6 @@
 /* ===== Estradas em rede (BUILD_ROAD: 1 Material por hex, 1 Ordem de cidade; custo de movimento 1 para peças terrestres) ===== */
 (function roadsDemo() {
-  const g = new Grid(['ppffhhmpp', 'ppppffhpp', 'pcccppphp', 'pppfpppcp', 'sppppfppp'], 40);
+  const g = new Grid(['ppffhhmpp', 'ppppffhpp', 'pccchhphp', 'pppfffpcp', 'sppppfppp'], 40);
   const A = [1, 1], B = [6, 3], det = { '4,2': { feat: ['RIVER'] } };
   let roads = new Set(['2,1', '3,2', '4,2', '5,2', '5,3']);
   const cityKeys = new Set([A.join(','), B.join(',')]);

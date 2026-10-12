@@ -37,7 +37,8 @@ const TERR_EXTRA = {
   c: () => [[-16, 0], [14, 6], [4, -10]].map(([x, y]) => `<path d="M${x},${y} v-8 M${x - 2},${y - 3} l2,-5 l2,5" stroke="#5d8a52" stroke-width="1.6" fill="none" stroke-linecap="round"/>`).join('') + [[-6, 6], [10, -2], [-22, 8]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="3.4" ry="1.6" fill="#f0e6bd" opacity=".9"/>`).join(''),
   s: () => `<path d="M-30,6 q6,-6 12,0 t12,0 t12,0 t12,0" stroke="#4e86a6" stroke-width="1.6" fill="none" opacity=".8"/>`,
 };
-function hexArt(g, c, r, t, fog = false, det) {
+/* Hierarquia visual: peça, cidade e ameaça são a ilustração prioritária. O terreno é fundo: em hex ocupado o relevo esmaece e recurso/melhoria viram um selo no canto. */
+function hexArt(g, c, r, t, fog = false, det, occ = false) {
   let d = hexArtBase(g, c, r, t, false);
   if (t !== '?' && (TERR_EXTRA[t] || det)) {
     const [x, y] = g.xy(c, r), u = g.S / 40 * TERR_SCALE;
@@ -46,10 +47,11 @@ function hexArt(g, c, r, t, fog = false, det) {
       if (det.imp && IMP_ART[det.imp]) detail += IMP_ART[det.imp]();
       if (!det.imp) (det.feat || []).forEach(f => { if (FEAT_ART[f]) detail += FEAT_ART[f](); });
     }
-    /* O relevo fica no fundo; recurso e melhoria ficam menores e deslocados para cima e à esquerda, deixando o centro livre para peças e cidade. */
-    d += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(u * BASE_SCALE * 100) / 100})" pointer-events="none">${base}</g>`;
-    if (detail) d += `<g transform="translate(${f1(x - g.S * DETAIL_OFF)} ${f1(y - g.S * DETAIL_OFF)}) scale(${f1(u * DETAIL_SCALE * 100) / 100})" pointer-events="none">${detail}</g>`;
-    if (det && det.fishing) d += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(u * 100) / 100})" pointer-events="none"><circle r="27" fill="none" stroke="#f0e6bd" stroke-width="1.6" stroke-dasharray="2 4"/><path d="M-27,0 H27 M0,-27 V27" stroke="#f0e6bd" stroke-width=".8" opacity=".5"/></g>`;
+    /* O relevo fica no fundo (opacidade menor); hex livre mostra recurso/melhoria pequenos e deslocados; hex ocupado mostra só um selo no canto superior esquerdo. */
+    d += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(u * BASE_SCALE * 100) / 100})" opacity="${occ ? .32 : .72}" pointer-events="none">${base}</g>`;
+    if (detail && !occ) d += `<g transform="translate(${f1(x - g.S * DETAIL_OFF)} ${f1(y - g.S * DETAIL_OFF)}) scale(${f1(u * DETAIL_SCALE * 100) / 100})" opacity=".9" pointer-events="none">${detail}</g>`;
+    if (detail && occ) d += `<g pointer-events="none"><circle cx="${f1(x - g.S * .52)}" cy="${f1(y - g.S * .5)}" r="${f1(g.S * .2)}" fill="#0f181c" fill-opacity=".78" stroke="#c9a867" stroke-opacity=".5" stroke-width="1"/><g transform="translate(${f1(x - g.S * .52)} ${f1(y - g.S * .5)}) scale(${f1(u * .3 * 100) / 100})">${detail}</g></g>`;
+    if (det && det.fishing && !occ) d += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(u * 100) / 100})" pointer-events="none"><circle r="27" fill="none" stroke="#f0e6bd" stroke-width="1.6" stroke-dasharray="2 4"/><path d="M-27,0 H27 M0,-27 V27" stroke="#f0e6bd" stroke-width=".8" opacity=".5"/></g>`;
     if (det && det.owner) d += `<polygon points="${g.pts(c, r, .9)}" fill="none" stroke="${det.owner}" stroke-width="2.4" stroke-opacity=".95" pointer-events="none"/>`;
     const info = [TERR_INFO[t][0], ...(det && det.feat || []).map(f => FEAT_INFO[f][0]), ...(det && det.imp ? [IMP_INFO[det.imp][0]] : [])].join(' · ');
     d = `<g data-info="${esc(info)}"><title>${esc(info)}</title>${d}</g>`;
@@ -59,7 +61,7 @@ function hexArt(g, c, r, t, fog = false, det) {
 }
 
 /* ===== Rede de estradas: cada hex com estrada liga a TODOS os vizinhos que tenham estrada ou cidade, nas 6 direções. Estrada em Costa vira passadiço; sobre Rio, ponte. ===== */
-function roadLayer(g, roads, cityCells = [], det = {}) {
+function roadLayer(g, roads, cityCells = [], det = {}, occ = null) {
   const set = new Set(roads), cities = new Set(cityCells.map(c => c.join(',')));
   const linked = (c, r) => g.nb(c, r).filter(([x, y]) => set.has(x + ',' + y) || cities.has(x + ',' + y));
   const mid = (a, b) => { const [x1, y1] = g.xy(...a), [x2, y2] = g.xy(...b); return [(x1 + x2) / 2, (y1 + y2) / 2]; };
@@ -70,17 +72,19 @@ function roadLayer(g, roads, cityCells = [], det = {}) {
   const nodes = [...roads.map(k => k.split(',').map(Number)), ...cityCells];
   for (const [c, r] of nodes) {
     const t = g.t(c, r); if (!t || t === 's' || t === '?') continue;
-    const isCity = cities.has(c + ',' + r), [x, y] = g.xy(c, r);
+    const isCity = cities.has(c + ',' + r), [x, y] = g.xy(c, r), busy = !!(occ && occ.has(c + ',' + r)) && !isCity;
+    out += busy ? '<g opacity=".42">' : '<g>';
     const nbs = linked(c, r).filter(([a, b]) => !isCity || set.has(a + ',' + b));
     const mids = nbs.map(n => mid([c, r], n)), coast = t === 'c', river = (det[c + ',' + r] && (det[c + ',' + r].feat || []).includes('RIVER'));
     if (mids.length === 2 && !isCity) out += stroke(`M${f1(mids[0][0])},${f1(mids[0][1])} Q${f1(x)},${f1(y)} ${f1(mids[1][0])},${f1(mids[1][1])}`, coast);
     else mids.forEach(m => { out += stroke(`M${f1(m[0])},${f1(m[1])} L${f1(x)},${f1(y)}`, coast); });
-    if (!isCity) {
+    if (!isCity && !busy) {
       if (mids.length >= 3) out += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .17 * ROAD_SCALE)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.4"/><circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .09 * ROAD_SCALE)}" fill="none" stroke="#7a6446" stroke-width="1" stroke-dasharray="2 2"/>`;
       else if (mids.length === 1) out += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(g.S * .1)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.2"/>`;
       else if (mids.length === 0) out += `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(g.S * .22)}" ry="${f1(g.S * .12)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.2"/>`;
       if (river && mids.length) { const [m0] = mids; const ang = Math.atan2(m0[1] - y, m0[0] - x) * 180 / Math.PI; out += `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(ang)})"><rect x="${f1(-g.S * .3)}" y="${f1(-g.S * .13)}" width="${f1(g.S * .6)}" height="${f1(g.S * .26)}" fill="#9a7d52" stroke="#2a1d10" stroke-width="1.2"/><path d="M${f1(-g.S * .3)},${f1(-g.S * .13)} h${f1(g.S * .6)} M${f1(-g.S * .3)},${f1(g.S * .13)} h${f1(g.S * .6)}" stroke="#3a2a18" stroke-width="2"/>${[-.2, -.07, .07, .2].map(k => `<path d="M${f1(g.S * k)},${f1(-g.S * .13)} v${f1(g.S * .26)}" stroke="#2a1d10" stroke-width=".9"/>`).join('')}</g>`; }
     }
+    out += '</g>';
   }
   return `<g class="roads" pointer-events="none">${out}</g>`;
 }

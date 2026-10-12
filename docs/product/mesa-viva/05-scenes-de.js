@@ -142,7 +142,7 @@
   }
   function mini(w) {
     const g = new Grid(['sccppp', 'sscppf', 'sccppp'], w === 'phone' ? 36 : 40);
-    let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Contexto no mapa">${mapBase(g)}`;
+    let s = `<svg viewBox="${viewBox(g, 8)}" role="img" aria-label="Contexto no mapa">${mapBase(g, null, null, new Set(['3,1', '2,1', '4,2']))}`;
     const [cx, cy] = g.xy(3, 1);
     if (S.a === 'governar') s += cityArt(cx, cy, 2, '#60a3e9', 'Tirinto', S.s === 'done' ? 2 : 1, { R: g.S });
     else s += cityArt(cx, cy, 3, '#60a3e9', 'Mikena', S.a === 'produzir' && S.s === 'done' ? 3 : 4, { R: g.S });
