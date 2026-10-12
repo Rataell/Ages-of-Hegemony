@@ -61,7 +61,7 @@
       s += pathLine(g, legal, '#7fc79a', { w: 3.2, marker: 'okC', dots: true });
       if (old) { s += pathLine(g, [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1]], '#e58a74', { w: 2.4, dash: '6 6', marker: 'noC' }); [x, y] = g.xy(1, 1); s += `<g transform="translate(${f1(x)} ${f1(y)})"><circle r="11" fill="#0f181c" stroke="#e58a74" stroke-width="2"/><path d="M-5 -5 L5 5 M5 -5 L-5 5" stroke="#e58a74" stroke-width="2.2" stroke-linecap="round"/></g>`; }
       [x, y] = g.xy(0, 1); s += threatFigure('INFANTRY', x - 8, y + 6, 26, 2) + threatFigure('CAVALRY', x + 12, y + 8, 26);
-      msg = old ? 'A linha reta antiga do jogo cruzava o Mar. O Bando nunca entra em Mar: o caminho real contorna pela Costa, que conta como terra.' : 'Caminho real: Planície → Costa ×5 → Planície → alvo. Cada passo é adjacente e legal. Costa é terra de praia: pisa-se.';
+      msg = old ? 'A linha reta antiga do jogo cruzava o Mar. O Bando nunca entra em Mar: o caminho real contorna pela Costa, que conta como terra.' : 'Caminho real: Planície → Costa ×5 → Planície → alvo. Cada passo é adjacente e legal. Costa são águas rasas: pisa-se como terra.';
       rows = ['Planície', 'Costa', 'Costa', 'Costa', 'Costa', 'Costa', 'Planície', 'Planície'];
     } else {
       const sea = [[5, 1], [4, 1], [3, 1], [2, 1]];
@@ -76,8 +76,8 @@
     $('#infoC2').innerHTML = `<b>${who === 'band' ? 'Bando (terra)' : 'Piratas (mar)'}</b><span>${esc(msg)}</span>`;
   }
   $('#ctlC2').innerHTML = `<div class="seg" role="group" aria-label="Ator"><button data-w="band" aria-pressed="true">Bando</button><button data-w="pirate" aria-pressed="false">Piratas</button></div><label class="sw"><input type="checkbox" id="oldC2"> Mostrar a linha reta antiga</label>
-    <div class="row"><svg width="46" height="40" viewBox="-23 -20 46 40" aria-hidden="true">${hexArt(new Grid(['c'], 17), 0, 0, 'c').replace('data-hex', 'x')}</svg><span><b>Costa</b>: areia e espuma, Bando e exércitos pisam.</span></div>
-    <div class="row"><svg width="46" height="40" viewBox="-23 -20 46 40" aria-hidden="true">${hexArt(new Grid(['s'], 17), 0, 0, 's').replace('data-hex', 'x')}</svg><span><b>Mar</b>: azul fundo com ondas, só navios navegam.</span></div>
+    <div class="row"><svg width="46" height="40" viewBox="-23 -20 46 40" aria-hidden="true">${hexArt(new Grid(['c'], 17), 0, 0, 'c').replace('data-hex', 'x')}</svg><span><b>Costa</b>: águas rasas turquesa com bancos de areia. Bando e exércitos vadeiam; navios também passam.</span></div>
+    <div class="row"><svg width="46" height="40" viewBox="-23 -20 46 40" aria-hidden="true">${hexArt(new Grid(['s'], 17), 0, 0, 's').replace('data-hex', 'x')}</svg><span><b>Mar</b>: azul fundo com ondas e cardumes. Só navios navegam e pescam.</span></div>
     <p class="mute" style="font-size:12.5px">Na auditoria o motor estava correto (12 testes). O problema era visual: Costa e Mar tinham a mesma cor e textura, e a linha de rumo era reta. Aqui os dois terrenos se distinguem e a trilha segue o caminho real.</p>`;
   $('#ctlC2').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (!b) return; who = b.dataset.w; $('#ctlC2').querySelectorAll('[data-w]').forEach(x => x.setAttribute('aria-pressed', x === b)); render(); });
   $('#ctlC2').addEventListener('change', e => { if (e.target.id === 'oldC2') { old = e.target.checked; render(); } });
@@ -114,7 +114,7 @@
     <div style="display:grid;gap:8px"><span class="cap">3 · Resultado e Crônica</span><div class="panel"><div class="seg" role="group" aria-label="Sorteio"><button data-lost="1" aria-pressed="${st.lost && !st.method}" ${st.method ? 'disabled' : ''}>Sorteio: perdeu</button><button data-lost="0" aria-pressed="${!st.lost || st.method}">Sorteio: escapou</button></div>
       <div class="${eff === 'perdeu' ? 'pred' : 'applied'}" style="${eff === 'perdeu' ? 'border:1.5px solid var(--b-bad)' : ''}"><b class="${eff === 'perdeu' ? 'bad' : 'ok'}">Perigo · Terraços do Cobre</b><span>${eff === 'perdeu' ? 'Pioneiro perdido ao entrar na Região.' : st.method ? 'Perigo evitado pelo Método Experimental.' : 'Pioneiro escapou e ocupa o hex de entrada (Costa).'}</span><span class="mute">Evento de perda explícito (LOSSES) com o hex de entrada e a peça.</span></div>
       <div class="band"><span class="cap">Crônica</span><span style="font:italic 500 17px var(--serif);color:var(--b-ink)">Rodada 9 · Leontia explorou os Terraços do Cobre. ${eff === 'perdeu' ? 'O perigo custou o Pioneiro.' : 'O Pioneiro seguiu em frente.'}</span></div>
-      <div class="band"><span class="cap">No mapa</span><span>${eff === 'perdeu' ? 'Halo vermelho 1 rodada no hex de entrada, peça fantasma tracejada.' : 'Peça sobre a Costa (areia), visível, com anel verde.'}</span></div></div></div>`;
+      <div class="band"><span class="cap">No mapa</span><span>${eff === 'perdeu' ? 'Halo vermelho 1 rodada no hex de entrada, peça fantasma tracejada.' : 'Peça sobre a Costa (águas rasas), visível, com anel verde.'}</span></div></div></div>`;
   }
   $('#framesC3').addEventListener('click', e => { const r = e.target.closest('[data-rot]'); if (r && !r.disabled) { st.rot = +r.dataset.rot; render(); } const l = e.target.closest('[data-lost]'); if (l && !l.disabled) { st.lost = l.dataset.lost === '1'; render(); } });
   $('#framesC3').addEventListener('change', e => { if (e.target.id === 'metC3') { st.method = e.target.checked; render(); } });

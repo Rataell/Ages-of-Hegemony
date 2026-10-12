@@ -12,7 +12,7 @@ $('#decisoes').innerHTML = [
   const g = new Grid(['sssccpfh??', 'sscppffhm?', 'sccppppmh?', 'sscpphppf?', 'sssccppfp?', 'ssssccp???', 'sssssc????'], 40);
   const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
   const OWN = '#60a3e9';
-  const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '6,3': { imp: 'ROAD' }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
+  const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '6,3': { imp: 'ROAD' }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
   const sight = Object.values(own);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
   const INFO = {
@@ -82,9 +82,10 @@ $('#decisoes').innerHTML = [
   $('#mapA').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { const n = e.target.closest('.ent'); if (n) { e.preventDefault(); show(n.dataset.k); } } });
   show('band');
   const cat = (kind, title, t, det, sub) => { const one = new Grid([t], 34); return `<figure><svg viewBox="-38 -40 76 80" role="img" aria-label="${esc(title)}">${hexArt(one, 0, 0, t, false, det)}</svg><figcaption><span class="kind">${kind}</span><b>${esc(title)}</b>${esc(sub)}</figcaption></figure>`; };
-  $('#terrA').innerHTML = ['p', 'f', 'h', 'm', 'c', 's'].map(t => cat('Terreno', TERR_INFO[t][0], t, null, TERR_INFO[t][1].replace('Custo de movimento ', 'mov. ').replace(' (conta como terra)', ''))).join('')
-    + [['RIVER', 'p'], ['FERTILE', 'p'], ['TIMBER', 'f'], ['STONE', 'h'], ['METAL', 'm'], ['FISH', 'c']].map(([f, t]) => cat('Recurso', FEAT_INFO[f][0], t, { feat: [f] }, 'em ' + TERR_INFO[t][0])).join('')
-    + [['FARM', 'p'], ['LUMBER_CAMP', 'f'], ['QUARRY', 'h'], ['MINE', 'm'], ['FISHERY', 'c'], ['ROAD', 'p']].map(([i, t]) => cat('Melhoria', IMP_INFO[i][0], t, { imp: i, owner: '#60a3e9' }, IMP_INFO[i][1])).join('');
+  $('#terrA').innerHTML = ['p', 'f', 'h', 'm', 'c', 's'].map(t => cat('Terreno', TERR_INFO[t][0], t, null, TERR_INFO[t][1].replace('Custo de movimento ', 'mov. ').replace(' (conta como terra)', '').replace('Águas rasas: custo de movimento 1, pisa-se como terra e navios também passam', 'águas rasas · mov. 1 · pisa-se'))).join('')
+    + [['RIVER', 'p'], ['FERTILE', 'p'], ['TIMBER', 'f'], ['STONE', 'h'], ['METAL', 'm'], ['FISH', 'c'], ['SHOAL', 's']].map(([f, t]) => cat('Recurso', FEAT_INFO[f][0], t, { feat: [f] }, 'em ' + TERR_INFO[t][0])).join('')
+    + [['FARM', 'p'], ['LUMBER_CAMP', 'f'], ['QUARRY', 'h'], ['MINE', 'm'], ['FISHERY', 'c'], ['ROAD', 'p']].map(([i, t]) => cat('Melhoria', IMP_INFO[i][0], t, { imp: i, owner: '#60a3e9' }, IMP_INFO[i][1])).join('')
+    + `<figure><svg viewBox="-38 -40 76 80" role="img" aria-label="Pesca de frota">${hexArt(new Grid(['s'], 34), 0, 0, 's', false, { feat: ['SHOAL'], fishing: true, owner: '#60a3e9' })}<g transform="translate(0 -2)">${ownFigure('FLEET', 0, 0, 28)}</g></svg><figcaption><span class="kind">Pesca de frota</span><b>Navio sobre o cardume</b>+2 Alimento (proposta)</figcaption></figure>`;
 })();
 
 /* ===== Cena B · Movimento coordenado ===== */

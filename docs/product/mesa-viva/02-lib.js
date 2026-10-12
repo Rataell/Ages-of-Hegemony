@@ -112,6 +112,14 @@ class Grid {
   path(prev, from, to) { const key = (c, r) => c + ',' + r, out = [to]; let cur = to; while (key(...cur) !== key(...from)) { cur = prev[key(...cur)]; if (!cur) return null; out.unshift(cur); } return out; }
 }
 
+/* Costa = águas rasas: turquesa claro com o fundo de areia aparecendo e bancos de areia onde se pisa. Bem mais clara que o Mar fundo. */
+function coastHex(R, seed) {
+  const id = 'k' + (++UID), r = rnd(seed), pr = () => [(r() * 2 - 1) * R * .7, (r() * 2 - 1) * R * .7];
+  let s = `<clipPath id="${id}"><polygon points="${P(hexPts(R))}"/></clipPath><g clip-path="url(#${id})"><rect x="${-R}" y="${-R}" width="${2 * R}" height="${2 * R}" fill="#46a6ad"/><ellipse cx="${n2(R * .1)}" cy="${n2(R * .05)}" rx="${n2(R * .8)}" ry="${n2(R * .62)}" fill="#7fcfc4" opacity=".6"/>`;
+  for (let i = 0; i < 4; i++) { const [x, y] = pr(); s += `<ellipse cx="${n2(x)}" cy="${n2(y)}" rx="${n2(R * (.16 + r() * .12))}" ry="${n2(R * .07)}" fill="#e6d8a6" opacity=".62"/>`; }
+  for (let i = 0; i < 4; i++) { const [x, y] = pr(), a = R * .06; s += `<path d="M${n2(x - a * 2)},${n2(y)} q${n2(a)},${n2(-a)} ${n2(a * 2)},0 q${n2(a)},${n2(a)} ${n2(a * 2)},0" stroke="#e9fbf8" stroke-width="${Math.max(.7, R * .014)}" fill="none" opacity=".85"/>`; }
+  return s + `</g><polygon points="${P(hexPts(R))}" fill="none" stroke="#0a1115" stroke-width="${Math.max(.7, R * .012)}"/>`;
+}
 /* Terreno: o desenho do artifact de cultura material (terrainHex). COSTA é areia e espuma (pisa-se); MAR é azul fundo com ondas (só navios). */
 const TNAME = { p: 'PLAINS', f: 'FOREST', h: 'HILLS', m: 'MOUNTAINS', c: 'COAST', s: 'SEA' };
 function hexArtBase(g, c, r, t, fog = false) {
@@ -120,9 +128,8 @@ function hexArtBase(g, c, r, t, fog = false) {
   if (t === '?') {
     d = `<polygon points="${g.pts(c, r)}" fill="#121b20" stroke="#2a3d45" stroke-width="1"/><path d="M${f1(x - S * .5)},${f1(y)} h${S} M${f1(x - S * .25)},${f1(y - S * .45)} l${S * .5},${S * .9} M${f1(x + S * .25)},${f1(y - S * .45)} l${-S * .5},${S * .9}" stroke="#1d2b32" stroke-width="1"/>`;
   } else {
-    d = `<g transform="translate(${f1(x)} ${f1(y)})">${terrainHex(S, TNAME[t], (c * 31 + r * 17) % 97 + 3)}`;
+    d = `<g transform="translate(${f1(x)} ${f1(y)})">${t === 'c' ? coastHex(S, (c * 31 + r * 17) % 97 + 3) : terrainHex(S, TNAME[t], (c * 31 + r * 17) % 97 + 3)}`;
     if (t === 'm') { const u = S / 40; d += `<g transform="scale(${f1(u * 100) / 100})"><path d="M-15,9 l9,-19 l9,19Z M-2,9 l9,-14 l8,14Z" fill="#6c7482" stroke="#0b1114" stroke-width="1"/><path d="M-6,-10 l-3.2,6.2 l3,-1.4 l2.6,1.4Z" fill="#eef0f2"/></g>`; }
-    if (t === 'c') d += `<polygon points="${hexPts(S * .86).map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none" stroke="#fff6dc" stroke-opacity=".7" stroke-width="2.4" stroke-dasharray="1 5" stroke-linecap="round"/>`;
     d += '</g>';
   }
   if (fog) d += `<polygon points="${g.pts(c, r)}" fill="#0a1114" opacity=".62"/>`;

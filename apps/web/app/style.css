@@ -759,7 +759,7 @@ meter {
 .terrain-HILLS { --terrain: var(--hills); }
 .terrain-MOUNTAINS { --terrain: var(--mountains); }
 /* Mesa Viva: COSTA is sand with dashed foam (walkable); MAR is deep blue with waves (ships only). */
-.terrain-COAST { --terrain: var(--coast-sand, #a59c7a); }
+.terrain-COAST { --terrain: var(--coast-shallow, #46a6ad); }
 .terrain-SEA { --terrain: var(--sea-deep, #264f68); }
 .terrain-UNKNOWN { --terrain: var(--unknown); }
 

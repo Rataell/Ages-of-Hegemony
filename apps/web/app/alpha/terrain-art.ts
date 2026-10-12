@@ -9,8 +9,8 @@ export type TerrainKey = (typeof TERRAIN_KEYS)[number];
 export const TERRAIN_VARIANTS = 3;
 export const HEX_RADIUS = 52;
 export const EXTRA_SCALE = HEX_RADIUS / 40;
-/** Terrain colours of the concept. COAST is sand (walkable), SEA is deep blue (ships only). */
-export const TERRAIN_COLORS: Record<TerrainKey, string> = { PLAINS: '#5d7350', FOREST: '#394f3e', HILLS: '#766f50', MOUNTAINS: '#60656b', COAST: '#a59c7a', SEA: '#264f68' };
+/** Terrain colours of the concept. COAST is shallow turquoise water you can wade (walkable), SEA is deep blue (ships only). */
+export const TERRAIN_COLORS: Record<TerrainKey, string> = { PLAINS: '#5d7350', FOREST: '#394f3e', HILLS: '#766f50', MOUNTAINS: '#60656b', COAST: '#46a6ad', SEA: '#264f68' };
 const IK = '#0b1114';
 const n2 = (v: number) => Math.round(v * 100) / 100;
 const P = (pts: readonly (readonly [number, number])[]) => pts.map(p => `${n2(p[0])},${n2(p[1])}`).join(' ');
@@ -26,7 +26,11 @@ function terrainHex(R: number, t: TerrainKey, seed: number, id: string): string 
   if (t === 'FOREST') for (let i = 0; i < cnt(10); i++) { const [x, y] = rp(), a = R * 0.09; s += `<polygon points="${P([[x, y - a * 1.9], [x - a * 0.8, y], [x + a * 0.8, y]])}" fill="#2b4033"/><polygon points="${P([[x, y - a * 1.9], [x - a * 0.8, y], [x, y]])}" fill="#35503e"/>`; }
   if (t === 'HILLS') for (let i = 0; i < cnt(4); i++) { const [x, y] = rp(), a = R * 0.2; s += `<path d="M${n2(x - a)},${n2(y)} Q${n2(x)},${n2(y - a * 0.85)} ${n2(x + a)},${n2(y)} Z" fill="#877f5c" stroke="#5a5439" stroke-width="${lw}"/>`; }
   if (t === 'SEA') for (let i = 0; i < cnt(6); i++) { const [x, y] = rp(), a = R * 0.07; s += `<path d="M${n2(x - a * 2)},${n2(y)} q${n2(a)},${n2(-a)} ${n2(a * 2)},0 q${n2(a)},${n2(a)} ${n2(a * 2)},0" stroke="#5f8ea6" stroke-width="${lw}" fill="none"/>`; }
-  if (t === 'COAST') s += `<path d="M${n2(-R * 0.7)},${n2(R * 0.5)} q${n2(R * 0.2)},${n2(-R * 0.1)} ${n2(R * 0.4)},0 t${n2(R * 0.4)},0" stroke="#dfe9ea" stroke-width="${lw}" fill="none" opacity=".7"/>`;
+  if (t === 'COAST') {
+    s += `<ellipse cx="${n2(R * 0.1)}" cy="${n2(R * 0.05)}" rx="${n2(R * 0.8)}" ry="${n2(R * 0.62)}" fill="#7fcfc4" opacity=".6"/>`;
+    for (let i = 0; i < 4; i++) { const [x, y] = rp(); s += `<ellipse cx="${n2(x * 0.9)}" cy="${n2(y * 0.9)}" rx="${n2(R * (0.16 + r() * 0.12))}" ry="${n2(R * 0.07)}" fill="#e6d8a6" opacity=".62"/>`; }
+    for (let i = 0; i < 4; i++) { const [x, y] = rp(), a = R * 0.06; s += `<path d="M${n2(x - a * 2)},${n2(y)} q${n2(a)},${n2(-a)} ${n2(a * 2)},0 q${n2(a)},${n2(a)} ${n2(a * 2)},0" stroke="#e9fbf8" stroke-width="${lw}" fill="none" opacity=".85"/>`; }
+  }
   return `${s}</g><polygon points="${P(hexPts(R))}" fill="none" stroke="#0a1115" stroke-width="${Math.max(0.7, R * 0.012)}"/>`;
 }
 
@@ -36,7 +40,7 @@ const TERR_EXTRA: Record<TerrainKey, () => string> = {
   FOREST: () => `<ellipse cx="0" cy="12" rx="22" ry="7" fill="#1f3326" opacity=".7"/>` + ([[-14, 8, 1.25], [4, 10, 1.4], [16, 6, 1.15]] as const).map(([x, y, k]) => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="-1.3" y="-1" width="2.6" height="6" fill="#4a3322"/><polygon points="0,-20 -7,-7 7,-7" fill="#274a35" stroke="${IK}" stroke-width=".8"/><polygon points="0,-13 -9,0 9,0" fill="#2f5a40" stroke="${IK}" stroke-width=".8"/></g>`).join(''),
   HILLS: () => `<path d="M-30,10 Q-14,-6 2,10" fill="#7a6a42" stroke="${IK}" stroke-width=".9"/><path d="M-6,12 Q10,-10 30,12" fill="#8a7a50" stroke="${IK}" stroke-width=".9"/><path d="M-4,4 q2,-4 4,0 M12,2 q2,-4 4,0" stroke="#5a7a40" stroke-width="1.6" fill="none"/>`,
   MOUNTAINS: () => `<path d="M-15,9 l9,-19 l9,19Z M-2,9 l9,-14 l8,14Z" fill="#6c7482" stroke="${IK}" stroke-width="1"/><path d="M-6,-10 l-3.2,6.2 l3,-1.4 l2.6,1.4Z" fill="#eef0f2"/><path d="M-6,12 l12,-26 l12,26Z" fill="#7a828e" stroke="${IK}" stroke-width="1"/><path d="M0,-14 l-6,12 l5,-2.4 l4,3 l3,-4 l2.4,3.4Z" fill="#f4f6f8"/>`,
-  COAST: () => `<path d="M-30,10 Q-14,4 0,10 T30,10" fill="none" stroke="#fff6dc" stroke-width="2" opacity=".85"/>` + [[-16, 0], [14, 6], [4, -10]].map(([x, y]) => `<path d="M${x},${y} v-8 M${x! - 2},${y! - 3} l2,-5 l2,5" stroke="#6f8a4e" stroke-width="1.6" fill="none" stroke-linecap="round"/>`).join('') + [[-6, 4], [8, -2], [-22, 8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="#d8cc9c"/>`).join('') + `<polygon points="${P(hexPts(34.4))}" fill="none" stroke="#fff6dc" stroke-opacity=".7" stroke-width="2.4" stroke-dasharray="1 5" stroke-linecap="round"/>`,
+  COAST: () => ([[-16, 0], [14, 6], [4, -10]] as const).map(([x, y]) => `<path d="M${x},${y} v-8 M${x - 2},${y - 3} l2,-5 l2,5" stroke="#5d8a52" stroke-width="1.6" fill="none" stroke-linecap="round"/>`).join('') + ([[-6, 6], [10, -2], [-22, 8]] as const).map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="3.4" ry="1.6" fill="#f0e6bd" opacity=".9"/>`).join(''),
   SEA: () => `<path d="M-30,6 q6,-6 12,0 t12,0 t12,0 t12,0" stroke="#4e86a6" stroke-width="1.6" fill="none" opacity=".8"/>`,
 };
 
@@ -67,7 +71,7 @@ export const TERRAIN_INFO: Record<TerrainKey, { name: string; move: string; yiel
   FOREST: { name: 'Floresta', move: 'Custo de movimento 2', yields: 'Madeira. Acampamento de Lenha: +1 Madeira.' },
   HILLS: { name: 'Colinas', move: 'Custo de movimento 2', yields: 'Pedra. Pedreira ou Mina.' },
   MOUNTAINS: { name: 'Montanha', move: 'Custo de movimento 3', yields: 'Pedra e Metal. Pedreira ou Mina.' },
-  COAST: { name: 'Costa', move: 'Custo de movimento 1 (conta como terra)', yields: 'Alimento por Pesca. Porto.' },
+  COAST: { name: 'Costa', move: 'Águas rasas: custo de movimento 1, pisa-se como terra e navios também passam', yields: 'Alimento por Pesqueiro na margem. Porto.' },
   SEA: { name: 'Mar', move: 'Intransponível por terra; só navios', yields: 'Rotas e Ancoradouros.' },
 };
 export const FEATURE_INFO: Record<FeatureKey, { name: string; text: string }> = {

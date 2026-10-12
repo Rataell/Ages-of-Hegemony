@@ -130,7 +130,7 @@ describe('Mesa Viva B1 art: threats, Ânimo and terrain', () => {
     for (const t of TERRAIN_KEYS) for (let v = 0; v < TERRAIN_VARIANTS; v++) expect(defs).toContain(`id="aoh-t-${t}-${v}"`);
     for (const f of FEATURE_KEYS) expect(defs).toContain(`id="aoh-f-${f}"`);
     for (const i of IMPROVEMENT_KEYS) expect(defs).toContain(`id="aoh-i-${i}"`);
-    expect(defs).toContain('#a59c7a');
+    expect(defs).toContain('#46a6ad');
     expect(defs).toContain('#264f68');
     expect([terrainVariant(0, 0), terrainVariant(-5, 9), terrainVariant(20, 3)].every(v => v >= 0 && v < TERRAIN_VARIANTS)).toBe(true);
     const text = terrainSummary({ terrain: 'HILLS', features: ['METAL'], improvement: 'MINE', owner: 'Leontia', moveCosts: { HILLS: 2 } });

@@ -7,9 +7,9 @@
   /* D1 · Produção, consumo, fome, Ordens × ativações */
   const eco = { scn: 'prod', stock: 12 };
   function renderEco() {
-    const prod = eco.scn === 'prod', gain = prod ? 5 : 0, sust = 4, grow = 3;
+    const prod = eco.scn === 'prod', gain = prod ? 7 : 0, sust = 4, grow = 3;
     let end = eco.stock + gain - sust; const famine = end < 0; const willGrow = !famine && end >= grow; if (willGrow) end -= grow;
-    const rows = [['food', 'Fazenda ×2 e Moinho', 5, 0], ['wood', 'Floresta trabalhada', 2, 2], ['stone', 'Colina', 1, 0], ['wealth', 'Mercado', 2, 0]];
+    const rows = [['food', 'Fazenda ×2 e Moinho', 5, 0], ['food', 'Frota pescando cardume (Porto)', 2, 0], ['wood', 'Floresta trabalhada', 2, 2], ['stone', 'Colina', 1, 0], ['wealth', 'Mercado', 2, 0]];
     $('#dEco').innerHTML = `<h4>Mikena · Produção e consumo</h4>
       <div class="row"><svg width="92" height="76" viewBox="-40 -34 80 70" aria-hidden="true">${cityArt(0, 4, 3, '#60a3e9', 'Mikena', 4, { R: 26, label: false, port: 3, districts: [{ d: 'MARITIME', b: ['PORT'] }, { d: 'COMMERCIAL', b: ['MARKET'] }] })}</svg>${moodSeal(4, 40)}<span><b>Estável</b> · 8 habitantes<br><span class="mute">Capacidade 2 · 3 hexes produtivos</span></span></div>
       <div class="row" style="gap:16px"><span title="Limite global da civilização" class="pill">Ordens da civilização ${pips(5, 3)} 3/5</span><span title="Limite desta cidade" class="pill">Ativações de Mikena ${wheels(2, 1)} 1/2</span></div>
@@ -18,7 +18,7 @@
       <div class="seg" role="group" aria-label="Alimento em estoque"><button data-k="12" aria-pressed="${eco.stock === 12}">Alimento 12</button><button data-k="3" aria-pressed="${eco.stock === 3}">Alimento 3</button></div>
       <table class="mini"><tr><th>Recurso</th><th>De onde</th><th>Rende</th><th>Perdido</th></tr>${rows.map(r => `<tr><td>${resIcon(r[0])}</td><td>${r[1]}</td><td class="${prod ? 'ok' : 'mute'}">${prod ? '+' + r[2] : '0'}</td><td class="${r[3] ? 'warn' : 'mute'}">${r[3] ? '−' + r[3] + ' (hex sem trabalhador)' : '-'}</td></tr>`).join('')}</table>
       <div class="band on"><span class="cap">Alimento ao fim da rodada</span>
-        <span>${eco.stock} atual ${prod ? '<b class="ok">+5</b> produção ' : ''}<b class="bad">−4</b> sustento (8 hab ÷ 2) ${willGrow ? '<b class="bad">−3</b> crescer (+1 hab)' : ''} = <b class="${famine ? 'bad' : 'ok'}">${end}</b></span>
+        <span>${eco.stock} atual ${prod ? '<b class="ok">+' + gain + '</b> produção ' : ''}<b class="bad">−4</b> sustento (8 hab ÷ 2) ${willGrow ? '<b class="bad">−3</b> crescer (+1 hab)' : ''} = <b class="${famine ? 'bad' : 'ok'}">${end}</b></span>
         ${famine ? `<span class="bad">Fome: perde 1 habitante e 1 Ânimo (4 → 3). Produza ou reduza o consumo.</span>` : willGrow ? '<span class="ok">Sem risco. A cidade cresce para 9 habitantes.</span>' : '<span class="ok">Sem risco de fome.</span>'}</div>`;
   }
   $('#dEco').addEventListener('click', e => { const s = e.target.closest('[data-s]'), k = e.target.closest('[data-k]'); if (s) eco.scn = s.dataset.s; if (k) eco.stock = +k.dataset.k; renderEco(); });
