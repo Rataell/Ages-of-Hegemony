@@ -29,14 +29,14 @@ export function recruitBlock(state:AlphaState,actor:PlayerId,cityId:string,kind:
   if(state.units.filter(u=>u.ownerId===actor).length>=state.rules.unitLimit)return 'Reserva de unidades esgotada.';
   const arriving:AlphaUnit={id:`recruit-${cityId}`,ownerId:actor,kind,hexId:spawn,recruitedRound:state.core.round,carrierId:null};
   const crowded=stackBlock(state,actor,[arriving],spawn,pendingArrivals(state,actor,spawn,''));if(crowded)return crowded;
-  const price=kitUnitCost(state,actor,kind);
+  const price=kitUnitCost(state,actor,kind,cityId);
   if(!alphaCanAfford(state,actor,alphaCostWithMetal(state,actor,price.cost,price.metal)))return 'Recursos insuficientes para esta ação.';
   return mobilizationBlock(state,cityId,kind);
 }
 export function recruitUnit(state:AlphaState,actor:PlayerId,cityId:string,kind:AlphaUnit['kind']):void {
   const blocked=recruitBlock(state,actor,cityId,kind);if(blocked)throw new Error(blocked);
   const city=state.core.players.find(p=>p.id===actor)!.civilization.cities.find(c=>c.id===cityId)!;const entry=state.rules.units[kind];
-  const price=kitUnitCost(state,actor,kind);
+  const price=kitUnitCost(state,actor,kind,cityId);
   alphaPay(state,actor,alphaCostWithMetal(state,actor,price.cost,price.metal));
   const hexId=entry.domain==='SEA'?launchHex(state,actor,city.hexId,kind)!:city.hexId;
   state.units.push({id:`unit-${actor}-${state.version}-${state.units.length}`,ownerId:actor,kind,hexId,recruitedRound:state.core.round,carrierId:null});

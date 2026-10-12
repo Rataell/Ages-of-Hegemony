@@ -29,18 +29,23 @@ function cityFor(id: BuildingId, options: { advance?: boolean; district?: boolea
     const eras = AlphaEraSchema.options, needed = Math.max(...chain.map(nodeId => eras.indexOf(ADVANCEMENTS.find(node => node.id === nodeId)!.era)));
     if (eras.indexOf(seat(state).era) < needed) seat(state).era = eras[needed]!;
   }
-  if (options.district !== false) { meta(state).districts.push(spec.district); coreCity(state).districts.push({ type: spec.district, builtRound: 1 } as never); }
+  if (options.district !== false) {
+    meta(state).districts.push(spec.district);
+    // The Distrito Marítimo lives only in the Alpha city metadata (the economic core has no such district type).
+    if (spec.district !== 'MARITIME') coreCity(state).districts.push({ type: spec.district, builtRound: 1 } as never);
+  }
   Object.assign(seat(state).resources, rich);
   state.core.players.find(player => player.id === P1)!.civilization.government = 'REPUBLIC';
   return state;
 }
 const CATALOG_EIGHT: BuildingId[] = ['WAREHOUSE', 'TREASURY', 'BANK', 'FOUNDRY', 'ACADEMY', 'CHANCELLERY', 'THEATER', 'TEMPLE'];
+const RC5_SIX: BuildingId[] = ['MILL', 'OBSERVATORY', 'COURT', 'ARSENAL', 'SHIPYARD', 'LIGHTHOUSE'];
 
 describe('catalog integrity', () => {
-  it('has one entry per schema id, every id sits in exactly one district family, and the offered set is 13', () => {
+  it('has one entry per schema id, every id sits in exactly one district family, and the offered set is 19', () => {
     expect(ALPHA_BUILDING_CATALOG.map(entry => entry.id).sort()).toEqual([...AlphaBuildingSchema.options].sort());
     for (const entry of ALPHA_BUILDING_CATALOG) expect(DISTRICT_CATALOG.filter(family => family.buildings.includes(entry.id)).map(family => family.district), entry.id).toEqual([entry.district]);
-    expect([...OFFERED_BUILDINGS].sort()).toEqual(['ACADEMY', 'ARCHIVE', 'BANK', 'CHANCELLERY', 'FOUNDRY', 'GRANARY', 'LIBRARY', 'MARKET', 'TEMPLE', 'THEATER', 'TREASURY', 'WAREHOUSE', 'WORKSHOP']);
+    expect([...OFFERED_BUILDINGS].sort()).toEqual(['ACADEMY', 'ARCHIVE', 'ARSENAL', 'BANK', 'CHANCELLERY', 'COURT', 'FOUNDRY', 'GRANARY', 'LIBRARY', 'LIGHTHOUSE', 'MARKET', 'MILL', 'OBSERVATORY', 'SHIPYARD', 'TEMPLE', 'THEATER', 'TREASURY', 'WAREHOUSE', 'WORKSHOP']);
   });
 
   it('nothing is offered unless it is implemented, and every non-offered id says why', () => {
@@ -49,8 +54,8 @@ describe('catalog integrity', () => {
       else { expect(entry.path === 'CORE' || entry.path === 'CATALOG', entry.id).toBe(false); expect(entry.effect.length, entry.id).toBeGreaterThan(10); }
     }
     const groups = (path: string) => ALPHA_BUILDING_CATALOG.filter(entry => entry.path === path).map(entry => entry.id).sort();
-    expect(groups('CATALOG')).toEqual([...CATALOG_EIGHT].sort());
-    expect(groups('PENDING')).toEqual(['ARSENAL', 'BARRACKS', 'COURT', 'CULTURAL_CENTER', 'LIGHTHOUSE', 'MILL', 'OBSERVATORY', 'SHIPYARD']);
+    expect(groups('CATALOG')).toEqual([...CATALOG_EIGHT, ...RC5_SIX].sort());
+    expect(groups('PENDING')).toEqual(['BARRACKS', 'CULTURAL_CENTER']);
     expect(groups('UNDEFINED')).toEqual(['CIVIC_SQUARE', 'LABORATORY', 'SANCTUARY', 'SCRIBES_HOUSE', 'TRADITION_HOUSE', 'TRAINING_GROUND']);
     expect(groups('DISTRICT')).toEqual(['PORT']);
     expect(groups('IMPROVEMENT')).toEqual(['IRRIGATION']);
@@ -60,8 +65,9 @@ describe('catalog integrity', () => {
     const canon: Record<string, Partial<AlphaResourcePool>> = {
       WAREHOUSE: { wood: 3, stone: 1 }, TREASURY: { stone: 2, wealth: 3 }, BANK: { stone: 3, wealth: 3, knowledge: 1 }, FOUNDRY: { stone: 3, metal: 2 },
       ACADEMY: { stone: 3, knowledge: 2 }, CHANCELLERY: { stone: 2, wealth: 2, influence: 2 }, THEATER: { stone: 3, culture: 2 }, TEMPLE: { stone: 2, culture: 1 },
+      MILL: { wood: 2, stone: 1 }, OBSERVATORY: { stone: 3, knowledge: 3 }, COURT: { stone: 3, wealth: 1, influence: 2 }, ARSENAL: { stone: 2, metal: 3 }, SHIPYARD: { wood: 4, metal: 2 }, LIGHTHOUSE: { stone: 3, wood: 1, wealth: 1 },
     };
-    for (const id of CATALOG_EIGHT) {
+    for (const id of [...CATALOG_EIGHT, ...RC5_SIX]) {
       const price = buildingSpec(id).cost!;
       for (const key of POOLS) expect(price[key], `${id} ${key}`).toBe(canon[id]![key] ?? 0);
       expect(ADVANCEMENTS.some(node => node.unlocks.includes(`building:${id}`)), `${id} has an opening advance`).toBe(true);
@@ -69,8 +75,8 @@ describe('catalog integrity', () => {
   });
 });
 
-describe('the eight catalog buildings: gate, price, effect', () => {
-  for (const id of CATALOG_EIGHT) {
+describe('the fourteen catalog buildings (eight of V1.2 + six of RC5): gate, price, effect', () => {
+  for (const id of [...CATALOG_EIGHT, ...RC5_SIX]) {
     describe(`${id} (${buildingSpec(id).name})`, () => {
       it('is blocked without its district, without its advance, when it already exists and when the treasury is short', () => {
         expect(urbanBlock(cityFor(id, { district: false }), P1, meta(cityFor(id)).cityId, 'BUILD', { build: { kind: 'BUILDING', building: id } })).toBe('O edifício exige o distrito correspondente.');
@@ -114,6 +120,8 @@ describe('the eight catalog buildings: gate, price, effect', () => {
           case 'THEATER': expect(delta('culture')).toBe(5); break;
           case 'CHANCELLERY': expect(delta('influence')).toBe(5); expect(administration(done, P1).capacity - adminBefore).toBe(1); break;
           case 'TEMPLE': expect(cityYield(done, meta(done).cityId).output.culture - cultureBefore).toBe(1); break;
+          // The six of RC5 have behaviour effects, proved one by one in tests/rc5-buildings.test.ts; here only gate, price and persistence.
+          case 'MILL': case 'OBSERVATORY': case 'COURT': case 'ARSENAL': case 'SHIPYARD': case 'LIGHTHOUSE': break;
           default: throw new Error(`no effect test for ${id}`);
         }
         if (!['CHANCELLERY', 'TEMPLE'].includes(id)) expect(administration(done, P1).capacity).toBe(adminBefore);
@@ -139,7 +147,7 @@ describe('the eight catalog buildings: gate, price, effect', () => {
 });
 
 describe('what is not for sale', () => {
-  it.each(['MILL', 'OBSERVATORY', 'COURT', 'ARSENAL', 'SHIPYARD', 'LIGHTHOUSE', 'BARRACKS', 'CULTURAL_CENTER', 'SCRIBES_HOUSE', 'LABORATORY', 'CIVIC_SQUARE', 'SANCTUARY', 'TRADITION_HOUSE', 'TRAINING_GROUND'] as const)('%s is refused with a reason and never appears in the options', id => {
+  it.each(['BARRACKS', 'CULTURAL_CENTER', 'SCRIBES_HOUSE', 'LABORATORY', 'CIVIC_SQUARE', 'SANCTUARY', 'TRADITION_HOUSE', 'TRAINING_GROUND'] as const)('%s is refused with a reason and never appears in the options', id => {
     const state = cityFor('TREASURY');
     expect(urbanBlock(state, P1, meta(state).cityId, 'BUILD', { build: { kind: 'BUILDING', building: id } })).toBe('Este edifício ainda não está disponível.');
     expect(apply(state, buildOn(state, id)).ok).toBe(false);
@@ -151,7 +159,7 @@ describe('what is not for sale', () => {
     expect(urbanBlock(state, P1, meta(state).cityId, 'BUILD', { build: { kind: 'BUILDING', building: 'IRRIGATION' } })).toBe('Irrigação é melhoria de hex, não edifício.');
   });
   it('a save that already holds a building that is no longer offered still loads', () => {
-    const state = cityFor('TREASURY'); meta(state).buildings.push('BARRACKS', 'CULTURAL_CENTER', 'OBSERVATORY');
+    const state = cityFor('TREASURY'); meta(state).buildings.push('BARRACKS', 'CULTURAL_CENTER');
     expect(AlphaStateSchema.safeParse(JSON.parse(JSON.stringify(state))).success).toBe(true);
   });
 });

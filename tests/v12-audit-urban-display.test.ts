@@ -76,11 +76,11 @@ describe('D-03 · buildings the Web unlocks but the Construir action never offer
     // MANUFACTURE and MONUMENT are unlocked by the Web but exist neither in AlphaBuildingSchema nor in the canon building list of this phase.
     expect(silent).toEqual(['MANUFACTURE', 'MONUMENT']);
   });
-  it('D-03 now: 13 buildings are offered: the 5 core buildings with a real effect and the 8 catalog buildings; the other 16 ids stay in the schema, not offered', () => {
+  it('D-03 now (RC5): 19 buildings are offered: the 5 core buildings, the 8 catalog buildings of V1.2 and the six of RC5; the other 10 ids stay in the schema, not offered', () => {
     const state = unlockedGame();
     const offered = urbanOptions(state, P1).cities[meta(state).cityId]!.filter(option => option.build?.kind === 'BUILDING').map(option => buildingOf(option)).sort();
-    expect(offered).toEqual(['ACADEMY', 'ARCHIVE', 'BANK', 'CHANCELLERY', 'FOUNDRY', 'GRANARY', 'LIBRARY', 'MARKET', 'TEMPLE', 'THEATER', 'TREASURY', 'WAREHOUSE', 'WORKSHOP']);
-    expect(AlphaBuildingSchema.options.filter(building => !(offered as string[]).includes(building))).toHaveLength(16);
+    expect(offered).toEqual(['ACADEMY', 'ARCHIVE', 'ARSENAL', 'BANK', 'CHANCELLERY', 'COURT', 'FOUNDRY', 'GRANARY', 'LIBRARY', 'LIGHTHOUSE', 'MARKET', 'MILL', 'OBSERVATORY', 'SHIPYARD', 'TEMPLE', 'THEATER', 'TREASURY', 'WAREHOUSE', 'WORKSHOP']);
+    expect(AlphaBuildingSchema.options.filter(building => !(offered as string[]).includes(building))).toHaveLength(10);
   });
 });
 

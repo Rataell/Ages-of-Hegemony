@@ -40,7 +40,10 @@ export function blockadedBy(state: AlphaState, cityHexId: string, ownerId: Playe
   if (meta && meta.portBlockedUntil >= state.core.round && meta.portBlockedBy && meta.portBlockedBy !== ownerId && atWar(state, meta.portBlockedBy, ownerId)) return meta.portBlockedBy;
   const near = new Set([cityHexId, ...neighbours(state, cityHexId).filter(n => isNavigableTerrain(n.terrain)).map(n => n.id)]);
   // Only armed ships blockade (Força > 0): the Frota and the Barca de Patrulha.
-  return state.units.find(unit => state.rules.units[unit.kind].domain === 'SEA' && state.rules.units[unit.kind].strength > 0 && unit.ownerId !== ownerId && near.has(unit.hexId) && atWar(state, unit.ownerId, ownerId))?.ownerId ?? null;
+  const armed = state.units.filter(unit => state.rules.units[unit.kind].domain === 'SEA' && state.rules.units[unit.kind].strength > 0 && unit.ownerId !== ownerId && near.has(unit.hexId) && atWar(state, unit.ownerId, ownerId));
+  // Farol: the port is only blockaded by two or more armed ships of the same enemy. (A won boarding, checked above, still shuts it.)
+  if (meta?.buildings.includes('LIGHTHOUSE')) { const counts = new Map<string, number>(); for (const unit of armed) counts.set(unit.ownerId, (counts.get(unit.ownerId) ?? 0) + 1); return armed.find(unit => (counts.get(unit.ownerId) ?? 0) >= 2)?.ownerId ?? null; }
+  return armed[0]?.ownerId ?? null;
 }
 /** Where a fleet recruited in this port launches: the city hex if it is Coast, else the first adjacent water hex with room. */
 export function launchHex(state: AlphaState, actor: PlayerId, cityHexId: string, kind: AlphaUnit['kind'] = 'FLEET'): HexId | null {

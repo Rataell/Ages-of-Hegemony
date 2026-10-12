@@ -6,6 +6,7 @@ import { tileYieldBreakdown } from './economy.js';
 import { alphaCanAfford, alphaGain, alphaPay } from './alpha-resources.js';
 import { hasUnlock } from './alpha-institutions.js';
 import { hexBlockedByThreat } from './alpha-threats.js';
+import { hexDistance } from './hex.js';
 import { governmentEffects } from './alpha-government.js';
 
 /**
@@ -103,6 +104,11 @@ export function cityYield(state: AlphaState, cityId: string): CityYield {
     else if (tile.terrain === 'HILLS' || tile.terrain === 'MOUNTAINS' || tile.improvement === 'MINE') output.stone += yields.materials;
     else output.wood += yields.materials;
   }
+  // Moinho: +1 Alimento per Fazenda actually worked in this activation (the same slice as the yield above: capacity, no centre hex, no hex held by a threat), at most +2.
+  if (meta.buildings.includes('MILL')) {
+    const mill = Math.min(2, worked.filter(tile => tile.improvement === 'FARM').length);
+    if (mill > 0) { output.food += mill; notes.push(`Moinho: +${mill} Alimento.`); }
+  }
   const idleProducers = Math.max(0, city.workers.producers - worked.length);
   output.food += Math.floor(idleProducers / 2);
   output.wood += pairs(city.workers.artisans, ROLE_BUILDING.artisans, meta);
@@ -164,7 +170,27 @@ export function militaryUpkeep(state: AlphaState, actor: PlayerId): { food: numb
   const own = state.units.filter(unit => unit.ownerId === actor);
   const land = own.filter(unit => state.rules.units[unit.kind].domain === 'LAND' && state.rules.units[unit.kind].strength > 0).length;
   const ships = own.filter(unit => state.rules.units[unit.kind].domain === 'SEA').length;
-  return { food: Math.ceil(land / 2), wealth: ships };
+  return { food: Math.ceil(land / 2), wealth: Math.max(0, ships - shipyardExemption(state, actor)) };
+}
+/**
+ * Estaleiro: up to 2 ships anchored at the city (its hex or a hex next to it) pay no Riqueza upkeep. Each ship is claimed by one Estaleiro only (cities in id order);
+ * an occupied city grants nothing. Used by the maintenance, the forecast and the projection through `militaryUpkeep`.
+ */
+export function shipyardExemption(state: AlphaState, actor: PlayerId): number {
+  const yards = state.cities.filter(city => city.currentOwnerId === actor && city.status !== 'OCCUPIED' && city.buildings.includes('SHIPYARD')).sort((a, b) => (a.cityId < b.cityId ? -1 : 1));
+  if (!yards.length) return 0;
+  const tiles = new Map(state.core.map.map(tile => [tile.id as string, tile]));
+  const hexOf = (cityId: string) => state.core.players.flatMap(owner => owner.civilization.cities).find(city => city.id === cityId)?.hexId;
+  const claimed = new Set<string>();
+  let exempt = 0;
+  for (const yard of yards) {
+    const centre = tiles.get(hexOf(yard.cityId) ?? '');
+    if (!centre) continue;
+    const near = state.units.filter(unit => unit.ownerId === actor && state.rules.units[unit.kind].domain === 'SEA' && !claimed.has(unit.id) && tiles.get(unit.hexId) && hexDistance(centre, tiles.get(unit.hexId)!) <= 1).sort((a, b) => (a.id < b.id ? -1 : 1)).slice(0, 2);
+    for (const ship of near) claimed.add(ship.id);
+    exempt += near.length;
+  }
+  return exempt;
 }
 /** Crescer (canon §7): 3 Alimento for +1 Disponível; 2 in a city with Celeiro (and everywhere with Agronomia). */
 export function growCost(state: AlphaState, cityId: string): number {

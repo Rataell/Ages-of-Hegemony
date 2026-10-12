@@ -58,6 +58,15 @@ export function cityActivations(state: AlphaState, actor: PlayerId, cityId: stri
   return { allowed, count, left: councilBlocked ? 0 : Math.max(0, allowed - count), councilBlocked };
 }
 
+/**
+ * Tribunal (RC5): the city's second activation of the round costs no Ânimo, once per round in the whole civilization. Stateless: the waiver is spent when another city that has a
+ * Tribunal already reached its second activation this round (cities are resolved one at a time, so the first one takes it).
+ */
+export function courtWaives(state: AlphaState, actor: PlayerId, meta: AlphaState['cities'][number]): boolean {
+  if (!meta.buildings.includes('COURT')) return false;
+  return !state.cities.some(other => other.currentOwnerId === actor && other.cityId !== meta.cityId && other.buildings.includes('COURT') && other.urbanActionsUsed >= 2);
+}
+
 /** Gates every urban action shares: phase, readiness, ownership, occupation and remaining city actions. */
 function cityGate(state: AlphaState, actor: PlayerId, cityId: string, action: UrbanAction): string | null {
   if (state.phase !== 'PLANNING'&&state.phase !== 'URBAN_ACTIONS') return 'Disponível apenas no Planejamento.';
@@ -189,7 +198,7 @@ export function urbanCost(state: AlphaState, actor: PlayerId, cityId: string, ac
   }
   if (action === 'ELEVATE') { const next = nextLevel(cityMeta?.level ?? 'OUTPOST'); return next ? elevateRequirement(next)!.cost : zero; }
   if (action === 'RECRUIT' && params.unit) {
-    const price = kitUnitCost(state, actor, params.unit), one = alphaCostWithMetal(state, actor, price.cost, price.metal), count = params.count ?? 1;
+    const price = kitUnitCost(state, actor, params.unit, cityId), one = alphaCostWithMetal(state, actor, price.cost, price.metal), count = params.count ?? 1;
     return Object.fromEntries(ALPHA_RESOURCE_KEYS.map(key => [key, one[key] * count])) as AlphaResourcePool;
   }
   if (action === 'RESEARCH' && params.advancementId) return alphaCostWithMetal(state, actor, advanceCost(state, actor, params.advancementId), 0);
@@ -420,8 +429,11 @@ export function performUrbanAction(state: AlphaState, actor: PlayerId, command: 
   }
   if (command.action !== 'RESEARCH') {
     meta.urbanActionsUsed += 1;
-    // The second activation of the round costs one Ânimo (canon §10).
-    if (meta.urbanActionsUsed === 2) meta.mood = Math.max(0, meta.mood - 1);
+    // The second activation of the round costs one Ânimo (canon §10), unless this city's Tribunal waives it (once per round in the whole civilization).
+    if (meta.urbanActionsUsed === 2) {
+      if (courtWaives(state, actor, meta)) alphaEvent(state, 'COURT_WAIVER', `Tribunal: a segunda ativação de ${city.name} não custou Ânimo.`, [actor]);
+      else meta.mood = Math.max(0, meta.mood - 1);
+    }
   }
   telemetry.actionsByType[command.action] = (telemetry.actionsByType[command.action] ?? 0) + 1;
   alphaEvent(state, 'URBAN_ACTION', message, [actor]);

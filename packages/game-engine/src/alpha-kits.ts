@@ -14,13 +14,17 @@ import { alphaGain } from './alpha-resources.js';
 export const civilizationOf = (state: AlphaState, actor: PlayerId): string | null => civilizationKit(state.players.find(p => p.playerId === actor)?.civilization)?.id ?? null;
 const eraIndex = (era: string) => AlphaEraSchema.options.indexOf(era as never);
 
-/** Recruitment cost after the kit: Veyra's envoys cost 1 Wealth less (trait), Valgard's +1 Influence and Elyra's siege +1 Metal (limitations). */
-export function kitUnitCost(state: AlphaState, actor: PlayerId, kind: AlphaUnit['kind']): { cost: ResourcePool; metal: number } {
+/** Recruitment cost after the kit: Veyra's envoys cost 1 Wealth less (trait), Valgard's +1 Influence and Elyra's siege +1 Metal (limitations); then the recruiting city's Arsenal (Cavalaria/Cerco −1 Metal) or Estaleiro (Frota/Barca −1 Riqueza). */
+export function kitUnitCost(state: AlphaState, actor: PlayerId, kind: AlphaUnit['kind'], cityId?: string): { cost: ResourcePool; metal: number } {
   const entry = state.rules.units[kind], civ = civilizationOf(state, actor), cost = { ...entry.cost };
   let metal = entry.metal;
   if (civ === 'veyra' && kind === 'ENVOY') cost.wealth = Math.max(0, cost.wealth - 1);
   if (civ === 'valgard' && kind === 'ENVOY') cost.influence += 1;
   if (civ === 'elyra' && kind === 'SIEGE') metal += 1;
+  // RC5 buildings, applied after the civilization adjustments and only to the city that recruits. The Arsenal never replaces Era, district or advances: those are checked before the price.
+  const buildings = cityId ? state.cities.find(city => city.cityId === cityId)?.buildings ?? [] : [];
+  if (buildings.includes('ARSENAL') && (kind === 'CAVALRY' || kind === 'SIEGE')) metal = Math.max(0, metal - 1);
+  if (buildings.includes('SHIPYARD') && (kind === 'FLEET' || kind === 'COASTAL_VESSEL')) cost.wealth = Math.max(0, cost.wealth - 1);
   return { cost, metal };
 }
 /** Research cost after the kit: Orinth's first advancement of each domain costs 1 less; Solenne's Era I Knowledge advancements 1 more. */

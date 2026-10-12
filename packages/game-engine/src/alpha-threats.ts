@@ -307,14 +307,16 @@ function killExposed(state: AlphaState, threat: Threat, victims: readonly AlphaU
   resolutionEvent(state, { type: 'LOSSES', actorId: null, visibleTo: threatViewers(state, hex, owners), message: `${threatName(threat)} eliminou peças desprotegidas em ${hex}.`, hexId: hex as HexId, unitIds: victims.map(unit => unit.id) });
 }
 
-/** Piratas: from a hex next to a port they pillage 2 Riqueza from its owner, once per activation (I-24). */
-function pillagePort(state: AlphaState, threat: Threat): void {
+/** Piratas: from a hex next to a port they pillage 2 Riqueza from its owner (1 with a Farol), once per activation (I-24). */
+export function pillagePort(state: AlphaState, threat: Threat): void {
   const map = tileMap(state), here = map.get(threat.hexId)!, near = new Set(hexNeighbors(here).map(hexId));
   const city = allCities(state).filter(candidate => near.has(candidate.hexId) && isPort(state, candidate.hexId)).sort((a, b) => (a.id < b.id ? -1 : 1))[0];
   if (!city) return;
   const owner = state.players.find(player => player.playerId === city.ownerId);
   if (!owner) return;
-  const loss = Math.min(2, owner.resources.wealth);
+  // Farol: a port with a Farol loses 1 Riqueza to the pillage instead of 2.
+  const lighthouse = state.cities.find(meta => meta.cityId === city.id)?.buildings.includes('LIGHTHOUSE') ?? false;
+  const loss = Math.min(lighthouse ? 1 : 2, owner.resources.wealth);
   if (loss > 0) alphaLose(state, city.ownerId, { wealth: loss });
   alphaEvent(state, 'THREAT_PILLAGE', `Piratas pilharam o porto de ${city.name}${loss ? ` (−${loss} Riqueza)` : ''}.`, [city.ownerId]);
 }
