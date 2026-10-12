@@ -148,6 +148,23 @@ test('authoritative battle dice, retreat and Hegemony finish appear in both brow
       await expect(finale.locator('.alpha-standings tbody tr')).toHaveCount(2);
       await expect(finale.locator('.alpha-standings tbody tr').first()).toContainText('Aurélia');
       await expect(finale.getByRole('button',{name:'Nova partida',exact:true})).toBeVisible();
+      // Crônica da Partida: six sections, the facts of this match, exports, and nothing private.
+      await finale.getByRole('button',{name:'Crônica da Partida',exact:true}).click();
+      const chronicle=page.locator('section.alpha-chronicle');
+      await expect(chronicle).toBeVisible();
+      await expect(chronicle.getByRole('tab')).toHaveText(['Resumo','Civilizações','Economia','Desenvolvimento','Conflitos','Linha do tempo']);
+      await expect(chronicle).toContainText(/Hegemonia consolidada na rodada/);
+      if(index===0)await chronicle.screenshot({path:`${evidence}/1440-chronicle.png`});
+      await expect(chronicle.locator('.alpha-standings tbody tr').first()).toContainText('Aurélia');
+      for(const [section,expected] of [['Civilizações',/Cidades/],['Economia',/Alimento/],['Desenvolvimento',/Distritos/],['Conflitos',/batalha/],['Linha do tempo',/Rodada/]] as const){
+        await chronicle.getByRole('tab',{name:section,exact:true}).click();
+        await expect(chronicle).toContainText(expected);
+      }
+      await expect(chronicle.getByText(/O que esta Crônica não sabe/)).toBeVisible();
+      const [download]=await Promise.all([page.waitForEvent('download'),chronicle.getByRole('button',{name:'Exportar JSON',exact:true}).click()]);
+      expect(download.suggestedFilename()).toMatch(/^cronica-.*\.json$/);
+      await chronicle.getByRole('button',{name:'Fechar',exact:true}).click();
+      await expect(chronicle).toBeHidden();
       await finale.getByRole('button',{name:'Ver o mapa final',exact:true}).click();
       await expect(page.locator('.alpha-round-bar button')).toBeDisabled();
     }
