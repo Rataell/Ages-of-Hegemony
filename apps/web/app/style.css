@@ -758,14 +758,27 @@ meter {
 .terrain-FOREST { --terrain: var(--forest); }
 .terrain-HILLS { --terrain: var(--hills); }
 .terrain-MOUNTAINS { --terrain: var(--mountains); }
-.terrain-COAST { --terrain: var(--coast); }
-.terrain-SEA { --terrain: var(--sea); }
+/* Mesa Viva: COSTA is sand with dashed foam (walkable); MAR is deep blue with waves (ships only). */
+.terrain-COAST { --terrain: var(--coast-sand, #a59c7a); }
+.terrain-SEA { --terrain: var(--sea-deep, #264f68); }
 .terrain-UNKNOWN { --terrain: var(--unknown); }
 
-.terrain-COAST .hex-texture,
 .terrain-SEA .hex-texture {
   fill: url(#sea-waves);
 }
+
+.terrain-COAST .hex-texture {
+  fill: none;
+  stroke: #fff6dc;
+  stroke-opacity: 0.7;
+  stroke-width: 2.4;
+  stroke-dasharray: 1 5;
+  stroke-linecap: round;
+  transform: scale(0.92);
+}
+
+.hex.terrain-COAST .terrain-glyph { fill: #3a3424; opacity: 0.7; }
+.hex.terrain-SEA .terrain-glyph { fill: #9cc4d4; opacity: 0.6; }
 
 .terrain-FOREST .hex-texture {
   fill: url(#forest-dots);
@@ -2377,6 +2390,10 @@ dialog h2 {
 .world-map.art-mode .hex.selected .hex-border { stroke: #f4ecd8; stroke-width: 3.5; stroke-dasharray: none; }
 .world-map.art-mode .frontier-pulse { stroke: #f4ecd8; }
 .world-map.art-mode .hex-owner-tint { fill-opacity: 0.1; }
+/* The relief, resource and improvement are art (terrain-art.ts symbols); the old textures and glyphs stay for the plain atlas only. */
+.world-map.art-mode .hex .hex-texture { display: none; }
+.hex .hex-relief, .hex .hex-resource, .hex .hex-improvement { pointer-events: none; }
+.owner-contour { fill: none; stroke-width: 1.8; stroke-opacity: 0.6; stroke-linejoin: round; }
 .world-map.art-mode .art-borders, .world-map.art-mode .art-stack, .world-map.art-mode .art-city { pointer-events: none; }
 .art-level-seal { fill: #0b1114; stroke-width: 1.6; }
 .hex text.art-level { fill: #f4ecd8; font-size: 11px; font-weight: 700; }

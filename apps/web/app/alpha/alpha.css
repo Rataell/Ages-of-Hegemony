@@ -586,6 +586,24 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-threat-intent.is-target .alpha-threat-heading { stroke-dasharray: none; stroke-width: 3; opacity: .95; }
 .alpha-threat-aim { fill: none; stroke: #e59a86; stroke-width: 2; opacity: .9; pointer-events: none; }
 .alpha-threat.is-fresh .raid-badge { stroke-dasharray: 3 3; opacity: .8; }
+/* Mesa Viva D3: threats are miniatures on an iron base; the planned path is a dashed polyline with an arrow. */
+.alpha-threat.is-fresh .threat-art { opacity: .82; }
+.alpha-threat.is-retreat .threat-art { opacity: .9; }
+.alpha-threat-path { fill: none; stroke: #e59a86; stroke-width: 2.6; stroke-dasharray: 6 6; stroke-linecap: round; stroke-linejoin: round; opacity: .9; pointer-events: none; }
+.alpha-threat-intent.is-target .alpha-threat-path { stroke-dasharray: 9 4; }
+.art-more rect { fill: #0b1114; stroke: #f4ecd8; stroke-width: 1; }
+.hex .art-more text { fill: #f4ecd8; font-size: 10px; font-weight: 700; }
+.art-mood { pointer-events: none; }
+.world-map.art-mode .art-trails, .world-map.art-mode .art-losses, .world-map.art-mode .art-danger { pointer-events: none; }
+.art-trail-line { stroke: #e59a86; stroke-width: 3; stroke-dasharray: 5 5; stroke-linecap: round; opacity: .9; }
+.art-loss-halo { fill: rgba(224, 88, 63, .16); stroke: #e0583f; stroke-width: 3; stroke-dasharray: 7 5; stroke-linejoin: round; }
+.art-danger-mark { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6)); }
+.world-map.art-mode .hex.target .hex-border { stroke: var(--target-color, #7cc4ff); stroke-width: 3.5; }
+.world-map.art-mode .hex.ctx-focus .hex-border { stroke: var(--accent, #d8b46a); stroke-width: 3.5; }
+.hex.arrive .alpha-threat .threat-art { transform-box: fill-box; transform-origin: center; animation: piece-arrive 520ms ease-out; }
+@media (prefers-reduced-motion: no-preference) { .art-trail { animation: trail-fade 1.2s ease-out forwards; } }
+@keyframes trail-fade { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: .15; } }
+@media (prefers-reduced-motion: reduce) { .hex.arrive .alpha-threat .threat-art { animation: none; } }
 .alpha-government li > span { display: grid; gap: 1px; }
 .alpha-government li > span small { color: #8a8372; font-size: 11px; line-height: 1.25; }
 .alpha-government li[data-unlocked='false'] > span { opacity: .6; }

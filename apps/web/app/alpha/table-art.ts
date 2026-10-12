@@ -859,3 +859,63 @@ export function borderStrokes(pattern: CivilizationMark['border'], color: string
     case 'BAND': return [`stroke="${color}" stroke-opacity=".28" stroke-width="${f1(w * 3.6)}" fill="none"`, line(w)];
   }
 }
+
+/* ------------------------------------------------------------ threats (D3) */
+/**
+ * Mesa Viva threats: the SAME silhouettes as the player's pieces in the threat colour on an angular iron base (an octagon), so the grayscale and the
+ * hex tell "not a player" without a label. A Bando shows up to three real classes of `composition` with a "+N"; a camp stands on the tent of the concept
+ * (two tents, fire, low palisade, torn standard); pirates stand on the same base over the water (Barca de Patrulha / Frota).
+ */
+export const THREAT_COLOR = '#b4533c';
+const THREAT_IRON = '#2a1511';
+export function threatFigureArt(kind: string, px = 26, count = 0, ghost = false): string {
+  const o = 0.5 * px * 0.78;
+  const pts = Array.from({ length: 8 }, (_, i) => { const a = (Math.PI / 4) * i + Math.PI / 8; return `${f1(Math.cos(a) * o * 1.15)},${f1(Math.sin(a) * o * 0.8 + px * 0.34)}`; }).join(' ');
+  return `<g class="threat-figure" data-kind="${kind}"${ghost ? ' opacity=".45"' : ''}><polygon points="${pts}" fill="${THREAT_IRON}" stroke="${THREAT_COLOR}" stroke-width="1.4"/>${pieceArt(kind, THREAT_COLOR, px, count)}${ghost ? `<circle r="${f1(px * 0.62)}" fill="none" stroke="${THREAT_COLOR}" stroke-dasharray="3 3" stroke-width="1.2"/>` : ''}</g>`;
+}
+/** The camp marker of the concept (MK.camp) with the torn standard; `rest` adds the hourglass (it cannot leave yet). */
+export function campArt(state: 'active' | 'rest' = 'active', scale = 1): string {
+  const OL = 'stroke="#0b0b0bcc" stroke-width=".7" vector-effect="non-scaling-stroke" stroke-linejoin="round"';
+  const poly = (pts: readonly Pt[], fill: string) => `<polygon points="${pts.map(p => `${f1(p[0])},${f1(p[1])}`).join(' ')}" fill="${fill}" ${OL}/>`;
+  let body = `<ellipse cx="0" cy="3" rx="19" ry="6" fill="#7a6a4a" opacity=".7"/>`;
+  for (const [x, y, w, c] of [[-10, 2, 9, '#6a3a30'], [10, 2, 8, '#5a4632']] as const) body += poly([[x - w, y], [x, y - w * 1.4], [x + w, y]], c) + poly([[x - 2, y], [x, y - w * 0.7], [x + 2, y]], '#241f1a');
+  body += poly([[-3, 4], [0, -4], [3, 4]], '#5a3a2a') + `<circle cx="0" cy="3" r="2.6" fill="#c9783a"/><circle cx="0" cy="2" r="1.4" fill="#ffd36a"/>`;
+  body += Array.from({ length: 9 }, (_, i) => `<path d="M${-16 + i * 4},6 l1.2,-6" stroke="#4a3626" stroke-width="1.6" stroke-linecap="round"/>`).join('');
+  let g = `<g transform="scale(1.3)">${body}</g><path d="M0 -4 v-26" stroke="#c9b48a" stroke-width="1.8"/><path d="M0 -30 l12 2 l-3 3 l3 3 l-3 3 l3 3 l-12 -1Z" fill="#7a2c20" stroke="${INK}" stroke-width="1"/><path d="M3 -25 l4 4 M7 -25 l-4 4" stroke="#e6c9a0" stroke-width="1.1"/>`;
+  if (state === 'rest') g += hourglassBadge(26, -18);
+  return `<g class="camp-art" data-state="${state}" transform="scale(${f1(scale * 100) / 100})">${g}</g>`;
+}
+const hourglassBadge = (x: number, y: number) => `<g class="threat-badge is-wait" transform="translate(${x} ${y})"><circle r="8" fill="#0f181c" stroke="#e6b04c" stroke-width="1.4"/><path d="M-3.5 -4.5 h7 l-3.5 4.5 l3.5 4.5 h-7 l3.5 -4.5Z" fill="none" stroke="#e6b04c" stroke-width="1.3"/></g>`;
+const retreatBadge = (x: number, y: number) => `<g class="threat-badge is-retreat" transform="translate(${x} ${y})"><circle r="8" fill="#0f181c" stroke="#e6b04c" stroke-width="1.4"/><path d="M3.5 3.5 H-1 a3.6 3.6 0 0 1 0 -7.2 H3 M0.5 -6.4 L-2.6 -3.7 L0.5 -1" fill="none" stroke="#e6b04c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+export interface ThreatMarkOptions {
+  kind: string; status: string; level: number; composition: readonly { kind: string; count: number }[];
+  /** The engine's intent.state (FRESH | WAITING | MARCHING | WITHDRAWING | IDLE). */
+  state?: string | undefined; fresh?: boolean | undefined; reorganizing?: boolean | undefined;
+  /** On a city or sharing the hex with pieces: a smaller row without the plaque. */
+  compact?: boolean;
+}
+export const THREAT_ROMAN = ['I', 'II', 'III'] as const;
+export function threatName(kind: string, status: string): string { return kind === 'PIRATE' ? (status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : status === 'CAMPED' ? 'Acampamento' : 'Bando'; }
+/** Fragment centred on the hex: background (camp/anchorage), up to 3 classes of the composition, "+N", the Grau plaque and the state badge. */
+export function threatMarkArt(o: ThreatMarkOptions): string {
+  const camped = o.status === 'CAMPED', roman = THREAT_ROMAN[Math.max(0, Math.min(2, o.level - 1))]!;
+  const classes = [...o.composition].sort((a, b) => b.count - a.count), shown = classes.slice(0, 3), extra = classes.slice(3).reduce((n, c) => n + c.count, 0);
+  const px = o.compact ? 18 : camped ? 20 : 28, gap = o.compact ? 16 : camped ? 18 : 24, rowY = o.compact ? 0 : camped ? 17 : -2;
+  const wait = camped && (o.fresh || o.reorganizing), retreat = o.state === 'WITHDRAWING';
+  let g = '';
+  if (!o.compact && camped) g += o.kind === 'PIRATE' ? `<g transform="translate(0 -6)">${discoveryArt('ANCHORAGE', 34)}</g>` : `<g transform="translate(0 -2)">${campArt('active', 0.98)}</g>`;
+  const row = shown.map((c, i) => `<g transform="translate(${f1((i - (shown.length - 1) / 2) * gap)} ${rowY})" data-class="${c.kind}">${threatFigureArt(c.kind, px, c.count)}</g>`).join('');
+  g += row;
+  const half = ((shown.length - 1) / 2) * gap + px / 2;
+  if (extra > 0) g += `<g transform="translate(${f1(half + 7)} ${rowY + px * 0.3})"><rect x="-8" y="-6.5" width="16" height="13" rx="6.5" fill="${INK}" stroke="${THREAT_COLOR}" stroke-width="1.1"/><text y="3.2" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="700" font-size="9" fill="${LIGHT}">+${extra}</text></g>`;
+  if (o.compact) g += `<g transform="translate(${f1(-half - 8)} ${rowY})"><polygon points="-7,-2 -3,-7 3,-7 7,-2 7,2 3,7 -3,7 -7,2" fill="${THREAT_IRON}" stroke="${THREAT_COLOR}" stroke-width="1.2"/><text y="3.3" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="700" font-size="8.6" fill="${LIGHT}">${roman}</text></g>`;
+  else { const name = `${threatName(o.kind, o.status)} ${roman}`, w = Math.max(40, name.length * 5.4 + 14); g += `<g transform="translate(0 33)"><rect x="${f1(-w / 2)}" y="-7" width="${f1(w)}" height="14" rx="7" fill="${THREAT_IRON}" stroke="${THREAT_COLOR}" stroke-width="1.2"/><text y="3.2" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="700" font-size="9" fill="${LIGHT}">${name}</text></g>`; }
+  const bx = o.compact ? half + 8 : Math.max(half, 22) + 4, by = o.compact ? rowY - 9 : -20;
+  if (retreat) g += retreatBadge(bx, by); else if (wait) g += hourglassBadge(bx, by);
+  return `<g class="threat-art" data-kind="${o.kind}" data-status="${o.status}" data-level="${o.level}"${retreat ? ' data-retreat="1"' : ''}${wait ? ' data-wait="1"' : ''}>${g}</g>`;
+}
+/** Amber triangle of the concept's `danger` marker: a closed Region MAY hold a Perigo (never says whether it does). */
+export function dangerMarkArt(size = 12): string {
+  const s = size / 12;
+  return `<g class="danger-mark" transform="scale(${f1(s * 100) / 100})"><path d="M0,-11 L11,9 H-11Z" fill="#e6a03c" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/><path d="M0,-3 V3.4" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/><circle cy="6.2" r="1.3" fill="${INK}"/></g>`;
+}

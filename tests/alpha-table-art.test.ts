@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { CIVILIZATION_KITS, CORE10_CHASSIS, DISCOVERY_INFO, LEGACY_WORKS, type DiscoveryKind } from '@aoh/game-domain';
 import {
   CULTURE_IDS, DISCOVERY_MARKERS, LEGACY_WORK_IDS, SEAT_COLORS, bannerArt, borderStrokes, cityArt, cityDetailArt, cityPieceArt, cultureOf, discoveryArt,
-  emblemArt, fortificationArt, harborArt, mix, orientationArt, pieceArt, sealArt, seatColor, seatSeal, workArt,
+  campArt, dangerMarkArt, emblemArt, fortificationArt, harborArt, mix, orientationArt, pieceArt, sealArt, seatColor, seatSeal, threatFigureArt, threatMarkArt, workArt,
 } from '../apps/web/app/alpha/table-art.js';
+import { moodLabel, moodSealArt, moodSealSvg } from '../apps/web/app/alpha/mood-seal.js';
+import { FEATURE_KEYS, IMPROVEMENT_KEYS, TERRAIN_KEYS, TERRAIN_VARIANTS, terrainDefs, terrainSummary, terrainVariant } from '../apps/web/app/alpha/terrain-art.js';
 
 const count = (svg: string, tag: string) => (svg.match(new RegExp(`<${tag}\\b`, 'g')) ?? []).length;
 const volumes = (svg: string) => Number(/data-volumes="(\d+)"/.exec(svg)?.[1] ?? 0);
@@ -95,5 +97,45 @@ describe('table art (Experience V2.2 · RC 1.2 material culture)', () => {
     expect(new Set(core.map(kit => kit.mark.banner)).size).toBe(10);
     expect(new Set(core.map(kit => bannerArt(kit.mark, SEAT_COLORS[0], 22))).size).toBe(10);
     expect(new Set(core.map(kit => emblemArt(kit.mark.emblem, 0, 0, 1, '#fff'))).size).toBe(10);
+  });
+});
+
+describe('Mesa Viva B1 art: threats, Ânimo and terrain', () => {
+  it('draws a threat from its real composition on the angular iron base, up to 3 classes and a +N', () => {
+    const fig = threatFigureArt('CAVALRY', 26);
+    expect(fig).toContain('#b4533c');
+    expect(/points="([^"]+)"/.exec(fig)![1]!.split(' ')).toHaveLength(8);
+    const band = threatMarkArt({ kind: 'CAMP', status: 'MARCHING', level: 2, composition: [{ kind: 'INFANTRY', count: 2 }, { kind: 'CAVALRY', count: 1 }, { kind: 'RANGED', count: 1 }, { kind: 'SIEGE', count: 1 }] });
+    expect((band.match(/data-class=/g) ?? []).length).toBe(3);
+    expect(band).toContain('+1');
+    expect(band).toContain('Bando II');
+    expect(threatMarkArt({ kind: 'CAMP', status: 'CAMPED', level: 1, composition: [{ kind: 'INFANTRY', count: 1 }], fresh: true })).toContain('data-wait="1"');
+    expect(threatMarkArt({ kind: 'CAMP', status: 'MARCHING', level: 1, composition: [{ kind: 'INFANTRY', count: 1 }], state: 'WITHDRAWING' })).toContain('data-retreat="1"');
+    expect(threatMarkArt({ kind: 'PIRATE', status: 'MARCHING', level: 1, composition: [{ kind: 'COASTAL_VESSEL', count: 1 }] })).toContain('Piratas I');
+    expect(campArt('rest')).toContain('is-wait');
+    expect(campArt('active')).not.toContain('is-wait');
+    expect(dangerMarkArt()).toContain('#e6a03c');
+  });
+  it('gives the four Ânimo bands four different seals with the number and an accessible label', () => {
+    expect(new Set([0, 2, 4, 5].map(n => moodSealArt(n))).size).toBe(4);
+    expect(moodSealArt(1)).toContain('data-band="Revolta"');
+    expect(moodSealArt(3)).toContain('stroke-dasharray');
+    expect(moodLabel(4)).toBe('Ânimo 4 de 6, Estável');
+    expect(moodSealSvg(6)).toContain('aria-label="Ânimo 6 de 6, Próspera"');
+    expect(moodSealArt(9)).toContain('data-mood="6"');
+  });
+  it('draws relief, every resource and every improvement as art, built once; COAST and SEA differ', () => {
+    const defs = terrainDefs();
+    expect(terrainDefs()).toBe(defs);
+    for (const t of TERRAIN_KEYS) for (let v = 0; v < TERRAIN_VARIANTS; v++) expect(defs).toContain(`id="aoh-t-${t}-${v}"`);
+    for (const f of FEATURE_KEYS) expect(defs).toContain(`id="aoh-f-${f}"`);
+    for (const i of IMPROVEMENT_KEYS) expect(defs).toContain(`id="aoh-i-${i}"`);
+    expect(defs).toContain('#a59c7a');
+    expect(defs).toContain('#264f68');
+    expect([terrainVariant(0, 0), terrainVariant(-5, 9), terrainVariant(20, 3)].every(v => v >= 0 && v < TERRAIN_VARIANTS)).toBe(true);
+    const text = terrainSummary({ terrain: 'HILLS', features: ['METAL'], improvement: 'MINE', owner: 'Leontia', moveCosts: { HILLS: 2 } });
+    expect(text.short).toBe('Colinas · Jazida de Metal · Mina · Leontia');
+    expect(text.lines).toContain('Custo de movimento 2');
+    expect(terrainSummary({ terrain: 'SEA' }).lines[1]).toContain('só navios');
   });
 });
