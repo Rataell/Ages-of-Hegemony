@@ -115,7 +115,7 @@ export const VARIANTS = {
   candA: 'M1 + M4 moderate: the ladder needs 15% fewer inhabitants (Math.round, never below the previous level + 1): 2,4,6,8,11,14,18 become 2,3,5,7,9,12,15',
   candB: 'M1 + M2b: a fed city that grew this round may grow a SECOND inhabitant when it is below its ceiling, the civilization has the Alimento and no famine hit the owner (same cost per inhabitant)',
 };
-function applyVariant(state, variant, D = null) {
+function applyVariant(state, variant) {
   const up = (v, k) => Math.ceil(v * k);
   const scalePool = (pool, k) => { for (const key of Object.keys(pool)) pool[key] = up(pool[key], k); };
   if (['yield150', 'combo'].includes(variant)) {
@@ -162,7 +162,7 @@ export function createBox({ E, D, policy, profile, players, seed, startingPionee
   const seats = Array.from({ length: players }, (_, i) => ({ id: `p${i + 1}`, name: `${policy}-${i + 1}`, civilization: civs[(i + seed) % civs.length], policy: mixed ? mixed[i % mixed.length] : policy }));
   resetTrace();
   let state = E.createAlphaGame({ gameId: `a1-${policy}-${profile}-${players}-${seed}`, seed, preset, worldPreset, startingPioneers, ...(['orders6', 'combo'].includes(variant) ? { actionsPerRound: 6 } : {}), players: seats.map(({ id, name, civilization }) => ({ id, name, civilization })) });
-  if (variant !== 'base') state = applyVariant(state, variant, D);
+  if (variant !== 'base') state = applyVariant(state, variant);
   state = E.beginAlphaPlanning(state);
   return {
     E, D, state, seats, policy, profile, seed, players, preset, variant, peace,
