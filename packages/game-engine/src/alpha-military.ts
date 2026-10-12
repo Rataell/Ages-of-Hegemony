@@ -1,4 +1,4 @@
-import { ADVANCEMENTS, AlphaEraSchema, type AlphaState, type AlphaUnit, type HexId, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
+import { ADVANCEMENTS, AlphaEraSchema, moveLegs, type AlphaState, type AlphaUnit, type HexId, type MoveLeg, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
 import { alphaCanAfford, alphaCostWithMetal, alphaPay } from './alpha-resources.js';
 import { hasUnlock, institutionBonus } from './alpha-institutions.js';
@@ -66,42 +66,57 @@ export function unitSupply(state:AlphaState,unit:AlphaUnit):{supplied:boolean;re
   }
   return {supplied:false,reason:'Sem cidade ao alcance ou conexão territorial de suprimento.'};
 }
-export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:StrategicOrder):void {
-  if(order.type!=='MOVE'&&order.type!=='ATTACK')throw new Error('Este resolvedor aceita movimento e ataque.');
-  if(new Set(order.unitIds).size!==order.unitIds.length)throw new Error('Não repita peças na mesma ordem.');
-  const units=order.unitIds.map(id=>state.units.find(u=>u.id===id&&u.ownerId===actor));
+/** Movement budget of one piece this round: grade, institution/card/leader bonus and civilization kit. The single formula (options, validators, preview). */
+export const moveBudget=(state:AlphaState,actor:PlayerId,unit:AlphaUnit):number=>unitMovement(state,unit)+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind);
+/**
+ * One path of one group (legacy MOVE, or one leg of a coordinated MOVE) over known ground. Throws the player-facing refusal. Checks nothing about other legs or other Orders
+ * (see alpha-move.ts for the coordinated set); a frontier leg (last hex in a closed Region) is validated by planFrontierMove instead.
+ */
+export function validateMoveLeg(state:AlphaState,actor:PlayerId,leg:MoveLeg):void {
+  if(new Set(leg.unitIds).size!==leg.unitIds.length)throw new Error('Não repita peças na mesma ordem.');
+  const units=leg.unitIds.map(id=>state.units.find(u=>u.id===id&&u.ownerId===actor));
   if(units.some(u=>!u))throw new Error('A ordem contém uma peça que não pertence a você.');
-  if(order.type==='MOVE'&&order.path.length>0&&units.some(unit=>unit!.hexId===order.path.at(-1)))throw new Error('O movimento deve terminar em outro hex.');
-  if(order.type==='MOVE'&&units.some(unit=>isCarried(unit!)))throw new Error('Peça embarcada: desembarque ou ataque a partir da frota.');
-  if(order.type==='ATTACK'&&units.some(unit=>isCarried(unit!))&&units.some(unit=>!isCarried(unit!)))throw new Error('Um ataque anfíbio parte só das peças embarcadas na mesma frota.');
+  if(leg.path.length>0&&units.some(unit=>unit!.hexId===leg.path.at(-1)))throw new Error('O movimento deve terminar em outro hex.');
+  if(units.some(unit=>isCarried(unit!)))throw new Error('Peça embarcada: desembarque ou ataque a partir da frota.');
   const progress=state.players.find(p=>p.playerId===actor)!;
   for(const piece of units) {
     const unit=piece!;let current=state.core.map.find(t=>t.id===unit.hexId)!;let cost=0;
-    const path=order.type==='MOVE'?order.path:[order.target];
-    for(const id of path) {
+    for(const id of leg.path) {
       const target=state.core.map.find(t=>t.id===id);
       if(!target||!progress.knownHexIds.includes(id)||hexDistance(current,target)!==1||!canEnter(state,unit,id))throw new Error('Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.');
-      if(order.type==='MOVE'&&(!movementOpen(state,actor,target.ownerId)||enemyCityAt(state,actor,id)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)||state.threats.some(t=>t.hexId===id)))throw new Error('Fronteira fechada, cidade inimiga, ameaça do mundo ou presença de outra civilização: use uma ordem de conflito.');
-      // B-01: only a MOVE walks into the hex and pays its terrain. An ATTACK strikes an adjacent hex; the target's terrain is the defender's advantage, not the attacker's budget.
-      if(order.type==='MOVE')cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];
+      if(!movementOpen(state,actor,target.ownerId)||enemyCityAt(state,actor,id)||state.units.some(u=>u.hexId===id&&u.ownerId!==actor)||state.threats.some(t=>t.hexId===id))throw new Error('Fronteira fechada, cidade inimiga, ameaça do mundo ou presença de outra civilização: use uma ordem de conflito.');
+      cost+=state.roads.includes(id)&&state.rules.units[unit.kind].domain==='LAND'?1:state.rules.movementCosts[target.terrain];
       current=target;
     }
-    const mobility=unitMovement(state,unit)+institutionBonus(state,actor,'MOVEMENT')+kitMovement(state,actor,unit.kind);
-    if(order.type==='ATTACK'?mobility<1:cost>mobility)throw new Error(order.type==='ATTACK'?'Esta peça não tem mobilidade para atacar.':'Caminho excede a mobilidade da peça.');
-    if(order.type==='ATTACK'&&state.rules.units[unit.kind].strength===0)throw new Error('Esta peça não participa de ataques.');
+    if(cost>moveBudget(state,actor,unit))throw new Error('Caminho excede a mobilidade da peça.');
   }
-  if(order.type==='MOVE'&&order.path.length){const crowded=stackBlock(state,actor,units as AlphaUnit[],order.path.at(-1)!);if(crowded)throw new Error(crowded);}
-  if(order.type==='ATTACK') {
-    const enemies=state.units.filter(u=>u.hexId===order.target&&u.ownerId!==actor);
-    const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target&&c.ownerId!==actor);
-    const threat=state.threats.some(t=>t.hexId===order.target);
-    if(!enemies.length&&!city&&!threat)throw new Error('Não há adversário conhecido nesse destino.');
-    if(enemies.length||city){
-      const defender=enemies[0]?.ownerId??city!.ownerId;
-      // A declaration planned this round resolves in Diplomacy, before Conflicts, so the attack may be reserved with it.
-      const declared=state.phase==='PLANNING'&&progress.plannedActions.some(action=>action.type==='DECLARE_WAR'&&action.targetId===defender);
-      if(!atWar(state,actor,defender)&&!declared)throw new Error('Declare guerra antes de ordenar um ataque a outra civilização.');
-    }
-    if(new Set(units.map(u=>u?.hexId)).size!==1)throw new Error('Uma força de ataque deve partir do mesmo hex.');
+  if(leg.path.length){const crowded=stackBlock(state,actor,units as AlphaUnit[],leg.path.at(-1)!);if(crowded)throw new Error(crowded);}
+}
+export function validateMilitaryOrder(state:AlphaState,actor:PlayerId,order:StrategicOrder):void {
+  if(order.type!=='MOVE'&&order.type!=='ATTACK')throw new Error('Este resolvedor aceita movimento e ataque.');
+  if(order.type==='MOVE'){for(const leg of moveLegs(order))validateMoveLeg(state,actor,leg);return;}
+  if(new Set(order.unitIds).size!==order.unitIds.length)throw new Error('Não repita peças na mesma ordem.');
+  const units=order.unitIds.map(id=>state.units.find(u=>u.id===id&&u.ownerId===actor));
+  if(units.some(u=>!u))throw new Error('A ordem contém uma peça que não pertence a você.');
+  if(units.some(unit=>isCarried(unit!))&&units.some(unit=>!isCarried(unit!)))throw new Error('Um ataque anfíbio parte só das peças embarcadas na mesma frota.');
+  const progress=state.players.find(p=>p.playerId===actor)!;
+  for(const piece of units) {
+    const unit=piece!;const current=state.core.map.find(t=>t.id===unit.hexId)!;
+    // B-01: only a MOVE walks into the hex and pays its terrain. An ATTACK strikes an adjacent hex; the target's terrain is the defender's advantage, not the attacker's budget.
+    const target=state.core.map.find(t=>t.id===order.target);
+    if(!target||!progress.knownHexIds.includes(order.target)||hexDistance(current,target)!==1||!canEnter(state,unit,order.target))throw new Error('Caminho deve cruzar hexes conhecidos, adjacentes e compatíveis com a peça.');
+    if(moveBudget(state,actor,unit)<1)throw new Error('Esta peça não tem mobilidade para atacar.');
+    if(state.rules.units[unit.kind].strength===0)throw new Error('Esta peça não participa de ataques.');
   }
+  const enemies=state.units.filter(u=>u.hexId===order.target&&u.ownerId!==actor);
+  const city=state.core.players.flatMap(p=>p.civilization.cities).find(c=>c.hexId===order.target&&c.ownerId!==actor);
+  const threat=state.threats.some(t=>t.hexId===order.target);
+  if(!enemies.length&&!city&&!threat)throw new Error('Não há adversário conhecido nesse destino.');
+  if(enemies.length||city){
+    const defender=enemies[0]?.ownerId??city!.ownerId;
+    // A declaration planned this round resolves in Diplomacy, before Conflicts, so the attack may be reserved with it.
+    const declared=state.phase==='PLANNING'&&progress.plannedActions.some(action=>action.type==='DECLARE_WAR'&&action.targetId===defender);
+    if(!atWar(state,actor,defender)&&!declared)throw new Error('Declare guerra antes de ordenar um ataque a outra civilização.');
+  }
+  if(new Set(units.map(u=>u?.hexId)).size!==1)throw new Error('Uma força de ataque deve partir do mesmo hex.');
 }

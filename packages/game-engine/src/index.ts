@@ -13,6 +13,7 @@ export * from './alpha-actions.js';
 export * from './alpha-military.js';
 export * from './alpha-world.js';
 export * from './alpha-frontier.js';
+export * from './alpha-move.js';
 export * from './alpha-institutions.js';
 export * from './alpha-diplomacy.js';
 export * from './alpha-cards.js';

@@ -2,7 +2,7 @@ import { settleTradeOffers } from './alpha-trade.js';
 import { administration, canGrow, citySustenance, growCost, militaryUpkeep, refreshAlphaAdministration, rearmRevoltEmergency, replaceCity } from './alpha-city.js';
 import { TREATY_NAMES, battleMessage, discoveryMessage, lossesMessage, orderMessage, urbanActionMessage } from './alpha-messages.js';
 import {
-  ALPHA_CARDS, emptyOrderCount, AlphaStateSchema, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources,
+  ALPHA_CARDS, emptyOrderCount, AlphaStateSchema, legAsOrder, moveLegs, orderUnitIds, RESOURCE_KEYS, WORLD_PULSE_CARDS, alphaToLegacyResources,
   type AlphaCommand, type AlphaResourcePool, type AlphaRoundPhase, type AlphaState, type PlannedAction, type PlayerId, type RoundPhase, type StrategicOrder,
 } from '@aoh/game-domain';
 import { alphaEvent, resolutionEvent } from './alpha-events.js';
@@ -126,7 +126,13 @@ export function openRound(state: AlphaState): void {
 /** Orders that resolve automatically. `types` chooses the phase: movement and exploration before diplomacy, attacks and influence in conflicts. */
 export function resolveOrders(state: AlphaState, types: readonly StrategicOrder['type'][]): void {
   for (const type of types) for (const id of state.initiative) {
-    const orders = state.players.find(player => player.playerId === id)!.orders.filter(order => order.type === type);
+    // A coordinated MOVE resolves leg by leg, each as the plain Move it is: a leg that is no longer legal fails alone (its own ORDER_FAILED) and the others still go.
+    const legOf = new Map<StrategicOrder, { index: number; total: number }>();
+    const orders = state.players.find(player => player.playerId === id)!.orders.filter(order => order.type === type).flatMap(order => {
+      if (order.type !== 'MOVE' || order.legs === undefined) return [order];
+      const legs = moveLegs(order);
+      return legs.map((leg, index) => { const single = legAsOrder(order, leg); legOf.set(single, { index, total: legs.length }); return single; });
+    });
     for (const order of orders) {
       const candidate = structuredClone(state);
       let found: { plan: FrontierPlan; entered: boolean; lost?: string[] } | null = null;
@@ -137,7 +143,7 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         // A Move whose last step enters a closed Region opens it (Move + Discovery); the plan is re-checked against the table as it is now.
         else if (order.type === 'MOVE' && isFrontierMove(candidate, id, order)) found = resolveFrontierMove(candidate, id, order);
         else validateMilitaryOrder(candidate, id, order);
-        if (order.type === 'MOVE' && !found) { candidate.units.filter(unit => order.unitIds.includes(unit.id)).forEach(unit => { unit.hexId = order.path.at(-1)!; }); settleCargo(candidate); }
+        if (order.type === 'MOVE' && !found) { const [leg] = moveLegs(order); candidate.units.filter(unit => leg!.unitIds.includes(unit.id)).forEach(unit => { unit.hexId = leg!.path.at(-1)!; }); settleCargo(candidate); }
         if (order.type === 'ATTACK') resolveBattle(candidate, id, order);
         refreshAlphaAdministration(candidate);
         refreshKnowledge(candidate); refreshHegemony(candidate);
@@ -145,14 +151,15 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         const raced = order.type === 'MOVE' && !found && order.rotation !== undefined;
         const message = order.type === 'ATTACK' ? battleMessage(before.names, candidate.battles.at(-1)!) : found && order.type === 'MOVE' ? discoveryMessage(state, id, order, found.plan.region.templateId, found.entered, found.lost) : `${orderMessage(state, id, order, order.type === 'TRADE' ? state.core.players.flatMap(player => player.civilization.cities).find(city => city.id === order.toCityId)?.name : undefined)}${raced ? ' A Região já havia sido revelada.' : ''}`;
         Object.assign(state, AlphaStateSchema.parse(candidate));
-        const target0=order.type==='MOVE'?order.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:undefined;
+        const target0=order.type==='MOVE'?moveLegs(order)[0]!.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:undefined;
         // Moves, exploration and attacks change the shared table: everyone who can see that hex (the whole table in an open Region) reads them. Trade and influence stay with their owner.
         alphaEvent(state, type, message, target0&&(order.type==='MOVE'||order.type==='EXPLORE'||order.type==='ATTACK')?viewersAt(state,target0,[id]):[id]);
-        const target=order.type==='MOVE'?order.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:state.core.players.flatMap(player=>player.civilization.cities).find(city=>city.id===order.toCityId)?.hexId;
-        const unitIds='unitIds' in order?order.unitIds:'unitId' in order?[order.unitId]:[];
+        const target=order.type==='MOVE'?moveLegs(order)[0]!.path.at(-1):order.type==='EXPLORE'||order.type==='INFLUENCE'||order.type==='ATTACK'?order.target:state.core.players.flatMap(player=>player.civilization.cities).find(city=>city.id===order.toCityId)?.hexId;
+        const unitIds=orderUnitIds(order);
         const eventType=found?'DISCOVERY' as const:({EXPLORE:'EXPLORATION',MOVE:'MOVEMENT',TRADE:'TRADE',ATTACK:'COMBAT',INFLUENCE:'INFLUENCE'} as const)[order.type];
         const visibleTo=target?viewersAt(state,target,[id]):[id];
-        resolutionEvent(state,{type:eventType,actorId:id,visibleTo,message,...(target?{hexId:target}:{}),unitIds});
+        const fromHex=order.type==='MOVE'&&!found?before.units.get(unitIds[0]!)?.hexId:undefined;
+        resolutionEvent(state,{type:eventType,actorId:id,visibleTo,message,...(target?{hexId:target}:{}),...(fromHex&&fromHex!==target?{fromHexId:fromHex}:{}),unitIds});
         if(order.type==='ATTACK'){
           const battle=state.battles.at(-1);
           if(battle?.losses.length)resolutionEvent(state,{type:'LOSSES',actorId:id,visibleTo,message:lossesMessage(before,battle.losses),hexId:order.target,unitIds:battle.losses});
@@ -161,9 +168,9 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
           if(advanced.length)resolutionEvent(state,{type:'ADVANCE',actorId:id,visibleTo,message:`${before.names.get(id)??'O vencedor'} avançou para ${order.target}.`,hexId:order.target,unitIds:advanced});
         }
       } catch (error: unknown) {
-        const reason = error instanceof Error ? error.message : 'Ordem não pôde ser executada.';
+        const leg = legOf.get(order), reason = `${leg ? `Mover coordenado, trajeto ${leg.index + 1} de ${leg.total}: ` : ''}${error instanceof Error ? error.message : 'Ordem não pôde ser executada.'}`;
         // A plan made against the fog that arrives after a rival opened the Region is an ordinary move now; say why it could not be made.
-        const last = order.type === 'MOVE' ? order.path.at(-1) : undefined, region = last ? state.regions.find(candidate => candidate.hexIds.includes(last)) : undefined;
+        const last = order.type === 'MOVE' ? moveLegs(order)[0]!.path.at(-1) : undefined, region = last ? state.regions.find(candidate => candidate.hexIds.includes(last)) : undefined;
         alphaEvent(state, 'ORDER_FAILED', order.type === 'MOVE' && order.rotation !== undefined && region && regionOpenFor(state, region, id) ? `A Região já havia sido revelada; o movimento não pôde ser feito: ${reason}` : reason, [id]);
       }
     }

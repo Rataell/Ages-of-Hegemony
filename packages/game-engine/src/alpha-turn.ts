@@ -1,14 +1,13 @@
 import { proposeTrade, respondTrade } from './alpha-trade.js';
-import { AlphaCommandSchema, AlphaStateSchema, actionClassForCommand, orderTypeForCommand, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
+import { AlphaCommandSchema, AlphaStateSchema, actionClassForCommand, orderTypeForCommand, orderUnitIds, type AlphaError, type AlphaState, type PlayerId } from '@aoh/game-domain';
 import { err, ok, type Result } from '@aoh/shared';
 import { applyCommand } from './engine.js';
 import { validateMilitaryOrder } from './alpha-military.js';
-import { pendingArrivals, stackBlock } from './alpha-stack.js';
+import { validateMoveOrder } from './alpha-move.js';
 import { alphaPay, alphaResourcePayment } from './alpha-resources.js';
 import { demobilize, mirrorDevelopment, refreshAlphaAdministration } from './alpha-city.js';
 import { diplomacyBlock, manageDiplomacy, tradePath, validateInfluence } from './alpha-diplomacy.js';
 import { refreshKnowledge, visibleHexIds } from './alpha-world.js';
-import { isFrontierMove, planFrontierMove } from './alpha-frontier.js';
 import { manageCard, playCivilizationCard, swapAmbition } from './alpha-cards.js';
 import { governmentReformBlock, isReformRound } from './alpha-era-turn.js';
 import { disembark, embark } from './alpha-naval.js';
@@ -145,15 +144,11 @@ export function applyAlphaCommand(input: AlphaState, actor: PlayerId, raw: unkno
         if(command.order.type==='EXPLORE')throw new Error('Explorar agora é Mover: escolha o destino numa Região fechada com um Pioneiro.');
         else if(command.order.type==='TRADE')tradePath(state,actor,command.order.fromCityId,command.order.toCityId);
         else if(command.order.type==='INFLUENCE')validateInfluence(state,actor,command.order);
-        else if(isFrontierMove(state,actor,command.order))planFrontierMove(state,actor,command.order);
+        else if(command.order.type==='MOVE')validateMoveOrder(state,actor,command.order);
         else validateMilitaryOrder(state,actor,command.order);
-        if(command.order.type==='MOVE'&&command.order.path.length){
-          const target=command.order.path.at(-1)!,moving=state.units.filter(u=>u.ownerId===actor&&(command.order as {unitIds:string[]}).unitIds.includes(u.id));
-          const crowded=stackBlock(state,actor,moving,target,pendingArrivals(state,actor,target,command.order.id));if(crowded)throw new Error(crowded);
-        }
         const remaining=player.orders.filter(o=>o.id!==command.order.id);
-        const units='unitIds' in command.order?command.order.unitIds:'unitId' in command.order?[command.order.unitId]:[];
-        if(remaining.some(o=>('unitIds' in o?o.unitIds:'unitId' in o?[o.unitId]:[]).some(id=>units.includes(id))))throw new Error('Cada peça pode participar de apenas uma ordem por rodada.');
+        const units=orderUnitIds(command.order);
+        if(remaining.some(o=>orderUnitIds(o).some(id=>units.includes(id))))throw new Error('Cada peça pode participar de apenas uma ordem por rodada.');
         player.orders=[...remaining,command.order];reservedMainAction=true;
       }
     } else if(command.type==='SETTLE') {

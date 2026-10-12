@@ -39,6 +39,8 @@ export const AlphaRulesSchema = z.strictObject({
   hegemonyHoldRounds: P, handLimit: P, advisorLimit: P, unitLimit: P,
   /** City-ladder pace of the match (RC5): STANDARD, or the experimental ACCELERATED pace of short matches. Chosen when the table is created and never changed. Saves without it read STANDARD. */
   pace: CityPaceSchema.default('STANDARD'),
+  /** Mover coordenado (V12-UX-04, D1): one MOVE Order may carry 2..COORDINATED_MOVE_MAX_PIECES pieces split into `legs` with their own paths. Set only when a NEW match is created; absent in every earlier save (RC4/RC5), which keeps reading and accepting only the legacy single-path MOVE. */
+  coordinatedMove: z.boolean().optional(),
   /** Pioneiros each civilization starts with (canon change 2026-10-05: one civil piece replaces Explorador + Pioneiro). Older saves read 2. */
   startingPioneers: z.number().int().min(1).max(3).default(STARTING_PIONEERS_DEFAULT),
   integrationCost:ResourcePoolSchema,occupationStabilityPenalty:N,
@@ -100,16 +102,49 @@ export const UnitSchema = z.strictObject({ id: IdentifierSchema, ownerId: Player
   /** The own fleet carrying this land piece, or null. A carried piece shares its fleet's hex and moves with it. */
   carrierId: IdentifierSchema.nullable().optional() });
 export type AlphaUnit = z.infer<typeof UnitSchema>;
+/** Mover coordenado: pieces one Order may move in total when it is split into legs. Provisional limit for playtest (owner decision D1, 2026-10-12): change it here only. */
+export const COORDINATED_MOVE_MAX_PIECES = 3;
+export const COORDINATED_MOVE_MIN_LEGS = 2;
+export const MoveLegSchema = z.strictObject({ unitIds: z.array(IdentifierSchema).min(1).max(COORDINATED_MOVE_MAX_PIECES), path: z.array(HexIdSchema).min(1).max(12), rotation: z.number().int().min(0).max(5).optional() });
+export interface MoveLeg { unitIds: string[]; path: z.infer<typeof HexIdSchema>[]; rotation?: number | undefined }
+const MoveOrderSchema = z.strictObject({
+  id: IdentifierSchema, type: z.literal('MOVE'),
+  unitIds: z.array(IdentifierSchema).min(1).max(24).optional(), path: z.array(HexIdSchema).min(1).max(12).optional(), rotation: z.number().int().min(0).max(5).optional(),
+  legs: z.array(MoveLegSchema).min(COORDINATED_MOVE_MIN_LEGS).max(COORDINATED_MOVE_MAX_PIECES).optional(),
+}).superRefine((order, ctx) => {
+  const fail = (message: string) => ctx.addIssue({ code: 'custom', message });
+  const legacy = order.unitIds !== undefined || order.path !== undefined || order.rotation !== undefined;
+  if (order.legs !== undefined) {
+    if (legacy) return fail('Use unitIds e path (movimento comum) ou legs (movimento coordenado), nunca os dois.');
+    const ids = order.legs.flatMap(leg => leg.unitIds);
+    if (new Set(ids).size !== ids.length) fail('Não repita peças entre os trajetos da ordem.');
+    if (ids.length > COORDINATED_MOVE_MAX_PIECES) fail(`Um movimento coordenado leva no máximo ${COORDINATED_MOVE_MAX_PIECES} peças.`);
+  } else if (order.unitIds === undefined || order.path === undefined) fail('MOVE exige unitIds e path, ou legs.');
+});
 export const StrategicOrderSchema = z.discriminatedUnion('type', [
   /** LEGACY (read-only since Move + Discovery): kept so V1.1 snapshots and plans made before the change still parse and resolve. New clients and bots never create it. */
   z.strictObject({ id: IdentifierSchema, type: z.literal('EXPLORE'), unitId: IdentifierSchema, target: HexIdSchema, rotation: z.number().int().min(0).max(5) }),
-  /** `rotation` is the Discovery payload: when the last hex of `path` lies in a closed Region, the move enters the unknown, flips that Region under this orientation (ignored when only one orientation gives access) and ends there. */
-  z.strictObject({ id: IdentifierSchema, type: z.literal('MOVE'), unitIds: z.array(IdentifierSchema).min(1).max(24), path: z.array(HexIdSchema).min(1).max(12), rotation: z.number().int().min(0).max(5).optional() }),
+  /**
+   * MOVE has two shapes, exactly one of them per Order (V12-UX-04):
+   *  - LEGACY `{unitIds, path, rotation?}`: one path, a stack of up to 24 pieces, one Order. Unchanged; bots and old saves use it.
+   *  - COORDINATED `{legs:[{unitIds, path, rotation?}, ...]}`: 2..COORDINATED_MOVE_MAX_PIECES pieces in total, disjoint between legs, each leg with its own path and destination; still ONE Order.
+   * Read paths and pieces only through `moveLegs(order)` (a legacy Order is one leg).
+   * `rotation` is the Discovery payload: when the last hex of a path lies in a closed Region, the move enters the unknown, flips that Region under this orientation (ignored when only one orientation gives access) and ends there.
+   */
+  MoveOrderSchema,
   z.strictObject({ id: IdentifierSchema, type: z.literal('ATTACK'), unitIds: z.array(IdentifierSchema).min(1).max(24), target: HexIdSchema, posture: BattlePostureSchema.default('ASSAULT') }),
   z.strictObject({ id: IdentifierSchema, type: z.literal('TRADE'), fromCityId: CityIdSchema, toCityId: CityIdSchema }),
   z.strictObject({ id: IdentifierSchema, type: z.literal('INFLUENCE'), unitId: IdentifierSchema, target: HexIdSchema }),
 ]);
 export type StrategicOrder = z.infer<typeof StrategicOrderSchema>;
+export type MoveOrder = Extract<StrategicOrder, { type: 'MOVE' }>;
+/** The ONLY reader of a MOVE's paths and pieces: a legacy Order is one leg, a coordinated Order is its legs. */
+export const moveLegs = (order: MoveOrder): MoveLeg[] => order.legs ? order.legs.map(leg => ({ ...leg })) : [{ unitIds: [...order.unitIds!], path: [...order.path!], ...(order.rotation !== undefined ? { rotation: order.rotation } : {}) }];
+export const isCoordinatedMove = (order: StrategicOrder): boolean => order.type === 'MOVE' && order.legs !== undefined;
+/** Every piece an Order commits (MOVE legs flattened). Use it for "is this piece already in an Order". */
+export const orderUnitIds = (order: StrategicOrder): string[] => order.type === 'MOVE' ? moveLegs(order).flatMap(leg => leg.unitIds) : 'unitIds' in order ? [...order.unitIds] : 'unitId' in order ? [order.unitId] : [];
+/** A single leg as the legacy Order the resolvers already understand. */
+export const legAsOrder = (order: MoveOrder, leg: MoveLeg): MoveOrder => ({ id: order.id, type: 'MOVE', unitIds: leg.unitIds, path: leg.path, ...(leg.rotation !== undefined ? { rotation: leg.rotation } : {}) });
 export const PlannedActionSchema = z.discriminatedUnion('type',[
   z.strictObject({id:IdentifierSchema,type:z.literal('URBAN_ACTION'),cityId:CityIdSchema,action:UrbanActionTypeSchema,build:UrbanBuildTargetSchema.optional(),unit:AlphaUnitClassSchema.optional(),count:z.number().int().min(1).max(6).optional(),advancementId:IdentifierSchema.optional(),/** Governar (PROMOTE_MOOD): the Ânimo levels the player chose to recover (1..6, within the city's real reach). Absent = as many as the Capacity and the stock allow. */levels:z.number().int().min(1).max(6).optional()}),
   z.strictObject({id:IdentifierSchema,type:z.literal('PROPOSE_TREATY'),recipientId:PlayerIdSchema,treaty:TreatyTypeSchema,deal:ResourceDealSchema}),

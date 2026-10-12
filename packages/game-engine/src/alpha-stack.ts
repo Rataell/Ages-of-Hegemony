@@ -1,5 +1,5 @@
 import {
-  stackCategory, stackVerdict, type AlphaState, type AlphaUnit, type PlayerId, type StackCategory, type StackHex, type StackUsage, type StackView,
+  moveLegs, stackCategory, stackVerdict, type AlphaState, type AlphaUnit, type PlayerId, type StackCategory, type StackHex, type StackUsage, type StackView,
 } from '@aoh/game-domain';
 
 import { governmentEffects } from './alpha-government.js';
@@ -68,7 +68,7 @@ export function stackBlock(state: AlphaState, owner: PlayerId, movers: readonly 
 /** Own pieces other orders of this player already send to `hexId`. */
 export function pendingArrivals(state: AlphaState, owner: PlayerId, hexId: string, exceptOrderId: string): AlphaUnit[] {
   const orders = state.players.find(player => player.playerId === owner)!.orders;
-  const ids = orders.flatMap(order => (order.type === 'MOVE' && order.id !== exceptOrderId && order.path.at(-1) === hexId ? order.unitIds : []));
+  const ids = orders.flatMap(order => (order.type === 'MOVE' && order.id !== exceptOrderId ? moveLegs(order).filter(leg => leg.path.at(-1) === hexId).flatMap(leg => leg.unitIds) : []));
   return state.units.filter(unit => unit.ownerId === owner && ids.includes(unit.id));
 }
 /** Projection data: every hex where the player has pieces, a city or an incoming order, with queued arrivals counted as used. */
@@ -77,12 +77,12 @@ export function stackView(state: AlphaState, actor: PlayerId): StackView {
   for (const unit of state.units) if (unit.ownerId === actor) ids.add(unit.hexId);
   for (const city of state.core.players.find(player => player.id === actor)!.civilization.cities) ids.add(city.hexId);
   const orders = state.players.find(player => player.playerId === actor)!.orders;
-  for (const order of orders) if (order.type === 'MOVE') ids.add(order.path.at(-1)!);
+  for (const order of orders) if (order.type === 'MOVE') for (const leg of moveLegs(order)) ids.add(leg.path.at(-1)!);
   const hexes: Record<string, StackHex> = {};
   for (const id of [...ids].sort()) {
     const base = stackHex(state, actor, id);
     for (const category of CATEGORIES) {
-      const queued = orders.flatMap(order => (order.type === 'MOVE' && order.path.at(-1) === id ? order.unitIds : []))
+      const queued = orders.flatMap(order => (order.type === 'MOVE' ? moveLegs(order).filter(leg => leg.path.at(-1) === id).flatMap(leg => leg.unitIds) : []))
         .filter(unitId => { const unit = state.units.find(candidate => candidate.id === unitId); return unit && unit.hexId !== id && unitCategory(state, unit) === category; }).length;
       base[category] = { used: base[category].used + queued, limit: base[category].limit };
     }

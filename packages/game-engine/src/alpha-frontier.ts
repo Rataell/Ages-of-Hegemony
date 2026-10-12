@@ -1,14 +1,13 @@
-import type { AlphaState, AlphaUnit, HexId, PlayerId, StrategicOrder } from '@aoh/game-domain';
-import { REGION_TEMPLATES } from '@aoh/game-domain';
+import type { AlphaState, AlphaUnit, HexId, MoveLeg, MoveOrder, PlayerId, StrategicOrder } from '@aoh/game-domain';
+import { REGION_TEMPLATES, moveLegs } from '@aoh/game-domain';
 import { hexDistance } from './hex.js';
 import { isLandTerrain, isNavigableTerrain } from './alpha-water.js';
 import { regionOpenFor, regionOrientationFixed, revealRegion, rotatedRegionTiles, rotationKeepsOccupants, visibleHexIds } from './alpha-world.js';
 import { applyDiscovery } from './alpha-discoveries.js';
-import { canEnter } from './alpha-military.js';
+import { canEnter, moveBudget } from './alpha-military.js';
 import { enemyCityAt, movementOpen } from './alpha-diplomacy.js';
-import { hasUnlock, institutionBonus } from './alpha-institutions.js';
-import { unitMovement } from './alpha-grades.js';
-import { kitFrontierCost, kitMovement } from './alpha-kits.js';
+import { hasUnlock } from './alpha-institutions.js';
+import { kitFrontierCost } from './alpha-kits.js';
 import { cargoOf, isCarried, settleCargo } from './alpha-naval.js';
 import { stackBlock } from './alpha-stack.js';
 
@@ -59,20 +58,26 @@ export function discovererOf(state: AlphaState, actor: PlayerId, units: readonly
 }
 export const frontierBlockText = (mode: FrontierMode): string => (mode === 'LAND' ? FRONTIER_NEEDS_NAVAL : FRONTIER_NEEDS_LAND);
 
-const budgetOf = (state: AlphaState, actor: PlayerId, unit: AlphaUnit): number => unitMovement(state, unit) + institutionBonus(state, actor, 'MOVEMENT') + kitMovement(state, actor, unit.kind);
 export const stepCost = (state: AlphaState, unit: Pick<AlphaUnit, 'kind'>, tile: { id: string; terrain: string }): number =>
   state.roads.includes(tile.id as HexId) && state.rules.units[unit.kind].domain === 'LAND' ? 1 : state.rules.movementCosts[tile.terrain as keyof AlphaState['rules']['movementCosts']];
 
-/** The Region (closed for `actor`) that the last hex of this MOVE enters, or null: an ordinary move. */
-export function frontierRegionOf(state: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>) {
-  const last = order.path.at(-1);
+/** A frontier is planned per path: a legacy MOVE is its one leg; a coordinated MOVE is planned leg by leg (see alpha-move.ts). */
+const legOf = (input: MoveLeg | MoveOrder): MoveLeg => {
+  if (!('type' in input)) return input;
+  const legs = moveLegs(input);
+  if (legs.length !== 1) throw new Error('Um movimento coordenado é planejado trajeto a trajeto.');
+  return legs[0]!;
+};
+/** The Region (closed for `actor`) that the last hex of this path enters, or null: an ordinary move. */
+export function frontierRegionOf(state: AlphaState, actor: PlayerId, input: MoveLeg | MoveOrder) {
+  const order = legOf(input), last = order.path.at(-1);
   if (!last) return null;
   const progress = state.players.find(player => player.playerId === actor);
   if (!progress || progress.knownHexIds.includes(last as HexId)) return null;
   const region = state.regions.find(candidate => candidate.hexIds.includes(last as HexId));
   return region && !regionOpenFor(state, region, actor) ? region : null;
 }
-export const isFrontierMove = (state: AlphaState, actor: PlayerId, order: StrategicOrder): order is Extract<StrategicOrder, { type: 'MOVE' }> => order.type === 'MOVE' && frontierRegionOf(state, actor, order) !== null;
+export const isFrontierMove = (state: AlphaState, actor: PlayerId, order: StrategicOrder): order is MoveOrder => order.type === 'MOVE' && moveLegs(order).some(leg => frontierRegionOf(state, actor, leg) !== null);
 
 /** Per-call memo: what every seat already observes, and each Region's terrain under every orientation that keeps observed terrain unchanged. */
 export interface FrontierCache { observed: Set<string> | null; profiles: Map<string, { rotation: number; terrains: string[] }[]> }
@@ -118,8 +123,8 @@ export interface FrontierPlan {
  * Validates a MOVE that enters the unknown and returns what it will do. Throws the player-facing refusal otherwise. Used when queuing the Order and again when it
  * resolves, so a plan made against the fog is re-checked against the table as it is then.
  */
-export function planFrontierMove(state: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>): FrontierPlan {
-  const region = frontierRegionOf(state, actor, order);
+export function planFrontierMove(state: AlphaState, actor: PlayerId, input: MoveLeg | MoveOrder): FrontierPlan {
+  const order = legOf(input), region = frontierRegionOf(state, actor, order);
   if (!region) throw new Error('Este movimento não entra numa Região fechada.');
   if (new Set(order.unitIds).size !== order.unitIds.length) throw new Error('Não repita peças na mesma ordem.');
   const units = order.unitIds.map(id => state.units.find(candidate => candidate.id === id && candidate.ownerId === actor));
@@ -144,7 +149,7 @@ export function planFrontierMove(state: AlphaState, actor: PlayerId, order: Extr
   if (!entryTile || hexDistance(current, entryTile) !== 1) throw new Error('A entrada deve ficar ao lado do último hex conhecido do caminho.');
   for (const unit of group) {
     const spent = known.reduce((total, id) => total + stepCost(state, unit, tileOf(state, id)!), 0) + kitFrontierCost(state, unit, state.rules.movementCosts.UNKNOWN);
-    if (spent > budgetOf(state, actor, unit)) throw new Error('Caminho excede a mobilidade da peça: entrar no desconhecido custa 1 de movimento e é o último passo.');
+    if (spent > moveBudget(state, actor, unit)) throw new Error('Caminho excede a mobilidade da peça: entrar no desconhecido custa 1 de movimento e é o último passo.');
   }
   const rotations = entryRotations(state, region, entry, mode);
   if (!rotations.length) throw new Error(frontierBlockText(mode));
@@ -155,8 +160,8 @@ export function planFrontierMove(state: AlphaState, actor: PlayerId, order: Extr
 }
 
 /** Resolves a validated frontier MOVE on `state` (a candidate copy): flips the Region, resolves its Discovery once, lands the group on the entry hex. */
-export function resolveFrontierMove(state: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>): { plan: FrontierPlan; entered: boolean; lost: string[] } {
-  const plan = planFrontierMove(state, actor, order);
+export function resolveFrontierMove(state: AlphaState, actor: PlayerId, input: MoveLeg | MoveOrder): { plan: FrontierPlan; entered: boolean; lost: string[] } {
+  const order = legOf(input), plan = planFrontierMove(state, actor, order);
   revealRegion(state, actor, plan.region, plan.rotation);
   // A hidden Ameaça on the entry hex keeps the group at the border: the Region is open, the group is not in it.
   const entered = !state.threats.some(threat => threat.hexId === plan.entry);

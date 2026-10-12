@@ -1,17 +1,15 @@
-import { unitMovement } from './alpha-grades.js';
 import type { AlphaState, AlphaUnit, PlayerId } from '@aoh/game-domain';
 import { regionOpenFor } from './alpha-world.js';
 import { discovererOf, entryRotations, frontierBlockText, frontierMode, newFrontierCache, FRONTIER_NEEDS_PIONEER, type FrontierCache } from './alpha-frontier.js';
 import { hexDistance, hexNeighbors, hexId } from './hex.js';
-import { canEnter } from './alpha-military.js';
+import { canEnter, moveBudget } from './alpha-military.js';
 import { enemyCityAt, movementOpen } from './alpha-diplomacy.js';
-import { institutionBonus } from './alpha-institutions.js';
 import { pendingArrivals, stackBlock } from './alpha-stack.js';
 import { settleWithPioneer } from './alpha-cities.js';
 import { applyCommand } from './engine.js';
 import { alphaCanAfford } from './alpha-resources.js';
 import { disembarkBlock, embarkBlock, isCarried, isCarrierKind } from './alpha-naval.js';
-import { kitFrontierCost, kitMovement } from './alpha-kits.js';
+import { kitFrontierCost } from './alpha-kits.js';
 
 /**
  * Advance warning (UXB-01): entering any closed Region may meet a Perigo, which removes the exploring piece with `lossChance` (the chance given that the Region holds one). It never says whether THIS Region
@@ -19,6 +17,12 @@ import { kitFrontierCost, kitMovement } from './alpha-kits.js';
  * Método Experimental protects the explorer, so for that civilization the risk is `NONE`.
  */
 export interface FrontierRisk { danger: 'POSSIBLE' | 'NONE'; lossChance: number; mitigatedBy: 'web-experimental-method' }
+
+/** The same advance warning for every closed Region (the hidden draw stays hidden); Método Experimental protects the explorer. */
+export function frontierRiskFor(state: AlphaState, actor: PlayerId): FrontierRisk {
+  const protectedBy = state.players.find(player => player.playerId === actor)?.research.includes('web-experimental-method') ?? false;
+  return { danger: protectedBy ? 'NONE' : 'POSSIBLE', lossChance: protectedBy ? 0 : 0.5, mitigatedBy: 'web-experimental-method' };
+}
 
 export interface AlphaUnitOptions {
   /** Cheapest legal MOVE path (origin excluded) to every hex the piece can reach this round. */
@@ -66,7 +70,7 @@ export function alphaUnitOptions(state: AlphaState, actor: PlayerId): Record<str
 
 interface Walk { moves: Record<string, string[]>; best: Map<string, { cost: number; path: string[] }>; budget: number }
 function reachable(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: Map<string, AlphaState['core']['map'][number]>, known: Set<string>): Walk {
-  const budget = unitMovement(state, unit) + institutionBonus(state, actor, 'MOVEMENT') + kitMovement(state, actor, unit.kind);
+  const budget = moveBudget(state, actor, unit);
   const land = state.rules.units[unit.kind].domain === 'LAND';
   const best = new Map<string, { cost: number; path: string[] }>([[unit.hexId, { cost: 0, path: [] }]]);
   const queue = [unit.hexId as string];
@@ -99,8 +103,7 @@ function frontierOf(state: AlphaState, actor: PlayerId, unit: AlphaUnit, byId: M
   const discoverer = discovererOf(state, actor, [unit]) !== null;
   const cost = kitFrontierCost(state, unit, state.rules.movementCosts.UNKNOWN);
   const closed = state.regions.filter(region => !regionOpenFor(state, region, actor));
-  const protectedBy = state.players.find(player => player.playerId === actor)?.research.includes('web-experimental-method') ?? false;
-  const frontierRisk: FrontierRisk = { danger: protectedBy ? 'NONE' : 'POSSIBLE', lossChance: protectedBy ? 0 : 0.5, mitigatedBy: 'web-experimental-method' };
+  const frontierRisk = frontierRiskFor(state, actor);
   const frontier = closed.flatMap(region => {
     const entries = region.hexIds.flatMap(id => {
       const tile = byId.get(id);

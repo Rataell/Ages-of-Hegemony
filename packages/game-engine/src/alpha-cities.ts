@@ -1,4 +1,4 @@
-import { CityIdSchema, cityLevelForPopulation, connectedTo, type AlphaState, type CityId, type PlayerId } from '@aoh/game-domain';
+import { CityIdSchema, cityLevelForPopulation, connectedTo, orderUnitIds, type AlphaState, type CityId, type PlayerId } from '@aoh/game-domain';
 import { refreshAdministration } from './civilization.js';
 import { alphaResourcePayment } from './alpha-resources.js';
 import { governmentEffects } from './alpha-government.js';
@@ -20,7 +20,7 @@ function foundingPayment(state:AlphaState,actor:PlayerId){
 export function settleWithPioneer(state:AlphaState,actor:PlayerId,unitId:string,name:string):void {
   const pioneer=state.units.find(u=>u.id===unitId&&u.ownerId===actor&&u.kind==='PIONEER');
   if(!pioneer)throw new Error('Escolha um Pioneiro próprio para fundar uma cidade.');
-  if(state.players.find(p=>p.playerId===actor)!.orders.some(o=>('unitIds' in o&&o.unitIds.includes(unitId))||('unitId' in o&&o.unitId===unitId)))throw new Error('Cancele a ordem do Pioneiro antes de fundar a cidade: mover (ou descobrir) e fundar são Ordens diferentes.');
+  if(state.players.find(p=>p.playerId===actor)!.orders.some(o=>orderUnitIds(o).includes(unitId)))throw new Error('Cancele a ordem do Pioneiro antes de fundar a cidade: mover (ou descobrir) e fundar são Ordens diferentes.');
   const tile=state.core.map.find(t=>t.id===pioneer.hexId)!;
   if(tile.ownerId!==null&&tile.ownerId!==actor||state.units.some(u=>u.hexId===tile.id&&u.ownerId!==actor))throw new Error('Não é possível fundar em território ou presença estrangeira.');
   const player=state.core.players.find(p=>p.id===actor)!;

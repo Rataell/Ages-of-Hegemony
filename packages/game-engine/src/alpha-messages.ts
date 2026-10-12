@@ -1,4 +1,4 @@
-import { ADVANCEMENTS, ALPHA_RESOURCE_KEYS, BUILDING_NAMES_PT, REGION_TEMPLATES, heritageAdvance, type AlphaState, type PlannedAction, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
+import { ADVANCEMENTS, ALPHA_RESOURCE_KEYS, BUILDING_NAMES_PT, REGION_TEMPLATES, heritageAdvance, moveLegs, type AlphaState, type PlannedAction, type PlayerId, type StrategicOrder } from '@aoh/game-domain';
 
 /** Player-facing names for resolution messages. Events are read as written, so they never carry enum identifiers. */
 const RESOURCE_NAMES: Record<string, string> = { food: 'Alimento', wood: 'Madeira', stone: 'Pedra', metal: 'Metal', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
@@ -46,7 +46,8 @@ export function urbanActionMessage(before: AlphaState, after: AlphaState, actor:
 export function orderMessage(before: AlphaState, actor: PlayerId, order: StrategicOrder, cityName?: string): string {
   const who = playerName(before, actor);
   switch (order.type) {
-    case 'MOVE': return `${who}: ${unitNames(before, order.unitIds)} moveu-se para ${order.path.at(-1)}.`;
+    // One message per leg: the resolver hands each leg of a coordinated MOVE here as its own plain Move.
+    case 'MOVE': { const [leg] = moveLegs(order); return `${who}: ${unitNames(before, leg!.unitIds)} moveu-se para ${leg!.path.at(-1)}.`; }
     case 'EXPLORE': return `${who}: ${unitNames(before, [order.unitId])} explorou a região de ${order.target}.`;
     case 'ATTACK': return `${who}: ataque em ${order.target} resolvido; consulte dados e perdas.`;
     case 'INFLUENCE': return `${who}: missão de influência em ${order.target}.`;
@@ -56,10 +57,10 @@ export function orderMessage(before: AlphaState, actor: PlayerId, order: Strateg
 
 /** A Move that opened a Region: written for everyone who sees that hex. The Region's name is public once it is face up. */
 export function discoveryMessage(before: AlphaState, actor: PlayerId, order: Extract<StrategicOrder, { type: 'MOVE' }>, templateId: string, entered: boolean, lost: readonly string[] = []): string {
-  const region = REGION_TEMPLATES.find(template => template.id === templateId)?.name ?? 'uma Região';
+  const region = REGION_TEMPLATES.find(template => template.id === templateId)?.name ?? 'uma Região', [leg] = moveLegs(order), unitIds = leg!.unitIds;
   // UXB-01: a Perigo that removed the exploring piece is said so; the Region still opened, but the move did not end as planned.
-  if (lost.length) return `${playerName(before, actor)}: ${unitNames(before, order.unitIds)} ${entered ? 'entrou em' : 'chegou à fronteira de'} ${region} — Perigo: ${unitNames(before, lost)} perdido(s) na descoberta; a Região foi aberta.`;
-  return `${playerName(before, actor)}: ${unitNames(before, order.unitIds)} ${entered ? 'entrou em' : 'chegou à fronteira de'} ${region} — Região revelada.`;
+  if (lost.length) return `${playerName(before, actor)}: ${unitNames(before, unitIds)} ${entered ? 'entrou em' : 'chegou à fronteira de'} ${region} — Perigo: ${unitNames(before, lost)} perdido(s) na descoberta; a Região foi aberta.`;
+  return `${playerName(before, actor)}: ${unitNames(before, unitIds)} ${entered ? 'entrou em' : 'chegou à fronteira de'} ${region} — Região revelada.`;
 }
 
 export const TREATY_NAMES: Record<string, string> = { TRADE_AGREEMENT: 'um acordo comercial', NON_AGGRESSION_PACT: 'um pacto de não agressão', OPEN_BORDERS: 'fronteiras abertas', DEFENSIVE_PACT: 'um pacto defensivo', ALLIANCE: 'uma aliança', EMBARGO: 'um embargo' };

@@ -1,4 +1,4 @@
-import type { AlphaState, AlphaUnit, HexId, PlayerId } from '@aoh/game-domain';
+import { orderUnitIds, type AlphaState, type AlphaUnit, type HexId, type PlayerId } from '@aoh/game-domain';
 import { isNavigableTerrain, isNavigableWater } from './alpha-water.js';
 import { hexDistance, hexId, hexNeighbors } from './hex.js';
 import { atWar, enemyCityAt, movementOpen } from './alpha-diplomacy.js';
@@ -52,7 +52,7 @@ export function launchHex(state: AlphaState, actor: PlayerId, cityHexId: string,
     .filter(tile => isNavigableTerrain(tile.terrain) && !state.units.some(unit => unit.hexId === tile.id && unit.ownerId !== actor));
   return candidates.find(tile => stackBlock(state, actor, [{ ...fleet, hexId: tile.id }], tile.id) === null)?.id ?? null;
 }
-const ordered = (state: AlphaState, actor: PlayerId) => new Set(state.players.find(p => p.playerId === actor)!.orders.flatMap(order => 'unitIds' in order ? order.unitIds : 'unitId' in order ? [order.unitId] : []));
+const ordered = (state: AlphaState, actor: PlayerId) => new Set(state.players.find(p => p.playerId === actor)!.orders.flatMap(orderUnitIds));
 
 export function embarkBlock(state: AlphaState, actor: PlayerId, unitIds: readonly string[], fleetId: string): string | null {
   const fleet = state.units.find(unit => unit.id === fleetId && unit.ownerId === actor && isCarrierKind(state, unit.kind));
