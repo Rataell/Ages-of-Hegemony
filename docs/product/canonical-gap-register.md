@@ -174,3 +174,13 @@ Evidência e causas: `docs/evidence/v51b-investigation/` (tabelas, variantes e G
 |---|---|
 | Distribuição das Pátrias | FECHADO: as Regiões Pátria dos assentos MAXIMIZAM a menor distância (grafo de Regiões) entre qualquer par; desempates: distância total, depois equilíbrio da divisão do tabuleiro (parcela por Pátria mais próxima), depois a seed. Elegíveis: Regiões com ≥ 5 vizinhas, exceto o centro. Sem distância fixa por nº de jogadores. Mesma seed + tamanho = mesma posição; a seed muda quais Regiões. Resultado (Regiões / hexes entre capitais): 2p 4 / 10–12, 3p 4 / 10, 4p 3 / 7–12, 6p 2. Contato inalterado. `chooseHomelands` em `alpha-topology.ts`; teste de otimalidade por força bruta (`tests/alpha-home-distribution.test.ts`). |
 
+
+### Integridade de Saqueadores e Perigo (2026-10-12, slice 1)
+
+Mudanças de regra aprovadas pelo dono em 2026-10-12 (diretiva de UX do tabuleiro, D3). Classe **C** (decisão de design a validar com humanos). Mantidos como estão: cap de Acampamentos, R1 (recuo e reorganização após assalto a cidade) e a geração do mapa (Acampamento isolado em ilha é só nota de relatório).
+
+| ID | Classe | Mudança | Estado |
+|---|---|---|---|
+| V12-UX-01 | C | No máximo UM assalto a uma mesma cidade por rodada, somando todos os Bandos. Os demais Bandos ficam adjacentes, esperando, sem atacar. Escolha determinística: o primeiro Bando na ordem de ativação (id crescente) que chega à cidade assalta; os seguintes encontram a cidade já assaltada naquela rodada e esperam no hex anterior. | ABERTO → IMPLEMENTADO (`alpha-threats.ts`, `tests/alpha-threat-integrity.test.ts`) |
+| V12-UX-02 | C | Recuo (`beginWithdrawal`) e reorganização também após assalto a peças no campo (hoje só após assalto a cidade), quando o Bando sobrevive. Emboscada a peças sem lutadores (`killExposed`) não muda. | ABERTO → IMPLEMENTADO (`alpha-threats.ts`, `tests/alpha-threat-integrity.test.ts`) |
+| V12-UX-03 | C | Piratas: no máximo 1 pilhagem por porto por rodada (somando todos os Piratas) e, depois de pilhar, o Pirata se retira e se reorganiza 1 rodada no Ancoradouro, como o Bando (R1). A ameaça não é eliminada; só deixa de pilhar em loop. | ABERTO → IMPLEMENTADO (`alpha-threats.ts`, `tests/alpha-threat-integrity.test.ts`) |
