@@ -22,7 +22,7 @@ export type BuildingDistrict = z.infer<typeof AlphaDistrictSchema>;
 export interface BuildingSpec {
   id: BuildingId;
   name: string;
-  /** The district family that holds it (DISTRICT_CATALOG). For CORE buildings the economic core keeps its own district (see the reconciliation for Arquivo). */
+  /** The district family that holds it (DISTRICT_CATALOG). CORE buildings are built where the match's own `core.config.territory` says: since RC5 the default puts the Arquivo in the Acadêmico family; a snapshot keeps the requirement it carries (no migration). */
   district: BuildingDistrict;
   path: BuildingPath;
   /** CATALOG buildings only: what the build costs. CORE buildings are priced by the core config. */

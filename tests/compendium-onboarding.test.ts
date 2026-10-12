@@ -58,10 +58,10 @@ describe('Player Guide & Compendium Rule Verification Suite', () => {
     expect(buildings.LIBRARY.district).toBe('ACADEMIC');
     expect(buildings.LIBRARY.production.knowledge).toBe(1);
 
-    // ADMINISTRATIVE -> ARCHIVE
+    // ADMINISTRATIVE (capacity) and ARCHIVE (RC5: Acadêmico family)
     expect(districts.ADMINISTRATIVE.cost.materials).toBe(3);
     expect(districts.ADMINISTRATIVE.administrativeCapacity).toBe(1);
-    expect(buildings.ARCHIVE.district).toBe('ADMINISTRATIVE');
+    expect(buildings.ARCHIVE.district).toBe('ACADEMIC');
     expect(buildings.ARCHIVE.administrativeCapacity).toBe(1);
 
     // MILITARY -> BARRACKS

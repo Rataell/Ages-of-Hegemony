@@ -171,6 +171,9 @@ function pickResearch(box, id, persona, options) {
     score -= Math.min(10, Object.values(o.cost).reduce((a, b) => a + b, 0));
     if (node && ['web-agriculture', 'web-masonry', 'web-exchange', 'web-writing'].includes(node.id)) score += 12;
     if (node && ['web-urbanism', 'web-sanitation', 'web-world-metropolises', 'web-engineering'].includes(node.id)) score += 8;
+    // RC5: the Barca (Navegação Costeira), the Frota (Cartografia) and the Guarda (Formações) need their advance: explorers and water worlds research the naval ones early, warriors the Guarda.
+    if (node && ['web-coastal-navigation', 'web-cartography'].includes(node.id) && ((persona.explore ?? 0) > 0 || ['ARCHIPELAGO', 'INLAND_SEA'].includes(box.state.rules.worldPreset))) score += node.id === 'web-coastal-navigation' ? 35 : 12;
+    if (node && node.id === 'web-guard-formations' && persona === PERSONAS.warrior) score += 25;
     if (needs.has(o.advancementId)) score += 45;
     return { o, score: score + box.ctx.rand[id]() * 6 };
   }).sort((a, b) => b.score - a.score);

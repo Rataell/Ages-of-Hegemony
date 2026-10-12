@@ -228,8 +228,7 @@ describe('the five core buildings really do what the catalog says (13 offered, 1
   const roleCity = (id: BuildingId, workers: Parameters<typeof shape>[3]) => {
     const state = cityFor(id, { district: false });
     shape(state, 'METROPOLIS', 14, workers);
-    // The core still asks the Arquivo for the Administrativo district (documented in the catalog and in the phase 3 plan); every other core building uses its family.
-    const district = id === 'ARCHIVE' ? 'ADMINISTRATIVE' : buildingSpec(id).district;
+    const district = buildingSpec(id).district;   // RC5: the Arquivo is Acadêmico in new games, like the catalog says
     meta(state).districts.push(district); coreCity(state).districts.push({ type: district, builtRound: 1 } as never);
     return state;
   };

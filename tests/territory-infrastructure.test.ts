@@ -140,7 +140,7 @@ describe('districts and buildings', () => {
     expect(production(state).sources.find((source) => source.source === 'district')?.delta[resource]).toBe(1);
     expect(production(state).sources.find((source) => source.source === 'building')?.delta[resource]).toBe(1);
   });
-  it.each([['AGRARIAN', 'GRANARY', 'growthThreshold', 8], ['ADMINISTRATIVE', 'ARCHIVE', 'administrativeCapacity', 2], ['MILITARY', 'BARRACKS', 'garrisonCapacity', 3]] as const)('applies %s and %s infrastructure effects', (district, building, field, expected) => {
+  it.each([['AGRARIAN', 'GRANARY', 'growthThreshold', 8], ['ACADEMIC', 'ARCHIVE', 'administrativeCapacity', 1], ['MILITARY', 'BARRACKS', 'garrisonCapacity', 3]] as const)('applies %s and %s infrastructure effects', (district, building, field, expected) => {
     let state = execute(territorialPlanning(), { type: 'BUILD_DISTRICT', cityId, district });
     state = execute(state, { type: 'BUILD_BUILDING', cityId, building });
     expect(infrastructureStats(firstCity(state), state.config)[field]).toBe(expected);

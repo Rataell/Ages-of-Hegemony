@@ -80,7 +80,8 @@ export function createDefaultTerritoryRules(): TerritoryRules {
       GRANARY: { ...building('AGRARIAN', pool({ materials: 2 })), growthThresholdReduction: 2 },
       MARKET: building('COMMERCIAL', pool({ materials: 2, wealth: 1 }), pool({ wealth: 1 }), 'MERCHANT'),
       LIBRARY: building('ACADEMIC', pool({ materials: 3, wealth: 1 }), pool({ knowledge: 1 }), 'SCHOLAR'),
-      ARCHIVE: { ...building('ADMINISTRATIVE', pool({ materials: 2 })), administrativeCapacity: 1 },
+      // RC5: the canonical family of the Arquivo is Acadêmico (canon V5.1a). Only the DEFAULT changes: a snapshot keeps the requirement it carries in `core.config`, so saves and RC4 rooms are not migrated.
+      ARCHIVE: { ...building('ACADEMIC', pool({ materials: 2 })), administrativeCapacity: 1 },
       BARRACKS: { ...building('MILITARY', pool({ materials: 3 })), garrisonCapacity: 2 },
       WORKSHOP: building('INDUSTRIAL', pool({ materials: 3 }), pool({ materials: 1 }), 'ARTISAN'),
       CULTURAL_CENTER: building('CULTURAL', pool({ materials: 2, wealth: 1 }), pool({ influence: 1 })),

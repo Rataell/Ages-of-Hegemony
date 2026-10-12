@@ -93,9 +93,9 @@ export function runScriptedMatch(checkpoint?:(name:'beforeAttack'|'beforeEndRoun
   for(const node of [...foundation].sort((a,b)=>a.prerequisites.length-b.prerequisites.length)){urbanAct('RESEARCH',{advancementId:node.id});round();}
   urbanAct('RESEARCH',{advancementId:'web-codes'});round();
   for(const [cityId,district] of [['c1-0','ACADEMIC'],['c1-1','AGRARIAN'],['c1-2','COMMERCIAL'],['c1-3','CULTURAL']])urbanAct('BUILD',{build:{kind:'DISTRICT',district}},cityId);
-  for(const cityId of ['c1-0','c1-1','c1-2','c1-4']){
-    urbanAct('BUILD',{build:{kind:'DISTRICT',district:'ADMINISTRATIVE'}},cityId);urbanAct('BUILD',{build:{kind:'BUILDING',building:'ARCHIVE'}},cityId);
-  }
+  for(const cityId of ['c1-0','c1-1','c1-2','c1-4'])urbanAct('BUILD',{build:{kind:'DISTRICT',district:'ADMINISTRATIVE'}},cityId);
+  // RC5: the Arquivo belongs to the Acadêmico family: it is built where the Acadêmico district stands (c1-0).
+  urbanAct('BUILD',{build:{kind:'BUILDING',building:'ARCHIVE'}},'c1-0');
   const claims:Record<string,string[]>={'c1-0':['1,0','0,1'],'c1-1':['1,3','0,4','0,2'],'c1-2':['4,3','3,4','3,2'],'c1-3':['7,0','6,1'],'c1-4':['7,3','6,4']};
   for(const [cityId,hexIds] of Object.entries(claims))for(const hexId of hexIds)manage({type:'CLAIM_HEX',cityId,hexId});
   manage({type:'IMPROVE_HEX',hexId:'1,0',improvement:'FARM'});
