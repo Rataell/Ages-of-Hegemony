@@ -467,6 +467,25 @@ function candidates(box, id, P) {
     if (P.garrison(era) >= 3 && !plannedKeys.has('FORTIFICATION')) { const f = list.find(r => r.action === 'BUILD' && r.build.kind === 'FORTIFICATION'); if (f && !f.blocked && respectSaving(f.cost)) add(P.w.build + 5, `fort:${city.id}`, { type: 'URBAN_ACTION', cityId: city.id, action: 'BUILD', build: f.build }, 'BUILD', { cost: f.cost }); }
   });
 
+  // Obras de Legado (phase 3, opt-in so earlier measurements stay comparable): a deliberate attempt to build one legitimately, paying the real step costs.
+  // A started Obra is finished first; otherwise the cheapest Obra that some city can start right now (district, Capacity 2, gate, step cost). The score sits
+  // above Build and below Elevar/Pesquisa, so the Obra competes for Orders with the civilization's other goals and the sacrifice shows in the paired deltas.
+  if (process.env.AOH_POLICY_OBRA === '1' && era >= 1 && !austere) {
+    const options = [];
+    for (const work of D.LEGACY_WORKS) for (const city of cities) {
+      const progress = state.legacyWorks.find(w => w.cityId === city.id);
+      if (progress && progress.workId !== work.id) continue;
+      if (progress?.completedRound != null) continue;
+      const block = E.legacyWorkBlock(state, id, work, city.id);
+      const seen = (box.obraSeen ??= new Set()), tag = `${round}:${id}:${city.id}:${work.id}`;
+      if (!seen.has(tag)) { seen.add(tag); (box.obraLog ??= []).push({ round, seat: id, work: work.id, city: city.id, block }); }
+      if (block === null) options.push({ work, city, started: !!progress, total: D.totalOf(work.cost) });
+    }
+    options.sort((a, b) => Number(b.started) - Number(a.started) || a.total - b.total || a.work.id.localeCompare(b.work.id));
+    const pick = options[0];
+    if (pick) add(P.w.build + 40 + (pick.started ? 30 : 0), `obra:${pick.work.id}`, { type: 'ADVANCE_LEGACY_WORK', workId: pick.work.id, cityId: pick.city.id }, 'LEGACY');
+  }
+
   // Territory: claim around each city up to Capacity+1 hexes; improve claimed hexes (farm when food is short).
   const claims = E.alphaClaimOptions(state, id);
   cities.forEach(city => {

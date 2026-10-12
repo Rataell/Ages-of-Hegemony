@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   ADVANCEMENTS, ALPHA_BUILDING_CATALOG, AlphaBuildingSchema, AlphaEraSchema, AlphaStateSchema, DISTRICT_CATALOG, OFFERED_BUILDINGS, alphaRules, buildingSpec,
@@ -197,5 +198,19 @@ describe('Hegemonia: no requirement depends on something that cannot be acquired
     // The metrics read districts, routes, treaties, hexes, Obras and units; the Obras need a DISTRICT as prerequisite (alpha-legacy-works.ts), never a building.
     const metricsOnBuildings = Object.values(rules.hegemonyRequirements).flat().filter(r => /building|temple|treasury|bank|academy|theater/i.test(r.metric));
     expect(metricsOnBuildings).toEqual([]);
+  });
+});
+
+describe('Quartel and Centro cultural stay out: nothing the player reads promises them', () => {
+  it('no Web advance description names a building that is withdrawn for good (ids and tags stay for old saves)', () => {
+    for (const id of ['BARRACKS', 'CULTURAL_CENTER'] as const) {
+      const name = buildingSpec(id).name;
+      expect(ADVANCEMENTS.filter(node => node.description.includes(name)).map(node => node.id), name).toEqual([]);
+    }
+  });
+  it('recruiting needs the Military DISTRICT, never a Quartel: Guarda, Atiradores, Cavalaria and Cerco depend on no building', () => {
+    const source = readFileSync(new URL('../packages/game-engine/src/alpha-military.ts', import.meta.url), 'utf8');
+    expect(source).not.toMatch(/BARRACKS|CULTURAL_CENTER/);
+    expect(source).toMatch(/militaryInfrastructure&&!city\.districts\.some\(d=>d\.type==='MILITARY'\)/);
   });
 });

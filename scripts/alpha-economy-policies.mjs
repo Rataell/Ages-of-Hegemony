@@ -35,15 +35,26 @@ export async function runOne({ policy, profile, players, seed, traced = true, ma
 const hash = state => createHash('sha256').update(JSON.stringify(state)).digest('hex').slice(0, 16);
 
 /** Per seat at the end: Obras de Legado completed and the best Hegemonia path (how many of its 3 requirements are met). Used by the phase-2 comparisons. */
-function endgameSummary(s, E) {
+function endgameSummary(s, E, D) {
   return s.players.map(p => {
     const works = s.legacyWorks.filter(w => w.ownerId === p.playerId && w.completedRound !== null).length;
     let best = 0, bestPath = null;
     try { for (const path of E.hegemonyProgress(s, p.playerId)) { const met = path.requirements.filter(r => r.met).length; if (met > best) { best = met; bestPath = path.path; } } } catch { /* seat without cities */ }
-    return { seat: p.playerId, works, hegemonyMet: best, hegemonyPath: bestPath, declared: p.hegemony?.path ?? null, prestige: p.prestige };
+    // Where the Prestígio came from (phase 3): Marcos ★ (+3 each), Ambições concluídas, Obras de Legado (+4 each), Regiões exploradas (+1 each); the rest is Ameaças destruídas and Ressonância.
+    const milestones = D ? p.research.filter(id => D.ADVANCEMENTS.find(a => a.id === id)?.milestone).length * 3 : 0;
+    const ambitions = D ? p.completedAmbitions.reduce((n, id) => n + (D.ALPHA_CARDS.find(c => c.id === id)?.objective?.prestige ?? 0), 0) : 0;
+    const explored = p.exploredRegions ?? 0, workPrestige = works * 4;
+    return { seat: p.playerId, works, hegemonyMet: best, hegemonyPath: bestPath, declared: p.hegemony?.path ?? null, prestige: p.prestige,
+      prestigeBy: { milestones, ambitions, works: workPrestige, explored, other: p.prestige - milestones - ambitions - workPrestige - explored }, ambitionsDone: p.completedAmbitions.length, victories: p.victories };
   });
 }
 
+/** The Obra experiment: what was started/finished and when, and why no Obra could start in the rounds it was not feasible (first block reason per seat). */
+function obraSummary(s, box) {
+  const blocks = {};
+  for (const r of box.obraLog ?? []) { const k = `${r.seat}:${(r.block ?? 'FEASIBLE').replace(/\d+/g, 'N').slice(0, 70)}`; blocks[k] = (blocks[k] ?? 0) + 1; }
+  return { works: s.legacyWorks.map(w => ({ ...w })), blocks, ordersByType: s.telemetry.actionsByType };
+}
 /** What the World's Threats did in this match (read from the final state): assaults, who won, on which cities, camps killed. Used by the R1 measurement. */
 function threatSummary(s) {
   const WORLD = 'world', cities = s.core.players.flatMap(p => p.civilization.cities.map(c => ({ id: c.id, hexId: c.hexId, owner: p.id })));
@@ -73,7 +84,8 @@ async function single() {
     actionFailedReasons: s.events.filter(e => e.type === 'ACTION_FAILED').reduce((m, e) => { const k = e.message.replace(/\d+/g, 'N').slice(0, 130); m[k] = (m[k] ?? 0) + 1; return m; }, {}), rejectMessages: (box.rejectLog ?? []).reduce((m, r) => { const k = `${r.type}:${r.action ?? ''}: ${r.msg.slice(0, 110)}`; m[k] = (m[k] ?? 0) + 1; return m; }, {}), speculativeFlowsDropped: box.speculative, slotMismatchSkips: box.slotMismatchSkips ?? [], yieldSamples: box.yieldSamples, final: box.finalOpen, reports: s.roundReports.length,
     telemetry: { actionsByType: s.telemetry.actionsByType, productionByResource: s.telemetry.productionByResource },
     threats: threatSummary(s),
-    endgame: endgameSummary(s, box.E),
+    endgame: endgameSummary(s, box.E, box.D),
+    obra: process.env.AOH_POLICY_OBRA === '1' ? obraSummary(s, box) : null,
   };
   const file = arg('out-file', join(OUT, variant !== 'base' ? 'variants' : peace ? 'runs' : 'runs-world', `${policy}-${profile}-p${players}-s${seed}${variant === 'base' ? '' : '-' + variant}.json`));
   mkdirSync(dirname(file), { recursive: true });
