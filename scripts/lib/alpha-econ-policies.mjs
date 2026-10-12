@@ -216,6 +216,14 @@ export function send(box, id, command, tag = null) {
     const residual = sub8(actual, traced[pid]);
     if (nonzero(residual)) box.residuals.push({ round: state.core.round, phase: state.phase, command: command.type, action: command.action ?? null, player: pid, actual, traced: traced[pid], residual });
   }
+  // Prestígio attribution (phase 3): every gain is filed under the command that produced it, with the kinds of event it emitted.
+  {
+    const prev = new Map(state.players.map(p => [p.playerId, p.prestige])), newEvents = result.value.events.slice(state.events.length).map(e => e.type);
+    for (const p of result.value.players) {
+      const d = p.prestige - (prev.get(p.playerId) ?? 0);
+      if (d !== 0) { const key = `${command.type}${command.action ? ':' + command.action : ''}${command.type === 'READY' ? ':' + (state.phase ?? '') : ''}|${[...new Set(newEvents.filter(t => /AMBITION|THREAT_DESTROYED|REGION|DISCOVERY|LEGACY|CHOICE|RESONANCE|PULSE|CARD|COMBAT/.test(t)))].join('+')}`; (box.prestigeLog ??= {})[key] = (box.prestigeLog[key] ?? 0) + d; (box.prestigeBySeat ??= {})[p.playerId] = (box.prestigeBySeat[p.playerId] ?? 0) + d; }
+    }
+  }
   box.state = result.value;
   box.committedEnd = flows().length;
   if (tag) box.orderKinds.get(id)?.push(tag);

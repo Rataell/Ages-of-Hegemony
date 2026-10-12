@@ -85,6 +85,7 @@ async function single() {
     telemetry: { actionsByType: s.telemetry.actionsByType, productionByResource: s.telemetry.productionByResource },
     threats: threatSummary(s),
     endgame: endgameSummary(s, box.E, box.D),
+    prestigeLog: box.prestigeLog ?? {},
     obra: process.env.AOH_POLICY_OBRA === '1' ? obraSummary(s, box) : null,
   };
   const file = arg('out-file', join(OUT, variant !== 'base' ? 'variants' : peace ? 'runs' : 'runs-world', `${policy}-${profile}-p${players}-s${seed}${variant === 'base' ? '' : '-' + variant}.json`));

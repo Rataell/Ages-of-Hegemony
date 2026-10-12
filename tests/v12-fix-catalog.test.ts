@@ -4,7 +4,7 @@ import {
   ADVANCEMENTS, ALPHA_BUILDING_CATALOG, AlphaBuildingSchema, AlphaEraSchema, AlphaStateSchema, DISTRICT_CATALOG, OFFERED_BUILDINGS, alphaRules, buildingSpec,
   type AlphaResourcePool, type AlphaState, type BuildingId,
 } from '@aoh/game-domain';
-import { administration, alphaStorageCapacity, alphaStorageCeiling, cityYield, hegemonyProgress, urbanBlock, urbanCost, urbanOptions } from '@aoh/game-engine';
+import { administration, alphaStorageCapacity, growCost, alphaStorageCeiling, cityYield, hegemonyProgress, urbanBlock, urbanCost, urbanOptions } from '@aoh/game-engine';
 import { apply, coreCity, freshGame, meta, plan, seat, shape, urban, P1 } from './v12-audit-urban-helpers.js';
 
 /**
@@ -212,5 +212,47 @@ describe('Quartel and Centro cultural stay out: nothing the player reads promise
     const source = readFileSync(new URL('../packages/game-engine/src/alpha-military.ts', import.meta.url), 'utf8');
     expect(source).not.toMatch(/BARRACKS|CULTURAL_CENTER/);
     expect(source).toMatch(/militaryInfrastructure&&!city\.districts\.some\(d=>d\.type==='MILITARY'\)/);
+  });
+});
+
+describe('the five core buildings really do what the catalog says (13 offered, 13 functional)', () => {
+  /** A city with the family district, 3 pairs of the role under test, built through the real Construir action. */
+  const roleCity = (id: BuildingId, workers: Parameters<typeof shape>[3]) => {
+    const state = cityFor(id, { district: false });
+    shape(state, 'METROPOLIS', 14, workers);
+    // The core still asks the Arquivo for the Administrativo district (documented in the catalog and in the phase 3 plan); every other core building uses its family.
+    const district = id === 'ARCHIVE' ? 'ADMINISTRATIVE' : buildingSpec(id).district;
+    meta(state).districts.push(district); coreCity(state).districts.push({ type: district, builtRound: 1 } as never);
+    return state;
+  };
+  const build = (state: AlphaState, id: BuildingId) => { expect(urbanBlock(state, P1, meta(state).cityId, 'BUILD', { build: { kind: 'BUILDING', building: id } })).toBeNull(); return plan(state, [buildOn(state, id)]).after; };
+
+  it('Celeiro: Crescer costs 2 instead of 3 Alimento in the city, and the Alimento limit rises by 5', () => {
+    const state = roleCity('GRANARY', { producers: 14 });
+    const [cost, capacity] = [growCost(state, meta(state).cityId), alphaStorageCapacity(state, P1).food];
+    const done = build(state, 'GRANARY');
+    expect([cost, growCost(done, meta(done).cityId)]).toEqual([3, 2]);
+    expect(alphaStorageCapacity(done, P1).food - capacity).toBe(5);
+  });
+  it('Mercado: the third pair of Mercadores yields +1 Riqueza (without it only two pairs count)', () => {
+    const state = roleCity('MARKET', { producers: 8, merchants: 6 });
+    const before = cityYield(state, meta(state).cityId).output.wealth, done = build(state, 'MARKET');
+    expect(cityYield(done, meta(done).cityId).output.wealth - before).toBe(1);
+  });
+  it('Biblioteca: the third pair of Eruditos yields +1 Conhecimento', () => {
+    const state = roleCity('LIBRARY', { producers: 8, scholars: 6 });
+    const before = cityYield(state, meta(state).cityId).output.knowledge, done = build(state, 'LIBRARY');
+    expect(cityYield(done, meta(done).cityId).output.knowledge - before).toBe(1);
+  });
+  it('Oficina: the third pair of Artesãos yields +1 Madeira', () => {
+    const state = roleCity('WORKSHOP', { producers: 8, artisans: 6 });
+    const before = cityYield(state, meta(state).cityId).output.wood, done = build(state, 'WORKSHOP');
+    expect(cityYield(done, meta(done).cityId).output.wood - before).toBe(1);
+  });
+  it('Arquivo: the Conhecimento limit rises by 5 (one counts per civilization), and it survives a save', () => {
+    const state = roleCity('ARCHIVE', { producers: 14 });
+    const capacity = alphaStorageCapacity(state, P1).knowledge, done = build(state, 'ARCHIVE');
+    expect(alphaStorageCapacity(done, P1).knowledge - capacity).toBe(5);
+    expect(meta(AlphaStateSchema.parse(JSON.parse(JSON.stringify(done)))).buildings).toContain('ARCHIVE');
   });
 });

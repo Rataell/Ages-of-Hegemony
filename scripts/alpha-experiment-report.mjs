@@ -12,6 +12,7 @@ const f1 = v => Number.isNaN(v) ? '–' : (Math.round(v * 10) / 10).toString();
 const f2 = v => Number.isNaN(v) ? '–' : (Math.round(v * 100) / 100).toString();
 const load = dir => existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.json') && f !== 'summary.json').sort().map(f => ({ f, x: JSON.parse(readFileSync(join(dir, f), 'utf8')) })) : [];
 
+const lvl = (final, n) => mean(final.map(r => (r.levels ?? []).filter(l => l === n).length));
 /** One match -> the figures of the study. `rows` are per seat and round. */
 function figures(run) {
   const { rows, threats: t, meta } = run, last = meta.roundLimit, final = rows.filter(r => r.round === last);
@@ -29,6 +30,13 @@ function figures(run) {
     built: mean(final.map(r => (r.districts ?? 0) + (r.buildings ?? 0))), pieces: mean(final.map(r => r.land ?? 0)),
     food: mean(rows.map(r => r.openStock?.food ?? 0)), wood: mean(rows.map(r => r.openStock?.wood ?? 0)), wealth: mean(rows.map(r => r.openStock?.wealth ?? 0)), knowledge: mean(rows.map(r => r.openStock?.knowledge ?? 0)),
     consumption: mean(rows.map(r => (r.sustenance?.food ?? 0) + (r.military?.food ?? 0))), works: mean((run.endgame ?? []).map(e => e.works)), hegemonyMet: mean((run.endgame ?? []).map(e => e.hegemonyMet)), prestige: mean((run.endgame ?? []).map(e => e.prestige)),
+    // phase 3: city levels, culture, Ordens, armies, buildings and where the Prestígio came from
+    n1: lvl(final, 1), n2: lvl(final, 2), n3: lvl(final, 3), n4: lvl(final, 4), n5: lvl(final, 5), n6: lvl(final, 6), n7: lvl(final, 7),
+    culture: mean(rows.map(r => r.openStock?.culture ?? 0)), ordersLimit: mean(rows.map(r => r.ordersLimit ?? 0)), ordersUsed: mean(rows.map(r => r.ordersUsed ?? 0)),
+    ordersWastedPct: 100 * (1 - rows.reduce((n, r) => n + (r.ordersUsed ?? 0), 0) / Math.max(1, rows.reduce((n, r) => n + (r.ordersLimit ?? 0), 0))),
+    districts: mean(final.map(r => r.districts ?? 0)), buildings: mean(final.map(r => r.buildings ?? 0)), ships: mean(final.map(r => r.ships ?? 0)), territory: mean(final.map(r => r.territory ?? 0)),
+    pMilestones: mean((run.endgame ?? []).map(e => e.prestigeBy?.milestones ?? NaN)), pAmbitions: mean((run.endgame ?? []).map(e => e.prestigeBy?.ambitions ?? NaN)), pWorks: mean((run.endgame ?? []).map(e => e.prestigeBy?.works ?? NaN)),
+    pExplored: mean((run.endgame ?? []).map(e => e.prestigeBy?.explored ?? NaN)), pOther: mean((run.endgame ?? []).map(e => e.prestigeBy?.other ?? NaN)), ambitionsDone: mean((run.endgame ?? []).map(e => e.ambitionsDone ?? NaN)),
     killed: t?.telemetry?.kills ?? NaN, playerAttacks: t?.playerAttacksOnThreats ?? NaN, campsAlive: t?.campsAliveAtEnd ?? NaN, confrontations: (t?.assaults ?? 0) + (t?.playerAttacksOnThreats ?? 0),
   };
 }
@@ -83,4 +91,37 @@ if (which === 'digest') {
     }
     if (rows.length) { writeFileSync(join(BASE, suite, 'digest.json'), JSON.stringify(rows)); console.log(suite, rows.length, 'runs'); }
   }
+}
+
+if (which === 'e3') {
+  // Phase 3 comparison: Controle 0 (base), Controle 1 (M1 = starthamlet) and Candidato A (candA), threats on (R1), emergency recovery in the policies.
+  const profile = Number(process.argv[3] ?? 21), players = Number(process.argv[4] ?? 4), suite = process.argv[5] ?? 'e3';
+  const names = [['base', 'Controle 0 · baseline'], ['starthamlet', 'Controle 1 · M1'], ['candA', 'Candidato A · M1+M4 15%']];
+  const dirOf = v => join(BASE, suite, `${profile}p${players}-${v}`);
+  const cols = [['pop', 'população'], ['cities', 'cidades'], ['level', 'nível máx.'], ['n3', 'N3'], ['n4', 'N4'], ['n5', 'N5'], ['n6', 'N6'], ['n7', 'N7'], ['districts', 'distritos'], ['buildings', 'edifícios'], ['research', 'avanços'],
+    ['knowledge', 'Conhecimento'], ['culture', 'Cultura'], ['prestige', 'Prestígio'], ['hungerPct', 'fome %'], ['revoltPct', 'Revolta %'], ['meanMood', 'Ânimo'], ['pieces', 'exércitos'], ['ships', 'navios'], ['works', 'Obras'], ['hegemonyMet', 'Hegemonia (req.)'], ['ordersLimit', 'Ordens disp.'], ['ordersWastedPct', 'Ordens não usadas %'], ['assaults', 'assaltos']];
+  const out = [`| modelo | n | ${cols.map(c => c[1]).join(' | ')} |`, `|---|---|${cols.map(() => '---').join('|')}|`];
+  const table = {}, runsBy = {};
+  for (const [variant, label] of names) {
+    const loaded = load(dirOf(variant)); if (!loaded.length) continue;
+    runsBy[variant] = new Map(loaded.map(r => [`${r.x.meta.policy}|${r.x.meta.seed}`, figures(r.x)]));
+    const runs = [...runsBy[variant].values()];
+    table[variant] = Object.fromEntries(cols.map(([k]) => [k, avg(runs, k)]));
+    out.push(`| ${label} | ${runs.length} | ${cols.map(([k]) => f1(avg(runs, k))).join(' | ')} |`);
+  }
+  const deltaRow = (variant, label, keys) => {
+    const base = runsBy.base, cur = runsBy[variant]; if (!base || !cur) return null;
+    const pairs = [...cur.keys()].filter(k => base.has(k)).map(k => ({ v: cur.get(k), b: base.get(k) }));
+    return `| ${label} | ${pairs.length} | ${keys.map(([k]) => { const d = pairs.map(p => p.v[k] - p.b[k]).filter(x => !Number.isNaN(x)); return d.length ? `${mean(d) >= 0 ? '+' : ''}${f2(mean(d))} (${d.filter(x => x > 0).length}↑ ${d.filter(x => x < 0).length}↓/${d.length})` : '–'; }).join(' | ')} |`;
+  };
+  out.push('', 'Δ pareado contra o Controle 0 (mesma política e mesma seed; entre parênteses, pares acima ↑ e abaixo ↓):', '', `| modelo | pares | ${cols.map(c => c[1]).join(' | ')} |`, `|---|---|${cols.map(() => '---').join('|')}|`);
+  for (const [variant, label] of names.slice(1)) { const row = deltaRow(variant, label, cols); if (row) out.push(row); }
+  // Where the Prestígio comes from (per seat, mean).
+  const pcols = [['prestige', 'Prestígio'], ['pMilestones', 'Marcos ★'], ['pAmbitions', 'Ambições'], ['pWorks', 'Obras'], ['pExplored', 'Regiões'], ['pOther', 'outras (cartas, Ressonância, Ameaças)'], ['ambitionsDone', 'Ambições concluídas']];
+  out.push('', 'Origem do Prestígio por civilização (média) e diferença pareada:', '', `| modelo | n | ${pcols.map(c => c[1]).join(' | ')} |`, `|---|---|${pcols.map(() => '---').join('|')}|`);
+  for (const [variant, label] of names) if (runsBy[variant]) out.push(`| ${label} | ${runsBy[variant].size} | ${pcols.map(([k]) => f2(avg([...runsBy[variant].values()], k))).join(' | ')} |`);
+  for (const [variant, label] of names.slice(1)) { const row = deltaRow(variant, `Δ ${label}`, pcols); if (row) out.push(row); }
+  const file = join(BASE, suite, `summary-${profile}p${players}.md`);
+  writeFileSync(file, out.join('\n') + '\n'); writeFileSync(file.replace('.md', '.json'), JSON.stringify(table, null, 1));
+  console.log(out.join('\n'));
 }
