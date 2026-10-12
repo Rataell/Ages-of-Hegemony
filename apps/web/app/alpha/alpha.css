@@ -351,12 +351,13 @@ button.alpha-card { text-align: left; }
 .alpha-hand-toggle { display: none; }
 .alpha-game .map-legend { left: auto; right: 18px; bottom: 64px; }
 @media (max-width: 760px) {
-  .alpha-hand-toggle { display: inline-flex; position: absolute; left: 10px; bottom: 12px; z-index: 7; }
-  .alpha-hand-fan { display: none; left: 0; right: 0; width: auto; height: auto; bottom: 56px; padding: 10px; gap: 8px; overflow-x: auto; background: var(--surface-elevated, #19252b); border-top: 1px solid var(--border); border-radius: 14px 14px 0 0; }
-  .alpha-hand-fan, .alpha-hand-fan:hover, .alpha-hand-fan.has-focus, .alpha-hand-fan:focus-within { bottom: 56px; }
+  /* RC5: the tray carries the Cofre row, so the hand sits above it (the tray height is measured). */
+  .alpha-hand-toggle { display: inline-flex; position: absolute; left: 10px; bottom: calc(12px + var(--tray-height, 96px) + 8px); z-index: 7; }
+  .alpha-hand-fan { display: none; left: 0; right: 0; width: auto; height: auto; bottom: calc(12px + var(--tray-height, 96px) + 52px); padding: 10px; gap: 8px; overflow-x: auto; background: var(--surface-elevated, #19252b); border-top: 1px solid var(--border); border-radius: 14px 14px 0 0; }
+  .alpha-hand-fan, .alpha-hand-fan:hover, .alpha-hand-fan.has-focus, .alpha-hand-fan:focus-within { bottom: calc(12px + var(--tray-height, 96px) + 52px); }
   .alpha-hand-fan.is-open { display: flex; }
   .alpha-hand-fan .alpha-hand-card, .alpha-hand-fan:hover .alpha-hand-card, .alpha-hand-fan .alpha-hand-card.is-focus { position: relative; left: auto; flex: 0 0 112px; transform: none; }
-  .alpha-hand-play { position: fixed; left: 8px; right: 8px; width: auto; bottom: 260px; z-index: 8; }
+  .alpha-hand-play { position: fixed; left: 8px; right: 8px; width: auto; bottom: calc(12px + var(--tray-height, 96px) + 230px); z-index: 8; }
 }
 .alpha-recommended { border-color: #f4ecd8; }
 .alpha-recommended[aria-pressed="true"] { box-shadow: inset 0 0 0 1px #f4ecd8; }
@@ -431,7 +432,7 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-council-book { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; align-items: start; }
 .alpha-council-book section { min-width: 0; }
 
-.alpha-mesa .alpha-cofre { position: absolute; z-index: 30; right: 12px; top: calc(10px + var(--strip-height) + 8px); width: min(460px, calc(100% - 24px)); }
+.alpha-mesa .alpha-cofre { position: absolute; z-index: 30; right: 12px; bottom: calc(12px + var(--tray-height, 64px) + 8px); width: min(460px, calc(100% - 24px)); }
 .alpha-cofre .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .alpha-cofre-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin: 12px 0 0; }
 .alpha-cofre-facts dt { font-size: 11px; color: var(--text-muted); }
@@ -733,3 +734,27 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-chronicle-limits { margin-top: 14px; color: var(--text-secondary); font-size: 13px; }
 .alpha-chronicle-limits ul { padding-left: 18px; }
 @media (max-width: 560px) { .alpha-chronicle { padding: 16px; } .alpha-chronicle-card dl { grid-template-columns: 1fr; } }
+/* Figura card in the hand (RC5): the civilization seal as illustration, the initials as portrait. */
+.alpha-hand-card.is-figure .hd { background: #5b3a1e; }
+.alpha-hand-portrait { position: relative; display: block; margin: 6px auto 0; }
+.alpha-hand-portrait > svg:first-child { position: absolute; inset: 0; }
+.alpha-hand-portrait > .alpha-gcard-seal { position: absolute; right: -6px; bottom: -6px; }
+.alpha-hand-play .alpha-hand-portrait { margin: 0 0 4px; }
+.alpha-hand-play i { font-style: normal; font-weight: 600; color: var(--accent-bright); }
+/* Cofre in the tray (RC5): the eight resources are always visible at the bottom, each with its warehouse gauge; the click opens the limits. */
+.alpha-tray-cofre { display: inline-flex; align-items: center; padding: 4px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); background: var(--surface); color: var(--text-primary); cursor: pointer; }
+.alpha-tray-cofre[aria-expanded="true"] { border-color: var(--accent); }
+.alpha-tray-cofre .resources { gap: 10px; flex-wrap: nowrap; }
+.alpha-tray-cofre .resource { gap: 3px; }
+.alpha-tray-cofre .resource svg { width: 13px; height: 16px; }
+.alpha-tray-cofre .resource b { font-size: 13px; }
+.alpha-tray-cofre .resource small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.alpha-tray-cofre .resource .resource-meter { display: none; }
+.alpha-tray-cofre .resource.full b { color: var(--warning); }
+@media (max-width: 900px) {
+  .alpha-mesa .alpha-tray { flex-wrap: wrap; }
+  .alpha-tray-cofre { order: -1; flex: 1 1 100%; justify-content: space-between; overflow-x: auto; }
+  .alpha-tray-cofre .resources { width: 100%; justify-content: space-between; gap: 6px; }
+  .alpha-tray-cofre .resource b { font-size: 12px; }
+  .alpha-mesa .alpha-cofre { bottom: calc(12px + var(--tray-height, 96px) + 8px); left: 8px; right: 8px; width: auto; }
+}

@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { ALPHA_CARDS, AlphaEraSchema, civilizationDisplayName, civilizationKit, type AlphaEffect } from '@aoh/game-domain';
+import { ALPHA_CARDS, AlphaEraSchema, LEADERS, civilizationDisplayName, civilizationKit, figureById, type AlphaEffect } from '@aoh/game-domain';
 import type { AlphaRoomView } from '@aoh/server/alpha';
 import type { AlphaSend } from './alpha-board';
-import { bannerArt } from './table-art';
+import { bannerArt, sealArt } from './table-art';
+import { InitialsSeal } from './alpha-card';
 
 type Game = NonNullable<AlphaRoomView['game']>;
 const RESOURCE: Record<string, string> = { food: 'Alimento', materials: 'Madeira/Pedra', wealth: 'Riqueza', knowledge: 'Conhecimento', influence: 'Influência', culture: 'Cultura' };
@@ -12,7 +13,9 @@ export function effectText(effect: AlphaEffect | null): string {
   if (effect.kind === 'PRODUCTION') return `+${effect.amount} ${RESOURCE[effect.resource] ?? effect.resource}`;
   return `+${effect.amount} ${effect.kind === 'STRENGTH' ? 'Força nos conflitos' : effect.kind === 'MOVEMENT' ? 'movimento' : 'ação principal'} nesta rodada`;
 }
-type HandCard = { key: string; family: string; name: string; text: string; play: Record<string, unknown> | null; blocked: string | null; civ: boolean };
+/** `figure` marks the Figura of the civilization: it rides in the hand with its own illustration (the civilization seal and the Figura's initials) and plays the Poder 1× por Era. */
+type FigureFace = { name: string; passive: { name: string; text: string } | null; power: { name: string; text: string } | null };
+type HandCard = { key: string; family: string; name: string; text: string; play: Record<string, unknown> | null; blocked: string | null; civ: boolean; figure?: FigureFace; playLabel?: string };
 
 /**
  * The hand on the table (approved fan): collapsed at the map's lower edge, lifted by hover or click, one card in focus at a
@@ -25,7 +28,17 @@ export function AlphaHand({ game, locked, send, seatColor, onFocus }: { game: Ga
   const setFocus = (key: string | null) => { setFocusState(key); onFocus?.(key !== null); };
   const self = game.self, limit = game.rules.cardsPerRound, spent = self.cardsPlayed >= limit;
   const kit = civilizationKit(self.civilization), era = AlphaEraSchema.options.indexOf(self.era);
+  // The Figura (RC5): the civilization's leader card sits in the hand with the others; its Poder is used from here (same command and gates as the Figura page).
+  const leaderId = self.leader?.leaderId ?? null, figure = leaderId ? figureById(leaderId) : undefined, leader = leaderId ? LEADERS.find(entry => entry.id === leaderId) : undefined;
+  const figureCard: HandCard[] = leaderId && (figure || leader) ? (() => {
+    const name = figure?.name ?? leader?.name ?? 'Figura', used = self.leader!.eraAbilityUsed;
+    const passive = figure ? { name: figure.passive.name, text: leader?.passiveAbility.description ?? figure.passive.text } : leader ? { name: leader.passiveAbility.name, text: leader.passiveAbility.description } : null;
+    const power = figure ? { name: figure.power.name, text: leader?.eraAbility.description ?? figure.power.text } : leader ? { name: leader.eraAbility.name, text: leader.eraAbility.description } : null;
+    const blocked = used ? 'O Poder da Figura já foi usado nesta Era.' : locked ? 'Aguarde a sua vez de planejar.' : game.phase !== 'PLANNING' ? 'Disponível na fase Planejamento.' : self.ready ? 'Você já confirmou esta fase.' : game.leaderBlock;
+    return [{ key: `figure:${leaderId}`, family: 'Figura', name, text: power ? `Poder: ${power.name}` : '', play: { type: 'LEADER_ABILITY' }, blocked, civ: true, figure: { name, passive, power }, playLabel: 'Usar o Poder' }];
+  })() : [];
   const cards: HandCard[] = [
+    ...figureCard,
     ...self.hand.map(id => {
       const card = ALPHA_CARDS.find(c => c.id === id)!;
       const blocked = locked ? 'Aguarde a sua vez de planejar.' : card.timing !== game.view.phase ? (card.timing === 'REACTION' ? 'Reação: só durante os Conflitos.' : 'Só no planejamento.') : spent ? `Limite de ${limit} cartas por rodada atingido.` : null;
@@ -40,19 +53,26 @@ export function AlphaHand({ game, locked, send, seatColor, onFocus }: { game: Ga
   if (!cards.length) return null;
   const focused = cards.find(card => card.key === focus) ?? null;
   const banner = kit ? bannerArt(kit.mark, seatColor, 26) : '';
+  /** The Figura's illustration: the seal of her civilization, with the Figura's initials as the provisional portrait. */
+  const portrait = (face: FigureFace, size: number) => <span className="alpha-hand-portrait" style={{ width: size, height: size }} aria-hidden="true">{kit && <svg viewBox="-34 -34 68 68" width={size} height={size} dangerouslySetInnerHTML={{ __html: sealArt(kit.mark, seatColor, 28) }} />}<InitialsSeal name={face.name} size={Math.round(size * 0.5)} /></span>;
   return <>
     <button type="button" className="alpha-hand-toggle" aria-expanded={open} onClick={() => { setOpen(!open); setFocus(null); }}>Cartas · {cards.filter(card => !card.blocked).length}/{cards.length}</button>
     <div className={`alpha-hand-fan${open ? ' is-open' : ''}${focused ? ' has-focus' : ''}`} role="group" aria-label="Mão de cartas">
-      {cards.map((card, i) => <button type="button" key={card.key} className={`alpha-hand-card${card.civ ? ' is-civ' : ''}${focused?.key === card.key ? ' is-focus' : ''}${card.blocked ? ' is-blocked' : ''}`}
+      {cards.map((card, i) => <button type="button" key={card.key} className={`alpha-hand-card${card.civ ? ' is-civ' : ''}${card.figure ? ' is-figure' : ''}${focused?.key === card.key ? ' is-focus' : ''}${card.blocked ? ' is-blocked' : ''}`}
         style={{ ['--i' as string]: i, ['--a' as string]: i - (cards.length - 1) / 2 }} aria-pressed={focused?.key === card.key} aria-label={`${card.name}: ${card.text}${card.blocked ? ` (${card.blocked})` : ''}`}
         onClick={() => setFocus(focused?.key === card.key ? null : card.key)}>
         <span className="hd">{card.family}{card.civ && <svg width="16" height="22" viewBox="-12 -36 24 38" aria-hidden="true" dangerouslySetInnerHTML={{ __html: banner }} />}</span>
+        {card.figure && portrait(card.figure, 44)}
         <span className="nm">{card.name}</span><span className="tx">{card.text}</span>
       </button>)}
       {focused && <div className="alpha-hand-play" role="dialog" aria-label={focused.name}>
-        <b>{focused.name}</b><span>{focused.text}</span>
-        <button type="button" className="primary" disabled={Boolean(focused.blocked) || !focused.play} onClick={() => { if (focused.play) void send(focused.play).then(ok => { if (ok) setFocus(null); }); }}>Jogar carta</button>
-        <small>{focused.blocked ?? `${limit - self.cardsPlayed} de ${limit} nesta rodada · ação livre`}</small>
+        {focused.figure && portrait(focused.figure, 64)}
+        <b>{focused.name}</b>
+        {focused.figure
+          ? <>{focused.figure.passive && <span><i>Passiva · {focused.figure.passive.name}.</i> {focused.figure.passive.text}</span>}{focused.figure.power && <span><i>Poder 1× por Era · {focused.figure.power.name}.</i> {focused.figure.power.text}</span>}</>
+          : <span>{focused.text}</span>}
+        <button type="button" className="primary" disabled={Boolean(focused.blocked) || !focused.play} onClick={() => { if (focused.play) void send(focused.play).then(ok => { if (ok) setFocus(null); }); }}>{focused.playLabel ?? 'Jogar carta'}</button>
+        <small>{focused.blocked ?? (focused.figure ? 'Poder da Figura: 1× por Era · ação livre' : `${limit - self.cardsPlayed} de ${limit} nesta rodada · ação livre`)}</small>
       </div>}
     </div>
   </>;
