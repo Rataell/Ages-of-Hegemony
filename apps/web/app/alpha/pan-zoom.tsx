@@ -19,7 +19,13 @@ export function PanZoom({ children, onBackground, label }: { children: ReactNode
   useEffect(() => {
     const v = view.current;
     if (!v) return;
-    const wheel = (e: WheelEvent) => { e.preventDefault(); const box = v.getBoundingClientRect(); zoomAt(e.clientX - box.left, e.clientY - box.top, e.deltaY < 0 ? 1.12 : 1 / 1.12); };
+    // RC5: a trackpad swipe / a mouse wheel pans (Shift + wheel pans sideways); a pinch, Ctrl/Cmd + wheel zooms around the cursor.
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault(); const box = v.getBoundingClientRect(), unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? box.height : 1;
+      if (e.ctrlKey || e.metaKey) { zoomAt(e.clientX - box.left, e.clientY - box.top, Math.exp(-Math.max(-60, Math.min(60, e.deltaY * unit)) * 0.012)); return; }
+      let dx = e.deltaX * unit, dy = e.deltaY * unit; if (e.shiftKey && dx === 0) { dx = dy; dy = 0; }
+      setT(old => ({ ...old, x: old.x - dx, y: old.y - dy }));
+    };
     v.addEventListener('wheel', wheel, { passive: false });
     return () => v.removeEventListener('wheel', wheel);
   }, [zoomAt]);

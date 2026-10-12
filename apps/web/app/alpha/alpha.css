@@ -761,3 +761,19 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .alpha-hand-portrait.is-art { overflow: hidden; border-radius: 6px; border: 1px solid #7d5c33; background: #0e1519; }
 .alpha-hand-portrait.is-art svg { display: block; width: 100%; height: 100%; }
 .alpha-hand-card.is-figure .nm { padding-top: 4px; }
+
+/* RC5 overlap pass: the hand toggle no longer touches the map tools on phones, and the pulse chip stays readable over a seat plate. */
+@media (max-width: 760px) {
+  .alpha-mesa .map-tools { bottom: calc(12px + var(--tray-height, 96px) + 56px); }
+}
+.alpha-mesa .alpha-pulse-chip { z-index: 7; }
+/* On phones the tray holds two rows (Cofre, then orders and the main button): the shared 72px cap would push the button off the screen. */
+@media (max-width: 900px) {
+  .alpha-mesa { --tray-height: 118px; }
+  .alpha-mesa .alpha-tray { max-height: none; padding: 6px 8px 8px 12px; row-gap: 6px; }
+  .alpha-mesa .alpha-tray .alpha-tray-ready { display: none; }
+  .alpha-mesa .alpha-tray .bud { display: none; }
+  .alpha-mesa .alpha-tray .alpha-action-queue { order: 0; flex: 1 1 0; min-width: 0; }
+  .alpha-mesa .alpha-tray .alpha-action-queue summary { font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+  .alpha-mesa .alpha-tray .advance-phase-btn { padding: 0 14px; }
+}

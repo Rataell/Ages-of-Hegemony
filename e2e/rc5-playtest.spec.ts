@@ -127,3 +127,34 @@ for (const [name, viewport] of VIEWPORTS) {
     } finally { await context.close(); }
   });
 }
+
+for (const [name, viewport] of VIEWPORTS) {
+  test(`${name}: the map scrolls with a trackpad / mouse wheel (pan), Shift + wheel pans sideways, Ctrl/pinch zooms, and the page never scrolls`, async ({ browser }) => {
+    const { context, page } = await guest(browser, viewport);
+    try {
+      await create(page, { duration: 'QUICK' });
+      await submit(page);
+      await startWithBot(page);
+      await humanFirstRound(page);
+      const map = page.locator('svg.world-map');
+      await expect(map).toBeVisible();
+      const box = (await map.boundingBox())!;
+      const view = async () => { const [x, y, w, h] = (await map.getAttribute('viewBox'))!.split(' ').map(Number); return { x: x!, y: y!, w: w!, h: h! }; };
+      // Zoom in first so there is room to pan (the fitted Mesa already shows the whole board).
+      const fitted = await view();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.keyboard.down('Control'); await page.mouse.wheel(0, -240); await page.keyboard.up('Control');
+      await expect.poll(async () => (await view()).w).toBeLessThan(fitted.w * 0.95);                       // Ctrl + wheel / pinch: zoomed in
+      const zoomed = await view();
+      await page.mouse.wheel(0, 240);                                                                       // a vertical swipe or a plain mouse wheel pans down
+      await expect.poll(async () => (await view()).y).toBeGreaterThan(zoomed.y);
+      const afterDown = await view(); expect(afterDown.w).toBeCloseTo(zoomed.w, 3);                          // panning does not zoom
+      await page.mouse.wheel(240, 0);                                                                       // a horizontal swipe pans sideways
+      await expect.poll(async () => (await view()).x).toBeGreaterThan(afterDown.x);
+      const afterRight = await view();
+      await page.keyboard.down('Shift'); await page.mouse.wheel(0, -240); await page.keyboard.up('Shift');  // a traditional mouse: Shift + wheel pans sideways
+      await expect.poll(async () => (await view()).x).toBeLessThan(afterRight.x);
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);                                             // the page itself never scrolls under the Mesa
+    } finally { await context.close(); }
+  });
+}

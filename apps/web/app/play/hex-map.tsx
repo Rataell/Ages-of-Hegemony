@@ -263,6 +263,41 @@ export const HexMap = memo(function HexMap({
     setDrag(null);
   }, []);
 
+  // Scrolling the map (RC5): a Mac trackpad two-finger swipe and a traditional mouse wheel PAN the map (Shift + wheel pans sideways); a trackpad pinch, Ctrl/Cmd + wheel, and the
+  // Safari pinch gesture ZOOM around the cursor. The page itself never scrolls under the Mesa. The handler reads the latest camera through a ref, so it is attached once.
+  const wheelState = useRef({ current, camera, frame, mesa, safe, size });
+  wheelState.current = { current, camera, frame, mesa, safe, size };
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const zoomTo = (zoom: number, at: { x: number; y: number } | null) => {
+      const { current: now, camera: cam, frame: fr, mesa: isMesa, safe: insets, size: dims } = wheelState.current;
+      const next = clampZoom(zoom);
+      if (next === now.zoom) return;
+      if (!isMesa || !at) { setView({ ...now, zoom: next }); return; }
+      const sx = (insets.left + (dims.w - insets.right)) / 2, sy = (insets.top + (dims.h - insets.bottom)) / 2, scale2 = cam.scale * next / now.zoom;
+      const wx = now.cx + (at.x - sx) / cam.scale, wy = now.cy + (at.y - sy) / cam.scale;   // the world point under the cursor stays under it
+      setView({ zoom: next, ...clampCentre(fr, wx - (at.x - sx) / scale2, wy - (at.y - sy) / scale2) });
+    };
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const { current: now, camera: cam, frame: fr, mesa: isMesa } = wheelState.current, box = svg.getBoundingClientRect();
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? box.height : 1;   // a wheel that reports lines or pages
+      let dx = event.deltaX * unit, dy = event.deltaY * unit;
+      if (event.ctrlKey || event.metaKey) { zoomTo(now.zoom * Math.exp(-Math.max(-60, Math.min(60, dy)) * 0.012), { x: event.clientX - box.left, y: event.clientY - box.top }); return; }
+      if (event.shiftKey && dx === 0) { dx = dy; dy = 0; }                                   // a traditional mouse: Shift + wheel pans sideways
+      const scale = isMesa ? cam.scale : Math.min(box.width / (fr.width / now.zoom), box.height / (fr.height / now.zoom));
+      setView({ ...now, ...clampCentre(fr, now.cx + dx / scale, now.cy + dy / scale) });
+    };
+    let base = 1;
+    const onGestureStart = (event: Event) => { event.preventDefault(); base = wheelState.current.current.zoom; };
+    const onGestureChange = (event: Event) => { event.preventDefault(); zoomTo(base * ((event as unknown as { scale: number }).scale || 1), null); };
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    svg.addEventListener('gesturestart', onGestureStart);
+    svg.addEventListener('gesturechange', onGestureChange);
+    return () => { svg.removeEventListener('wheel', onWheel); svg.removeEventListener('gesturestart', onGestureStart); svg.removeEventListener('gesturechange', onGestureChange); };
+  }, []);
+
   return (
     <section className="map-stage" aria-label="Mapa do mundo">
       <div className="map-heading">
