@@ -125,6 +125,7 @@ export function plannedTrial(state: AlphaState, actor: PlayerId): PlanTrial | nu
   if (!earlier.length) return null;
   const trial = structuredClone(state);
   trial.phase = 'URBAN_ACTIONS';
+  trial.cities.forEach(city => { city.urbanActionsUsed = 0; });   // same reset as the real PLANNING → URBAN_ACTIONS transition
   const progress = trial.players.find(player => player.playerId === actor)!;
   progress.ready = false;
   const used: PlanTrial['used'] = [];

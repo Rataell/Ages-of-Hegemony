@@ -57,7 +57,7 @@ async function serve(browser: import('@playwright/test').Browser, state: AlphaSt
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   await connectAlphaContext(context, http); await muteTour(context);
   await context.addCookies([{ name: 'aoh_alpha_session', value: identity.token, url: origin, httpOnly: true, sameSite: 'Strict' }]);
-  const page = await context.newPage(); page.setDefaultTimeout(15000);
+  const page = await context.newPage(); page.setDefaultTimeout(30_000);
   await page.goto(`/alpha?game=${room.id}`);
   await expect(page.locator('.world-map')).toBeVisible();
   const later = page.getByRole('button', { name: /Ver o mapa primeiro/ }); if (await later.isVisible().catch(() => false)) await later.click();
@@ -75,12 +75,13 @@ for (const lose of [true, false]) {
     const plan = situation();
     plan.base.privateRng.counter = counterFor(plan, lose);
     const { page, repository, room, readyOther } = await serve(browser, plan.base);
-    // Under load the first touch can land while the map is still settling: retry until the cloud offers Mover.
-    for (let attempt = 0; attempt < 3 && !(await cloudNode(page, 'move').isVisible().catch(() => false)); attempt++) {
-      await touchPiece(page, `g.hex[data-hex="${plan.from}"]`);
-      await cloudNode(page, 'move').waitFor({ timeout: 5000 }).catch(() => undefined);
-    }
-    await cloudNode(page, 'move').click();
+    // One touch, waiting on observable conditions only: the Pioneiro is drawn from the projection, then the cloud offers Mover. A slow machine makes these waits longer, never repeats the touch.
+    const piece = page.locator(`svg.world-map g.hex[data-hex="${plan.from}"] .art-stack.own`);
+    await expect(piece).toBeVisible({ timeout: 30_000 });
+    await touchPiece(page, `g.hex[data-hex="${plan.from}"]`);
+    const move = cloudNode(page, 'move');
+    await expect(move).toBeVisible({ timeout: 30_000 });
+    await move.click({ timeout: 30_000 });
     const target = page.locator(`svg.world-map g.hex[data-hex="${plan.entry}"]`);
     await expect(target).toHaveClass(/target/);                                           // the closed Region is lit as a destination
     await target.click();
@@ -91,6 +92,7 @@ for (const lose of [true, false]) {
     await page.waitForTimeout(350); await page.screenshot({ path: `${evidence}/${lose ? 'lost' : 'spared'}-1-warning.png` });
     await confirmMove(page);
     await expect.poll(async () => (await repository.find(room.id))!.game!.players[0]!.orders.some(o => o.type === 'MOVE')).toBe(true);
+    expect((await repository.find(room.id))!.game!.players[0]!.orders.filter(o => o.type === 'MOVE')).toHaveLength(1);   // the command ran once
     await page.getByRole('button', { name: /Confirmar planejamento/ }).click();
     const anyway = page.getByRole('button', { name: /Confirmar mesmo assim/ });
     await anyway.waitFor({ timeout: 3000 }).then(() => anyway.click()).catch(() => undefined);
@@ -98,6 +100,8 @@ for (const lose of [true, false]) {
     const result = page.locator('.alpha-resolution-phase');
     await expect(result).toBeVisible({ timeout: 40000 });                                 // AFTER: the Resultados overlay
     const stored = (await repository.find(room.id))!.game!;
+    // the move was executed once: exactly one discovery line for this piece in the round
+    expect(stored.resolutionEvents.filter(e => e.type === 'DISCOVERY' && e.unitIds.includes(plan.pioneer))).toHaveLength(1);
     const alive = stored.units.some(u => u.id === plan.pioneer);
     expect(alive).toBe(!lose);
     if (lose) {

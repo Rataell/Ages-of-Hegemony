@@ -94,6 +94,8 @@ test('real match: populated Mesa, Ficha open, three viewports, nothing covered o
     test.info().annotations.push({ type: 'real-game', description: JSON.stringify({ played, blocked, game }) });
     console.log('REAL-GAME', JSON.stringify({ played, blocked, game }));
     expect(played.length).toBeGreaterThanOrEqual(3);
+    // regression guard (RC6 gate): the Ficha's preview must never call a city exhausted because of LAST round's activations
+    expect(blocked.join(' | ')).not.toMatch(/já usou suas ativações/);
     expect(game.units).toBeGreaterThan(2);
 
     for (const [name, size] of [['1440x900', { width: 1440, height: 900 }], ['1280x720', { width: 1280, height: 720 }], ['390x844', { width: 390, height: 844 }]] as const) {

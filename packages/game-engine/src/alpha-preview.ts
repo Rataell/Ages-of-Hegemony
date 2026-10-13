@@ -200,6 +200,7 @@ function baseState(state: AlphaState, actor: PlayerId, trial: PlanTrial | null):
   if (trial) return trial.state;
   const base = structuredClone(state);
   base.phase = 'URBAN_ACTIONS';
+  base.cities.forEach(city => { city.urbanActionsUsed = 0; });   // the real transition (advanceAfterReady) resets the per-round count; a stale count from last round would read as "no activation left"
   base.players.find(player => player.playerId === actor)!.ready = false;
   return base;
 }
