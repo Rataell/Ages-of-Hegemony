@@ -68,8 +68,8 @@ export function composeHex(R: number, input: HexInput): HexLayout {
   if (input.people && !hasFeature) put('people', 'people', 0, crowd ? -28 : -6, 26, 20);
   shown.forEach((g, slot) => {
     // City or camp: the troops stand in the bottom band; in the field they take the centre. Two groups split the width.
-    const two = shown.length > 1, px = hasFeature ? (two ? 17 : 22) : (two ? 20 : 30);
-    const cap = hasFeature || two ? 2 : 3, slots = Math.min(cap, g.classes), overflow = g.classes > cap ? g.classes - (cap - 1) : 0;
+    const two = shown.length > 1, px = hasFeature ? (two ? 17 : 20) : (two ? 20 : 30);
+    const cap = two ? 2 : 3, slots = Math.min(cap, g.classes), overflow = g.classes > cap ? g.classes - (cap - 1) : 0;
     const figs = overflow > 0 ? cap - 1 : slots;
     const x = two ? (slot === 0 ? -20.4 : 20.4) : 0, y = hasFeature ? 19 : input.people ? 12 : 0;
     put(g.id, g.id, x, y, rowWidth(slots, px), px * 1.16, { px: px * k, figs, overflow });
@@ -79,7 +79,7 @@ export function composeHex(R: number, input: HexInput): HexLayout {
   if (input.level && input.feature === 'city') put('level', 'level', -30.5, -19, 20, 14);
   if (input.mood && input.feature === 'city') put('mood', 'mood', 30.5, -17, 20, 20);
   if (input.worked) { if (input.feature === 'city') put('worked', 'worked', 36, 2, 14, 14); else put('worked', 'worked', 33, -20, 14, 14); }
-  const sealSlots: [number, number][] = input.feature === 'city' ? [[-36, 2], [-36, 18]] : [[-33, -20], [-32, 20]];
+  const sealSlots: [number, number][] = hasFeature ? [[-36, 0], [-36, 18]] : [[-33, -20], [-32, 20]];
   for (let i = 0; i < Math.min(2, input.resourceSeals); i++) put(`resource-${i}`, 'resource', sealSlots[i]![0], sealSlots[i]![1], 15, 15);
   if (input.cost) put('cost', 'cost', 0, input.status && !hasFeature ? 33 : -34, 36, 13);
   if (input.status) { if (hasFeature) put('status', 'status', 29, -12, 14, 14); else put('status', 'status', 0, -30, 14, 14); }

@@ -289,7 +289,7 @@ export const HexMap = memo(function HexMap({
     const name = city ? `${city.id === capitalId ? '★ ' : ''}${city.name}` : '';
     return composeHex(HEX_RADIUS, {
       feature: city ? 'city' : camp ? 'camp' : 'none', own: classes(selfId), foreign: foreignOwner ? classes(foreignOwner) : 0, threat: threat?.composition?.length ?? 0, people: Boolean(people),
-      level: Boolean(city), mood: mark?.mood !== undefined, worked: workedSeal, resourceSeals: sealsOf({ features: tile.features, improvement: tile.improvement, city: Boolean(city) }).length,
+      level: Boolean(city), mood: mark?.mood !== undefined, worked: workedSeal, resourceSeals: sealsOf({ features: tile.features, improvement: tile.improvement, city: Boolean(city) || camp }).length,
       label: Boolean(city), labelWidth: name.length * 5.4, cost: (targetSet.has(tile.id) && targets?.labels?.[tile.id] !== undefined) || Boolean(draftLegs?.some(leg => (leg.path.at(-1) ?? leg.origin) === tile.id)),
       ghost: new Set((draftLegs ?? []).filter(leg => (leg.path.at(-1) ?? leg.origin) === tile.id).flatMap(leg => leg.kinds)).size,
       status: Boolean(threat && (threat.intent?.state === 'WITHDRAWING' || (threat.status === 'CAMPED' && (threat.fresh || threat.reorganizing)))),
@@ -474,7 +474,8 @@ export const HexMap = memo(function HexMap({
 
               <g className="ground-layer ground-detail">{tiles.map(tile => {
                 if (!isTerrainKey(tile.terrain)) return null;
-                const here = cityHexes.has(tile.id);
+                // City and camp hexes keep their resource seals on the left edge (hex-compose); other occupied hexes use the left corners.
+                const here = cityHexes.has(tile.id) || threats.some(t => t.hexId === tile.id && t.kind !== 'PIRATE' && t.status === 'CAMPED');
                 if (occupied.has(tile.id)) {
                   const seals = sealsOf({ features: tile.features, improvement: tile.improvement, city: here });
                   return seals.length ? tileG('detail', tile, seals.map(seal => <use key={seal.id} href={`#${seal.id}`} className="hex-seal" data-seal={seal.kind} transform={`translate(${seal.x} ${seal.y})`} />)) : null;

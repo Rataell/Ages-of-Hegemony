@@ -126,7 +126,7 @@ code{font:500 .9em ui-monospace,Menlo,monospace}
   <div class="decisions" id="decisoes"></div>
 </header>
 <nav class="nav" aria-label="Cenas">
-  <a href="#cena-a">A · Mesa</a><a href="#cena-b">B · Movimento</a><a href="#cena-c">C · Ameaças</a><a href="#cena-d">D · Cidade</a><a href="#cena-e">E · Ficha</a>
+  <a href="#cena-a">A · Mesa</a><a href="#cena-b">B · Movimento</a><a href="#cena-c">C · Ameaças</a><a href="#cena-d">D · Cidade</a><a href="#cena-e">E · Ficha</a><a href="#cena-f">F · Composição</a>
 </nav>
 
 <section id="cena-a">
@@ -189,5 +189,11 @@ code{font:500 .9em ui-monospace,Menlo,monospace}
     <div style="display:grid;gap:8px"><span class="cap">Celular · folha sobre o mapa</span><div class="phone" id="phoneE"></div></div>
   </div>
   <div class="verdict"><b>Regras de leitura.</b> Bloqueio sempre cita a causa e como destravar. Custo mostra saldo (tem → fica). Previsto é tracejado; Aplicado é sólido e traz a diferença para o previsto. Perdas ficam em vermelho na ficha e como halo no hex.</div>
+</section>
+<section id="cena-f">
+  <span class="eyebrow">Cena F</span><h2>Composição: cada peça no seu espaço</h2>
+  <p class="note">Peças, cidades, acampamentos e tropas são a ilustração prioritária. Tudo o mais (Ânimo, nível, nome, quantidade, recursos, custos, fantasmas) ocupa um slot livre do mesmo hexágono. Figura que não cabe vira "+N", nunca é encolhida. Os casos abaixo são calculados por entidades, com a mesma lógica do jogo, e cada um confere a si mesmo.</p>
+  <div class="row"><div class="seg" id="segZ" role="group" aria-label="Zoom"><button data-z="26">Zoom mínimo</button><button data-z="40">Zoom normal</button><button data-z="64">Zoom máximo</button></div><label class="sw"><input type="checkbox" id="slotsF"> Ver os slots</label><span class="pill ok" id="statF"></span></div>
+  <div class="frames" id="casesF"></div>
 </section>
 </main>

@@ -135,7 +135,7 @@ function hexArtBase(g, c, r, t, fog = false) {
   if (fog) d += `<polygon points="${g.pts(c, r)}" fill="#0a1114" opacity=".62"/>`;
   return `<g data-hex="${c},${r}">${d}</g>`;
 }
-function mapBase(g, fogFn, det, occ) { let s = ''; for (let r = 0; r < g.R; r++) for (let c = 0; c < g.C; c++) { const t = g.t(c, r); if (t) s += hexArt(g, c, r, t, fogFn ? fogFn(c, r) : false, det && det[c + ',' + r], !!(occ && occ.has(c + ',' + r))); } return s; }
+function mapBase(g, fogFn, det, occ) { let s = ''; for (let r = 0; r < g.R; r++) for (let c = 0; c < g.C; c++) { const t = g.t(c, r); if (t) s += hexArt(g, c, r, t, fogFn ? fogFn(c, r) : false, det && det[c + ',' + r], (occ && occ.has(c + ',' + r) ? (occ.get ? occ.get(c + ',' + r) : 'busy') : false)); } return s; }
 function viewBox(g, pad = 40, top = 0, bottom = 0) { const w = g.S * SQ3 * (g.C + 0.5), h = g.S * 1.5 * g.R + g.S * 0.5; return `${f1(-g.S * SQ3 / 2 - pad)} ${f1(-g.S - pad - top)} ${f1(w + pad * 2)} ${f1(h + pad * 2 + top + bottom)}`; }
 function arrowDefs(id, color) { return `<marker id="${id}" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="${color}"/></marker>`; }
 function pathLine(g, cells, color, o = {}) {

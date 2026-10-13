@@ -14,14 +14,18 @@ describe('hex composition: the hard cases', () => {
     expect(problems).toEqual([]);
     expect(layout.labelShown).toBe(true);
   });
-  it('city with three unit classes: figures in the bottom band, seals in the corners, the name yields, the figures keep their size', () => {
+  it('city with three unit classes: three figures in the bottom band, seals in the corners, the name yields', () => {
     const { layout, problems } = run({ feature: 'city', own: 3, level: true, mood: true, worked: true, label: true });
     expect(problems).toEqual([]);
     expect(layout.labelShown).toBe(false);                      // the bottom band belongs to the troops
-    const own = item(layout, 'own');
-    expect(own.figs).toBe(1);                                    // 3 classes: 1 figure and a "+2" pill (never shrunk to fit)
-    expect(own.overflow).toBe(2);
-    expect(own.px).toBeGreaterThanOrEqual(22);
+    expect(item(layout, 'own')).toMatchObject({ figs: 3, overflow: 0 });
+    expect(item(layout, 'own').px).toBeGreaterThanOrEqual(20);
+  });
+  it('city with four unit classes: two figures and a "+" pill, never shrunk to fit', () => {
+    const { layout, problems } = run({ feature: 'city', own: 4, level: true, mood: true, worked: true, resourceSeals: 2 });
+    expect(problems).toEqual([]);
+    expect(item(layout, 'own')).toMatchObject({ figs: 2, overflow: 2 });
+    expect(item(layout, 'own').px).toBeGreaterThanOrEqual(20);
   });
   it('city with two classes: both figures, no pill', () => {
     const { layout, problems } = run({ feature: 'city', own: 2, level: true, mood: true });
@@ -35,8 +39,7 @@ describe('hex composition: the hard cases', () => {
   it('camp with its warriors: both read', () => {
     const { layout, problems } = run({ feature: 'camp', threat: 3, resourceSeals: 2 });
     expect(problems).toEqual([]);
-    expect(item(layout, 'threat').figs).toBe(1);
-    expect(item(layout, 'threat').overflow).toBe(2);
+    expect(item(layout, 'threat')).toMatchObject({ figs: 3, overflow: 0 });
     const two = run({ feature: 'camp', threat: 2 });
     expect(two.problems).toEqual([]);
     expect(item(two.layout, 'threat')).toMatchObject({ figs: 2, overflow: 0 });

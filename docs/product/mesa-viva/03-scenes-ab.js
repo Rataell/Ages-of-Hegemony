@@ -10,12 +10,23 @@ $('#decisoes').innerHTML = [
 /* ===== Cena A · Mesa e visão geral ===== */
 (function sceneA() {
   const g = new Grid(['sssccpfh??', 'sscppffhm?', 'sccppppmh?', 'sscpphppf?', 'sssccppfp?', 'ssssccp???', 'sssssc????'], 40);
-  const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
   const OWN = '#60a3e9';
   const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
-  const OCC = new Set(['3,3', '6,5', '4,3', '4,2', '1,3', '7,0', '6,1', '1,5', '8,3']);
-  const ROADS = ['4,3', '5,3', '5,4', '6,4'], CITYC = [[3, 3], [6, 5]];
-  const sight = Object.values(own);
+  /* A mesa é descrita por ENTIDADES (como o motor). Ocupação, visão e layout saem delas; nenhuma lista de posições à mão. */
+  const ENTS = [
+    { id: 'mikena', type: 'city', hex: '3,3', name: 'Mikena', level: 3, mood: 4, cap: 2, port: 3, fort: 1, districts: [{ d: 'MARITIME', b: ['PORT'] }, { d: 'COMMERCIAL', b: ['MARKET'] }] },
+    { id: 'tirinto', type: 'city', hex: '6,5', name: 'Tirinto', level: 2, mood: 1, cap: 1 },
+    { id: 'army', type: 'stack', own: true, hex: '4,3', name: 'Exército próprio', kinds: [{ kind: 'INFANTRY', n: 2 }, { kind: 'CAVALRY', n: 1 }] },
+    { id: 'pioneer', type: 'stack', own: true, hex: '4,2', name: 'Pioneiro', kinds: [{ kind: 'PIONEER', n: 1 }] },
+    { id: 'fleet', type: 'stack', own: true, hex: '1,3', name: 'Frota', kinds: [{ kind: 'FLEET', n: 1 }] },
+    { id: 'camp', type: 'threat', kind: 'CAMP', status: 'CAMPED', level: 2, hex: '7,0', name: 'Acampamento', comp: [{ kind: 'INFANTRY', n: 2 }, { kind: 'CAVALRY', n: 1 }] },
+    { id: 'band', type: 'threat', kind: 'BAND', status: 'MARCHING', level: 2, hex: '6,1', name: 'Bando II', comp: [{ kind: 'INFANTRY', n: 2 }, { kind: 'CAVALRY', n: 1 }] },
+    { id: 'pirate', type: 'threat', kind: 'PIRATE', status: 'MARCHING', level: 1, hex: '1,5', name: 'Piratas', comp: [{ kind: 'COASTAL_VESSEL', n: 1 }] },
+  ];
+  const cellOf = e => e.hex.split(',').map(Number);
+  const OCC = occupiedSet(ENTS);
+  const ROADS = ['4,3', '5,3', '5,4', '6,4'], CITYC = ENTS.filter(e => e.type === 'city').map(cellOf);
+  const sight = ENTS.filter(e => e.type === 'city' || e.own).map(cellOf);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
   const INFO = {
     mikena: ['Mikena · cidade N3 · porto', 'Ânimo 4/6, Estável. Capacidade 2, ativações 1/2. Produz, recruta e constrói a partir daqui.', ['INFANTRY']],
@@ -31,21 +42,16 @@ $('#decisoes').innerHTML = [
   const hit = (k, x, y, label) => `<g class="ent" data-k="${k}" tabindex="0" role="button" aria-label="${esc(label)}" style="cursor:pointer"><circle cx="${f1(x)}" cy="${f1(y)}" r="27" fill="transparent"/></g>`;
   function map(sel, hexSel) {
     let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET, OCC)}${roadLayer(g, ROADS, CITYC, DET, OCC)}`;
-    const P = k => g.xy(...own[k] || k);
-    // trilha do Bando (intenção conhecida)
-    s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 });
-    // cidades
-    for (const [k, nm, lv, mood, o] of [['mikena', 'Mikena', 3, 4, { port: 3, fort: 1, districts: [{ d: 'MARITIME', b: ['PORT'] }, { d: 'COMMERCIAL', b: ['MARKET'] }] }], ['tirinto', 'Tirinto', 2, 1, {}]]) { const [x, y] = P(k); s += cityArt(x, y, lv, '#60a3e9', nm, mood, { R: g.S, ...o }) + hit(k, x, y, nm); }
-    // exército (2 figuras próprias lado a lado)
-    let [x, y] = P('army'); s += ownFigure('INFANTRY', x - 11, y + 2, 28, 2) + ownFigure('CAVALRY', x + 11, y + 4, 28) + hit('army', x, y, 'Exército próprio');
-    [x, y] = P('pioneer'); s += ownFigure('PIONEER', x, y, 28) + hit('pioneer', x, y, 'Pioneiro');
-    [x, y] = P('fleet'); s += ownFigure('FLEET', x, y, 30) + hit('fleet', x, y, 'Frota');
-    // ameaças: acampamento (memória), bando visível, pirata visível, último avistamento
-    [x, y] = g.xy(7, 0); s += `<g opacity=".78">${campArt(x, y, 'active')}</g><circle cx="${f1(x)}" cy="${f1(y + 4)}" r="31" fill="none" stroke="#b4533c" stroke-dasharray="4 5" stroke-width="1.2" opacity=".7"/>` + hit('camp', x, y, 'Acampamento');
-    [x, y] = g.xy(6, 1); s += threatFigure('INFANTRY', x - 10, y + 2, 26, 2) + threatFigure('CAVALRY', x + 11, y + 4, 26) + hit('band', x, y, 'Bando II');
-    [x, y] = g.xy(1, 5); s += threatFigure('COASTAL_VESSEL', x, y, 30) + hit('pirate', x, y, 'Piratas');
+    const seen = ENTS.filter(e => e.type !== 'threat' || vis(...cellOf(e))), memory = ENTS.filter(e => e.type === 'threat' && !vis(...cellOf(e)));
+    const live = drawEntities(g, seen, DET), mem = drawEntities(g, memory, DET), problems = [...live.problems, ...mem.problems];
+    // trilha do Bando (intenção conhecida): por baixo das miniaturas
+    s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 }) + live.under + `<g opacity=".78">${mem.over}</g><g>${live.over}</g>`;
+    const hits = [...live.hits, ...mem.hits];
+    for (const h of hits) s += hit(h.id, h.x, h.y, h.name);
+    const posOf = id => { const h = hits.find(q => q.id === id); return h ? [h.x, h.y] : null; };
+    let x, y;
     [x, y] = g.xy(8, 3); s += threatFigure('INFANTRY', x, y, 24, 0, { ghost: true }) + `<text x="${f1(x)}" y="${f1(y + 27)}" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-size="9" font-weight="700" fill="#e0a08f">visto R7</text>` + hit('ghost', x, y, 'Último avistamento');
-    if (sel) { const q = sel === 'camp' ? g.xy(7, 0) : sel === 'band' ? g.xy(6, 1) : sel === 'pirate' ? g.xy(1, 5) : sel === 'ghost' ? g.xy(8, 3) : P(sel); s += `<circle cx="${f1(q[0])}" cy="${f1(q[1])}" r="33" fill="none" stroke="#c9a867" stroke-width="2.4" stroke-dasharray="6 4"/>`; }
+    if (sel) { const q = sel === 'ghost' ? g.xy(8, 3) : posOf(sel); if (q) s += `<circle cx="${f1(q[0])}" cy="${f1(q[1])}" r="33" fill="none" stroke="#c9a867" stroke-width="2.4" stroke-dasharray="6 4"/>`; }
     if (hexSel) { const [hx, hy] = g.xy(...hexSel); s += `<polygon points="${g.pts(...hexSel, 1)}" fill="none" stroke="#c9a867" stroke-width="3" stroke-dasharray="6 4" pointer-events="none"/>`; }
     return s + '</svg>';
   }

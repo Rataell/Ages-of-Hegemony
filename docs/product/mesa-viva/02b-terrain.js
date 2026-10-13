@@ -50,7 +50,11 @@ function hexArt(g, c, r, t, fog = false, det, occ = false) {
     /* O relevo fica no fundo (opacidade menor); hex livre mostra recurso/melhoria pequenos e deslocados; hex ocupado mostra só um selo no canto superior esquerdo. */
     d += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(u * BASE_SCALE * 100) / 100})" opacity="${occ ? .32 : .72}" pointer-events="none">${base}</g>`;
     if (detail && !occ) d += `<g transform="translate(${f1(x - g.S * DETAIL_OFF)} ${f1(y - g.S * DETAIL_OFF)}) scale(${f1(u * DETAIL_SCALE * 100) / 100})" opacity=".9" pointer-events="none">${detail}</g>`;
-    if (detail && occ) d += `<g pointer-events="none"><circle cx="${f1(x - g.S * .52)}" cy="${f1(y - g.S * .5)}" r="${f1(g.S * .2)}" fill="#0f181c" fill-opacity=".78" stroke="#c9a867" stroke-opacity=".5" stroke-width="1"/><g transform="translate(${f1(x - g.S * .52)} ${f1(y - g.S * .5)}) scale(${f1(u * .3 * 100) / 100})">${detail}</g></g>`;
+    if (detail && occ) {
+      // Hex ocupado: recurso e melhoria viram selos pequenos nos slots livres de hex-compose (hex de cidade: borda esquerda; hex de campo: cantos esquerdos).
+      const kinds = det.imp ? [det.imp] : (det.feat || []), k = g.S / 52, spots = occ === 'city' || occ === 'camp' ? [[-36, 0], [-36, 18]] : [[-33, -20], [-32, 20]];
+      kinds.slice(0, 2).forEach((kd, i) => { const art = det.imp ? IMP_ART[kd]() : FEAT_ART[kd](); d += `<g pointer-events="none" transform="translate(${f1(x + spots[i][0] * k)} ${f1(y + spots[i][1] * k)})"><circle r="${f1(7.2 * k)}" fill="#0f181c" fill-opacity=".8" stroke="#c9a867" stroke-opacity=".5" stroke-width="1"/><g transform="scale(${f1(k * 0.2 * 100) / 100})">${art}</g></g>`; });
+    }
     if (det && det.fishing && !occ) d += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(u * 100) / 100})" pointer-events="none"><circle r="27" fill="none" stroke="#f0e6bd" stroke-width="1.6" stroke-dasharray="2 4"/><path d="M-27,0 H27 M0,-27 V27" stroke="#f0e6bd" stroke-width=".8" opacity=".5"/></g>`;
     if (det && det.owner) d += `<polygon points="${g.pts(c, r, .9)}" fill="none" stroke="${det.owner}" stroke-width="2.4" stroke-opacity=".95" pointer-events="none"/>`;
     const info = [TERR_INFO[t][0], ...(det && det.feat || []).map(f => FEAT_INFO[f][0]), ...(det && det.imp ? [IMP_INFO[det.imp][0]] : [])].join(' · ');

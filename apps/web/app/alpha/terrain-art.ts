@@ -17,7 +17,7 @@ export const BASE_SCALE = 0.85, DETAIL_SCALE = 0.7, DETAIL_OFFSET = 0.16;
  */
 export const EXTRA_FREE = 0.72, EXTRA_OCCUPIED = 0.32, SEAL_SCALE = 0.22, SEAL_RADIUS = 7.2;
 /** Where the seals stand on a hex (hex-local): upper-left corner; a city hex keeps that corner for its level seal, so its resource seal slides down the left edge. */
-export const SEAL_SPOTS = { field: [[-33, -20], [-32, 20]], city: [[-36, 2], [-36, 18]] } as const satisfies Record<string, readonly (readonly [number, number])[]>;
+export const SEAL_SPOTS = { field: [[-33, -20], [-32, 20]], city: [[-36, 0], [-36, 18]] } as const satisfies Record<string, readonly (readonly [number, number])[]>;
 /** Terrain colours of the concept. COAST is shallow turquoise water you can wade (walkable), SEA is deep blue (ships only). */
 export const TERRAIN_COLORS: Record<TerrainKey, string> = { PLAINS: '#5d7350', FOREST: '#394f3e', HILLS: '#766f50', MOUNTAINS: '#60656b', COAST: '#46a6ad', SEA: '#264f68' };
 const IK = '#0b1114';

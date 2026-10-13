@@ -126,7 +126,7 @@ code{font:500 .9em ui-monospace,Menlo,monospace}
   <div class="decisions" id="decisoes"></div>
 </header>
 <nav class="nav" aria-label="Cenas">
-  <a href="#cena-a">A · Mesa</a><a href="#cena-b">B · Movimento</a><a href="#cena-c">C · Ameaças</a><a href="#cena-d">D · Cidade</a><a href="#cena-e">E · Ficha</a>
+  <a href="#cena-a">A · Mesa</a><a href="#cena-b">B · Movimento</a><a href="#cena-c">C · Ameaças</a><a href="#cena-d">D · Cidade</a><a href="#cena-e">E · Ficha</a><a href="#cena-f">F · Composição</a>
 </nav>
 
 <section id="cena-a">
@@ -189,6 +189,12 @@ code{font:500 .9em ui-monospace,Menlo,monospace}
     <div style="display:grid;gap:8px"><span class="cap">Celular · folha sobre o mapa</span><div class="phone" id="phoneE"></div></div>
   </div>
   <div class="verdict"><b>Regras de leitura.</b> Bloqueio sempre cita a causa e como destravar. Custo mostra saldo (tem → fica). Previsto é tracejado; Aplicado é sólido e traz a diferença para o previsto. Perdas ficam em vermelho na ficha e como halo no hex.</div>
+</section>
+<section id="cena-f">
+  <span class="eyebrow">Cena F</span><h2>Composição: cada peça no seu espaço</h2>
+  <p class="note">Peças, cidades, acampamentos e tropas são a ilustração prioritária. Tudo o mais (Ânimo, nível, nome, quantidade, recursos, custos, fantasmas) ocupa um slot livre do mesmo hexágono. Figura que não cabe vira "+N", nunca é encolhida. Os casos abaixo são calculados por entidades, com a mesma lógica do jogo, e cada um confere a si mesmo.</p>
+  <div class="row"><div class="seg" id="segZ" role="group" aria-label="Zoom"><button data-z="26">Zoom mínimo</button><button data-z="40">Zoom normal</button><button data-z="64">Zoom máximo</button></div><label class="sw"><input type="checkbox" id="slotsF"> Ver os slots</label><span class="pill ok" id="statF"></span></div>
+  <div class="frames" id="casesF"></div>
 </section>
 </main>
 <script>
@@ -653,7 +659,7 @@ function hexArtBase(g, c, r, t, fog = false) {
   if (fog) d += `<polygon points="${g.pts(c, r)}" fill="#0a1114" opacity=".62"/>`;
   return `<g data-hex="${c},${r}">${d}</g>`;
 }
-function mapBase(g, fogFn, det, occ) { let s = ''; for (let r = 0; r < g.R; r++) for (let c = 0; c < g.C; c++) { const t = g.t(c, r); if (t) s += hexArt(g, c, r, t, fogFn ? fogFn(c, r) : false, det && det[c + ',' + r], !!(occ && occ.has(c + ',' + r))); } return s; }
+function mapBase(g, fogFn, det, occ) { let s = ''; for (let r = 0; r < g.R; r++) for (let c = 0; c < g.C; c++) { const t = g.t(c, r); if (t) s += hexArt(g, c, r, t, fogFn ? fogFn(c, r) : false, det && det[c + ',' + r], (occ && occ.has(c + ',' + r) ? (occ.get ? occ.get(c + ',' + r) : 'busy') : false)); } return s; }
 function viewBox(g, pad = 40, top = 0, bottom = 0) { const w = g.S * SQ3 * (g.C + 0.5), h = g.S * 1.5 * g.R + g.S * 0.5; return `${f1(-g.S * SQ3 / 2 - pad)} ${f1(-g.S - pad - top)} ${f1(w + pad * 2)} ${f1(h + pad * 2 + top + bottom)}`; }
 function arrowDefs(id, color) { return `<marker id="${id}" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="${color}"/></marker>`; }
 function pathLine(g, cells, color, o = {}) {
@@ -750,7 +756,11 @@ function hexArt(g, c, r, t, fog = false, det, occ = false) {
     /* O relevo fica no fundo (opacidade menor); hex livre mostra recurso/melhoria pequenos e deslocados; hex ocupado mostra só um selo no canto superior esquerdo. */
     d += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(u * BASE_SCALE * 100) / 100})" opacity="${occ ? .32 : .72}" pointer-events="none">${base}</g>`;
     if (detail && !occ) d += `<g transform="translate(${f1(x - g.S * DETAIL_OFF)} ${f1(y - g.S * DETAIL_OFF)}) scale(${f1(u * DETAIL_SCALE * 100) / 100})" opacity=".9" pointer-events="none">${detail}</g>`;
-    if (detail && occ) d += `<g pointer-events="none"><circle cx="${f1(x - g.S * .52)}" cy="${f1(y - g.S * .5)}" r="${f1(g.S * .2)}" fill="#0f181c" fill-opacity=".78" stroke="#c9a867" stroke-opacity=".5" stroke-width="1"/><g transform="translate(${f1(x - g.S * .52)} ${f1(y - g.S * .5)}) scale(${f1(u * .3 * 100) / 100})">${detail}</g></g>`;
+    if (detail && occ) {
+      // Hex ocupado: recurso e melhoria viram selos pequenos nos slots livres de hex-compose (hex de cidade: borda esquerda; hex de campo: cantos esquerdos).
+      const kinds = det.imp ? [det.imp] : (det.feat || []), k = g.S / 52, spots = occ === 'city' || occ === 'camp' ? [[-36, 0], [-36, 18]] : [[-33, -20], [-32, 20]];
+      kinds.slice(0, 2).forEach((kd, i) => { const art = det.imp ? IMP_ART[kd]() : FEAT_ART[kd](); d += `<g pointer-events="none" transform="translate(${f1(x + spots[i][0] * k)} ${f1(y + spots[i][1] * k)})"><circle r="${f1(7.2 * k)}" fill="#0f181c" fill-opacity=".8" stroke="#c9a867" stroke-opacity=".5" stroke-width="1"/><g transform="scale(${f1(k * 0.2 * 100) / 100})">${art}</g></g>`; });
+    }
     if (det && det.fishing && !occ) d += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(u * 100) / 100})" pointer-events="none"><circle r="27" fill="none" stroke="#f0e6bd" stroke-width="1.6" stroke-dasharray="2 4"/><path d="M-27,0 H27 M0,-27 V27" stroke="#f0e6bd" stroke-width=".8" opacity=".5"/></g>`;
     if (det && det.owner) d += `<polygon points="${g.pts(c, r, .9)}" fill="none" stroke="${det.owner}" stroke-width="2.4" stroke-opacity=".95" pointer-events="none"/>`;
     const info = [TERR_INFO[t][0], ...(det && det.feat || []).map(f => FEAT_INFO[f][0]), ...(det && det.imp ? [IMP_INFO[det.imp][0]] : [])].join(' · ');
@@ -788,6 +798,96 @@ function roadLayer(g, roads, cityCells = [], det = {}, occ = null) {
   }
   return `<g class="roads" pointer-events="none">${out}</g>`;
 }
+/* ===== Composição de um hexágono (porta de apps/web/app/alpha/hex-compose.ts): peça, cidade, acampamento e tropa são a ilustração prioritária; todo o resto vai
+   para slots livres DENTRO do mesmo hex, sem sobreposição. Figura que não cabe vira "+N", nunca é encolhida. A ocupação vem das ENTIDADES, não de listas à mão. ===== */
+const hexApothem = R => R * Math.sqrt(3) / 2;
+const insideHex = (R, x, y) => { const a = hexApothem(R), ax = Math.abs(x), ay = Math.abs(y); return ax <= a + 1e-6 && ay <= R - ax / Math.sqrt(3) + 1e-6; };
+const boxCorners = b => [[b.x - b.w / 2, b.y - b.h / 2], [b.x + b.w / 2, b.y - b.h / 2], [b.x - b.w / 2, b.y + b.h / 2], [b.x + b.w / 2, b.y + b.h / 2]];
+const boxInsideHex = (R, b) => boxCorners(b).every(([x, y]) => insideHex(R, x, y));
+const boxesOverlap = (a, b, gap = 0) => Math.abs(a.x - b.x) < (a.w + b.w) / 2 + gap && Math.abs(a.y - b.y) < (a.h + b.h) / 2 + gap;
+const rowWidth = (n, px) => Math.max(0, n - 1) * px * 0.8 + px * 1.16;
+const EMPTY_IN = { feature: 'none', own: 0, foreign: 0, threat: 0, ghost: 0, people: false, level: false, mood: false, worked: false, resourceSeals: 0, label: false, labelWidth: 44, cost: false, status: false };
+function composeHex(R, inp) {
+  inp = { ...EMPTY_IN, ...inp };
+  const k = R / 52, items = [];
+  const put = (id, kind, x, y, w, h, extra = {}) => items.push({ id, kind, x: x * k, y: y * k, scale: 1, px: 0, figs: 0, overflow: 0, box: { x: x * k, y: y * k, w: w * k, h: h * k }, ...extra });
+  const hasF = inp.feature !== 'none', all = [];
+  if (inp.own > 0) all.push({ id: 'own', classes: inp.own });
+  if (inp.ghost) all.push({ id: 'ghost', classes: inp.ghost });
+  if (inp.foreign > 0) all.push({ id: 'foreign', classes: inp.foreign });
+  if (inp.threat > 0) all.push({ id: 'threat', classes: inp.threat });
+  const wanted = ['threat', 'own', 'ghost', 'foreign'].filter(id => all.some(g => g.id === id)).slice(0, 2);
+  const shown = all.filter(g => wanted.includes(g.id)), crowd = shown.length > 0;
+  let labelShown = false;
+  if (inp.feature === 'city') { const s = crowd ? 0.62 : 0.85; put('feature', 'feature', 0, crowd ? -10 : 0, 48 * s, 44 * s, { scale: s * k }); }
+  if (inp.feature === 'camp') { const s = crowd && shown.length > 1 ? 0.7 : 1; put('feature', 'feature', 0, crowd ? -10 : -6, 40 * s, 28 * s, { scale: s * k }); }
+  if (inp.people && !hasF) put('people', 'people', 0, crowd ? -28 : -6, 26, 20);
+  shown.forEach((g, slot) => {
+    const two = shown.length > 1, px = hasF ? (two ? 17 : 20) : (two ? 20 : 30), cap = two ? 2 : 3, slots = Math.min(cap, g.classes), overflow = g.classes > cap ? g.classes - (cap - 1) : 0, figs = overflow > 0 ? cap - 1 : slots;
+    const x = two ? (slot === 0 ? -20.4 : 20.4) : 0, y = hasF ? 19 : inp.people ? 12 : 0;
+    put(g.id, g.id, x, y, rowWidth(slots, px), px * 1.16, { px: px * k, figs, overflow });
+  });
+  if (inp.level && inp.feature === 'city') put('level', 'level', -30.5, -19, 20, 14);
+  if (inp.mood && inp.feature === 'city') put('mood', 'mood', 30.5, -17, 20, 20);
+  if (inp.worked) { if (inp.feature === 'city') put('worked', 'worked', 36, 2, 14, 14); else put('worked', 'worked', 33, -20, 14, 14); }
+  const seals = hasF ? [[-36, 0], [-36, 18]] : [[-33, -20], [-32, 20]];
+  for (let i = 0; i < Math.min(2, inp.resourceSeals); i++) put('resource-' + i, 'resource', seals[i][0], seals[i][1], 15, 15);
+  if (inp.cost) put('cost', 'cost', 0, inp.status && !hasF ? 33 : -34, 36, 13);
+  if (inp.status) { if (hasF) put('status', 'status', 29, -12, 14, 14); else put('status', 'status', 0, -30, 14, 14); }
+  if (inp.label && !(crowd && hasF)) { labelShown = true; put('label', 'label', 0, 33, Math.min(inp.labelWidth, 44), 11); }
+  return { items, labelShown, hidden: all.filter(g => !wanted.includes(g.id)).map(g => g.id) };
+}
+function composeProblems(R, layout, gap = 0) {
+  const out = [], its = layout.items;
+  for (const it of its) if (!boxInsideHex(R, it.box)) out.push(it.id + ' sai do hex');
+  for (let i = 0; i < its.length; i++) for (let j = i + 1; j < its.length; j++) if (boxesOverlap(its[i].box, its[j].box, gap)) out.push(its[i].id + ' sobrepõe ' + its[j].id);
+  return out;
+}
+
+/* ===== Modelo de entidades: a mesa é descrita por entidades; ocupação e layout saem delas. ===== */
+const hexKey = e => e.hex;
+function entitiesAt(ents, key) { return ents.filter(e => e.hex === key); }
+function occupiedSet(ents) { return new Map(ents.filter(e => ['city', 'stack', 'threat', 'people'].includes(e.type)).map(e => [e.hex, ents.some(x => x.hex === e.hex && x.type === 'city') ? 'city' : ents.some(x => x.hex === e.hex && x.type === 'threat' && x.kind !== 'PIRATE' && x.status === 'CAMPED') ? 'camp' : 'busy'])); }
+function sealKinds(det) { if (!det) return []; return det.imp ? [det.imp] : (det.feat || []); }
+function inputFor(ents, key, det, extra = {}) {
+  const here = entitiesAt(ents, key), city = here.find(e => e.type === 'city'), thr = here.find(e => e.type === 'threat'), own = here.find(e => e.type === 'stack' && e.own), foreign = here.find(e => e.type === 'stack' && !e.own), people = here.find(e => e.type === 'people');
+  const camp = thr && thr.kind !== 'PIRATE' && thr.status === 'CAMPED';
+  return { feature: city ? 'city' : camp ? 'camp' : 'none', own: own ? own.kinds.length : 0, foreign: foreign ? foreign.kinds.length : 0, threat: thr ? thr.comp.length : 0, people: !!people, level: !!city, mood: !!(city && city.mood !== undefined), worked: !!(city && city.worked) || !!(det && det.worked), resourceSeals: Math.min(2, sealKinds(det).length), label: !!city, labelWidth: city ? city.name.length * 5.4 : 0, status: !!(thr && (thr.state === 'WITHDRAWING' || thr.status === 'CAMPED' && (thr.fresh || thr.rest))), ...extra };
+}
+/* Desenha as entidades de um mapa nos slots calculados. `legs` (opcional) = trajetórias do rascunho de Mover: linhas ficam EMBAIXO das miniaturas. */
+function drawEntities(g, ents, det = {}, o = {}) {
+  const keys = [...new Set(ents.map(e => e.hex))], S = g.S, k = S / 52, out = { under: '', over: '', problems: [], layouts: {}, hits: [] };
+  const legs = o.legs || [], ghostsAt = {};
+  legs.forEach((leg, i) => { const d = leg.path[leg.path.length - 1].join(','); (ghostsAt[d] ||= []).push({ leg, i }); });
+  for (const key of new Set([...keys, ...Object.keys(ghostsAt)])) {
+    const [c, r] = key.split(',').map(Number), [cx, cy] = g.xy(c, r), here = entitiesAt(ents, key);
+    const ghost = ghostsAt[key] ? new Set(ghostsAt[key][0].leg.kinds).size : 0, tag = !!ghostsAt[key];
+    const inp = inputFor(ents, key, det[key], { ghost, cost: tag });
+    const lay = composeHex(S, inp); out.layouts[key] = lay; out.problems.push(...composeProblems(S, lay).map(p => key + ': ' + p));
+    const slot = id => lay.items.find(i => i.id === id), at = (it, dx = 0, dy = 0) => [cx + it.x + dx, cy + it.y + dy];
+    const city = here.find(e => e.type === 'city'), thr = here.find(e => e.type === 'threat'), own = here.find(e => e.type === 'stack' && e.own), foreign = here.find(e => e.type === 'stack' && !e.own);
+    const F = slot('feature');
+    const hit = (e, it) => { if (e && e.id && it) { const [x, y] = at(it); out.hits.push({ id: e.id, x, y, name: e.name || e.id }); } };
+    hit(city, F); hit(own, slot('own')); hit(foreign, slot('foreign')); hit(thr, slot('threat') || F);
+    if (city && F) { const [x, y] = at(F); out.over += cityArt(x, y, city.level, city.color || '#60a3e9', city.name, city.mood, { R: S * F.scale / k * 0.74, seal: false, label: false, port: city.port, districts: city.districts, fort: city.fort }); }
+    if (thr && thr.kind !== 'PIRATE' && thr.status === 'CAMPED' && F) { const [x, y] = at(F); out.over += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(F.scale / k * 100) / 100})">${campArt(0, 0, thr.rest ? 'rest' : 'active')}</g>`; }
+    const drawRow = (it, kinds, fig, color, ghosted) => { const slots = it.figs + (it.overflow > 0 ? 1 : 0), step = it.px * 0.8; let s = ''; kinds.slice(0, it.figs).forEach((kd, i) => { const [x, y] = at(it, (i - (slots - 1) / 2) * step, 0); s += fig(kd.kind, x, y, it.px, kd.n, color, ghosted); }); if (it.overflow > 0) { const [x, y] = at(it, (slots - 1 - (slots - 1) / 2) * step, 0); s += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(k * 100) / 100})"><rect x="-8" y="-6.5" width="16" height="13" rx="6.5" fill="${INK}" stroke="${ghosted ? '#e6c173' : '#60a3e9'}" stroke-width="1.1"/><text y="3.2" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="8.5" fill="${LIGHT}">+${kinds.slice(it.figs).reduce((a, q) => a + q.n, 0)}</text></g>`; } return s; };
+    const ownFig = (kind, x, y, px, n, color, ghost) => ownFigure(kind, x, y, px, n, color, { ghost });
+    const thrFig = (kind, x, y, px, n) => threatFigure(kind, x, y, px, n);
+    if (own && slot('own')) out.over += drawRow(slot('own'), own.kinds, ownFig, '#60a3e9', false);
+    if (foreign && slot('foreign')) out.over += drawRow(slot('foreign'), foreign.kinds, ownFig, foreign.color || '#dd220e', false);
+    if (thr && slot('threat')) out.over += drawRow(slot('threat'), thr.comp, thrFig, '#b4533c', false);
+    if (ghostsAt[key] && slot('ghost')) out.over += drawRow(slot('ghost'), ghostsAt[key][0].leg.kinds.map(kd => ({ kind: kd, n: 0 })), (kd, x, y, px, n, color) => ownFigure(kd, x, y, px, 0, color, { ghost: true }), '#60a3e9', true);
+    if (slot('level')) { const [x, y] = at(slot('level')); out.over += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(k * 100) / 100})"><rect x="-10" y="-7" width="20" height="14" rx="7" fill="#0f181c" stroke="${city.color || '#60a3e9'}" stroke-width="1.2"/><text text-anchor="middle" y="3.2" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="8.5" fill="${LIGHT}">${city.level}·${city.cap || 2}</text></g>`; }
+    if (slot('mood')) { const [x, y] = at(slot('mood')); const px = 20 * k * 1.0; out.over += `<g transform="translate(${f1(x - px / 2)} ${f1(y - px / 2)})">${moodSeal(city.mood, px, true).replace('<svg ', '<svg ')}</g>`; }
+    if (slot('worked')) { const [x, y] = at(slot('worked')); out.over += `<g transform="translate(${f1(x)} ${f1(y)})"><circle r="${f1(6.4 * k)}" fill="#0f181c" stroke="#e6c173" stroke-width="1.2"/><circle r="${f1(3.8 * k)}" fill="#e6c173"/></g>`; }
+    if (slot('label') && city) { const [x, y] = at(slot('label')); out.over += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(k * 100) / 100})"><rect x="${f1(-slot('label').box.w / k / 2)}" y="${f1(-slot('label').box.h / k / 2)}" width="${f1(slot('label').box.w / k)}" height="${f1(slot('label').box.h / k)}" rx="3" fill="#0f181c" stroke="${city.color || '#60a3e9'}" stroke-width="1"/><text text-anchor="middle" y="3" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="8.2" fill="#e8dcc0" textLength="${f1(Math.min(slot('label').box.w / k - 6, city.name.length * 5.4))}" lengthAdjust="spacingAndGlyphs">${esc(city.name)}</text></g>`; }
+    if (slot('status') && thr) { const [x, y] = at(slot('status')); out.over += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(k * 100) / 100})"><circle r="7" fill="#0f181c" stroke="#e6b04c" stroke-width="1.3"/><path d="M-3 -4.2 h6 l-3 4.2 l3 4.2 h-6 l3 -4.2Z" fill="none" stroke="#e6b04c" stroke-width="1.2"/></g>`; }
+    if (ghostsAt[key]) ghostsAt[key].forEach(({ leg, i }, j) => { const t = slot('cost'); const [x, y] = at(t, 0, j * 13 * k); out.over += `<g transform="translate(${f1(x)} ${f1(y)}) scale(${f1(k * 100) / 100})"><rect x="-18" y="-6.5" width="36" height="13" rx="6.5" fill="#0f181c" stroke="${leg.color}" stroke-width="1.5"/><text text-anchor="middle" y="3.4" font-family="Source Sans 3,sans-serif" font-weight="700" font-size="9.5" fill="${LIGHT}">${leg.tag}</text></g>`; });
+  }
+  for (const leg of legs) { out.under += pathLine(g, leg.path.length ? [leg.from, ...leg.path] : [leg.from], leg.color, { w: 3, marker: 'arL' + leg.id, dots: false }); }
+  return out;
+}
 /* ===== Decisões no topo ===== */
 $('#decisoes').innerHTML = [
   ['D1 · Mover', 'Uma Ordem desloca até 3 peças a destinos diferentes', 'Juntas ou separadas, custo e alcance por peça, confirmação única. Regra nova só em partidas novas.'],
@@ -800,12 +900,23 @@ $('#decisoes').innerHTML = [
 /* ===== Cena A · Mesa e visão geral ===== */
 (function sceneA() {
   const g = new Grid(['sssccpfh??', 'sscppffhm?', 'sccppppmh?', 'sscpphppf?', 'sssccppfp?', 'ssssccp???', 'sssssc????'], 40);
-  const own = { mikena: [3, 3], tirinto: [6, 5], army: [4, 3], pioneer: [4, 2], fleet: [1, 3] };
   const OWN = '#60a3e9';
   const DET = { '3,2': { feat: ['FERTILE'], owner: OWN }, '1,3': { feat: ['SHOAL'], fishing: true, owner: OWN }, '0,5': { feat: ['SHOAL'] }, '3,4': { imp: 'FISHERY', owner: OWN }, '2,3': { feat: ['FISH'], owner: OWN }, '5,3': { imp: 'MINE', owner: OWN }, '5,4': { imp: 'FARM', owner: OWN }, '5,1': { imp: 'LUMBER_CAMP' }, '6,0': { feat: ['TIMBER'] }, '4,1': { feat: ['RIVER'] }, '7,2': { feat: ['METAL'] }, '7,1': { feat: ['STONE'] }, '4,3': { owner: OWN }, '3,3': { owner: OWN }, '4,2': { owner: OWN }, '6,4': { owner: OWN }, '6,5': { owner: OWN } };
-  const OCC = new Set(['3,3', '6,5', '4,3', '4,2', '1,3', '7,0', '6,1', '1,5', '8,3']);
-  const ROADS = ['4,3', '5,3', '5,4', '6,4'], CITYC = [[3, 3], [6, 5]];
-  const sight = Object.values(own);
+  /* A mesa é descrita por ENTIDADES (como o motor). Ocupação, visão e layout saem delas; nenhuma lista de posições à mão. */
+  const ENTS = [
+    { id: 'mikena', type: 'city', hex: '3,3', name: 'Mikena', level: 3, mood: 4, cap: 2, port: 3, fort: 1, districts: [{ d: 'MARITIME', b: ['PORT'] }, { d: 'COMMERCIAL', b: ['MARKET'] }] },
+    { id: 'tirinto', type: 'city', hex: '6,5', name: 'Tirinto', level: 2, mood: 1, cap: 1 },
+    { id: 'army', type: 'stack', own: true, hex: '4,3', name: 'Exército próprio', kinds: [{ kind: 'INFANTRY', n: 2 }, { kind: 'CAVALRY', n: 1 }] },
+    { id: 'pioneer', type: 'stack', own: true, hex: '4,2', name: 'Pioneiro', kinds: [{ kind: 'PIONEER', n: 1 }] },
+    { id: 'fleet', type: 'stack', own: true, hex: '1,3', name: 'Frota', kinds: [{ kind: 'FLEET', n: 1 }] },
+    { id: 'camp', type: 'threat', kind: 'CAMP', status: 'CAMPED', level: 2, hex: '7,0', name: 'Acampamento', comp: [{ kind: 'INFANTRY', n: 2 }, { kind: 'CAVALRY', n: 1 }] },
+    { id: 'band', type: 'threat', kind: 'BAND', status: 'MARCHING', level: 2, hex: '6,1', name: 'Bando II', comp: [{ kind: 'INFANTRY', n: 2 }, { kind: 'CAVALRY', n: 1 }] },
+    { id: 'pirate', type: 'threat', kind: 'PIRATE', status: 'MARCHING', level: 1, hex: '1,5', name: 'Piratas', comp: [{ kind: 'COASTAL_VESSEL', n: 1 }] },
+  ];
+  const cellOf = e => e.hex.split(',').map(Number);
+  const OCC = occupiedSet(ENTS);
+  const ROADS = ['4,3', '5,3', '5,4', '6,4'], CITYC = ENTS.filter(e => e.type === 'city').map(cellOf);
+  const sight = ENTS.filter(e => e.type === 'city' || e.own).map(cellOf);
   const vis = (c, r) => sight.some(p => g.dist(p, [c, r]) <= 3);
   const INFO = {
     mikena: ['Mikena · cidade N3 · porto', 'Ânimo 4/6, Estável. Capacidade 2, ativações 1/2. Produz, recruta e constrói a partir daqui.', ['INFANTRY']],
@@ -821,21 +932,16 @@ $('#decisoes').innerHTML = [
   const hit = (k, x, y, label) => `<g class="ent" data-k="${k}" tabindex="0" role="button" aria-label="${esc(label)}" style="cursor:pointer"><circle cx="${f1(x)}" cy="${f1(y)}" r="27" fill="transparent"/></g>`;
   function map(sel, hexSel) {
     let s = `<svg viewBox="${viewBox(g, 8, matchMedia('(min-width:761px)').matches ? 56 : 0, matchMedia('(min-width:761px)').matches ? 70 : 0)}" role="img" aria-label="Mapa hexagonal da mesa"><defs>${arrowDefs('arA', '#e0724f')}</defs>${mapBase(g, (c, r) => !vis(c, r) && g.t(c, r) !== '?', DET, OCC)}${roadLayer(g, ROADS, CITYC, DET, OCC)}`;
-    const P = k => g.xy(...own[k] || k);
-    // trilha do Bando (intenção conhecida)
-    s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 });
-    // cidades
-    for (const [k, nm, lv, mood, o] of [['mikena', 'Mikena', 3, 4, { port: 3, fort: 1, districts: [{ d: 'MARITIME', b: ['PORT'] }, { d: 'COMMERCIAL', b: ['MARKET'] }] }], ['tirinto', 'Tirinto', 2, 1, {}]]) { const [x, y] = P(k); s += cityArt(x, y, lv, '#60a3e9', nm, mood, { R: g.S, ...o }) + hit(k, x, y, nm); }
-    // exército (2 figuras próprias lado a lado)
-    let [x, y] = P('army'); s += ownFigure('INFANTRY', x - 11, y + 2, 28, 2) + ownFigure('CAVALRY', x + 11, y + 4, 28) + hit('army', x, y, 'Exército próprio');
-    [x, y] = P('pioneer'); s += ownFigure('PIONEER', x, y, 28) + hit('pioneer', x, y, 'Pioneiro');
-    [x, y] = P('fleet'); s += ownFigure('FLEET', x, y, 30) + hit('fleet', x, y, 'Frota');
-    // ameaças: acampamento (memória), bando visível, pirata visível, último avistamento
-    [x, y] = g.xy(7, 0); s += `<g opacity=".78">${campArt(x, y, 'active')}</g><circle cx="${f1(x)}" cy="${f1(y + 4)}" r="31" fill="none" stroke="#b4533c" stroke-dasharray="4 5" stroke-width="1.2" opacity=".7"/>` + hit('camp', x, y, 'Acampamento');
-    [x, y] = g.xy(6, 1); s += threatFigure('INFANTRY', x - 10, y + 2, 26, 2) + threatFigure('CAVALRY', x + 11, y + 4, 26) + hit('band', x, y, 'Bando II');
-    [x, y] = g.xy(1, 5); s += threatFigure('COASTAL_VESSEL', x, y, 30) + hit('pirate', x, y, 'Piratas');
+    const seen = ENTS.filter(e => e.type !== 'threat' || vis(...cellOf(e))), memory = ENTS.filter(e => e.type === 'threat' && !vis(...cellOf(e)));
+    const live = drawEntities(g, seen, DET), mem = drawEntities(g, memory, DET), problems = [...live.problems, ...mem.problems];
+    // trilha do Bando (intenção conhecida): por baixo das miniaturas
+    s += pathLine(g, [[6, 1], [5, 2]], '#e0724f', { dash: '7 6', marker: 'arA', w: 2.6 }) + live.under + `<g opacity=".78">${mem.over}</g><g>${live.over}</g>`;
+    const hits = [...live.hits, ...mem.hits];
+    for (const h of hits) s += hit(h.id, h.x, h.y, h.name);
+    const posOf = id => { const h = hits.find(q => q.id === id); return h ? [h.x, h.y] : null; };
+    let x, y;
     [x, y] = g.xy(8, 3); s += threatFigure('INFANTRY', x, y, 24, 0, { ghost: true }) + `<text x="${f1(x)}" y="${f1(y + 27)}" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-size="9" font-weight="700" fill="#e0a08f">visto R7</text>` + hit('ghost', x, y, 'Último avistamento');
-    if (sel) { const q = sel === 'camp' ? g.xy(7, 0) : sel === 'band' ? g.xy(6, 1) : sel === 'pirate' ? g.xy(1, 5) : sel === 'ghost' ? g.xy(8, 3) : P(sel); s += `<circle cx="${f1(q[0])}" cy="${f1(q[1])}" r="33" fill="none" stroke="#c9a867" stroke-width="2.4" stroke-dasharray="6 4"/>`; }
+    if (sel) { const q = sel === 'ghost' ? g.xy(8, 3) : posOf(sel); if (q) s += `<circle cx="${f1(q[0])}" cy="${f1(q[1])}" r="33" fill="none" stroke="#c9a867" stroke-width="2.4" stroke-dasharray="6 4"/>`; }
     if (hexSel) { const [hx, hy] = g.xy(...hexSel); s += `<polygon points="${g.pts(...hexSel, 1)}" fill="none" stroke="#c9a867" stroke-width="3" stroke-dasharray="6 4" pointer-events="none"/>`; }
     return s + '</svg>';
   }
@@ -1321,6 +1427,42 @@ $('#decisoes').innerHTML = [
     $('#phoneE').innerHTML = `<div class="strip" style="position:static;border-radius:0;border-inline:0;padding:4px 8px"><span class="pill">Leontia</span><span class="pill">Era II · R9/21</span><span class="sp"></span><span class="pill warn">!3</span></div>${mini('phone')}<div style="margin:-18px 6px 0;position:relative">${ficha(true)}</div><div class="tray" style="position:static;border-radius:0;border-inline:0;border-bottom:0;margin-top:6px;gap:4px">${['food', 'wood', 'stone', 'metal', 'wealth', 'culture', 'knowledge', 'influence'].map(k => `<span class="res" style="padding:1px 4px">${resIcon(k)}<b>${{ food: 12, wood: 8, stone: 4, metal: 2, wealth: 9, culture: 3, knowledge: 5, influence: 15 }[k]}</b></span>`).join('')}<span class="sp"></span><span class="pill" style="font-size:11px">Ordens 3/5</span></div>`;
   }
   document.addEventListener('click', e => { const a = e.target.closest('#segAct [data-a]'), s = e.target.closest('#segState [data-s]'); if (a) { S.a = a.dataset.a; render(); } if (s) { S.s = s.dataset.s; render(); } });
+  render();
+})();
+/* ===== Cena F · Composição: casos difíceis calculados por entidades ===== */
+(function sceneF() {
+  const OWN = '#60a3e9', RIVAL = '#dd220e';
+  const city = (id, hex, name, level, mood, extra = {}) => ({ id, type: 'city', hex, name, level, mood, cap: 2, ...extra });
+  const stack = (id, hex, kinds, own = true, extra = {}) => ({ id, type: 'stack', own, hex, name: id, kinds: kinds.map(([kind, n]) => ({ kind, n })), ...extra });
+  const threat = (id, hex, kind, status, comp, extra = {}) => ({ id, type: 'threat', hex, kind, status, level: 2, name: id, comp: comp.map(([k, n]) => ({ kind: k, n })), ...extra });
+  const CASES = [
+    { title: 'Cidade com três unidades', note: 'Cidade a 62% no alto; tropas na faixa de baixo; nível, Ânimo e território trabalhado nos cantos; o nome cede.', rows: ['pp', 'pp'], ents: [city('c', '0,0', 'Mikena', 3, 4, { worked: true }), stack('s', '0,0', [['INFANTRY', 2], ['CAVALRY', 1], ['RANGED', 1]])], det: {} },
+    { title: 'Cidade com estrada e mina', note: 'A estrada chega até a borda da cidade. A mina vira selo no hex ocupado; o rio e a fértil viram selos na borda esquerda da cidade.', rows: ['pph', 'ppp'], ents: [city('c', '1,0', 'Aurea', 2, 5), stack('s', '2,0', [['INFANTRY', 1]])], det: { '2,0': { imp: 'MINE', owner: OWN }, '1,0': { feat: ['RIVER', 'FERTILE'] } }, roads: ['0,0', '2,0', '1,1'] },
+    { title: 'Acampamento com Bando', note: 'Tenda no alto; guerreiros na faixa de baixo; ampulheta no canto. O exército próprio divide a faixa sem esconder ninguém.', rows: ['hh', 'hf'], ents: [threat('t', '0,0', 'CAMP', 'CAMPED', [['INFANTRY', 2], ['CAVALRY', 1], ['RANGED', 1]], { fresh: true }), stack('s', '0,0', [['INFANTRY', 2], ['SIEGE', 1]])], det: { '0,0': { feat: ['STONE'] } } },
+    { title: 'Frota sobre recurso marítimo', note: 'O cardume vira selo; a rede envolve o hex e a Frota mantém o centro em tamanho cheio.', rows: ['ss', 'sc'], ents: [stack('f', '0,0', [['FLEET', 1]])], det: { '0,0': { feat: ['SHOAL'], fishing: true, owner: OWN } } },
+    { title: 'Dois exércitos próximos', note: 'Dois hexes vizinhos: cada exército fica dentro do seu hex, sem encostar no vizinho.', rows: ['ppp', 'ppp'], ents: [stack('a', '0,0', [['INFANTRY', 3], ['CAVALRY', 1]]), stack('b', '1,0', [['RANGED', 2], ['GUARD', 1]], false, { color: RIVAL }), stack('c', '1,1', [['INFANTRY', 1]])], det: {} },
+    { title: 'Vários marcadores de Ânimo', note: 'Três cidades vizinhas: Próspera, Abalada e Revolta. Cada selo fica no canto do próprio hex.', rows: ['ppp', 'ppp'], ents: [city('a', '0,0', 'Arkos', 4, 6), city('b', '1,0', 'Beron', 3, 2), city('c', '2,0', 'Cido', 2, 1), stack('s', '1,0', [['GUARD', 1]])], det: {} },
+    { title: 'Trajetórias simultâneas', note: 'Três trajetos por baixo das miniaturas; fantasmas e etiquetas (n · custo/orçamento) nos slots do destino.', rows: ['pppp', 'pppp', 'pppp'], ents: [stack('a', '0,1', [['INFANTRY', 2]]), stack('b', '0,2', [['CAVALRY', 1]]), stack('c', '1,0', [['RANGED', 1], ['GUARD', 1]]), city('d', '3,1', 'Ponte', 2, 4)],
+      legs: [{ id: 1, from: [0, 1], path: [[1, 1], [2, 1]], color: '#e6c173', kinds: ['INFANTRY', 'INFANTRY'], tag: '1 · 2/2' }, { id: 2, from: [0, 2], path: [[1, 2], [2, 2]], color: '#7fd0c4', kinds: ['CAVALRY'], tag: '2 · 2/4' }, { id: 3, from: [1, 0], path: [[2, 0], [3, 0]], color: '#e79ab5', kinds: ['RANGED', 'GUARD'], tag: '3 · 2/2' }], det: {} },
+  ];
+  let Z = 40, slots = false;
+  function render() {
+    let total = 0, bad = 0;
+    $('#casesF').innerHTML = CASES.map((cs, ci) => {
+      const g = new Grid(cs.rows, Z), ents = cs.ents, occ = occupiedSet(ents), legs = cs.legs || [];
+      const dr = drawEntities(g, ents, cs.det, { legs });
+      let svg = `<svg style="width:${Math.round(100 * Z / 64)}%;max-width:100%" viewBox="${viewBox(g, 6)}" role="img" aria-label="${esc(cs.title)}"><defs>${legs.map(l => arrowDefs('arL' + l.id, l.color)).join('')}</defs>${mapBase(g, null, cs.det, occ)}${cs.roads ? roadLayer(g, cs.roads, ents.filter(e => e.type === 'city').map(e => e.hex.split(',').map(Number)), cs.det, occ) : ''}${dr.under}${dr.over}`;
+      if (slots) for (const [key, lay] of Object.entries(dr.layouts)) { const [c, r] = key.split(',').map(Number), [cx, cy] = g.xy(c, r); svg += lay.items.map(it => `<rect x="${f1(cx + it.box.x - it.box.w / 2)}" y="${f1(cy + it.box.y - it.box.h / 2)}" width="${f1(it.box.w)}" height="${f1(it.box.h)}" fill="#e6c17322" stroke="#e6c173" stroke-width=".8" stroke-dasharray="2 2" pointer-events="none"/>`).join(''); }
+      svg += '</svg>';
+      const n = Object.values(dr.layouts).reduce((a, l) => a + l.items.length, 0); total += n; bad += dr.problems.length;
+      return `<div style="display:grid;gap:8px"><h3>${esc(cs.title)}</h3><div class="mesa"><div class="map">${svg}</div><div class="info"><span>${esc(cs.note)}</span><span class="${dr.problems.length ? 'bad' : 'ok'}">${dr.problems.length ? '✗ ' + esc(dr.problems.join(' · ')) : `✓ ${n} elementos, nenhuma sobreposição, tudo dentro do hex`}</span></div></div></div>`;
+    }).join('');
+    $('#statF').textContent = bad ? `${bad} colisões` : `${total} elementos conferidos · 0 colisões`;
+    $('#statF').className = 'pill ' + (bad ? 'bad' : 'ok');
+    $('#segZ').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.z === Z));
+  }
+  $('#segZ').addEventListener('click', e => { const b = e.target.closest('[data-z]'); if (b) { Z = +b.dataset.z; render(); } });
+  $('#slotsF').addEventListener('change', e => { slots = e.target.checked; render(); });
   render();
 })();
 </script>

@@ -18,3 +18,9 @@ Regras de implementação:
 - Em hex ocupado: relevo a ~32% de opacidade, recurso/melhoria como selo, estrada a ~42% sem hub.
 - Fundo e arte de apoio em baixa saturação; a cor viva é das peças, ameaças e marcadores.
 - Referência visual: Artifact Mesa Viva (https://claude.ai/artifact/RP1caGQ8rDfqk77AGa6HgR), `hexArt(..., occ)` e `roadLayer(..., occ)` em `docs/product/mesa-viva/02b-terrain.js`.
+
+## Composição de hexágono (implementação)
+- `apps/web/app/alpha/hex-compose.ts` (jogo) e `docs/product/mesa-viva/06-compose.js` (Artifact) usam a mesma tabela de slots, em unidades de um hex de raio 52. Peça, cidade, acampamento e tropa ocupam a faixa central e a faixa de baixo; nível, Ânimo, território trabalhado, selos de recurso, nome, custo de destino e etiqueta de trajeto ocupam cantos e laterais livres do MESMO hex. Nada sai do hexágono (não cobre miniatura vizinha); figura que não cabe vira "+N" e nunca é encolhida; um terceiro grupo no mesmo hex é declarado em `hidden`, nunca descartado em silêncio.
+- A ocupação vem das entidades reais (peças, cidades, ameaças, povos, rascunho de Mover), nunca de listas de posições escritas à mão. No Artifact as cenas descrevem a mesa como entidades e derivam ocupação, visão e layout delas.
+- Trilhas (caminho de Bando, último passo, rascunho de Mover) são desenhadas por baixo de todos os hexes; o halo de alvo é underlay; fantasmas e etiquetas do rascunho ocupam slots.
+- Testes: `tests/hex-compose.test.ts` (casos difíceis: cidade com três ou quatro classes, cidade com estrada e mina, acampamento com Bando, Frota sobre recurso, dois exércitos, vários selos de Ânimo, rascunho de Mover), `e2e/layout-hard-cases.spec.ts` (caixas reais do DOM nas resoluções 1440×900, 1280×720 e 390×844, nos zooms mínimo, normal, Focar e máximo; Ficha, placa e barra inferior não cobrem peça, cidade nem guerreiro) e `e2e/layout-probe.ts`.
