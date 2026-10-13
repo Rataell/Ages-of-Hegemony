@@ -7,10 +7,13 @@ export async function connectAlphaContext(context:BrowserContext,http:AlphaHttp)
     const request=route.request();
     // The in-process transport cannot stream: the browser falls back to its safety poll.
     if(request.url().includes('stream=1')){await route.abort();return;}
+    const started=performance.now();
     const response=await http.handle(new Request(request.url(),{
       method:request.method(),headers:await request.allHeaders(),
       ...(request.method()==='GET'?{}:{body:request.postData()??null}),
     }));
+    // AOH_FIXTURE_TIMING=1: the handler runs INSIDE the test process, so a slow request freezes the runner's own actions; this names it.
+    if(process.env.AOH_FIXTURE_TIMING&&performance.now()-started>150)console.warn(`SLOW-HANDLER ${Math.round(performance.now()-started)}ms ${request.method()} ${request.url().slice(-40)} ${(request.postData()??'').slice(0,90)}`);
     const headers:Record<string,string>={};
     response.headers.forEach((value,key)=>{headers[key]=value;});
     await route.fulfill({status:response.status,headers,body:await response.text()});

@@ -13,13 +13,22 @@ Branch `rc6/alpha-v1.2`, criada a partir de `ux/board-directive-v1` (que saiu da
 - **Mesa Viva**: peças, cidades, acampamentos, selos de Ânimo e trilhas compostos em slots do mesmo hex, sem sobrepor a ilustração prioritária (`docs/product/ux-board-layering.md`). Em telas de celular, painéis e Fichas terminam acima da bandeja.
 - **Falha de ordem nunca é silenciosa**: uma ordem que falha na resolução agora também é uma linha `FAILURE` em Resultados (antes ia só para o log de acontecimentos). Isso fechou a reprodução B-08.
 
-## Gates (2026-10-12, nesta máquina)
+## Gates finais (2026-10-13, nesta máquina)
 
 - `npx tsc -b`, `tsc -p tests`, `tsc -p e2e`, `tsc -p apps/web`: limpos.
 - `npx eslint . --max-warnings 0`: limpo.
-- `npx vitest run --maxWorkers=3`: 147 arquivos, 1767 passam, 54 falhas esperadas (`it.fails`).
-- Playwright dirigido (layout em 3 larguras, partida real, Ficha, interação V2, mover coordenado, Governar, Pioneiro, água): 35 passam. Um teste de Pioneiro falhou uma vez sob carga paralela (o primeiro toque na peça caiu antes de o mapa assentar); passou sozinho em quatro execuções e ganhou uma repetição do toque.
-- Nenhuma simulação em massa foi executada.
+- `npx vitest run --maxWorkers=3`: 149 arquivos, 1776 passam, 54 falhas esperadas (`it.fails`).
+- Playwright dirigido, em sete grupos sequenciais com um worker: layout em 3 larguras (6), partida real (1), Ficha (4), interação V2 (13), mover coordenado e Governar (6), Pioneiro e água (5), Crônica da Partida ao final (1). 36 passam.
+- Nenhuma simulação em massa.
+
+## Gate de estabilização (2026-10-13)
+
+- **Defeito encontrado e corrigido:** a Ficha de Ação bloqueava toda ação urbana na rodada seguinte a uma em que a cidade agiu ("já usou suas ativações"), porque o clone da simulação não zerava a contagem. Foi o que levou a cidade da partida real à Revolta. Diagnóstico completo em `docs/audit/e-a1-08-revolta-diagnosis.md`; nenhum custo ou regra mudou.
+- **Reproduções de alta relevância:** nenhuma é bloqueadora; classificação em `docs/audit/ux-itfails-register.md`. A Ficha recusa, com a causa, os sete cenários de planejamento que o comando bruto ainda aceita.
+- **Pioneiro:** o teste falhou uma vez porque o clique travou 15 s com a máquina saturada (o log mostra o nó "Mover" visível e estável e a ação parada depois de rolar a tela). Não era uma corrida de lógica. A tentativa de tocar de novo foi removida; o teste espera condições observáveis (a peça desenhada pela projeção, o nó oferecido pela nuvem) com tempos folgados e confirma que a ordem foi enfileirada e executada uma única vez (uma Ordem MOVE e uma linha de descoberta).
+- **Estabilidade sob carga:** numa rodada completa com a máquina em média de carga 14 a 18 houve duas paradas de clique em testes diferentes, uma em cada execução; todos passam sozinhos, cada um em segundos. Quando a carga caiu, o conjunto passou inteiro. Para o gate, as especificações rodam em grupos. `AOH_FIXTURE_TIMING=1` imprime as requisições do transporte em processo que levam mais de 150 ms: o maior valor medido foi 977 ms, então o transporte não explica uma parada de 15 s.
+- **Evidências:** as imagens regeneradas pelas execuções foram arquivadas fora do repositório em `~/VibeCoderSpace/Age of Hegemony/rc6-evidence-archive-2026-10-13/` (lista do que foi mantido e do que voltou ao HEAD). Ficaram no commit só as evidências deste candidato (`ux-board-*`, as telas novas e atualizadas de `v51b-interaction-v2`, a Crônica final de `playable-alpha-v1`). As demais, das RC anteriores, voltaram ao HEAD. As saídas brutas da auditoria v12 (cerca de 100 MB, 352 JSON e 4 resumos, de 2026-10-11) continuam no disco, fora do commit, via `.git/info/exclude`.
+- **Hospedagem:** proposta, sem nenhum recurso criado, em `docs/rc6-hosting-plan.md`.
 
 ## Resposta aos dez pontos do gate
 
@@ -34,7 +43,7 @@ Branch `rc6/alpha-v1.2`, criada a partir de `ux/board-directive-v1` (que saiu da
 | 7 | Desktop e celular com mapa populado e Ficha | `e2e/layout-hard-cases.spec.ts` e `e2e/real-game-validation.spec.ts` (sem colisões de DOM, painéis claros das peças, Confirmar acessível). |
 | 8 | Crônica | `tests/ux-chronicle-audit.test.ts`: custo previsto == custo aplicado == linha de Acontecimentos; só o autor lê o bloco aplicado e as falhas; falha de plano vira linha de Resultados com a causa. A Crônica da Partida (`MatchReportV1`) é um resumo: leva Perigo, batalhas, marcos, mas não custos previstos nem aplicados por ação. Isso é por desenho e não foi mudado. |
 | 9 | Incompatibilidade com a RC5 | Abaixo. |
-| 10 | `it.fails` abertas | `docs/audit/ux-itfails-register.md`: 54 (eram 55), com arquivo:linha, tema e relevância para este playtest (18 altas). |
+| 10 | `it.fails` abertas | `docs/audit/ux-itfails-register.md`: 54 (eram 55), com arquivo:linha, tema e relevância para este playtest (18 altas, nenhuma bloqueadora). |
 
 ## Incompatibilidade binária RC5 × RC6
 
@@ -76,5 +85,5 @@ Duas pessoas na mesma máquina: uma janela anônima ou perfil por jogador; "Adic
 - Hexes alcançáveis só com uma carta +2 ainda não jogada não aparecem iluminados.
 - Pesca de frota em bancos de mar (+2 Alimento) é só proposta (V12-UX-05); os números não foram confirmados.
 - Cidade muito cheia reduz para 62% de escala; o resto da ilustração prioritária se mantém.
-- Na partida real validada a cidade humana caiu em Revolta na rodada 5 (ver E-A1-08 no registro de `it.fails`): vale observar no playtest.
+- O balanço inicial é apertado: o Posto produz +2 Alimento por Produzir e Infantaria custa 1 Alimento por rodada. A Revolta da partida real foi em parte consequência do roteiro (recrutar sem renda) e em parte do defeito da Ficha, já corrigido (`docs/audit/e-a1-08-revolta-diagnosis.md`). Vale observar no playtest.
 - O registro de `it.fails` lista o que ainda é defeito conhecido; nada ali foi corrigido nesta rodada além de B-08.

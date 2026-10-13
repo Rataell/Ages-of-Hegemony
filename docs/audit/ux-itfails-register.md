@@ -72,3 +72,21 @@ Relevância para este playtest: **18 alta**, 21 média, 15 baixa.
 | BAIXA | `tests/v12-audit-world-connectivity.test.ts:73` | Conectividade do mundo | WORLD-6 | WORLD-6 REPRO INLAND_SEA seed 2, 2 players: a one-hex land fragment | Fragmento de um hex no Mar Interior. |
 | BAIXA | `tests/v12-audit-world-connectivity.test.ts:75` | Conectividade do mundo | WORLD-8 | WORLD-8 REPRO ARCHIPELAGO seed 3, 6 players, Regions turned: slot 3 Pátria has no real port within 3 hexes | Pátria 3 sem porto real a 3 hexes (6 jogadores). |
 | BAIXA | `tests/v12-audit-world-connectivity.test.ts:76` | Conectividade do mundo | WORLD-9 | WORLD-9 REPRO ARCHIPELAGO seed 1, 2 players: islets of 1-3 hexes no walker can reach | Ilhotas de 1–3 hexes inalcançáveis no Arquipélago. |
+
+## Classificação das 18 de alta relevância (gate final da RC6, 2026-10-13)
+
+Critério: **Bloqueadora** é o que, pela interface, quebra um fluxo central do playtest (mover, governar, produzir, recrutar, construir, Pioneiro, Crônica) ou é regressão recente; **Importante, testável** é um defeito real que o jogador pode encontrar e observar, mas que não impede jogar; **Não relacionada** não toca o que este playtest exercita. O registro acima continua completo: nenhuma linha foi apagada e nenhum `it.fails` foi alterado.
+
+Resultado: **nenhuma das 18 é bloqueadora**. Aquilo que bloqueava, a Ficha bloqueando Produzir por contagem de ativações velha, não estava neste registro: era uma regressão minha, encontrada na investigação da Revolta, e foi corrigida (`docs/audit/e-a1-08-revolta-diagnosis.md`).
+
+| Id | Classe | Por quê |
+|---|---|---|
+| U-01, U-02a, U-02b, U-03, U-04, U-06, U-08, E-A1-05 | Importante, testável | O comando bruto ainda aceita o segundo plano que o primeiro inutiliza. Pela interface a Ficha o recusa com a causa: `tests/ux-ficha-guards-repros.test.ts` prova isso para cada um. Resta para bots e scripts. |
+| U-09 | Importante, testável | A prévia da lista antiga de um segundo Produzir ainda inclui o bônus da 1ª ativação; a Ficha usa o motor sobre os planos anteriores e não herda. |
+| U-12 | Não relacionada | O contador `plannedUrbanActions` só alimenta o lembrete "cidade sem ação planejada"; o limite real vem de `activations`. |
+| E-A1-02 | Importante, testável | O relatório de Manutenção não lista Cultura; o custo de Cultura aparece na Ficha e no bloco aplicado de Resultados. |
+| E-A1-09, E-A1-11 | Importante, testável | Valem para a lista antiga de opções; a Ficha usa `previewAction`. |
+| E-A1-08 | Importante, testável | Regra de recuperação de Povoado em Revolta sem Alimento; não foi a causa da Revolta da partida real. Observar no playtest. |
+| E-A1-01 | Não relacionada (teste desatualizado) | Espera custo de 1 Cultura em Governar; sob a Proto-Governança o primeiro nível custa 0, e Governar com custo (Monarquia etc.) está provado em `e2e/governar-matrix.spec.ts`. O contrato do teste precisa ser revisto, não o motor. |
+| WORLD-10, UX-1 | Importante, testável | Um claim dentro de Região virada fixa a orientação em 0 e o servidor projeta o terreno ao dono. Pode aparecer ao explorar perto de Região fechada. Não é regressão (anterior à UX) e o fluxo do Pioneiro com Perigo está coberto. |
+| WORLD-1 | Importante, testável | Hex COAST sem água ao lado: aparece como "poça" na Mesa Viva. Mudar a geração de mapa é decisão de regra, não de gate. |
