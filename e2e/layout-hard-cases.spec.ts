@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { AlphaStateSchema, PlayerIdSchema, threatComposition, type AlphaState, type Threat } from '@aoh/game-domain';
 import { beginAlphaPlanning, createAlphaGame, hexId, hexNeighbors } from '@aoh/game-engine';
@@ -7,6 +7,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { connectAlphaContext, muteTour } from './alpha-fixture.js';
+import { collisions, overlaysOver } from './layout-probe.js';
 
 // Visual hierarchy (docs/product/ux-board-layering.md): the HARD CASES on the real Mesa. Hand-built state through the real HTTP boundary; the check reads the DOM boxes of
 // every priority illustration and every marker and fails when two of them overlap, anywhere on the map (so a name or a seal also never covers a neighbour's miniature).
@@ -55,22 +56,6 @@ async function open(browser: import('@playwright/test').Browser, viewport: { wid
   return page;
 }
 
-/** Every priority illustration and marker on the map, as screen boxes; returns the pairs that overlap by more than `tol` px in both axes. */
-async function collisions(page: Page, tol = 1.5) {
-  return page.evaluate(tolerance => {
-    const sel = ['.art-city', '.art-piece', '.threat-art [data-class]', '.threat-tent', '.alpha-people', '.art-level-seal', '.art-mood', '.worked-seal', '.hex-seal', '.art-label'];
-    const nodes = [...document.querySelectorAll<SVGGraphicsElement>(sel.map(s => `.world-map ${s}`).join(','))];
-    const items = nodes.map(el => { const b = el.getBoundingClientRect(); return { fig: el.matches('.art-piece, [data-class]'), group: el.closest('.art-stack') ?? el.closest('.threat-art'), name: el.getAttribute('class')?.split(' ')[0] ?? el.getAttribute('data-class') ?? el.tagName, hex: el.closest('[data-hex]')?.getAttribute('data-hex') ?? '-', x: b.left, y: b.top, w: b.width, h: b.height }; }).filter(i => i.w > 0 && i.h > 0);
-    const bad: string[] = [];
-    for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
-      const a = items[i]!, b = items[j]!; if (a.fig && b.fig && a.group && a.group === b.group) continue;   // figures of one stack overlap by design (0.8 step)
-      const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
-      if (ox > tolerance && oy > tolerance) bad.push(`${a.name}@${a.hex} x ${b.name}@${b.hex} (${ox.toFixed(1)}x${oy.toFixed(1)})`);
-    }
-    return { count: items.length, bad };
-  }, tol);
-}
-
 const sizes = [{ name: '1440x900', width: 1440, height: 900 }, { name: '1280x720', width: 1280, height: 720 }, { name: '390x844', width: 390, height: 844 }];
 test.beforeAll(async () => { await mkdir(evidence, { recursive: true }); });
 for (const size of sizes) {
@@ -90,5 +75,20 @@ for (const size of sizes) {
     const zoomed = await collisions(page);
     await page.screenshot({ path: `${evidence}/${size.name}-zoom.png` });
     expect(zoomed.bad, zoomed.bad.join('\n')).toEqual([]);
+  });
+}
+
+for (const size of sizes) {
+  test(`during an action at ${size.name}: the Ficha, the title plate and the bottom bar cover no piece, city or warrior`, async ({ browser }) => {
+    const page = await open(browser, size);
+    await page.locator('g.hex.owner-1:has(.art-city)').first().click({ force: true });
+    await page.locator('.ctx-node[data-node="PRODUCE"]').first().waitFor();
+    await page.locator('.ctx-node[data-node="PRODUCE"]').first().dispatchEvent('click');
+    await expect(page.locator('.table-cloud .afi')).toBeVisible();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: `${evidence}/${size.name}-ficha.png` });
+    const probe = await overlaysOver(page);
+    expect(probe.overlays).toBeGreaterThan(1);
+    expect(probe.bad, probe.bad.join('\n')).toEqual([]);
   });
 }

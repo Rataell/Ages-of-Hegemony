@@ -8,7 +8,7 @@ export function useLitBoxes(host: RefObject<HTMLElement | null>, enabled = true,
   useEffect(() => {
     if (!enabled) { setBoxes(old => (old.length ? [] : old)); return undefined; }
     let frame = 0, last = '';
-    const selector = `.world-map .hex.target .hex-base, .world-map .region-back.is-target .region-back-edge${pieces ? ', .world-map .art-stack, .world-map .art-city' : ''}`;
+    const selector = `.world-map .hex.target .hex-base, .world-map .region-back.is-target .region-back-edge${pieces ? ', .world-map .art-stack, .world-map .art-city, .world-map .threat-art' : ''}`;
     const read = () => {
       const root = host.current;
       if (root) {

@@ -7,6 +7,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { connectAlphaContext, muteTour, cloudNode, touchPiece, confirmMove, confirmFicha } from './alpha-fixture.js';
+import { collisions, overlaysOver } from './layout-probe.js';
 
 // Interaction Model V2 · TABLE FIRST. SEEDED states served through the real HTTP boundary: what matters here is where each decision is born
 // (on the touched piece), that the map answers spatial decisions, and that the page itself never scrolls.
@@ -388,6 +389,10 @@ test('Mover coordenado: two legs from one stack are drafted on the map and confi
   await expect(ficha.locator('.ctx-ficha-count')).toContainText('3/3');
   await expect(ficha.locator('.ctx-leg-body').nth(1)).toContainText(/custo \d+\/\d+ · resta \d+/);
   await expect(ficha.locator('.ctx-go')).toBeEnabled();
+  // Simultaneous trajectories: lines run under the miniatures, ghosts and tags sit in free slots, and the Ficha covers no piece, city or warrior.
+  const drafted = await collisions(page), covered = await overlaysOver(page);
+  expect(drafted.bad, drafted.bad.join('\n')).toEqual([]);
+  expect(covered.bad, covered.bad.join('\n')).toEqual([]);
   await shot(page, 'N-coordinated-draft');
   await confirmMove(page);
   await expect.poll(async () => { const orders = (await repository.find(room.id))!.game!.players[0]!.orders; return orders.length === 1 && orders[0]!.type === 'MOVE' && orders[0]!.legs?.length === 2; }).toBe(true);

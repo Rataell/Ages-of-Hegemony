@@ -94,10 +94,14 @@ export function TableContextCloud({ host, hexId, level, canBack, onBack, onClose
   if (!anchor || !size) return null;
   const nodes = arrange(shown.nodes), room = Math.max(160, size.h - safe.top - safe.bottom);
   const plateSize = shown.ficha ? { w: 324, h: Math.min(shown.ficha.h, room) } : shown.card ? { w: 252, h: 168 } : { w: 184, h: shown.tabs?.length ? 76 : 54 };
-  const place = layoutCloud(anchor, size, safe, nodes.length, plateSize, avoid);
+  // Every priority illustration keeps a 6 px margin around it: the plate looks for a spot clear of those padded boxes.
+  const padded = avoid.map(b => ({ ...b, w: b.w + 12, h: b.h + 12 }));
+  const place = layoutCloud(anchor, size, safe, nodes.length, plateSize, padded);
   // On a phone the Ficha is a sheet on the side of the table AWAY from the piece (top when the piece is low, bottom otherwise), so it never covers it.
   const above = anchor.y - anchor.r - 12 - safe.top, below = size.h - safe.bottom - (anchor.y + anchor.r + 12);
-  const sheet = shown.ficha && compact ? { top: above > below, width: Math.min(420, size.w - 20), room: Math.max(150, Math.min(above > below ? above : below, Math.round(size.h * 0.66))) } : null;
+  // The sheet also keeps clear of every other piece, city and warrior on its side of the table (not only the one the cloud was born on).
+  const sheetTop = above > below, clearOf = avoid.length ? (sheetTop ? Math.min(...avoid.map(b => b.y - b.h / 2 - 6 - safe.top)) : Math.min(...avoid.map(b => size.h - safe.bottom - (b.y + b.h / 2 + 6)))) : Infinity;
+  const sheet = shown.ficha && compact ? { top: sheetTop, width: Math.min(420, size.w - 20), room: Math.max(150, Math.min(sheetTop ? above : below, clearOf, Math.round(size.h * 0.66))) } : null;
   // A Ficha is placed by its TOP edge (its real height is only known once drawn): it grows downward and scrolls inside, so it never slides under the top bar.
   const topEdge = Math.max(safe.top, Math.min(place.plate.y - plateSize.h / 2, size.h - safe.bottom - plateSize.h));
   const plateStyle = sheet ? { left: size.w / 2, width: sheet.width, maxHeight: sheet.room, ...(sheet.top ? { top: safe.top } : { bottom: safe.bottom }) }

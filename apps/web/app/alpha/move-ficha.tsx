@@ -20,7 +20,7 @@ export function MoveFicha({ host, hexId, safe = DEFAULT_SAFE, color, chips, legs
   counter: { used: number; max: number | null; over: boolean }; note: string | null; block: string | null;
   onToggle: (id: string) => void; onRemove: (index: number) => void; onTurn: (index: number, step: 1 | -1) => void; onConfirm: () => void; onCancel: () => void;
 }) {
-  const anchor = useHexAnchor(hexId, host), size = useHostSize(host), lit = useLitBoxes(host);
+  const anchor = useHexAnchor(hexId, host), size = useHostSize(host), lit = useLitBoxes(host, true, true);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); onCancel(); } };
     window.addEventListener('keydown', onKey, true);
@@ -28,7 +28,8 @@ export function MoveFicha({ host, hexId, safe = DEFAULT_SAFE, color, chips, legs
   }, [onCancel]);
   if (!anchor || !size) return null;
   const plate = { w: 316, h: 118 + legs.length * 50 + (note ? 30 : 0) + (block ? 30 : 0) + Math.ceil(chips.length / 2) * 4 };
-  const place = layoutCloud(anchor, size, safe, 0, plate, lit);
+  // The Ficha stands clear of the lit destinations AND of every piece, city and warrior (6 px margin).
+  const place = layoutCloud(anchor, size, safe, 0, plate, lit.map(b => ({ ...b, w: b.w + 12, h: b.h + 12 })));
   return <div className="table-cloud is-target" data-phase="in" role="group" aria-label="Ordem de Mover">
     <svg className="ctx-stems" width={size.w} height={size.h} aria-hidden="true"><line x1={anchor.x} y1={anchor.y} x2={place.plate.x} y2={place.plate.y} className="is-plate" /></svg>
     <i className="ctx-halo" style={{ left: anchor.x, top: anchor.y, width: anchor.r * 2 + 8, height: anchor.r * 2 + 8 }} aria-hidden="true" />
