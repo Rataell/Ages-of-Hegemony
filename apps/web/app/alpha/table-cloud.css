@@ -52,7 +52,9 @@
 .world-map .hex.target-attack { --target-color: #ef7f6c; }
 .world-map .hex.target-claim { --target-color: #9fd18b; }
 .world-map .hex.target-mission { --target-color: #c9a7ff; }
-.world-map.has-targets .hex:not(.target):not(.selected) { opacity: .62; }
+/* Target mode: the GROUND recedes (relief, resource, roads of the hexes that are not targets); pieces, cities and threats keep their full reading (docs/product/ux-board-layering.md). */
+.world-map.has-targets:not(.art-mode) .hex:not(.target):not(.selected) { opacity: .62; }
+.world-map.art-mode .ground-tile.dimmed { opacity: .62; }
 .world-map.has-targets .region-back.is-target .region-back-hex { fill: color-mix(in srgb, #e6c36a 24%, #0b1114); }
 .world-map.has-targets .region-back.is-target .region-back-edge { stroke: #e6c36a; stroke-width: 3; stroke-dasharray: 8 6; animation: target-dash 1.6s linear infinite; }
 .world-map .hex.ctx-focus .hex-base { stroke: var(--accent, #d8b46a); stroke-width: 3; }

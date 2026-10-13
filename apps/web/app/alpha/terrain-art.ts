@@ -11,6 +11,13 @@ export const HEX_RADIUS = 52;
 export const EXTRA_SCALE = HEX_RADIUS / 40;
 /** Relief extras stay in the background; resource and improvement art is smaller and shifted up-left so the centre stays free for pieces and the city (tested against crowded hexes). */
 export const BASE_SCALE = 0.85, DETAIL_SCALE = 0.7, DETAIL_OFFSET = 0.16;
+/**
+ * Visual layering (docs/product/ux-board-layering.md): pieces, cities and threats are the priority art, the terrain is the background. On an OCCUPIED hex the relief extra fades to
+ * EXTRA_OCCUPIED (free hex: EXTRA_FREE) and the resource/improvement shrinks to a SEAL (dark disc with a brass hairline, art at SEAL_SCALE of the free scale) in the upper-left corner.
+ */
+export const EXTRA_FREE = 0.72, EXTRA_OCCUPIED = 0.32, SEAL_SCALE = 0.3, SEAL_RADIUS = 10.4;
+/** Where the seals stand on a hex (hex-local): upper-left corner; a city hex keeps that corner for its level seal, so its resource seal slides down the left edge. */
+export const SEAL_SPOTS = { field: [[-27, -26], [-36, -4]], city: [[-37, -6]] } as const satisfies Record<string, readonly (readonly [number, number])[]>;
 /** Terrain colours of the concept. COAST is shallow turquoise water you can wade (walkable), SEA is deep blue (ships only). */
 export const TERRAIN_COLORS: Record<TerrainKey, string> = { PLAINS: '#5d7350', FOREST: '#394f3e', HILLS: '#766f50', MOUNTAINS: '#60656b', COAST: '#46a6ad', SEA: '#264f68' };
 const IK = '#0b1114';
@@ -93,7 +100,9 @@ export const IMPROVEMENT_INFO: Record<ImprovementKey, { name: string; text: stri
 };
 
 export const terrainId = (terrain: TerrainKey, variant: number) => `aoh-t-${terrain}-${variant}`;
+export const extraId = (terrain: TerrainKey) => `aoh-x-${terrain}`;
 export const featureId = (feature: FeatureKey) => `aoh-f-${feature}`;
+export const sealId = (kind: FeatureKey | ImprovementKey) => `aoh-s-${kind}`;
 export const improvementId = (improvement: ImprovementKey) => `aoh-i-${improvement}`;
 /** Same tile, same variant, so the board never shimmers between renders. */
 export const terrainVariant = (q: number, r: number) => (((q * 31 + r * 17) % 97) + 97) % 97 % TERRAIN_VARIANTS;
@@ -109,10 +118,17 @@ export function terrainDefs(): string {
   let s = '';
   for (const t of TERRAIN_KEYS) for (let v = 0; v < TERRAIN_VARIANTS; v++) {
     const id = terrainId(t, v);
-    s += `<g id="${id}">${terrainHex(HEX_RADIUS, t, (v * 31 + 17) % 97 + 3 + TERRAIN_KEYS.indexOf(t) * 11, `${id}-clip`)}<g transform="scale(${n2(u * BASE_SCALE)})">${TERR_EXTRA[t]()}</g></g>`;
+    s += `<g id="${id}">${terrainHex(HEX_RADIUS, t, (v * 31 + 17) % 97 + 3 + TERRAIN_KEYS.indexOf(t) * 11, `${id}-clip`)}</g>`;
   }
+  // The recognisable relief (trees, peaks, dunes) is its own symbol, so the map can fade it on an occupied hex (<use opacity>) without regenerating anything.
+  for (const t of TERRAIN_KEYS) s += `<g id="${extraId(t)}"><g transform="scale(${n2(u * BASE_SCALE)})">${TERR_EXTRA[t]()}</g></g>`;
   for (const f of FEATURE_KEYS) s += `<g id="${featureId(f)}"><g transform="translate(${n2(-HEX_RADIUS * DETAIL_OFFSET)} ${n2(-HEX_RADIUS * DETAIL_OFFSET)}) scale(${n2(u * DETAIL_SCALE)})">${FEAT_ART[f]()}</g></g>`;
   for (const i of IMPROVEMENT_KEYS) s += `<g id="${improvementId(i)}"><g transform="translate(${n2(-HEX_RADIUS * DETAIL_OFFSET)} ${n2(-HEX_RADIUS * DETAIL_OFFSET)}) scale(${n2(u * DETAIL_SCALE)})">${IMP_ART[i]()}</g></g>`;
+  // Seals of an occupied hex: a dark disc with a brass hairline and the resource/improvement art at 30% of the free scale, clipped to the disc, centred on (0,0).
+  s += `<clipPath id="aoh-seal-clip"><circle r="${n2(SEAL_RADIUS - 0.6)}"/></clipPath>`;
+  const seal = (id: string, art: string) => `<g id="${id}"><circle r="${SEAL_RADIUS}" fill="#0f181c" fill-opacity=".78" stroke="#c9a867" stroke-opacity=".5" stroke-width="1"/><g clip-path="url(#aoh-seal-clip)"><g transform="scale(${n2(u * SEAL_SCALE)})">${art}</g></g></g>`;
+  for (const f of FEATURE_KEYS) s += seal(sealId(f), FEAT_ART[f]());
+  for (const i of IMPROVEMENT_KEYS) s += seal(sealId(i), IMP_ART[i]());
   DEFS = s;
   return s;
 }
@@ -129,4 +145,23 @@ export function terrainSummary(o: { terrain: string; features?: readonly string[
   const cost = o.moveCosts?.[o.terrain];
   const move = o.terrain === 'SEA' ? info.move : cost !== undefined ? `Custo de movimento ${cost}${o.terrain === 'COAST' ? ' (conta como terra)' : ''}` : info.move;
   return { short, lines: [short, move, info.yields, ...feats.map(f => `${FEATURE_INFO[f].name}: ${FEATURE_INFO[f].text}`), ...(imp ? [`${IMPROVEMENT_INFO[imp].name}: ${IMPROVEMENT_INFO[imp].text}`] : []), o.owner ? `Território de ${o.owner}.` : 'Sem dono.'] };
+}
+
+/**
+ * The hexes the priority art stands on: the viewer's visible pieces, every visible city and every visible threat (Bando, camp, pirates). The map computes this once per render and hands it to the
+ * terrain (relief fades, resource becomes a seal) and to the roads (fade, no hub). Pure and order-free.
+ */
+export function occupiedHexes(o: { units?: readonly { hexId: string }[]; cityHexIds?: readonly string[]; threatHexIds?: readonly string[] }): Set<string> {
+  const out = new Set<string>();
+  for (const u of o.units ?? []) out.add(u.hexId);
+  for (const id of o.cityHexIds ?? []) out.add(id);
+  for (const id of o.threatHexIds ?? []) out.add(id);
+  return out;
+}
+
+/** The seals of a hex (improvement wins over resources, as on the free hex): which symbols, where. A city hex gives its upper-left corner to the level seal, so it carries one seal at most. */
+export function sealsOf(o: { features?: readonly string[]; improvement?: string | null; city: boolean }): { id: string; kind: string; x: number; y: number }[] {
+  const kinds: (FeatureKey | ImprovementKey)[] = o.improvement && isImprovementKey(o.improvement) ? [o.improvement] : (o.features ?? []).filter(isFeatureKey);
+  const spots = o.city ? SEAL_SPOTS.city : SEAL_SPOTS.field;
+  return kinds.slice(0, spots.length).map((kind, k) => ({ id: sealId(kind), kind, x: spots[k]![0], y: spots[k]![1] }));
 }

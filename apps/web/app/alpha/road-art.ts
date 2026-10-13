@@ -18,9 +18,14 @@ export interface RoadTile {
   coast: boolean;
   /** The hex has a RIVER feature: a bridge crosses it along the first link. */
   river: boolean;
-  /** City hex: only the strokes toward the road neighbours, no caps, no junction disc. */
+  /** City hex: only the strokes toward the road neighbours, no caps, no junction disc; they stop at the edge of the city piece (`CITY_REACH`), never under it. */
   city: boolean;
+  /** A visible piece or threat stands here (no city): the road fades to `BUSY_OPACITY` and loses the hub, the cap, the isolated stretch and the bridge, so it never competes with the piece (docs/product/ux-board-layering.md). */
+  busy?: boolean;
 }
+/** Fraction of the way from the hex centre to the edge crossing where a road toward a city stops. */
+export const CITY_REACH = 0.4;
+export const BUSY_OPACITY = 0.42;
 
 /** One stroke of the road: dark edge, packed-earth body and a light dashed centre line; or, on the coast, the white foam, the boards and the plank dashes. */
 function stroke(d: string, coast: boolean, S: number): string {
@@ -31,11 +36,12 @@ function stroke(d: string, coast: boolean, S: number): string {
 
 /** The road of one hex, centred on (0,0), for a hex of circumradius `S` (the map draws hexes at 52). */
 export function roadTileArt(tile: RoadTile, S = 52): string {
-  const { mids, coast, river, city } = tile;
+  const { mids, coast, river, city } = tile, busy = Boolean(tile.busy) && !city;
   let out = '';
   if (mids.length === 2 && !city) out += stroke(`M${f1(mids[0]![0])},${f1(mids[0]![1])} Q0,0 ${f1(mids[1]![0])},${f1(mids[1]![1])}`, coast, S);
-  else for (const m of mids) out += stroke(`M${f1(m[0])},${f1(m[1])} L0,0`, coast, S);
+  else for (const m of mids) out += stroke(`M${f1(m[0])},${f1(m[1])} L${city ? `${f1(m[0] * (1 - CITY_REACH))},${f1(m[1] * (1 - CITY_REACH))}` : '0,0'}`, coast, S);
   if (city) return out;
+  if (busy) return out ? `<g class="road-busy" opacity="${BUSY_OPACITY}">${out}</g>` : '';
   if (mids.length >= 3) out += `<circle r="${f1(S * 0.17)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.4"/><circle r="${f1(S * 0.09)}" fill="none" stroke="#7a6446" stroke-width="1" stroke-dasharray="2 2"/>`;
   else if (mids.length === 1) out += `<circle r="${f1(S * 0.1)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.2"/>`;
   else out += `<ellipse rx="${f1(S * 0.22)}" ry="${f1(S * 0.12)}" fill="#c9b38a" stroke="#3f3322" stroke-width="1.2"/>`;

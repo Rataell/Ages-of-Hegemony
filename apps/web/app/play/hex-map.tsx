@@ -1,5 +1,5 @@
 'use client';
-import type { MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyEvent } from 'react';
+import type { MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyEvent, ReactNode } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LocalView } from '@aoh/server/local-play';
 import type { AlphaUnit, HexTile } from '@aoh/game-domain';
@@ -9,7 +9,7 @@ import { type CivilizationMark } from '@aoh/game-domain';
 import { CIVIL_PIECES, DISCOVERY_MARKERS, bannerArt, borderStrokes, cityPieceArt, dangerMarkArt, discoveryArt, harborArt, orientationArt, pieceArt, seatSealSvg, seedOf, threatFigureArt, threatMarkArt, threatName, THREAT_ROMAN } from '../alpha/table-art';
 import { moodLabel, moodSealArt } from '../alpha/mood-seal';
 import { roadCanStand, roadTileArt } from '../alpha/road-art';
-import { featureId, improvementId, isFeatureKey, isImprovementKey, isTerrainKey, terrainDefs, terrainId, terrainSummary, terrainVariant } from '../alpha/terrain-art';
+import { EXTRA_FREE, EXTRA_OCCUPIED, extraId, featureId, improvementId, isFeatureKey, isImprovementKey, isTerrainKey, occupiedHexes, sealsOf, terrainDefs, terrainId, terrainSummary, terrainVariant } from '../alpha/terrain-art';
 
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
 export type MapArt = {
@@ -221,6 +221,8 @@ export const HexMap = memo(function HexMap({
   const revealHexes = useMemo(() => new Set(revealRegion?.hexIds ?? []), [revealRegion]);
 
   const cities = [...data.view.player.civilization.cities, ...data.view.visibleCities];
+  // Visual layering (docs/product/ux-board-layering.md): the hexes the priority art stands on (pieces, cities, threats). The terrain and the roads yield there.
+  const occupied = useMemo(() => occupiedHexes({ units, cityHexIds: cities.map(c => c.hexId), threatHexIds: threats.map(t => t.hexId) }), [units, threats, data.view.player.civilization.cities, data.view.visibleCities]);
   // Shared table: a piece or city that appears (or lands) because of anyone's resolved action pops in for a moment, so every window reads the change.
   const seenPieces = useRef<Set<string> | null>(null);
   const [arriving, setArriving] = useState<Set<string>>(new Set());
@@ -275,6 +277,8 @@ export const HexMap = memo(function HexMap({
   }, [art?.roads, art?.routes, cities.length]);
   const capitalId = data.view.player.civilization.capitalCityId;
 
+  /** The physical reveal of a Region animates its hexes AND their ground (relief, resource, roads), so both carry the same classes. */
+  const revealClass = (id: string) => (flipping.has(id) && !revealHexes.has(id) ? ' flip-in' : '') + (revealHexes.has(id) ? (revealing?.phase === 'land' ? ' reveal-land' : ' reveal-hidden') : '');
   const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
     setDrag({ x: e.clientX, y: e.clientY });
@@ -403,6 +407,77 @@ export const HexMap = memo(function HexMap({
             </g>
           </g>;
         })()}
+        {/* GROUND (layers 1-4 of docs/product/ux-board-layering.md): every tile's relief, then territory, then resource/improvement (a seal on an occupied hex), then roads. Each layer is
+            drawn for ALL tiles before the next one, and the whole ground sits under every hex group, so no neighbouring terrain can ever cover a piece, a city, a threat or a marker.
+            It never captures events: the interaction lives in the hex groups below. */}
+        {art && <g className="art-ground" aria-hidden="true" pointerEvents="none">
+          {(() => {
+            const cityHexes = new Set(cities.map(c => c.hexId));
+            const tileG = (layer: string, tile: HexTile, children: ReactNode) => {
+              const p = position(tile.q, tile.r), id = tile.id, ownerIndex = data.players.findIndex(player => player.id === tile.ownerId);
+              const dimmed = targetSet.size > 0 && !targetSet.has(id) && selected !== id, unavailable = working && !data.workable.includes(id);
+              return <g key={id} data-ground={id} transform={`translate(${p.x} ${p.y})`} style={{ ['--hx' as string]: `${p.x}px`, ['--hy' as string]: `${p.y}px` }}
+                className={`ground-tile ground-${layer} owner-${ownerIndex >= 0 ? ownerIndex + 1 : 0}${occupied.has(id) ? ' occupied' : ' free'}${dimmed ? ' dimmed' : ''}${unavailable ? ' unavailable' : ''}${revealClass(id)}`}>{children}</g>;
+            };
+            return <>
+              <g className="ground-layer ground-relief">{tiles.map(tile => {
+                if (!isTerrainKey(tile.terrain)) return null;
+                const busy = occupied.has(tile.id);
+                return tileG('relief', tile, <>
+                  <use href={`#${terrainId(tile.terrain, terrainVariant(tile.q, tile.r))}`} className="hex-relief" />
+                  <use href={`#${extraId(tile.terrain)}`} className="hex-relief-extra" opacity={busy ? EXTRA_OCCUPIED : EXTRA_FREE} />
+                </>);
+              })}</g>
+              <g className="ground-layer ground-territory">{tiles.map(tile => {
+                const seat = tile.ownerId ? art.seats[tile.ownerId] : undefined, ownerIndex = data.players.findIndex(player => player.id === tile.ownerId);
+                if (ownerIndex < 0 && !seat) return null;
+                return tileG('territory', tile, <>
+                  {ownerIndex >= 0 && <polygon className="hex-owner-tint" points={innerPoints} />}
+                  {seat && <polygon className="owner-contour" points={points} transform="scale(.92)" style={{ stroke: seat.color }} />}
+                </>);
+              })}</g>
+              {art && <g className="art-borders" aria-hidden="true">{(() => {
+          // Territorial edges: seat color with the owner's civilization pattern, drawn once per edge between different owners.
+          const byCoord = new Map(tiles.map(t => [`${t.q},${t.r}`, t]));
+          return tiles.flatMap(tile => {
+            if (!tile.ownerId) return [];
+            const seat = art.seats[tile.ownerId], p = position(tile.q, tile.r);
+            if (!seat) return [];
+            return NEIGHBOURS.flatMap(([dq, dr]) => {
+              const n = byCoord.get(`${tile.q + dq},${tile.r + dr}`);
+              if (n?.ownerId === tile.ownerId) return [];
+              const np = position(tile.q + dq, tile.r + dr), [x1, y1, x2, y2] = sharedEdge(p.x, p.y, np.x, np.y, 52);
+              const pattern = seat.mark?.border ?? 'SOLID';
+              return [<g key={`${tile.id}>${dq},${dr}`} dangerouslySetInnerHTML={svgFragment(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#0b1114" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>` + borderStrokes(pattern, seat.color, 3).map(st => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${st}/>`).join(''))} />];
+            });
+          });
+        })()}</g>}
+
+              <g className="ground-layer ground-detail">{tiles.map(tile => {
+                if (!isTerrainKey(tile.terrain)) return null;
+                const here = cityHexes.has(tile.id);
+                if (occupied.has(tile.id)) {
+                  const seals = sealsOf({ features: tile.features, improvement: tile.improvement, city: here });
+                  return seals.length ? tileG('detail', tile, seals.map(seal => <use key={seal.id} href={`#${seal.id}`} className="hex-seal" data-seal={seal.kind} transform={`translate(${seal.x} ${seal.y})`} />)) : null;
+                }
+                const kids = tile.improvement && isImprovementKey(tile.improvement)
+                  ? <use href={`#${improvementId(tile.improvement)}`} className="hex-improvement" data-improvement={tile.improvement} />
+                  : tile.features.filter(isFeatureKey).map(feature => <use key={feature} href={`#${featureId(feature)}`} className="hex-resource" data-feature={feature} />);
+                return Array.isArray(kids) && !kids.length ? null : tileG('detail', tile, kids);
+              })}</g>
+              <g className="ground-layer ground-roads">{tiles.map(tile => {
+                const way = ways.get(tile.id);
+                if (!way) return null;
+                const road = roadCanStand(tile.terrain) && (way.road.length > 0 || art.roads?.includes(tile.id));
+                if (!road && !way.route.length) return null;
+                return tileG('roads', tile, <g className="art-ways">
+                  {road && <g className="art-road-net" data-links={way.road.length} dangerouslySetInnerHTML={svgFragment(roadTileArt({ mids: way.road, coast: tile.terrain === 'COAST', river: tile.features.includes('RIVER'), city: cityHexes.has(tile.id), busy: occupied.has(tile.id) }, 52))} />}
+                  {way.route.map((part, k) => <line key={`t${k}`} x1="0" y1="0" x2={part.d[0]} y2={part.d[1]} className={`art-route${part.suspended ? ' is-suspended' : ''}`} />)}
+                </g>);
+              })}</g>
+            </>;
+          })()}
+        </g>}
         {tiles.map(tile => {
           const p = position(tile.q, tile.r);
           const city = cities.find(c => c.hexId === tile.id);
@@ -414,6 +489,8 @@ export const HexMap = memo(function HexMap({
           const eligible = working ? data.workable.includes(tile.id) : data.claimable.includes(tile.id);
           const isSelected = selected === tile.id;
           const isCapital = city?.id === capitalId;
+
+          const relief = art && isTerrainKey(tile.terrain);
 
           const stateClasses = [
             `hex`,
@@ -428,15 +505,15 @@ export const HexMap = memo(function HexMap({
             flipping.has(tile.id) && !revealHexes.has(tile.id) ? 'flip-in' : '',
             revealHexes.has(tile.id) ? (revealing?.phase === 'land' ? 'reveal-land' : 'reveal-hidden') : '',
             arriving.has(tile.id) ? 'arrive' : '',
+            relief ? 'has-relief' : '',
+            occupied.has(tile.id) ? 'occupied' : '',
           ].filter(Boolean).join(' ');
 
           const cityOwner = city && city.ownerId !== data.view.player.id ? data.players.find(player => player.id === city.ownerId)?.name : undefined;
           // Relief, resource, improvement and owner in text ("Colinas · Mina · Leontia"): the art never carries information alone. The aria label keeps "name … id[, trabalhado]".
           const ownerName = tile.ownerId ? data.players.find(pl => pl.id === tile.ownerId)?.name : undefined;
-          const relief = art && isTerrainKey(tile.terrain);
           const summary = relief ? terrainSummary({ terrain: tile.terrain, features: tile.features, improvement: tile.improvement, owner: ownerName, moveCosts: movementCosts }) : null;
           const ariaTitle = summary ? `${city ? `${city.name} · ` : ''}${summary.short} ${tile.id}${isWorked ? ', trabalhado' : ''}` : `${city?.name ?? label(tile.terrain)}${cityOwner ? ` (${cityOwner})` : ''} ${tile.id}${isWorked ? ', trabalhado' : ''}`;
-          const reliefFeatures = relief ? tile.features.filter(isFeatureKey) : [];
 
           return (
             <g
@@ -468,23 +545,12 @@ export const HexMap = memo(function HexMap({
               {/* Base terrain polygon */}
               <polygon className="hex-base" points={points} />
 
-              {/* Relief, resource and improvement as art (symbols built once; each hex only references them). Under a city only the relief stays. */}
-              {relief && <use href={`#${terrainId(tile.terrain as Parameters<typeof terrainId>[0], terrainVariant(tile.q, tile.r))}`} className="hex-relief" pointerEvents="none" />}
-              {relief && !city && (tile.improvement && isImprovementKey(tile.improvement)
-                ? <use href={`#${improvementId(tile.improvement)}`} className="hex-improvement" data-improvement={tile.improvement} pointerEvents="none" />
-                : reliefFeatures.map(feature => <use key={feature} href={`#${featureId(feature)}`} className="hex-resource" data-feature={feature} pointerEvents="none" />))}
-
               {/* Terrain texture/hatching layer */}
               <polygon className="hex-texture" points={innerPoints} />
 
-              {/* Subtle ownership wash/fill */}
-              {owner > 0 && <polygon className="hex-owner-tint" points={innerPoints} />}
-              {art && tile.ownerId && art.seats[tile.ownerId] && <polygon className="owner-contour" points={points} transform="scale(.92)" style={{ stroke: art.seats[tile.ownerId]!.color }} pointerEvents="none" />}
+              {/* Subtle ownership wash/fill (art mode: drawn by the ground layer, under the resources, roads and pieces) */}
+              {!art && owner > 0 && <polygon className="hex-owner-tint" points={innerPoints} />}
 
-              {art && ways.get(tile.id) && <g className="art-ways" aria-hidden="true">
-                {roadCanStand(tile.terrain) && (ways.get(tile.id)!.road.length > 0 || art.roads?.includes(tile.id)) && <g className="art-road-net" data-links={ways.get(tile.id)!.road.length} dangerouslySetInnerHTML={svgFragment(roadTileArt({ mids: ways.get(tile.id)!.road, coast: tile.terrain === 'COAST', river: tile.features.includes('RIVER'), city: Boolean(city) }, 52))} />}
-                {ways.get(tile.id)!.route.map((part, k) => <line key={`t${k}`} x1="0" y1="0" x2={part.d[0]} y2={part.d[1]} className={`art-route${part.suspended ? ' is-suspended' : ''}`} />)}
-              </g>}
               {/* Territorial border outline */}
               <polygon className="hex-border" points={points} />
 
@@ -494,10 +560,6 @@ export const HexMap = memo(function HexMap({
                 const level = mark?.level ?? 1, color = seat?.color ?? '#9aa4a2', harbor = mark?.harbor ? harborAngle(tile.id, mark.harbor) : null;
                 return <g className="city-anchor art-city" data-level={level} data-fortification={mark?.fortification.level ?? 'NONE'} data-culture={mark?.civilization ?? 'neutral'} data-work={mark?.work?.workId}>
                   <g dangerouslySetInnerHTML={svgFragment(cityPieceArt({ level, color, seed: seedOf(city.id), civilization: mark?.civilization ?? null, lod, fortification: mark?.fortification ?? null, harbor, work: mark?.work ?? null, mark: seat?.mark ?? null, seat: seat?.seat ?? null }, 50))} />
-                  {/* The seal reads N·Capacidade (canon §4): level built and the power of one activation. */}
-                  <g transform="translate(-21 -23)"><rect x={mark?.capacity ? -15 : -9} y="-9" width={mark?.capacity ? 30 : 18} height="18" rx="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{mark?.capacity ? `${level}·${mark.capacity}` : level}</text></g>
-                  {/* Ânimo of the viewer's own city (the projection sends it only for them): ring + expression + number, 4 states. */}
-                  {mark?.mood !== undefined && <g className="art-mood" transform="translate(23 -23)" role="img" aria-label={moodLabel(mark.mood)} data-mood={mark.mood}><title>{moodLabel(mark.mood)}</title><g transform="scale(.56)" dangerouslySetInnerHTML={svgFragment(moodSealArt(mark.mood))} /></g>}
                 </g>;
               })() : city ? (
                 <g className={`city-anchor ${isCapital ? 'is-capital' : ''}`}>
@@ -562,21 +624,6 @@ export const HexMap = memo(function HexMap({
                 </g>
               )}
 
-              {/* Worked Territory Seal (Top Right) */}
-              {(working ? worked.includes(tile.id) : isWorked) && (
-                <g transform="translate(25, -23)" className="worked-seal">
-                  <title>Território trabalhado</title>
-                  <circle cx="0" cy="0" r="8.5" className="worked-bg" />
-                  <circle cx="0" cy="0" r="5" className="worked-inner" />
-                </g>
-              )}
-
-              {targetSet.has(tile.id) && <polygon className="target-pulse" points={innerPoints} />}
-              {targetSet.has(tile.id) && targets?.labels?.[tile.id] !== undefined && <text className={`target-cost tone-${targets.tones?.[tile.id] ?? 'base'}`} y="33" textAnchor="middle" pointerEvents="none">{targets.labels[tile.id]}</text>}
-              {/* Claimable frontier indicator */}
-              {eligible && !working && (
-                <polygon className="frontier-pulse" points={innerPoints} />
-              )}
               {/* Neutral powers: an independent people (house) or a raid band (crossed blades, with its strength). */}
               {(() => {
                 const people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null), threat = threats.find(r => r.hexId === tile.id), hasPieces = units.some(u => u.hexId === tile.id);
@@ -637,6 +684,34 @@ export const HexMap = memo(function HexMap({
                   </g>;
                 })}</g>;
               })()}
+
+              {/* Layer 8 of the table: markers over the pieces (level seal and Ânimo of the city, worked-territory seal). */}
+              {city && art && (() => {
+                const mark = art.cityMarks.find(m => m.cityId === city.id), color = art.seats[city.ownerId]?.color ?? '#9aa4a2';
+                return <g className="art-markers">
+                  {/* The seal reads N·Capacidade (canon §4): level built and the power of one activation. */}
+                  <g transform="translate(-21 -23)"><rect x={mark?.capacity ? -15 : -9} y="-9" width={mark?.capacity ? 30 : 18} height="18" rx="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{mark?.capacity ? `${mark.level}·${mark.capacity}` : (mark?.level ?? 1)}</text></g>
+                  {/* Ânimo of the viewer's own city (the projection sends it only for them): ring + expression + number, 4 states. */}
+                  {mark?.mood !== undefined && <g className="art-mood" transform="translate(23 -23)" role="img" aria-label={moodLabel(mark.mood)} data-mood={mark.mood}><title>{moodLabel(mark.mood)}</title><g transform="scale(.56)" dangerouslySetInnerHTML={svgFragment(moodSealArt(mark.mood))} /></g>}
+                </g>;
+              })()}
+              {/* Worked Territory Seal (Top Right) */}
+              {(working ? worked.includes(tile.id) : isWorked) && (
+                <g transform="translate(25, -23)" className="worked-seal">
+                  <title>Território trabalhado</title>
+                  <circle cx="0" cy="0" r="8.5" className="worked-bg" />
+                  <circle cx="0" cy="0" r="5" className="worked-inner" />
+                </g>
+              )}
+
+              {/* Layer 7: lit targets and halos over the pieces, each with a dark outline underneath so they read on any ground. */}
+              {targetSet.has(tile.id) && <polygon className="target-under" points={innerPoints} />}
+              {targetSet.has(tile.id) && <polygon className="target-pulse" points={innerPoints} />}
+              {targetSet.has(tile.id) && targets?.labels?.[tile.id] !== undefined && <text className={`target-cost tone-${targets.tones?.[tile.id] ?? 'base'}`} y="33" textAnchor="middle" pointerEvents="none">{targets.labels[tile.id]}</text>}
+              {/* Claimable frontier indicator */}
+              {eligible && !working && (
+                <polygon className="frontier-pulse" points={innerPoints} />
+              )}
             </g>
           );
         })}
@@ -654,22 +729,6 @@ export const HexMap = memo(function HexMap({
           const free = at.filter(c => !cities.some(city => city.hexId === c.id)), spot = (free.length ? free : at).sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy))[0]!;
           return <g key={d.regionId} className={`discovery-marker kind-${d.kind}${d.resolved === false ? ' is-open' : ''}`} transform={`translate(${spot.x + 17} ${spot.y - 19})`} dangerouslySetInnerHTML={svgFragment(discoveryArt(d.kind, zoomed ? 14 : 12))} />;
         })}</g>}
-        {art && <g className="art-borders" aria-hidden="true">{(() => {
-          // Territorial edges: seat color with the owner's civilization pattern, drawn once per edge between different owners.
-          const byCoord = new Map(tiles.map(t => [`${t.q},${t.r}`, t]));
-          return tiles.flatMap(tile => {
-            if (!tile.ownerId) return [];
-            const seat = art.seats[tile.ownerId], p = position(tile.q, tile.r);
-            if (!seat) return [];
-            return NEIGHBOURS.flatMap(([dq, dr]) => {
-              const n = byCoord.get(`${tile.q + dq},${tile.r + dr}`);
-              if (n?.ownerId === tile.ownerId) return [];
-              const np = position(tile.q + dq, tile.r + dr), [x1, y1, x2, y2] = sharedEdge(p.x, p.y, np.x, np.y, 52);
-              const pattern = seat.mark?.border ?? 'SOLID';
-              return [<g key={`${tile.id}>${dq},${dr}`} dangerouslySetInnerHTML={svgFragment(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#0b1114" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>` + borderStrokes(pattern, seat.color, 3).map(st => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${st}/>`).join(''))} />];
-            });
-          });
-        })()}</g>}
         {art?.marks && <g className="art-marks" aria-hidden="true">{art.marks.map((mark, i) => {
           const tile = tiles.find(t => t.id === mark.hexId);
           if (!tile) return null;

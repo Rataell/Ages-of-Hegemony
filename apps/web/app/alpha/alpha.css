@@ -638,11 +638,11 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .home-banner-sub { fill: var(--text-muted); font: 11px var(--font-body); paint-order: stroke; stroke: #0b1114; stroke-width: 3px; }
 .world-map.has-board:not(.zoom-near) .home-banner-sub { display: none; }
 /* A hex group is placed by its transform attribute; a CSS transform replaces it, so the flip re-applies the hex position (--hx, --hy, set by the map). */
-.world-map .hex { --hx: 0px; --hy: 0px; }
+.world-map .hex, .world-map .ground-tile { --hx: 0px; --hy: 0px; }
 .region-reveal { --turn: 0deg; }
-.hex.flip-in { transform-box: view-box; transform-origin: 0 0; animation: region-flip 600ms ease-out; }
+.hex.flip-in, .ground-tile.flip-in { transform-box: view-box; transform-origin: 0 0; animation: region-flip 600ms ease-out; }
 @keyframes region-flip { 0% { opacity: 0; transform: translate(var(--hx, 0), var(--hy, 0)) scaleX(.2); } 60% { opacity: 1; } 100% { transform: translate(var(--hx, 0), var(--hy, 0)) scaleX(1); } }
-@media (prefers-reduced-motion: reduce) { .hex.flip-in { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .hex.flip-in, .ground-tile.flip-in { animation: none; } }
 /* RC 1.2 · closed Regions read as face-down board pieces (inset rings, a neutral compass boss); never terrain. */
 .world-map.has-board .region-back-inset { fill: none; stroke: color-mix(in srgb, var(--text-secondary) 7%, transparent); stroke-width: 2; }
 .world-map.has-board:not(.zoom-near) .region-back-inset { display: none; }
@@ -663,10 +663,10 @@ html:has(.alpha-mesa), body:has(.alpha-mesa) { height: 100dvh; overflow: hidden;
 .region-reveal.phase-flip .region-reveal-piece { transform: rotate(var(--turn, 0deg)) scale(1.07) scaleX(.03); transition-duration: 230ms; transition-timing-function: ease-in; }
 .region-reveal.phase-flip .region-reveal-shadow { transform: scaleX(.05); }
 @keyframes reveal-glow { from { stroke-opacity: 0; } to { stroke-opacity: 1; } }
-.hex.reveal-hidden { visibility: hidden; }
-.hex.reveal-land { transform-box: view-box; transform-origin: 0 0; animation: region-land 390ms cubic-bezier(.2, .8, .3, 1.15); }
+.hex.reveal-hidden, .ground-tile.reveal-hidden { visibility: hidden; }
+.hex.reveal-land, .ground-tile.reveal-land { transform-box: view-box; transform-origin: 0 0; animation: region-land 390ms cubic-bezier(.2, .8, .3, 1.15); }
 @keyframes region-land { 0% { opacity: 0; transform: translate(var(--hx, 0), var(--hy, 0)) scaleX(.04); } 55% { opacity: 1; } 100% { transform: translate(var(--hx, 0), var(--hy, 0)) scaleX(1); } }
-@media (prefers-reduced-motion: reduce) { .region-reveal-piece, .region-reveal-shadow { transition: none; } .hex.reveal-land { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .region-reveal-piece, .region-reveal-shadow { transition: none; } .hex.reveal-land, .ground-tile.reveal-land { animation: none; } }
 /* Descobertas: small and calm at the Mesa, clearer when zoomed in. */
 .world-map .discovery-marker { opacity: .8; }
 .world-map.zoom-near .discovery-marker { opacity: 1; }

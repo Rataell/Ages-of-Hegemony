@@ -5,7 +5,9 @@ import {
   campArt, dangerMarkArt, emblemArt, fortificationArt, harborArt, mix, orientationArt, pieceArt, sealArt, seatColor, seatSeal, threatFigureArt, threatMarkArt, workArt,
 } from '../apps/web/app/alpha/table-art.js';
 import { moodLabel, moodSealArt, moodSealSvg } from '../apps/web/app/alpha/mood-seal.js';
-import { FEATURE_KEYS, IMPROVEMENT_KEYS, TERRAIN_KEYS, TERRAIN_VARIANTS, terrainDefs, terrainSummary, terrainVariant } from '../apps/web/app/alpha/terrain-art.js';
+import { FEATURE_KEYS, IMPROVEMENT_KEYS, SEAL_SPOTS, TERRAIN_KEYS, TERRAIN_VARIANTS, extraId, occupiedHexes, sealId, sealsOf, terrainDefs, terrainSummary, terrainVariant } from '../apps/web/app/alpha/terrain-art.js';
+import { BUSY_OPACITY, roadTileArt } from '../apps/web/app/alpha/road-art.js';
+import { readFileSync } from 'node:fs';
 
 const count = (svg: string, tag: string) => (svg.match(new RegExp(`<${tag}\\b`, 'g')) ?? []).length;
 const volumes = (svg: string) => Number(/data-volumes="(\d+)"/.exec(svg)?.[1] ?? 0);
@@ -137,5 +139,61 @@ describe('Mesa Viva B1 art: threats, Ânimo and terrain', () => {
     expect(text.short).toBe('Colinas · Jazida de Metal · Mina · Leontia');
     expect(text.lines).toContain('Custo de movimento 2');
     expect(terrainSummary({ terrain: 'SEA' }).lines[1]).toContain('só navios');
+  });
+});
+
+describe('visual layering of the table (docs/product/ux-board-layering.md)', () => {
+  it('knows the occupied hexes: pieces, cities and threats, once each', () => {
+    const occ = occupiedHexes({ units: [{ hexId: '1,0' }, { hexId: '1,0' }, { hexId: '2,0' }], cityHexIds: ['0,0', '2,0'], threatHexIds: ['3,-1'] });
+    expect([...occ].sort()).toEqual(['0,0', '1,0', '2,0', '3,-1']);
+    expect(occupiedHexes({}).size).toBe(0);
+  });
+  it('builds the relief extras and the seals once, as their own symbols (the map only fades them)', () => {
+    const defs = terrainDefs();
+    for (const t of TERRAIN_KEYS) expect(defs).toContain(`id="${extraId(t)}"`);
+    for (const k of [...FEATURE_KEYS, ...IMPROVEMENT_KEYS]) expect(defs).toContain(`id="${sealId(k)}"`);
+    expect(defs).toContain('#0f181c');
+    // The base symbol of a terrain no longer carries the extras (they fade apart from the colour).
+    const forest = /<g id="aoh-t-FOREST-0">.*?<\/g><g id="aoh-t-FOREST-1">/s.exec(defs)![0];
+    expect(forest).not.toContain('#274a35');
+    expect(defs.indexOf(`id="${extraId('FOREST')}"`)).toBeGreaterThan(-1);
+  });
+  it('turns the resource/improvement of an occupied hex into a seal: improvement wins, a city hex keeps one seal at its left edge', () => {
+    expect(sealsOf({ features: ['METAL'], improvement: 'MINE', city: false }).map(s => s.kind)).toEqual(['MINE']);
+    const two = sealsOf({ features: ['RIVER', 'FERTILE'], city: false });
+    expect(two.map(s => [s.x, s.y])).toEqual(SEAL_SPOTS.field.map(spot => [...spot]));
+    expect(sealsOf({ features: ['RIVER', 'FERTILE'], city: true })).toHaveLength(1);
+    expect(sealsOf({ features: ['RIVER'], city: true })[0]!.x).toBeLessThan(sealsOf({ features: ['RIVER'], city: false })[0]!.x);
+    expect(sealsOf({ features: [], improvement: null, city: false })).toEqual([]);
+  });
+  it('fades the road on a hex with a piece, without hub, cap, isolated stretch or bridge; on a city it stops at the edge', () => {
+    const mids = [[-45, 0], [22, -39], [22, 39]] as const;
+    const free = roadTileArt({ mids, coast: false, river: true, city: false }, 52), busy = roadTileArt({ mids, coast: false, river: true, city: false, busy: true }, 52);
+    expect(free).toContain('<circle');            // the junction disc
+    expect(free).toContain('<rect');              // the plank bridge over the river
+    expect(busy).toContain(`opacity="${BUSY_OPACITY}"`);
+    expect(busy).not.toContain('<circle');
+    expect(busy).not.toContain('<rect');
+    expect(roadTileArt({ mids: [], coast: false, river: false, city: false, busy: true }, 52)).toBe('');
+    expect(roadTileArt({ mids: [[-45, 0]], coast: false, river: false, city: false, busy: true }, 52)).not.toContain('<circle');
+    // City: each stroke ends before the centre (under the city piece it would add nothing) and keeps the free opacity.
+    const city = roadTileArt({ mids: [[-45, 0]], coast: false, river: false, city: true, busy: true }, 52);
+    expect(city).not.toContain('L0,0');
+    expect(city).not.toContain(`opacity="${BUSY_OPACITY}"`);
+  });
+  it('draws the layers in the owner order: ground under every hex, pieces before the lit targets, markers last', () => {
+    const src = readFileSync(new URL('../apps/web/app/play/hex-map.tsx', import.meta.url), 'utf8');
+    const at = (needle: string) => { const i = src.indexOf(needle); expect(i, needle).toBeGreaterThan(-1); return i; };
+    const ground = at('className="art-ground"'), relief = at("tileG('relief'"), territory = at("tileG('territory'"), borders = at('className="art-borders"'), detail = at("tileG('detail'"), roads = at("tileG('roads'");
+    expect([ground, relief, territory, borders, detail, roads]).toEqual([...[ground, relief, territory, borders, detail, roads]].sort((a, b) => a - b));
+    const hexes = at('data-hex={tile.id}'), city = at('className="city-anchor art-city"'), pieces = at('className={`art-stack'), markers = at('className="art-markers"'), targets = at('className="target-pulse"');
+    expect(roads).toBeLessThan(hexes);
+    expect(city).toBeLessThan(pieces);
+    expect(pieces).toBeLessThan(markers);
+    expect(pieces).toBeLessThan(targets);
+    // Nothing of the terrain remains inside the hex group in art mode: relief and roads live only in the ground.
+    const hexBody = src.slice(hexes, at('className="art-harbors"'));
+    expect(hexBody).not.toContain('className="hex-relief"');
+    expect(hexBody).not.toContain('roadTileArt(');
   });
 });

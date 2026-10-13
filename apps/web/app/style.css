@@ -2411,3 +2411,14 @@ dialog h2 {
 .world-map.art-mode .art-ways { pointer-events: none; }
 .art-route { fill: none; stroke: #f4ecd8; stroke-width: 2.4; stroke-dasharray: 2 7; stroke-linecap: round; opacity: .9; }
 .art-route.is-suspended { stroke: #e59a86; opacity: .6; }
+/* ===== Visual layering of the table (docs/product/ux-board-layering.md): 1 relief · 2 territory · 3 resource/improvement · 4 roads · 5 cities · 6 pieces/threats · 7 trails/targets/halos · 8 markers/labels.
+   The GROUND (1-4) is one group under every hex group and never captures events; the hex group keeps the hit area, the city, the pieces, then the lit targets and the markers. ===== */
+.world-map.art-mode .art-ground, .world-map.art-mode .art-ground * { pointer-events: none; }
+.world-map.art-mode .hex.has-relief .hex-base { fill: transparent; }
+.world-map.art-mode .ground-tile.unavailable { opacity: .42; filter: saturate(.5); }
+.world-map.art-mode .hex.unavailable { opacity: 1; filter: none; }
+.world-map.art-mode .art-markers { pointer-events: none; }
+.world-map .target-under { fill: none; stroke: #0b1114; stroke-opacity: .6; stroke-width: 6; stroke-linejoin: round; pointer-events: none; }
+.world-map.art-mode .frontier-pulse { filter: drop-shadow(0 0 1px #0b1114) drop-shadow(0 0 1px #0b1114); }
+/* Trails, planned paths, aims and halos: always with a dark contour, so they read on any ground. */
+.world-map .alpha-threat-path, .world-map .alpha-threat-heading, .world-map .alpha-threat-aim, .world-map .art-trail-line, .world-map .art-mark-halo { filter: drop-shadow(0 0 1px #0b1114) drop-shadow(0 0 1.5px #0b1114); }
