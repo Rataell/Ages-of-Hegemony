@@ -1,12 +1,14 @@
+import { MOOD_BAND_NAMES as MOOD_BANDS_MODEL } from '../apps/web/app/alpha/action-ficha-model.js';
+import { MOOD_BAND_NAMES as MOOD_BANDS_SEAL } from '../apps/web/app/alpha/mood-seal.js';
 import { describe, expect, it } from 'vitest';
 import type { ActionEffect, AppliedResult } from '@aoh/game-domain';
-import type { ActionPreviewData, ActionPreviewState } from '../apps/web/app/alpha/action-preview';
-import { appliedSummary, compareApplied, costOf, effectLine, fichaModel, governChoice, governLevelsParam, governPayment, memoryFor, planKeyOf, reconcile, recruitMinis, remember } from '../apps/web/app/alpha/action-ficha-model';
+import type { ActionPreviewData, ActionPreviewState } from '../apps/web/app/alpha/action-ficha-model.js';
+import { appliedSummary, compareApplied, costOf, effectLine, fichaModel, governChoice, governLevelsParam, governPayment, memoryFor, planKeyOf, reconcile, recruitMinis, remember } from '../apps/web/app/alpha/action-ficha-model.js';
 
 // The Ficha de Ação only LAYS OUT what the engine answered (previewAction / ResolutionEvent.applied). These tests pin the mapping, never a rule.
 const preview = (patch: Partial<ActionPreviewData> = {}): ActionPreviewData => ({
   command: 'URBAN_ACTION', coverage: 'FULL', eligible: true, blockers: [], warnings: [], resolvesAt: 'RESOLUTION', effects: [],
-  cost: { resources: {}, stockAfter: {}, order: { type: 'CITY', usedBefore: 3, usedAfter: 4, limit: 5 }, activation: { cityId: 'c1', usedBefore: 1, usedAfter: 2, max: 2, moodCost: 1 } },
+  cost: { resources: {}, stockAfter: {}, order: { type: 'CITY', usedBefore: 3, usedAfter: 4, limit: 5 }, activation: { cityId: 'c1' as never, usedBefore: 1, usedAfter: 2, max: 2, moodCost: 1 } },
   current: { resources: { food: 12, wood: 8, stone: 4, metal: 2, wealth: 9, knowledge: 0, influence: 0, culture: 3 }, orders: { used: 3, limit: 5 }, city: { cityId: 'c1', level: 'CITY', mood: 4, band: 'STABLE', population: 8, capacity: 2, activations: { used: 1, max: 2 } } },
   ...patch,
 });
@@ -40,7 +42,7 @@ describe('Ficha de Ação · mapping of the engine answer', () => {
   });
 
   it('Custo: balance have -> left per resource (the stock the action FINDS), Ordem, ativação and the Ânimo of the 2nd activation', () => {
-    const cost = costOf(preview({ cost: { resources: { culture: 2 }, stockAfter: { culture: 0 }, order: { type: 'CITY', usedBefore: 3, usedAfter: 4, limit: 5 }, activation: { cityId: 'c1', usedBefore: 1, usedAfter: 2, max: 2, moodCost: 1 } } }));
+    const cost = costOf(preview({ cost: { resources: { culture: 2 }, stockAfter: { culture: 0 }, order: { type: 'CITY', usedBefore: 3, usedAfter: 4, limit: 5 }, activation: { cityId: 'c1' as never, usedBefore: 1, usedAfter: 2, max: 2, moodCost: 1 } } }));
     // an earlier plan already reserved 1 Cultura: today there are 3, the resolution finds 2
     expect(cost.chips).toEqual([{ key: 'culture', label: 'Cultura', paid: 2, have: 2, after: 0, short: false, today: 3 }]);
     expect(cost.order).toBe('Ordem Cidade 3/5 → 4/5');
@@ -138,4 +140,8 @@ describe('Recrutar', () => {
     expect(recruitMinis('GUARD', 3)).toEqual(['GUARD', 'GUARD', 'GUARD']);
     expect(recruitMinis(null, 3)).toEqual([]);
   });
+});
+
+describe('Ânimo band names', () => {
+  it('the model keeps the same names as the seal module', () => { expect(MOOD_BANDS_MODEL).toEqual(MOOD_BANDS_SEAL); });
 });

@@ -56,7 +56,7 @@ describe('B1: every legal orientation of a watery Region leaves the Pioneiro on 
       if (!result.entered) { hiddenThreat++; continue; }
       expect(alive!.hexId).toBe(c.entry);
       expect(isLandTerrain(end.terrain), `${c.regionId} entry ${c.entry} rotation ${c.rotation}: Pioneiro stands on ${end.terrain}`).toBe(true);
-      end.terrain === 'COAST' ? onCoast++ : onLand++;
+      if (end.terrain === 'COAST') onCoast++; else onLand++;
       // every piece on the table stands on terrain that suits it (the schema invariant)
       for (const unit of state.units) expect(tileOf(state, unit.hexId).terrain, `${unit.id} on ${unit.hexId}`).not.toBe('UNKNOWN');
       for (const unit of state.units.filter(u => !u.carrierId && state.rules.units[u.kind].domain === 'LAND')) expect(tileOf(state, unit.hexId).terrain).not.toBe('SEA');

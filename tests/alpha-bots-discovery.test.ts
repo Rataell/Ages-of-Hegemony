@@ -17,17 +17,17 @@ describe('bots: Move + Discovery', () => {
     expect(orders(next).some(order => order.type === 'EXPLORE')).toBe(false);
     const found = enters(next, state);
     expect(found.length).toBeGreaterThan(0);
-    expect(found.every(order => order.type === 'MOVE' && order.unitIds.every(id => state.units.find(unit => unit.id === id)!.kind === 'PIONEER'))).toBe(true);
+    expect(found.every(order => order.type === 'MOVE' && order.unitIds!.every(id => state.units.find(unit => unit.id === id)!.kind === 'PIONEER'))).toBe(true);
   });
 
   it('a bot ship with a Pioneiro aboard opens a Region; without a Pioneiro (and before Navegação Oceânica) it does not', () => {
     const { state, ship, region } = SEAS();
     const bare = plan(structuredClone(state), 'ship-bare');
-    expect(enters(bare, state).some(order => order.type === 'MOVE' && order.unitIds.includes(ship.id))).toBe(false);
+    expect(enters(bare, state).some(order => order.type === 'MOVE' && order.unitIds!.includes(ship.id))).toBe(false);
     const pioneer = state.units.find(unit => unit.ownerId === p1 && unit.kind === 'PIONEER')!;
     pioneer.carrierId = ship.id; pioneer.hexId = ship.hexId;
     const crewed = plan(structuredClone(state), 'ship-crew');
-    const moves = enters(crewed, state).filter(order => order.type === 'MOVE' && order.unitIds.includes(ship.id));
+    const moves = enters(crewed, state).filter(order => order.type === 'MOVE' && order.unitIds!.includes(ship.id));
     expect(moves.length).toBe(1);
     expect(region.regionId).toBeTruthy();
   });
@@ -38,7 +38,7 @@ describe('bots: Move + Discovery', () => {
       if (!found) throw new Error('no sea case');
       learn(found.state, p1, 'web-ocean-navigation');
       const next = plan(found.state, `ship-ocean-${kind}`);
-      expect(enters(next, found.state).some(order => order.type === 'MOVE' && order.unitIds.includes(found.ship.id))).toBe(true);
+      expect(enters(next, found.state).some(order => order.type === 'MOVE' && order.unitIds!.includes(found.ship.id))).toBe(true);
     }
   });
 });

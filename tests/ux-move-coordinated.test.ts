@@ -40,7 +40,7 @@ function arena(terrain = 'PLAINS', seed = 23) {
 }
 let serial = 0;
 const put = (state: AlphaState, kind: Kind, at: string, id = `t-${kind.toLowerCase()}-${serial++}`) => { state.units.push({ id, ownerId: p1, kind, hexId: at as never, recruitedRound: 1, carrierId: null } as AlphaUnit); return id; };
-const move = (id: string, legs: MoveLeg[]) => ({ id, type: 'MOVE', legs });
+const move = (id: string, legs: readonly unknown[]) => ({ id, type: 'MOVE', legs });
 const queue = (state: AlphaState, order: Record<string, unknown>) => applyAlphaCommand(state, p1, { type: 'QUEUE_ORDER', expectedVersion: state.version, order } as never);
 const legacy = (id: string, unitIds: string[], path: string[], extra: Record<string, unknown> = {}) => ({ id, type: 'MOVE', unitIds, path, ...extra });
 const cheat = (state: AlphaState, cardId: string) => {

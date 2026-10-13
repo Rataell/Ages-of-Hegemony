@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/.next/**', '**/.next-e2e/**', '**/node_modules/**', '**/generated/**', '**/next-env.d.ts', 'docs/audit/evidence/**', 'docs/evidence/**', 'apps/web/docs/**', '**/.next-*/**', '.omp/**'] },
+  { ignores: ['**/dist/**', '**/.next/**', '**/.next-e2e/**', '**/node_modules/**', '**/generated/**', '**/next-env.d.ts', 'docs/audit/evidence/**', 'docs/evidence/**', 'docs/product/mesa-viva/**', 'apps/web/docs/**', '**/.next-*/**', '.omp/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { files: ['**/*.ts', '**/*.tsx'], rules: { '@typescript-eslint/no-explicit-any': 'error' } },

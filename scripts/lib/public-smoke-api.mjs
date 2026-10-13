@@ -1,3 +1,4 @@
+/* global setTimeout */
 // Tiny HTTP client for the public smoke of a deployed Alpha: guest cookies in memory, the access code only from the environment, nothing secret is ever printed.
 export const BASE = (process.env.ALPHA_BASE_URL ?? '').replace(/\/$/, '');
 export const CODE = process.env.ALPHA_ACCESS_CODE ?? '';

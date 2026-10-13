@@ -1,6 +1,12 @@
 import { ORDER_NAMES, type ActionEffect, type AppliedResult } from '@aoh/game-domain';
-import { MOOD_BAND_NAMES } from './mood-seal';
-import type { ActionPreviewData, ActionPreviewState } from './action-preview';
+import type { ActionPreview } from '@aoh/server/alpha';
+
+// No relative imports here: the unit tests (tests/tsconfig, nodenext) read this file directly, while the app bundler cannot resolve '.js' specifiers. The preview types live here and
+// `action-preview.ts` re-exports them; the Ânimo band names repeat `MOOD_BAND_NAMES` of mood-seal.ts (a test keeps them equal).
+export type ActionPreviewData = ActionPreview;
+/** `previous` is the last answer while the next one is on its way, so the Ficha dims its numbers instead of blinking empty. */
+export type ActionPreviewState = { status: 'idle' } | { status: 'loading'; previous?: ActionPreviewData } | { status: 'error'; message: string } | { status: 'ready'; data: ActionPreviewData };
+export const MOOD_BAND_NAMES: Record<string, string> = { REVOLT: 'Revolta', SHAKEN: 'Abalada', STABLE: 'Estável', PROSPEROUS: 'Próspera' };
 
 /**
  * Ficha de Ação · the PURE reading of what the engine answered (previewAction before confirming, `ResolutionEvent.applied` after). It only maps the engine's own fields into the

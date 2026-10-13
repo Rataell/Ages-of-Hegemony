@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boxInsideHex, composeHex, composeProblems, type HexInput } from '../apps/web/app/alpha/hex-compose';
+import { boxInsideHex, composeHex, composeProblems, type HexInput } from '../apps/web/app/alpha/hex-compose.js';
 
 // Visual hierarchy of the Mesa Viva: priority illustrations (pieces, cities, camps, troops) keep their space, and every secondary element
 // (level, Ânimo, worked seal, resource seals, name, cost) sits in a free slot INSIDE the same hex, with no overlap. Hard cases from the owner's list.
