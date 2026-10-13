@@ -12,6 +12,7 @@ import { maxSeats } from './alpha-lifecycle.js';
 import { alphaStorageMode, type AlphaStorageMode } from './alpha-storage.js';
 export type { AlphaRoomView } from './alpha-service.js';
 export type { AlphaPlayerView } from './alpha-projection.js';
+export type { ActionPreview } from '@aoh/game-engine';
 const expectedMigrations=['20260919000100_alpha_match','20260920000100_alpha_match_archive'];
 const release='alpha-external-1.2-rc5';
 const posture=()=>({maxSeats:maxSeats(),accessProtected:Boolean(process.env.ALPHA_ACCESS_CODE),singleInstance:true});

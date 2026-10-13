@@ -6,7 +6,7 @@ import { AlphaHttp } from '../apps/server/src/alpha-http.js';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
-import { connectAlphaContext, muteTour, cloudNode, touchPiece, confirmMove } from './alpha-fixture.js';
+import { connectAlphaContext, muteTour, cloudNode, touchPiece, confirmMove, confirmFicha } from './alpha-fixture.js';
 
 // Interaction Model V2 · TABLE FIRST. SEEDED states served through the real HTTP boundary: what matters here is where each decision is born
 // (on the touched piece), that the map answers spatial decisions, and that the page itself never scrolls.
@@ -74,8 +74,11 @@ test('city: the cloud is born on the city, morphs in place and acts without a si
   await city(page).click({ force: true });
   await expect(cloudNode(page, 'PRODUCE')).toHaveAttribute('aria-disabled', 'true');
   await expect(cloudNode(page, 'PRODUCE')).toHaveAttribute('title', /Revolta/);
-  // A simple action is local: Governar plans the action, the cloud folds away and the result is on the map.
+  // Governar opens the Ficha de Ação (levels, cost, Ânimo before -> after); Confirmar plans the action, the cloud folds away and the result is on the map.
   await cloudNode(page, 'PROMOTE_MOOD').click();
+  await expect(cloud.locator('.afi')).toBeVisible();
+  await shot(page, 'A3-city-govern-ficha');
+  await confirmFicha(page);
   await expect(cloud).toHaveCount(0);
   await expect(page.locator('.art-mark.tone-plan')).toContainText('Governar');
   await expect.poll(async () => (await repository.find(room.id))!.game!.players[0]!.plannedActions.some(a => a.type === 'URBAN_ACTION' && a.action === 'PROMOTE_MOOD')).toBe(true);

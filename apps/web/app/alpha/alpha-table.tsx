@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useMemo, useState, type ReactNode, type RefObject } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode, type RefObject } from 'react';
 import { atWarWith } from './war-relation';
 import { civilizationDisplayName, orderUnitIds, stackCategory, stackViewVerdict } from '@aoh/game-domain';
 import type { AlphaPlayerView } from '@aoh/server/alpha';
@@ -11,6 +11,12 @@ import { TableContextCloud, TargetChip, type CloudLevel, type CloudNode, type Sa
 import type { AlphaSend } from './alpha-board';
 import { LEG_COLORS, legPayload, previewBlock, useMovePreview, type DraftLeg } from './move-draft';
 import { MoveFicha, type FichaChip, type FichaLeg } from './move-ficha';
+import { ActionFicha } from './action-ficha';
+import { useActionPreview, type PreviewCommand } from './action-preview';
+import { governChoice, governLevelsParam, governPayment, recruitMinis, reconcile, remember, RES_PT } from './action-ficha-model';
+import { loadMemory, saveMemory } from './action-ficha-memory';
+import { moodSealSvg } from './mood-seal';
+import { pieceArt } from './table-art';
 
 /**
  * Interaction Model V2 · TABLE FIRST. Everything physical on the Mesa (city, Pioneiro, stack, empty territory) is operated from a cloud born on
@@ -23,6 +29,7 @@ type Unit = Game['units'][number];
 type Tab = 'city' | 'territory' | 'military';
 type Ctx = { hexId: string; kind: 'city' | 'units' | 'hex' | 'people' | 'threat' | 'foreign'; cityId?: string; group?: string | null };
 type Step = { id: string; param?: string | undefined };
+type UrbanCmd = { type: 'URBAN_ACTION'; cityId: string; action: string; build?: unknown; unit?: unknown; advancementId?: unknown; count?: number; levels?: number };
 /**
  * The spatial decision in progress. It stores only WHAT is being decided (kind, pieces, origin): the lit hexes, the instruction and the Regions the group can enter are DERIVED from the projection
  * on every render (`modeView`), so a card played from the hand while the mode is open (a +2 movement) is felt at once instead of freezing the reach seen when the mode began.
@@ -56,6 +63,10 @@ const coords = (id: string) => { const [q, r] = id.split(',').map(Number); retur
 const distance = (a: string, b: string) => { const p = coords(a), q = coords(b); return (Math.abs(p.q - q.q) + Math.abs(p.q + p.r - q.q - q.r) + Math.abs(p.r - q.r)) / 2; };
 const MOOD: Record<string, string> = { REVOLT: 'Revolta', SHAKEN: 'Abalada', STABLE: 'Estável', PROSPEROUS: 'Próspera' };
 const NO_LEGS: readonly DraftLeg[] = [];
+/** The engine's `details.recruit` of the Ficha (previewAction). */
+interface RecruitDetails { unitCost: Record<string, number>; advance: { name: string } | null; soldiers: { soldiers: number; available: number; mobilizes: number } }
+const costWords = (cost: Record<string, number>) => Object.entries(cost).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${RES_PT[k] ?? k}`).join(' + ') || 'sem custo';
+const FICHA_ACTIONS = new Set(['PRODUCE', 'ELEVATE', 'PROMOTE_MOOD', 'EMERGENCY_GOVERN']);
 const LEVELS = ['OUTPOST', 'HAMLET', 'VILLAGE', 'CITY', 'GREAT_CITY', 'METROPOLIS', 'IMPERIAL_METROPOLIS'];
 
 export interface TableApi {
@@ -80,7 +91,7 @@ export function useTable(a: {
 }): TableApi {
   const { game, selfId, locked, send, queue, manage, host } = a;
   const [ctx, setCtx] = useState<Ctx | null>(null), [steps, setSteps] = useState<Step[]>([]);
-  const [posture, setPosture] = useState('ASSAULT'), [name, setName] = useState('Novo Horizonte'), [count, setCount] = useState(1), [orient, setOrient] = useState<Orient | null>(null), [flash, setFlash] = useState<string | null>(null);
+  const [posture, setPosture] = useState('ASSAULT'), [name, setName] = useState('Novo Horizonte'), [count, setCount] = useState(1), [govLevels, setGovLevels] = useState<number | null>(null), [orient, setOrient] = useState<Orient | null>(null), [flash, setFlash] = useState<string | null>(null);
   const civ = game.view.player.civilization, rules = game.rules.units;
   const ownUnits = game.units.filter(u => u.ownerId === selfId && !u.carrierId);
   const orderedIds = new Map<string, Order>();
@@ -91,11 +102,45 @@ export function useTable(a: {
   const terrainAt = (id: string) => { terrainIndex ??= new Map([...game.view.visibleTerritory, ...game.knownTerritory].map(t => [t.id as string, t.terrain as string])); return terrainIndex.get(id) ?? 'PLAINS'; };
   const [mode, setMode] = useState<Mode | null>(null);
 
-  const close = useCallback(() => { setCtx(null); setSteps([]); setMode(null); setFlash(null); setCount(1); setOrient(null); }, []);
-  const push = (id: string, param?: string) => { setFlash(null); setSteps(old => [...old, { id, param }]); };
+  const close = useCallback(() => { setCtx(null); setSteps([]); setMode(null); setFlash(null); setCount(1); setGovLevels(null); setOrient(null); }, []);
+  const push = (id: string, param?: string) => { setFlash(null); if (id.startsWith('confirm')) setGovLevels(null); setSteps(old => [...old, { id, param }]); };
   const back = useCallback(() => { setFlash(null); setSteps(old => old.length > 1 ? old.slice(0, -1) : old); }, []);
   const showDetails = (tab: Tab, catalog?: boolean) => { close(); a.openDetails(tab, catalog); };
   const finish = (ok: boolean) => { if (ok) close(); return ok; };
+
+  // ---------- Ficha de Ação: the read-only preview (the engine's previewAction) of the action being confirmed ----------
+  const urbanOf = (cityId: string, key: string | undefined) => [...(game.urban.cities[cityId] ?? []), ...game.urban.research].find(x => optionKey(x) === key);
+  const recruitMax = (cityId: string) => Math.max(1, Math.min(6, game.recruitLimits[cityId] ?? 1));
+  /** The URBAN_ACTION an option plans, with the player's choices (quantity of Recrutar, levels of Governar). */
+  const urbanCommand = (cityId: string, o: UrbanOption): UrbanCmd => {
+    const qty = Math.min(count, recruitMax(cityId));
+    const extra = o.action === 'RECRUIT' ? (qty > 1 ? { count: qty } : {}) : o.action === 'PROMOTE_MOOD' ? governLevelsParam(governChoice(o.govern, govLevels)) : {};
+    return { type:'URBAN_ACTION', cityId, action: o.action, ...(o.build ? { build: o.build } : {}), ...(o.unit ? { unit: o.unit } : {}), ...(o.advancementId ? { advancementId: o.advancementId } : {}), ...extra };
+  };
+  const leaf = steps.at(-1);
+  const fichaCommand: PreviewCommand | null = (() => {
+    if (!ctx || mode || !leaf) return null;
+    if (ctx.kind === 'city' && ctx.cityId && leaf.id === 'confirm') { const o = urbanOf(ctx.cityId, leaf.param); return o ? urbanCommand(ctx.cityId, o) : null; }
+    if (ctx.kind === 'hex') {
+      if (leaf.id === 'confirm-improve') return { type:'MANAGE', command: { type:'IMPROVE_HEX', playerId: selfId, hexId: ctx.hexId, improvement: leaf.param, expectedVersion: game.view.version } };
+      if (leaf.id === 'confirm-road') return { type:'BUILD_ROAD', hexId: ctx.hexId };
+      if (leaf.id === 'confirm-claim') return { type:'MANAGE', command: { type:'CLAIM_HEX', playerId: selfId, cityId: leaf.param, hexId: ctx.hexId, expectedVersion: game.view.version } };
+    }
+    return null;
+  })();
+  const fichaPreview = useActionPreview(a.roomId, fichaCommand, game.version);
+  /** What the player confirmed, kept for this session so the Resultado can say "igual ao previsto" or "Δ"; a swapped or cancelled plan is dropped. */
+  useEffect(() => {
+    if (game.phase !== 'PLANNING') return;
+    const all = loadMemory(a.roomId), now = all.filter(entry => entry.round === game.view.round);
+    if (!now.length) return;
+    const kept = reconcile(now, game.self.plannedActions.flatMap(plan => (plan.type === 'URBAN_ACTION' ? [plan] : [])));
+    if (kept.length !== now.length) saveMemory(a.roomId, [...all.filter(entry => entry.round !== game.view.round), ...kept]);
+  }, [game.version]);
+  const confirmUrban = (cityId: string, o: UrbanOption) => {
+    const command = urbanCommand(cityId, o), data = fichaPreview.status === 'ready' ? fichaPreview.data : null;
+    void send(command).then(ok => { if (ok && data) saveMemory(a.roomId, [...loadMemory(a.roomId), remember(a.roomId, game.view.round, command, data)]); return finish(ok); });
+  };
 
   const groupsAt = (hexId: string): Group[] => {
     const here = ownUnits.filter(u => u.hexId === hexId);
@@ -280,7 +325,10 @@ export function useTable(a: {
     const run = (o: UrbanOption, extra: Record<string, unknown> = {}) => void send({ type:'URBAN_ACTION', cityId: city.id, action: o.action, ...(o.build ? { build: o.build } : {}), ...(o.unit ? { unit: o.unit } : {}), ...extra }).then(finish);
     const direct = (action: string, label: string, icon: CloudNode['icon'], tone: CloudNode['tone'] = 'alt'): CloudNode | null => {
       const o = options.find(x => x.action === action); if (!o) return null;
-      const reason = reasonOf(o); return { id: action, label, icon, tone, hint: o.effect, disabled: reason, onSelect: () => (reason ? setFlash(reason) : run(o)) };
+      const reason = reasonOf(o);
+      // Produzir, Governar, Elevar and the emergency recovery go through the Ficha de Ação (Estado → Elegibilidade → Custo → Prévia → Confirmar), even when blocked: the Ficha names the concrete cause.
+      if (FICHA_ACTIONS.has(action)) return { id: action, label, icon, tone, hint: action === 'PROMOTE_MOOD' ? 'Escolher quantos níveis de Ânimo recuperar' : o.effect, disabled: reason, onSelect: () => push('confirm', optionKey(o)) };
+      return { id: action, label, icon, tone, hint: o.effect, disabled: reason, onSelect: () => (reason ? setFlash(reason) : run(o)) };
     };
     const byAction = (action: string) => options.filter(o => o.action === action);
     const open = (list: UrbanOption[]) => list.filter(o => reasonOf(o) === null).length;
@@ -294,12 +342,42 @@ export function useTable(a: {
       return { id, title: heading, subtitle: title, nodes, note: flash ?? catalogNote ?? null };
     };
     if (step.id === 'confirm') {
-      const o = [...options, ...game.urban.research].find(x => optionKey(x) === step.param);
+      const o = urbanOf(city.id, step.param);
       if (!o) return { id: 'confirm:none', title, nodes: [] };
-      const reason = reasonOf(o), max = Math.max(1, Math.min(6, game.recruitLimits[city.id] ?? 1)), qty = Math.min(count, max);
-      return { id: `confirm:${step.param}`, title: optionLabel(o), subtitle: title, nodes: [], note: reason, card: <div className="ctx-card">{costChips(o.cost)}<p>{o.effect}</p>
-        {o.action === 'RECRUIT' && max > 1 && <label>Quantidade<select value={qty} onChange={e => setCount(Number(e.target.value))}>{Array.from({ length: max }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}</select></label>}
-        <button type="button" className="ctx-go" disabled={reason !== null} onClick={() => run(o, o.action === 'RECRUIT' && qty > 1 ? { count: qty } : {})}>Confirmar</button></div> };
+      const max = recruitMax(city.id), qty = Math.min(count, max);
+      const choice = governChoice(o.govern, govLevels), details = (fichaPreview.status === 'ready' ? fichaPreview.data : fichaPreview.status === 'loading' ? fichaPreview.previous : undefined)?.details as { recruit?: RecruitDetails } | undefined;
+      const stepper = (value: number, lo: number, hi: number, set: (n: number) => void, what: string) => <span className="afi-stepper">
+        <button type="button" aria-label={`Menos ${what}`} disabled={value <= lo} onClick={() => set(value - 1)}>−</button><output aria-live="polite" data-value={value}>{value}</output><button type="button" aria-label={`Mais ${what}`} disabled={value >= hi} onClick={() => set(value + 1)}>+</button></span>;
+      let controls: ReactNode = null, costExtra: ReactNode = null, predictedExtra: ReactNode = null, noEffect: string | null = null, confirmLabel = `Confirmar ${optionLabel(o)}`, h = 470;
+      if (o.action === 'RECRUIT') {
+        const rec = details?.recruit, color = a.color ?? '#60a3e9';
+        h = 540; confirmLabel = `Confirmar Recrutar${qty > 1 ? ` ×${qty}` : ''}`;
+        controls = <div className="afi-controls" role="group" aria-label="Escolha de Recrutar">
+          <span className="afi-unit"><svg viewBox="-16 -16 32 32" width="30" height="30" aria-hidden="true" dangerouslySetInnerHTML={{ __html: pieceArt(o.unit ?? 'INFANTRY', color, 30) }} /><b>{o.unit ? text(o.unit) : 'Peça'}</b></span>
+          <span className="afi-cap">Quantidade</span>{stepper(qty, 1, max, setCount, 'uma peça')}<span className="afi-mute">de {max} possíveis</span></div>;
+        costExtra = rec ? <>
+          <span className="afi-line afi-mute">{`Por peça: ${costWords(rec.unitCost)}${qty > 1 ? ` · ×${qty}` : ''}`}</span>
+          {rec.advance && <span className="afi-line is-ok">✓ Avanço {rec.advance.name}</span>}
+          {rec.soldiers.mobilizes > 0 && <span className="afi-line afi-mute">Soldados: {rec.soldiers.soldiers} + {rec.soldiers.available} Disponíveis · mobiliza {rec.soldiers.mobilizes}</span>}</> : null;
+        predictedExtra = <div><div className="afi-minis" role="img" aria-label={`${qty} peça(s) aparecerão em ${city.name}`}>{recruitMinis(o.unit ?? null, qty).map((kind, index) => <svg key={index} viewBox="-16 -16 32 32" width="30" height="30" aria-hidden="true" dangerouslySetInnerHTML={{ __html: pieceArt(kind, color, 30) }} />)}</div>
+          <span className="afi-mute">{qty} {qty > 1 ? 'peças aparecerão' : 'peça aparecerá'} em {city.name}.</span></div>;
+      } else if (o.action === 'PROMOTE_MOOD' && o.govern) {
+        const g = o.govern, row = choice.table.find(l => l.levels === choice.levels);
+        h = 520; confirmLabel = choice.levels > 0 ? `Confirmar Governar · ${choice.levels} ${choice.levels > 1 ? 'níveis' : 'nível'}` : 'Sem efeito';
+        if (choice.max > 0 && !choice.repairOnly && choice.levels === 0) noEffect = 'Sem efeito: escolha ao menos 1 nível de Ânimo.';
+        controls = <div className="afi-controls" role="group" aria-label="Escolha de Governar">
+          {choice.max > 0 && !choice.repairOnly ? <>
+            <span className="afi-cap">Níveis a recuperar</span>{stepper(choice.levels, 0, choice.max, setGovLevels, 'um nível')}
+            <span className="afi-mute">de {choice.max} possíveis{g.limitedBy === 'RESOURCES' ? ' (seus recursos)' : g.limitedBy === 'CAPACITY' ? ' (Capacidade)' : ' (até Próspera)'}</span>
+            <span className="afi-mood-pick" aria-label={`Ânimo ${choice.mood} para ${row?.moodAfter ?? choice.mood}`}><span className="afi-seal" dangerouslySetInnerHTML={{ __html: moodSealSvg(choice.mood ?? 0, 34) }} /><i aria-hidden="true">→</i><span className="afi-seal" dangerouslySetInnerHTML={{ __html: moodSealSvg(row?.moodAfter ?? choice.mood ?? 0, 34) }} /></span></> : <span className="afi-mute">{choice.repairOnly ? 'A cidade já é Próspera: Governar só repara a fortificação.' : 'Nenhum nível pode ser pago agora.'}</span>}
+          {g.emergency.available && <button type="button" className="afi-link" onClick={() => { const emergency = options.find(x => x.action === 'EMERGENCY_GOVERN'); if (emergency) push('confirm', optionKey(emergency)); }}>Recuperação emergencial: grátis, Ânimo → {g.emergency.moodAfter}</button>}</div>;
+        costExtra = choice.levels > 0 ? <span className="afi-line afi-mute">Pagamento: {governPayment(choice)} (Cultura primeiro; Riqueza cobre o que faltar)</span> : null;
+      } else if (o.action === 'EMERGENCY_GOVERN') {
+        controls = <div className="afi-controls"><span className="afi-mute">Grátis, leva o Ânimo ao nível Estável, uma vez por episódio de Revolta. Não produz nem alimenta: produza na rodada seguinte.</span></div>;
+        confirmLabel = 'Confirmar recuperação';
+      }
+      return { id: `confirm:${step.param}`, title: o.action === 'EMERGENCY_GOVERN' ? 'Recuperação emergencial' : optionLabel(o), subtitle: title, nodes: [], note: null, ficha: { h },
+        card: <ActionFicha title={`${optionLabel(o)} · ${city.name}`} preview={fichaPreview} cityName={city.name} gate={gate} noEffect={noEffect} controls={controls} costExtra={costExtra} predictedExtra={predictedExtra} confirmLabel={confirmLabel} onConfirm={() => confirmUrban(city.id, o)} /> };
     }
     if (step.id === 'build') {
       const all = byAction('BUILD');
@@ -334,12 +412,13 @@ export function useTable(a: {
       const governShown = emergencyOpen && byAction('PROMOTE_MOOD').every(o => reasonOf(o) !== null) ? direct('EMERGENCY_GOVERN', 'Recuperação emergencial', 'govern', 'dominant') : govern;
       const list = [produce, build, recruit, governShown, elevate].filter((n): n is CloudNode => n !== null);
       if (!list.some(n => n.tone === 'dominant')) { const first = list.find(n => !n.disabled) ?? list[0]; if (first) first.tone = 'dominant'; }
-      // Four at most: the opportunity (Elevar) displaces Governar while the city is calm.
-      const limited = list.length > 4 ? list.filter(n => n.id !== (revolt ? 'ELEVATE' : 'PROMOTE_MOOD')) : list;
+      // Four at most. Governar is on the root whenever the city is below Estável (Ânimo <= 3: Abalada or Revolta); only a calm city lets the opportunity (Elevar) displace it.
+      const calm = (meta?.mood ?? 9) > 3;
+      const limited = list.length > 4 ? list.filter(n => n.id !== (calm ? 'PROMOTE_MOOD' : 'ELEVATE')) : list;
       return [...(cancel ? [cancel] : []), ...limited.slice(0, cancel ? 3 : 4), more()];
     }
     void back0;
-    return { id: 'root', title, subtitle, nodes: rootNodes(), note: flash ?? (planned ? `Planejado: ${text(planned.action)}. A cidade já usou sua ativação.` : null) };
+    return { id: 'root', title, subtitle, nodes: rootNodes(), note: flash ?? (planned ? `Planejado: ${text(planned.action)}.${meta ? ` Ativações ${meta.activations.count}/${meta.activations.allowed}${meta.activations.left > 0 ? ': ainda há uma ação disponível' : ': esta cidade não tem mais ações nesta rodada'}.` : ''}` : null) };
   };
 
   const unitLevel = (c: Ctx, step: Step): CloudLevel => {
@@ -417,9 +496,13 @@ export function useTable(a: {
     const detailsNode: CloudNode = { id: 'details', label: 'Ver detalhes', icon: 'details', onSelect: () => showDetails('territory') };
     const improvements = Object.keys(game.view.config.territory.improvementCatalog);
     if (step.id === 'improve') return { id: 'improve', title: 'Melhorar', subtitle: c.hexId, nodes: improvements.map(kind => ({ id: kind, label: text(kind), icon: 'improve' as const, disabled: gate, onSelect: () => push('confirm-improve', kind) })), note: flash };
-    if (step.id === 'confirm-improve') { const kind = step.param!; return { id: `confirm-improve:${kind}`, title: text(kind), subtitle: c.hexId, nodes: [], card: <div className="ctx-card">{costChips(game.costs.improvements[kind])}<button type="button" className="ctx-go" disabled={gate !== null} onClick={() => void manage({ type:'IMPROVE_HEX', hexId: c.hexId, improvement: kind }).then(finish)}>Confirmar</button></div> }; }
-    if (step.id === 'confirm-road') return { id: 'confirm-road', title: 'Estrada', subtitle: c.hexId, nodes: [], card: <div className="ctx-card">{costChips(game.costs.road)}<button type="button" className="ctx-go" disabled={gate !== null} onClick={() => void send({ type:'BUILD_ROAD', hexId: c.hexId }).then(finish)}>Construir</button></div> };
-    const claim: CloudNode | null = claimCity ? { id: 'claim', label: 'Reivindicar', icon: 'claim', tone: 'dominant', badge: claimCity.name.split(' ')[0], hint: `Para ${claimCity.name}`, disabled: gate, onSelect: () => void manage({ type:'CLAIM_HEX', cityId: claimCity.id, hexId: c.hexId }).then(finish) } : null;
+    /** Territory works go through the same Ficha: the engine's preview names the cost, the Ordem and what is missing before anything is sent. */
+    const territoryFicha = (id: string, heading: string, confirmLabel: string, onConfirm: () => void): CloudLevel => ({ id, title: heading, subtitle: c.hexId, nodes: [], ficha: { h: 400 },
+      card: <ActionFicha title={`${heading} · ${c.hexId}`} preview={fichaPreview} gate={gate} confirmLabel={confirmLabel} onConfirm={onConfirm} /> });
+    if (step.id === 'confirm-improve') { const kind = step.param!; return territoryFicha(`confirm-improve:${kind}`, text(kind), `Confirmar ${text(kind)}`, () => void manage({ type:'IMPROVE_HEX', hexId: c.hexId, improvement: kind }).then(finish)); }
+    if (step.id === 'confirm-road') return territoryFicha('confirm-road', 'Estrada', 'Construir estrada', () => void send({ type:'BUILD_ROAD', hexId: c.hexId }).then(finish));
+    if (step.id === 'confirm-claim') { const target = civ.cities.find(city => city.id === step.param); return territoryFicha('confirm-claim', 'Reivindicar', 'Confirmar Reivindicar', () => target && void manage({ type:'CLAIM_HEX', cityId: target.id, hexId: c.hexId }).then(finish)); }
+    const claim: CloudNode | null = claimCity ? { id: 'claim', label: 'Reivindicar', icon: 'claim', tone: 'dominant', badge: claimCity.name.split(' ')[0], hint: `Para ${claimCity.name}`, disabled: gate, onSelect: () => push('confirm-claim', claimCity.id) } : null;
     const workCity = civ.cities.find(city => tile?.controllerCityId === city.id);
     const work: CloudNode | null = workCity && tile!.id !== workCity.hexId ? { id: 'work', label: 'Trabalhar', icon: 'produce', hint: `Escolher os hexes trabalhados por ${workCity.name}`, disabled: gate, onSelect: () => { close(); a.startWork(workCity.id); } } : null;
     const nodes: CloudNode[] = [claim, mine ? { id: 'improve', label: 'Melhorar', icon: 'improve', tone: claim ? 'alt' : 'dominant', disabled: gate, onSelect: () => push('improve') } : null, work, mine ? { id: 'road', label: 'Estrada', icon: 'road', disabled: gate, onSelect: () => push('confirm-road') } : null, detailsNode].filter((n): n is CloudNode => n !== null);

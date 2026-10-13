@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, type RefObject } from 'react';
 import { Icon } from './table-icons';
-import { layoutCloud, DEFAULT_SAFE, type Box, type Safe } from './cloud-layout';
+import { layoutCloud, DEFAULT_SAFE, type Safe } from './cloud-layout';
+import { useLitBoxes } from './cloud-boxes';
 import { useHexAnchor, useHostSize } from './table-cloud';
 import { pieceArt } from './table-art';
 import { LEG_COLORS } from './move-draft';
@@ -13,30 +14,6 @@ import { LEG_COLORS } from './move-draft';
 export interface FichaChip { id: string; kind: string; label: string; sub: string; /** Index of the leg that already carries this piece, or null. */ leg: number | null; picked: boolean }
 export interface FichaLeg { index: number; pieces: string; dest: string; /** "custo 3/4 · resta 1", or null while the preview has not answered. */ numbers: string | null; blockers: string[]; risk: string | null; turn: { count: number; index: number } | null }
 const svgFragment = (html: string) => ({ __html: html });
-
-/** Where the lit hexes are on screen (relative to the host), so the Ficha stands clear of them: it never hides the destination the player has to touch. */
-function useLitBoxes(host: RefObject<HTMLElement | null>): Box[] {
-  const [boxes, setBoxes] = useState<Box[]>([]);
-  useEffect(() => {
-    let frame = 0, last = '';
-    const read = () => {
-      const root = host.current;
-      if (root) {
-        const base = root.getBoundingClientRect(), found: Box[] = [];
-        root.querySelectorAll<SVGGraphicsElement>('.world-map .hex.target .hex-base, .world-map .region-back.is-target .region-back-edge').forEach(el => {
-          const b = el.getBoundingClientRect();
-          if (b.width > 0 && b.width < base.width * 0.6) found.push({ x: Math.round(b.left + b.width / 2 - base.left), y: Math.round(b.top + b.height / 2 - base.top), w: Math.round(b.width), h: Math.round(b.height) });
-        });
-        const signature = found.map(b => `${b.x},${b.y},${b.w}`).join('|');
-        if (signature !== last) { last = signature; setBoxes(found); }
-      }
-      frame = requestAnimationFrame(read);
-    };
-    read();
-    return () => cancelAnimationFrame(frame);
-  }, [host]);
-  return boxes;
-}
 
 export function MoveFicha({ host, hexId, safe = DEFAULT_SAFE, color, chips, legs, counter, note, block, onToggle, onRemove, onTurn, onConfirm, onCancel }: {
   host: RefObject<HTMLElement | null>; hexId: string; safe?: Safe; color: string; chips: FichaChip[]; legs: FichaLeg[];

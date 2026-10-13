@@ -5,7 +5,7 @@ import { AlphaHttp } from '../apps/server/src/alpha-http.js';
 import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { AlphaRoomSchema, InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
-import { connectAlphaContext, muteTour, cloudNode } from './alpha-fixture.js';
+import { connectAlphaContext, muteTour, cloudNode, confirmFicha } from './alpha-fixture.js';
 
 // V1.2 · urban planning and the emergency recovery from Revolta, through the real HTTP boundary with SEEDED states (same harness as interaction-v2).
 // E-1: in Revolta with nothing to pay Governar with, the free EMERGENCY_GOVERN leads the cloud. F-14: the activations left of a city come from the engine
@@ -58,6 +58,7 @@ test('Revolta without Cultura or Riqueza: the free emergency recovery leads the 
   await expect(cloudNode(page, 'PRODUCE')).toHaveAttribute('aria-disabled', 'true');
   await expect(cloudNode(page, 'PRODUCE')).toHaveAttribute('title', /Revolta/);
   await cloudNode(page, 'EMERGENCY_GOVERN').click();
+  await confirmFicha(page);
   await expect(page.locator('.table-cloud')).toHaveCount(0);
   await expect.poll(async () => (await planned(repository, room.id)).some(a => a.type === 'URBAN_ACTION' && a.action === 'EMERGENCY_GOVERN')).toBe(true);
   // The city has its only activation planned: the cloud now offers to swap the plan, not a second action.
@@ -83,6 +84,7 @@ test('Estável city: two activations; the second action is still offered after t
   const { page, repository, room } = await serve(browser, state);
   await city(page).click({ force: true });
   await cloudNode(page, 'PRODUCE').click();
+  await confirmFicha(page);
   await expect.poll(async () => (await planned(repository, room.id)).filter(a => a.type === 'URBAN_ACTION').length).toBe(1);
   await city(page).click({ force: true });
   await expect(cloudNode(page, 'BUILD')).not.toHaveAttribute('aria-disabled', 'true');   // the engine still has one activation for this city
@@ -93,6 +95,7 @@ test('Abalada city: one activation; after Produzir is planned the cloud says the
   const { page, repository, room } = await serve(browser, state);
   await city(page).click({ force: true });
   await cloudNode(page, 'PRODUCE').click();
+  await confirmFicha(page);
   await expect.poll(async () => (await planned(repository, room.id)).filter(a => a.type === 'URBAN_ACTION').length).toBe(1);
   await city(page).click({ force: true });
   await expect(cloudNode(page, 'cancel')).toBeVisible();                                   // the plan can be swapped

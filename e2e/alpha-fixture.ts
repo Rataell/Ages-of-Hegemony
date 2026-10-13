@@ -66,3 +66,10 @@ export async function openCatalog(page:import('@playwright/test').Page){
   const all=inspector.getByRole('tab',{name:'Ações',exact:true});
   if(await all.isVisible().catch(()=>false))await all.click();
 }
+/** Ficha de Ação: every urban action and territory work opened from the cloud ends in its Confirmar (enabled once the engine's preview answered). */
+export async function confirmFicha(page:import('@playwright/test').Page){
+  const go=page.locator('.table-cloud .afi .ctx-go');
+  await go.waitFor();
+  await expect(go).toBeEnabled();
+  await go.click();
+}

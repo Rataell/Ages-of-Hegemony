@@ -17,7 +17,8 @@ export const moodLabel = (n: number) => `Ânimo ${clampMood(n)} de 6, ${moodName
 /** The seal as an SVG fragment in a ±24 box centred on (0,0). */
 export function moodSealArt(n: number, showNum = true): string {
   const m = clampMood(n), [band, c] = BANDS[m]!;
-  let ring = `<circle r="15" fill="${PLATE}" stroke="${c}" stroke-width="3"/>`, face = '';
+  let ring = `<circle r="15" fill="${PLATE}" stroke="${c}" stroke-width="3"/>`;
+  let face: string;
   const eyes = `<circle cx="-5.2" cy="-3" r="1.9" fill="${c}"/><circle cx="5.2" cy="-3" r="1.9" fill="${c}"/>`;
   if (band === 'Próspera') {
     ring += [-40, -20, 0, 20, 40].map(a => `<path d="M0 -17.5 L0 -21.5" stroke="${c}" stroke-width="2" stroke-linecap="round" transform="rotate(${a})"/>`).join('');

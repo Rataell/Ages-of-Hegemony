@@ -5,7 +5,7 @@ import { AlphaGameService } from '../apps/server/src/alpha-service.js';
 import { InMemoryAlphaRepository } from '../apps/server/src/alpha-room.js';
 import { GuestSessions } from '../apps/server/src/guest-session.js';
 import { hexDistance } from '@aoh/game-engine';
-import { connectAlphaContext, openArea, toMap, muteTour, cloudNode, touchPiece, openCatalog, confirmMove } from './alpha-fixture.js';
+import { connectAlphaContext, openArea, toMap, muteTour, cloudNode, touchPiece, openCatalog, confirmMove, confirmFicha } from './alpha-fixture.js';
 
 // Browser integration uses the real HTTP/service/engine code with the explicit test repository.
 // PostgreSQL durability and deployed-network E2E remain separate mandatory release gates.
@@ -72,7 +72,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     await pa.locator(`svg.world-map [role=button][aria-label$=" ${claim.id}"]`).click();
     // The hex answers where it stands: Reivindicar is a node of its cloud, no side panel.
     await expect(pa.locator('.alpha-inspector')).toHaveCount(0);
-    await cloudNode(pa,'claim').click();
+    await cloudNode(pa,'claim').click();await confirmFicha(pa);
     await expect.poll(async()=>(await repository.find(gameId))!.game!.core.map.find(tile=>tile.id===claim.id)!.ownerId).toBe((await repository.find(gameId))!.game!.core.players[0]!.id);
     await pa.locator(`svg.world-map [role=button][aria-label$=" ${claim.id}"]`).click();
     await cloudNode(pa,'improve').click();await cloudNode(pa,'FARM').click();await pa.locator('.ctx-go').click();
@@ -154,7 +154,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     const boardB=pb.getByRole('dialog',{name:'Tabuleiro da Civilização'});
     await boardB.locator('button.alpha-node').filter({hasText:'Agricultura'}).first().click();
     await expect(boardB.locator('.alpha-node-detail')).toContainText('Custo:');
-    await boardB.getByRole('button',{name:/Pesquisar · Ordem Avanço/}).click();
+    await boardB.getByRole('button',{name:/Pesquisar · Ordem Avanço/}).click();await boardB.getByRole('button',{name:'Confirmar Pesquisar',exact:true}).click();
     await expect(pb.locator('.alpha-order-chip.is-used').filter({hasText:'Avanço'})).toHaveCount(1);
     await pb.keyboard.press('Escape');
     await expect(urbanB).toContainText('Ações planejáveis da cidade: 2 / 2');   // F-14: Avanço is its own Order and no longer uses a city activation
@@ -176,7 +176,7 @@ test('alpha: two browser identities, lobby, management, privacy, round and recon
     const boardA=pa.getByRole('dialog',{name:'Tabuleiro da Civilização'});
     await boardA.locator('button.alpha-node.is-reachable').first().click();
     await expect(boardA.locator('.alpha-node-detail')).toContainText('Custo:');
-    await boardA.getByRole('button',{name:/Pesquisar · Ordem Avanço/}).click();
+    await boardA.getByRole('button',{name:/Pesquisar · Ordem Avanço/}).click();await boardA.getByRole('button',{name:'Confirmar Pesquisar',exact:true}).click();
     // The command is in flight: the Avanço Order must show before the layer closes (and before any reload).
     await expect(pa.locator('.alpha-order-chip.is-used').filter({hasText:'Avanço'})).toHaveCount(1);
     await pa.keyboard.press('Escape');

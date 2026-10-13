@@ -10,6 +10,10 @@ import { GovernmentPanel } from './alpha-era-turn';
 import { StrategicSurface } from './strategic-surface';
 import { PanZoom } from './pan-zoom';
 import { CivilizationCard, FigureCard, StatusBadge, discoveryArtOf } from './alpha-card';
+import { ActionFicha } from './action-ficha';
+import { useActionPreview, type ActionPreviewData } from './action-preview';
+import { loadMemory, saveMemory } from './action-ficha-memory';
+import { remember } from './action-ficha-model';
 import { DomainGlyph, PlacedCube, ReservePile, ResonanceEcho, advanceName, tokenLabel } from './resonance-parts';
 
 const COMPOSITION_NAME = { DOMINANT: 'Dominante', HYBRID: 'Híbrida', PAIR: 'Par', CONFLUENCE: 'Confluência' } as const;
@@ -43,8 +47,10 @@ export function ChoiceParchment({ choice, locked, send }: { choice: AlphaPlayerV
 
 type Node = (typeof ADVANCEMENTS)[number];
 /** The selected advancement as ONE small card: [Resumo] [Desbloqueia] swap in place, so the card never grows over the Teia. */
-function NodeDetail({ node, done, why, opt, gate, cost, unlocks, locked, cityId, onResearch }: { node: Node; done: boolean; why: string | null; opt: { blocked: string | null } | undefined; gate: string | null; cost: Record<string, number>; unlocks: Node[]; locked: boolean; cityId: string | null; onResearch: (id: string) => void }) {
-  const [page, setPage] = useState<'summary' | 'unlocks'>('summary');
+function NodeDetail({ node, done, why, opt, gate, cost, unlocks, locked, cityId, cityName, roomId, version, onResearch }: { node: Node; done: boolean; why: string | null; opt: { blocked: string | null } | undefined; gate: string | null; cost: Record<string, number>; unlocks: Node[]; locked: boolean; cityId: string | null; cityName: string | null; roomId: string; version: number; onResearch: (id: string, preview: ActionPreviewData | null) => void }) {
+  const [page, setPage] = useState<'summary' | 'unlocks'>('summary'), [asking, setAsking] = useState(false);
+  // Pesquisar goes through the Ficha de Ação too: the engine names what is missing (resources, Era, prerequisite) before the Ordem Avanço is spent.
+  const preview = useActionPreview(roomId, asking && cityId ? { type: 'URBAN_ACTION', cityId, action: 'RESEARCH', advancementId: node.id } : null, version);
   const reason = done ? null : why ?? gate ?? opt?.blocked ?? null;
   const name = (id: string) => ADVANCEMENTS.find(n => n.id === id)?.name;
   return <article className="alpha-node-detail" aria-label={node.name}>
@@ -54,12 +60,14 @@ function NodeDetail({ node, done, why, opt, gate, cost, unlocks, locked, cityId,
       ? <p>{node.description}</p>
       : <>{node.prerequisites.length > 0 && <p>Requer: {node.prerequisites.map(name).join(' · ')}</p>}{node.prerequisitesAny.length > 0 && <p>Requer um de: {node.prerequisitesAny.map(name).join(' · ')}</p>}{node.excludes.length > 0 && <p>Fecha: {node.excludes.map(name).join(' · ')}</p>}<p>Abre: {unlocks.length ? unlocks.map(n => n.name).join(' · ') : 'nada além de si mesmo'}</p></>}</div>
     <div className="alpha-node-act">{!done && <span>Custo: {Object.entries(cost).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${text(k)}`).join(' · ') || 'nenhum'}</span>}{reason && !done && <small role="note">{reason}</small>}
-      <button type="button" className={reason === null && !done ? 'primary' : ''} disabled={locked || done || reason !== null || !cityId} onClick={() => onResearch(node.id)}>{done ? 'Marco permanente' : 'Pesquisar · Ordem Avanço'}</button></div>
+      {asking && !done && cityId
+        ? <div className="alpha-node-ficha"><ActionFicha title={`Pesquisar ${node.name}`} preview={preview} cityName={cityName} gate={locked ? 'Você já confirmou esta fase.' : null} confirmLabel="Confirmar Pesquisar" onConfirm={() => { onResearch(node.id, preview.status === 'ready' ? preview.data : null); setAsking(false); }} /><button type="button" className="afi-link" onClick={() => setAsking(false)}>Voltar</button></div>
+        : <button type="button" className={reason === null && !done ? 'primary' : ''} disabled={locked || done || !cityId} onClick={() => setAsking(true)}>{done ? 'Marco permanente' : 'Pesquisar · Ordem Avanço'}</button>}</div>
   </article>;
 }
 
 export type CivView = 'web' | 'heritage' | 'identity';
-export function AlphaCivBoard({ game, selfName, seatColor, cityId, locked, send, manage, onClose, initialView = 'web' }: { game: AlphaPlayerView; selfName: string; /** The player's own seat colour: every cube on this board is theirs. */ seatColor: string; cityId: string | null; locked: boolean; send: AlphaSend; manage: AlphaSend; onClose: () => void; initialView?: CivView }) {
+export function AlphaCivBoard({ game, roomId, selfName, seatColor, cityId, locked, send, manage, onClose, initialView = 'web' }: { game: AlphaPlayerView; roomId: string; selfName: string; /** The player's own seat colour: every cube on this board is theirs. */ seatColor: string; cityId: string | null; locked: boolean; send: AlphaSend; manage: AlphaSend; onClose: () => void; initialView?: CivView }) {
   const self = game.self;
   const kit = civilizationKit(self.civilization);
   const leader = LEADERS.find(l => l.id === self.leader?.leaderId);
@@ -115,7 +123,10 @@ export function AlphaCivBoard({ game, selfName, seatColor, cityId, locked, send,
   const node = selected ? ADVANCEMENTS.find(n => n.id === selected) ?? null : null;
   const heritage = heritageOf(self.civilization);
   const gate = cityActionGate(game, cityId, 'RESEARCH');
-  const research = (id: string) => void send({ type: 'URBAN_ACTION', cityId, action: 'RESEARCH', advancementId: id });
+  const research = (id: string, preview: ActionPreviewData | null = null) => void send({ type: 'URBAN_ACTION', cityId, action: 'RESEARCH', advancementId: id }).then(ok => {
+    if (ok && preview && cityId) saveMemory(roomId, [...loadMemory(roomId), remember(roomId, game.view.round, { cityId, action: 'RESEARCH', advancementId: id }, preview)]);
+  });
+  const cityName = game.view.player.civilization.cities.find(c => c.id === cityId)?.name ?? null;
   // Focus: the chosen advancement, what it needs and what it opens stay lit; the rest of the Teia recedes.
   const focus = (() => {
     if (!node) return null;
@@ -179,7 +190,7 @@ export function AlphaCivBoard({ game, selfName, seatColor, cityId, locked, send,
           })}
         </div>
       </PanZoom>
-        {node && <NodeDetail key={node.id} node={node} done={self.research.includes(node.id)} why={structuralBlock(self.research, self.era, node)} opt={game.urban.research.find(o => o.advancementId === node.id)} gate={gate} cost={game.costs.advancements[node.id] ?? {}} unlocks={ADVANCEMENTS.filter(n => n.prerequisites.includes(node.id) || n.prerequisitesAny.includes(node.id))} locked={locked} cityId={cityId} onResearch={research} />}
+        {node && <NodeDetail key={node.id} node={node} done={self.research.includes(node.id)} why={structuralBlock(self.research, self.era, node)} opt={game.urban.research.find(o => o.advancementId === node.id)} gate={gate} cost={game.costs.advancements[node.id] ?? {}} unlocks={ADVANCEMENTS.filter(n => n.prerequisites.includes(node.id) || n.prerequisitesAny.includes(node.id))} locked={locked} cityId={cityId} cityName={cityName} roomId={roomId} version={game.version} onResearch={research} />}
         </section>}
         {view === 'heritage' && <section className="alpha-civ-heritage alpha-civ-view" aria-label="Herança da Civilização">
         <h3>C · Herança da Civilização <small>só sua · não é a Teia universal</small></h3>

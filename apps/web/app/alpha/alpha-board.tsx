@@ -11,6 +11,9 @@ import { ArmyList, compositionText } from './alpha-army';
 import { CasualtyPriority } from './alpha-casualties';
 import { trackUi } from './telemetry';
 import { useTable } from './alpha-table';
+import { AppliedResultBlock } from './action-ficha';
+import { appliedSummary, memoryFor } from './action-ficha-model';
+import { loadMemory } from './action-ficha-memory';
 import { LeaveGame } from './alpha-leave';
 import { AlphaGuide } from './alpha-guide';
 import { POSTURES } from './alpha-combat';
@@ -148,6 +151,9 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
   const conflictCall=game.phase==='CONFLICTS'&&!game.self.ready&&!game.winner&&(game.incomingAttacks.length>0||game.self.orders.some(o=>o.type==='ATTACK'));
   const latestReport=game.roundReports.at(-1),replay=!conflictCall&&!game.winner&&game.phase!=='ERA_TURN'&&latestReport&&latestReport.resolution.length>0&&latestReport.round>dismissedResolution?latestReport:null;
   const resolution=latestReport?.resolution.slice(-8)??[];
+  /** Resultado: the applied effects of each planned urban action, compared with the preview this browser kept when the player confirmed it (never invented: without it, the applied alone). */
+  const kept=useMemo(()=>latestReport?loadMemory(room.id):[],[room.id,latestReport?.round,game.version]);
+  const appliedOf=(event:NonNullable<typeof latestReport>['resolution'][number],compact:boolean)=>event.applied?<AppliedResultBlock applied={event.applied} compact={compact} memory={memoryFor(kept,event.round,event,latestReport!.resolution,event.id)}/>:null;
   /** Results on their targets: during the round's resolution, a halo and tag on each event's hex; while a card's round bonus
    * lasts, a seal on the pieces it strengthens or speeds (not only a toast). */
   const EVENT_TAG:Record<string,string>={MOVEMENT:'Movimento',EXPLORATION:'Exploração',DISCOVERY:'Região revelada',FOUNDATION:'Fundação',PRODUCTION:'Produção',CONSTRUCTION:'Obra',RECRUITMENT:'Recrutamento',RESEARCH:'Pesquisa',TRADE:'Comércio',INFLUENCE:'Influência',COMBAT:'Combate',LOSSES:'Perdas',RETREAT:'Recuo',ADVANCE:'Avanço',FAILURE:'Não ocorreu',ROUND_EVENT:'Evento'};
@@ -163,7 +169,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
     ...planMarks,
     ...pingMarks,
     ...game.cityMarks.filter(mark=>mark.blockaded).map(mark=>({hexId:mark.hexId,label:'Porto bloqueado',tone:'loss' as const})),
-    ...(replay?replay.resolution.filter(event=>event.hexId).map(event=>({hexId:event.hexId!,label:EVENT_TAG[event.type]??text(event.type),tone:(event.type==='LOSSES'||event.type==='FAILURE'?'loss':'event') as 'loss'|'event'})):[]),
+    ...(replay?replay.resolution.filter(event=>event.hexId).map(event=>{const sum=event.applied?appliedSummary(event.applied):null;return {hexId:event.hexId!,label:`${EVENT_TAG[event.type]??text(event.type)}${sum?.text?` · ${sum.text}`:''}`,tone:(event.type==='LOSSES'||event.type==='FAILURE'||sum?.loss?'loss':'event') as 'loss'|'event'};}):[]),
     ...[...new Set(ownUnits.map(u=>u.hexId))].flatMap(hexId=>{const here=ownUnits.filter(u=>u.hexId===hexId),fights=here.some(u=>(game.rules.units[u.kind]?.strength??0)>0);return [
       ...(fights&&bonusTotal('STRENGTH')?[{hexId,label:`+${bonusTotal('STRENGTH')} Força`,tone:'card' as const}]:[]),
       ...(bonusTotal('MOVEMENT')?[{hexId,label:`+${bonusTotal('MOVEMENT')} mov.`,tone:'card' as const}]:[])];}),
@@ -177,7 +183,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
   const openDetails=(next:Inspector,wantCatalog=false)=>{setInspector(next);if(next==='city')setCityPage(wantCatalog?'actions':'summary');setPanels(old=>({...old,inspector:true}));};
   const workCity=civ.cities.find(c=>c.id===selectedCity);
   const startWork=(cityId:string)=>{const target=civ.cities.find(c=>c.id===cityId);if(!target)return;setSelectedCity(cityId);setWorked(target.workedHexIds);setWorking(true);};
-  const table=useTable({game,roomId:room.id,selfId:room.selfPlayerId,startWork,work:working&&workCity?{cityName:workCity.name,origin:workCity.hexId,count:worked.length,limit:workCity.workers.producers,onConfirm:()=>{void manage({type:'ASSIGN_WORKED_HEXES',cityId:workCity.id,hexIds:worked}).then(ok=>{if(ok)setWorking(false);});},onCancel:()=>setWorking(false)}:null,locked,send,queue,manage,host:hostRef,describeOrder:orderLabel,hold:tab!=='world'||civOpen,safe:{top:78,right:panels.inspector?400:16,bottom:98,left:16},openDetails,openBook:next=>{setTab(next);}});
+  const table=useTable({game,roomId:room.id,selfId:room.selfPlayerId,color:seatColor(Math.max(0,game.players.findIndex(p=>p.id===room.selfPlayerId))),startWork,work:working&&workCity?{cityName:workCity.name,origin:workCity.hexId,count:worked.length,limit:workCity.workers.producers,onConfirm:()=>{void manage({type:'ASSIGN_WORKED_HEXES',cityId:workCity.id,hexIds:worked}).then(ok=>{if(ok)setWorking(false);});},onCancel:()=>setWorking(false)}:null,locked,send,queue,manage,host:hostRef,describeOrder:orderLabel,hold:tab!=='world'||civOpen,safe:{top:78,right:panels.inspector?400:16,bottom:98,left:16},openDetails,openBook:next=>{setTab(next);}});
   useEffect(()=>{if(tab!=='world'||civOpen)table.close();},[tab,civOpen]);
   /** Closed hexes a piece can enter whose Region carries `frontierRisk.danger === 'POSSIBLE'`: the amber warning shows while the map is answering a Move (never the fact of a Perigo). */
   const dangerHexes=useMemo(()=>{
@@ -216,7 +222,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
     </header>
     <RoomBanners room={room} send={roomSend} connection={connection}/><NoticeToast notices={room.notices}/>
     {cloud&&<ReactionCloud anchor={cloud} onClose={()=>setCloud(null)} onPick={code=>{social({type:'REACT',reaction:code});}}/>}
-    {replay&&<section className="alpha-resolution-phase" role="status" aria-label="Resolvendo a rodada"><p className="eyebrow">RESOLVENDO A RODADA {replay.round}</p><h2>Resultados autorizados</h2><ol>{replay.resolution.map(event=><li key={event.id}><b>{text(event.type)}</b><span>{event.message}</span></li>)}</ol><button className="primary" onClick={()=>setDismissedResolution(replay.round)}>Continuar</button></section>}
+    {replay&&<section className="alpha-resolution-phase" role="status" aria-label="Resolvendo a rodada"><p className="eyebrow">RESOLVENDO A RODADA {replay.round}</p><h2>Resultados autorizados</h2><ol>{replay.resolution.map(event=><li key={event.id}><b>{text(event.type)}</b><span>{event.message}</span>{appliedOf(event,false)}</li>)}</ol><button className="primary" onClick={()=>setDismissedResolution(replay.round)}>Continuar</button></section>}
     {ambitionsPending&&!ambitionsLater&&!replay&&<div className="alpha-modal-backdrop"><section className="alpha-modal" role="dialog" aria-modal="true" aria-labelledby="alpha-ambitions-title"><p className="eyebrow">ANTES DO PRIMEIRO PLANEJAMENTO</p><AmbitionChooser game={game} locked={locked} send={send}/><button type="button" onClick={()=>setAmbitionsLater(true)}>Ver o mapa primeiro</button><button type="button" onClick={()=>{setAmbitionsLater(true);setGuideOpen(true);}}>Como jogar</button></section></div>}
     {guideOpen&&<AlphaGuide game={game} onClose={()=>setGuideOpen(false)}/>}
     {!game.winner&&!(ambitionsPending&&!ambitionsLater)&&<AlphaTour game={game} roomId={room.id} open={tour} onOpenChange={setTour} suspended={tipsSuspended({phase:game.phase,conflictCall,replay:!!replay,winner:!!game.winner})}/>}
@@ -258,7 +264,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
         </div>
       </aside>:<button type="button" className="aoh-btn is-sm alpha-context-open" onClick={()=>togglePanel('inspector')}>Detalhes</button>}
     </div>
-    {civOpen&&tab==='world'&&<AlphaCivBoard initialView={civView} game={game} selfName={player.name} seatColor={seatOf(room.selfPlayerId).color} cityId={city?.id??null} locked={locked} send={send} manage={manage} onClose={()=>setCivOpen(false)}/>}
+    {civOpen&&tab==='world'&&<AlphaCivBoard initialView={civView} game={game} roomId={room.id} selfName={player.name} seatColor={seatOf(room.selfPlayerId).color} cityId={city?.id??null} locked={locked} send={send} manage={manage} onClose={()=>setCivOpen(false)}/>}
     {!civOpen&&game.phase!=='ERA_TURN'&&!replay&&tab==='world'&&!compendiumOpen&&<RegionRevealed reveal={reveal} game={game} locked={locked} send={send}/>}
     {compendiumOpen&&<AlphaCompendium onClose={()=>setCompendiumOpen(false)}/>}
     {!civOpen&&game.phase!=='ERA_TURN'&&!replay&&!(reveal.current&&reveal.current.kind!=='NONE'&&tab==='world'&&!compendiumOpen)&&game.self.pendingChoices[0]&&tab==='world'&&<div className="alpha-parchment-pop"><ChoiceParchment choice={game.self.pendingChoices[0]} locked={locked} send={send}/></div>}
@@ -284,7 +290,7 @@ export default function AlphaBoard({room,busy,send,theme,onTheme,onLeave,roomSen
       <span className="alpha-orders" aria-label="Ordens usadas por tipo">{AlphaOrderTypeSchema.options.filter(type=>game.actions.byOrder[type]>0).map(type=>{const n=game.actions.byOrder[type];return <span key={type} className="alpha-order-chip is-used" title={`${ORDER_NAMES[type]}: ${n}${type==='EXPEDITION'?' · Mover (inclui descobrir), Atacar e Fundar':''}`}>{ORDER_NAMES[type]}<b>{n}</b></span>;})}</span>
       <span className="alpha-tray-ready" role="status">{game.players.filter(p=>p.ready).length} / {game.players.length} prontos</span>
       <details className="alpha-action-queue"><summary>Ordens planejadas {game.actions.reserved} / {game.actions.limit}</summary><div>{planned.map(action=><p key={action.id}><span>{action.label}</span><button disabled={locked} onClick={()=>void send({type:'CANCEL_ORDER',orderId:action.id})}>Cancelar</button></p>)}{planned.length===0&&<small>Nenhuma ação reservada.</small>}</div></details>
-      {resolution.length>0&&<details className="alpha-resolution-log"><summary>Última resolução</summary><ol>{resolution.map(event=><li key={event.id}>{event.message}</li>)}</ol></details>}
+      {resolution.length>0&&<details className="alpha-resolution-log"><summary>Última resolução</summary><ol>{resolution.map(event=><li key={event.id}>{event.message}{appliedOf(event,true)}</li>)}</ol></details>}
       {ambitionsPending?<button className="primary advance-phase-btn" disabled={locked} onClick={()=>setAmbitionsLater(false)}>Escolher ambições</button>:<>{game.self.ready&&!game.winner&&<button className="alpha-unready" disabled={busy} title="Retira sua confirmação enquanto outras pessoas decidem" onClick={()=>void send({type:'UNREADY'})}>Voltar a planejar</button>}<button className={`${cardFocus||replay||tab!=='world'||conflictCall||game.phase==='ERA_TURN'||game.winner||(ambitionsPending&&!ambitionsLater)?"":"primary "}advance-phase-btn`} disabled={locked} onClick={()=>{if(game.phase==='PLANNING'&&planningWarnings.length&&!checkOpen){setCheckOpen(true);return;}setCheckOpen(false);void send({type:'READY'});}}>{game.self.ready?'Aguardando outras pessoas':game.phase==='CONFLICTS'?'Passar / pronto':game.phase==='PLANNING'?'Confirmar planejamento':game.phase==='ERA_TURN'?'Confirmar Virada':'Concluir fase'}</button></>}
     </footer>
   </>;

@@ -1,0 +1,102 @@
+/* ===== Ficha de Ação · Estado atual → Elegibilidade → Custo → Previsto → Confirmar → Aplicado (Cena E of the Mesa Viva) =====
+   Tokens only (dark and light both hold); same glass language as the Table cloud. Loaded after table-cloud.css. */
+.ctx-plate.has-ficha { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.ctx-plate.is-top, .ctx-plate.is-sheet { transform: translateX(-50%); animation: ctx-sheet 150ms var(--ctx-ease, ease) both; }
+@keyframes ctx-sheet { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%); } }
+.table-cloud[data-phase='out'] .ctx-plate.is-top, .table-cloud[data-phase='out'] .ctx-plate.is-sheet { transform: translateX(-50%) translateY(10px); }
+
+.afi { --afi-ok: #8fcf93; --afi-bad: var(--danger, #e08a7a); --afi-warn: #e6b556; display: grid; gap: 6px; margin-top: 6px; font-size: 12px; line-height: 1.35; color: var(--text-primary); }
+.afi[aria-busy='true'] .afi-band.is-stale { opacity: .62; }
+.afi-flow { display: flex; align-items: center; gap: 8px; }
+.afi-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 3px; }
+.afi-steps li { width: 19px; height: 19px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--border); font-size: 10.5px; font-weight: 600; color: var(--text-secondary); opacity: .5; }
+.afi-steps li.is-on { opacity: 1; border-color: var(--accent); color: var(--accent); }
+.afi-steps li.is-bad { opacity: 1; border-color: var(--afi-bad); color: var(--afi-bad); }
+.afi-step-now { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.afi-step-now.is-bad { color: var(--afi-bad); }
+
+.afi-band { display: grid; gap: 3px; padding: 5px 8px; border-radius: 9px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 55%, transparent); }
+.afi-band.is-ok { border-color: color-mix(in srgb, var(--afi-ok) 55%, var(--border)); }
+.afi-band.is-bad { border-color: var(--afi-bad); background: color-mix(in srgb, var(--afi-bad) 8%, transparent); }
+.afi-band.is-dim { opacity: .55; }
+.afi-cap { font: 600 10px/1.2 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary); }
+.afi-mute { color: var(--text-secondary); }
+.afi-stateline { display: flex; align-items: center; gap: 7px; }
+.afi-seal { display: inline-flex; flex: none; }
+.afi-seal svg { display: block; }
+.afi-line { display: block; }
+.afi-inline { display: flex; flex-wrap: wrap; gap: 1px 12px; }
+.afi-stack { display: grid; gap: 2px; }
+.afi-line.is-ok { color: var(--afi-ok); }
+.afi-line.is-bad { color: var(--afi-bad); }
+.afi-line.is-warn { color: var(--afi-warn); }
+.afi-hint { display: block; color: var(--text-secondary); font-size: 11px; }
+
+.afi-costs { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.afi-chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; min-height: 22px; border-radius: 999px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 60%, transparent); font-size: 11.5px; }
+.afi-chip .resources { margin: 0; gap: 4px; }
+.afi-chip .resource b { font-size: 12px; display: inline; }
+.afi-chip small { color: var(--text-secondary); font-size: 11px; }
+.afi-chip small b { color: var(--text-primary); }
+.afi-chip.is-short { border-color: var(--afi-bad); }
+.afi-chip.is-short small b { color: var(--afi-bad); }
+.afi-chip.is-warn { border-color: var(--afi-warn); color: var(--afi-warn); }
+.afi-chip.is-free { color: var(--text-secondary); }
+
+/* Previsto: dashed, nothing was applied. Aplicado: solid. */
+.afi-pred { border-style: dashed; border-color: color-mix(in srgb, var(--accent) 70%, var(--border)); }
+.afi-effects { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.afi-effects li { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 7px; }
+.afi-effects li.is-loss, .afi-effects li.is-loss b { color: var(--afi-bad); }
+.afi-delta { font-style: normal; color: var(--text-secondary); }
+.afi-tag { padding: 0 6px; border-radius: 999px; border: 1px dashed var(--border); font-size: 10.5px; color: var(--text-secondary); }
+.afi-note { flex-basis: 100%; color: var(--text-secondary); font-size: 11px; }
+.afi-mood-change { display: inline-flex; align-items: center; gap: 4px; }
+.afi-mood-change i { font-style: normal; color: var(--accent); }
+.afi-warn { margin: 0; color: var(--afi-warn); font-size: 11.5px; }
+.afi-foot { display: grid; gap: 4px; position: sticky; bottom: 0; z-index: 1; margin: 0 -10px -8px; padding: 6px 10px 8px; background: color-mix(in srgb, var(--surface) 94%, var(--bg, #0b1114)); border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent); border-radius: 0 0 12px 12px; }
+.afi-foot .ctx-why { color: var(--text-secondary); font-size: 11.5px; line-height: 1.35; }
+.afi-applied { border-style: solid; opacity: .8; }
+.afi-applied.is-pending { border-color: var(--border); }
+
+/* Controls (Governar levels, Recrutar quantity) */
+.afi-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 5px 8px; border-radius: 9px; border: 1px solid var(--border); }
+.afi-stepper { display: inline-flex; align-items: center; gap: 4px; }
+.afi-stepper button { min-width: 32px; min-height: 32px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); font-size: 16px; cursor: pointer; }
+.afi-stepper button:disabled { opacity: .4; cursor: not-allowed; }
+.afi-stepper button:not(:disabled):hover, .afi-stepper button:focus-visible { border-color: var(--accent); }
+.afi-stepper output { min-width: 2ch; text-align: center; font-weight: 700; font-size: 14px; }
+.afi-unit { display: inline-flex; align-items: center; gap: 6px; }
+.afi-unit svg { flex: none; }
+.afi-minis { display: flex; flex-wrap: wrap; gap: 0; padding: 4px 6px; border-radius: 8px; border: 1px dashed var(--accent); background: color-mix(in srgb, var(--surface) 70%, transparent); width: fit-content; max-width: 100%; }
+.afi-minis svg { margin-right: -4px; }
+
+.afi-link { padding: 3px 9px; min-height: 28px; border-radius: 999px; border: 1px dashed var(--border); background: transparent; color: var(--text-secondary); font: inherit; font-size: 11.5px; cursor: pointer; text-align: left; }
+.afi-link:hover, .afi-link:focus-visible { border-color: var(--accent); color: var(--text-primary); }
+.afi-mood-pick { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+.afi-mood-pick i { font-style: normal; color: var(--accent); }
+.alpha-node-ficha { display: grid; gap: 4px; min-width: min(340px, 100%); }
+
+/* Resultado (Última resolução / Resolvendo a rodada) */
+.afi-applied-block { display: grid; gap: 4px; margin-top: 4px; padding: 5px 8px; border-radius: 9px; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); background: color-mix(in srgb, var(--surface) 60%, transparent); font-size: 12px; text-align: left; }
+.afi-applied-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.afi-same { color: #8fcf93; font-weight: 600; }
+.afi-diff { color: #e6b556; font-weight: 600; }
+.afi-compare { display: grid; gap: 2px; font-size: 11.5px; color: var(--text-secondary); }
+.afi-compare small { color: #e6b556; }
+.afi-applied-block .afi-effects li.is-loss { color: var(--afi-bad, #e08a7a); }
+.afi-applied-block .afi-chip { font-size: 11px; }
+
+@media (prefers-reduced-motion: reduce) { .ctx-plate.is-top, .ctx-plate.is-sheet { animation: none; } }
+
+/* Phones: the Ficha is a compact SHEET (Estado on one line, no step row), clear of the piece it was born on. */
+@media (max-width: 760px) {
+  .afi { gap: 4px; margin-top: 4px; font-size: 12.5px; }
+  .afi-band { padding: 4px 7px; }
+  .afi-stateline { gap: 5px; }
+  .afi-stateline > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .afi-foot { margin: 0 -8px -6px; padding: 6px 8px; }
+  .afi-foot .ctx-go { min-height: 44px; }
+  .afi-stepper button { min-width: 44px; min-height: 44px; }
+  .ctx-plate.is-sheet { width: min(420px, calc(100% - 20px)) !important; box-sizing: border-box; }
+}
