@@ -7,7 +7,7 @@ import { affordability, alphaCostWithMetal, alphaPay, alphaResourcePayment, type
 import { alphaActionUsage } from './alpha-actions.js';
 import { LEGAL_COMMANDS } from './alpha-phases.js';
 import { activationCapacity, cityPair, districtSlots, governQuote, moodBand, recruitLimit } from './alpha-city.js';
-import { cityGate, cityActivations, performUrbanAction, plannedTrial, produceBreakdown, syncCityMetadata, urbanBlock, urbanCost, type PlanTrial, type UrbanParams } from './alpha-urban.js';
+import { cityGate, cityActivations, performUrbanAction, plannedTrial, produceBreakdown, syncCityMetadata, trialNote, urbanBlock, urbanCost, type PlanTrial, type UrbanParams } from './alpha-urban.js';
 import { RESOURCE_PT, ERA_PT, LEVEL_PT, activationOf, advanceName, appliedUrban, eraNumber, orderCharge, resourceDelta, type UrbanPlan } from './alpha-applied.js';
 import { foodEatenOf } from './alpha-growth.js';
 import { hasUnlock } from './alpha-institutions.js';
@@ -188,7 +188,9 @@ function govBlockers(state: AlphaState, actor: PlayerId, plan: UrbanPlan, engine
     const have = state.players.find(player => player.playerId === actor)!.resources;
     const stage = quote.blockers.length ? '' : 'Na resolução: ';
     const pool = quote.blockers.length ? have : trial!.state.players.find(player => player.playerId === actor)!.resources;
-    list.push(blockerOf(blocker.code === 'NO_RESOURCE' || blocker.code === 'REPAIR_NO_STONE' ? 'NO_RESOURCE' : blocker.code, `${stage}${blocker.message}`, blocker.missing ? { missing: { kind: 'RESOURCE', id: blocker.missing.resource, have: pool[blocker.missing.resource], need: pool[blocker.missing.resource] + blocker.missing.amount }, ...(blocker.missing.resource === 'wealth' ? { unlock: `Ou 1 Cultura por nível` } : {}) } : {}));
+    // When only the stock the earlier plans leave is short, the message names the plan that took the resource (never just "you have 0").
+    const named = stage && trial ? ` ${trialNote(trial)}` : '';
+    list.push(blockerOf(blocker.code === 'NO_RESOURCE' || blocker.code === 'REPAIR_NO_STONE' ? 'NO_RESOURCE' : blocker.code, `${stage}${blocker.message}${named}`, blocker.missing ? { missing: { kind: 'RESOURCE', id: blocker.missing.resource, have: pool[blocker.missing.resource], need: pool[blocker.missing.resource] + blocker.missing.amount }, ...(blocker.missing.resource === 'wealth' ? { unlock: `Ou 1 Cultura por nível` } : {}) } : {}));
   }
   if (list.length === 0) list.push(blockerOf(/nível/.test(engineMessage) ? 'LEVELS' : 'RULE', engineMessage));
   return list;

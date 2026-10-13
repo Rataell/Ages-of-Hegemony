@@ -145,7 +145,7 @@ const earlierPlansNote = (state: AlphaState, actor: PlayerId): string => {
   const done = state.events.filter(event => event.round === state.core.round && event.type === 'URBAN_ACTION' && event.audience?.includes(actor)).map(event => event.message.replace(/\.$/, ''));
   return done.length ? ` Planos anteriores desta rodada já resolvidos: ${done.join('; ')}.` : '';
 };
-const trialNote = (trial: PlanTrial): string => {
+export const trialNote = (trial: PlanTrial): string => {
   const lines = trial.used.map(item => `${item.label}${item.spent ? ` (gasta ${item.spent})` : ''}${item.mood ? ` (Ânimo ${item.mood > 0 ? '+' : ''}${item.mood})` : ''}`);
   return lines.length ? `Planos anteriores desta rodada: ${lines.join('; ')}.` : 'Planos anteriores desta rodada mudam o cenário.';
 };
