@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SAFE, NODE, layoutCloud } from '../apps/web/app/alpha/cloud-layout.js';
+import { DEFAULT_SAFE, NODE, PHONE_BOTTOM, layoutCloud, phoneSafe } from '../apps/web/app/alpha/cloud-layout.js';
 
 // Interaction Model V2: the cloud is anchored to the piece, always inside the safe area, never on top of the piece and never overlapping itself.
 const size = { w: 1280, h: 720 }, plate = { w: 184, h: 54 }, card = { w: 252, h: 168 };
@@ -34,5 +34,14 @@ describe('Table cloud layout', () => {
 
   it('keeps nodes big enough to touch', () => {
     expect(NODE.h).toBeGreaterThanOrEqual(36); expect(NODE.w).toBeGreaterThanOrEqual(96);
+  });
+});
+
+describe('phone safe area', () => {
+  it('keeps a Ficha or sheet above the 118 px tray, the map tools and the hand drawer on phones only', () => {
+    expect(phoneSafe(DEFAULT_SAFE, 390).bottom).toBe(PHONE_BOTTOM);
+    expect(phoneSafe(DEFAULT_SAFE, 760).bottom).toBe(PHONE_BOTTOM);
+    expect(phoneSafe(DEFAULT_SAFE, 1280)).toBe(DEFAULT_SAFE);
+    expect(phoneSafe({ ...DEFAULT_SAFE, bottom: 220 }, 390).bottom).toBe(220);   // never reduces a larger margin
   });
 });

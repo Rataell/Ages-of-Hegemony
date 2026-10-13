@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, type RefObject } from 'react';
 import { Icon } from './table-icons';
-import { layoutCloud, DEFAULT_SAFE, type Safe } from './cloud-layout';
+import { layoutCloud, phoneSafe, DEFAULT_SAFE, type Safe } from './cloud-layout';
 import { useLitBoxes } from './cloud-boxes';
 import { useHexAnchor, useHostSize } from './table-cloud';
 import { pieceArt } from './table-art';
@@ -15,7 +15,7 @@ export interface FichaChip { id: string; kind: string; label: string; sub: strin
 export interface FichaLeg { index: number; pieces: string; dest: string; /** "custo 3/4 · resta 1", or null while the preview has not answered. */ numbers: string | null; blockers: string[]; risk: string | null; turn: { count: number; index: number } | null }
 const svgFragment = (html: string) => ({ __html: html });
 
-export function MoveFicha({ host, hexId, safe = DEFAULT_SAFE, color, chips, legs, counter, note, block, onToggle, onRemove, onTurn, onConfirm, onCancel }: {
+export function MoveFicha({ host, hexId, safe: safeProp = DEFAULT_SAFE, color, chips, legs, counter, note, block, onToggle, onRemove, onTurn, onConfirm, onCancel }: {
   host: RefObject<HTMLElement | null>; hexId: string; safe?: Safe; color: string; chips: FichaChip[]; legs: FichaLeg[];
   counter: { used: number; max: number | null; over: boolean }; note: string | null; block: string | null;
   onToggle: (id: string) => void; onRemove: (index: number) => void; onTurn: (index: number, step: 1 | -1) => void; onConfirm: () => void; onCancel: () => void;
@@ -27,6 +27,7 @@ export function MoveFicha({ host, hexId, safe = DEFAULT_SAFE, color, chips, legs
     return () => window.removeEventListener('keydown', onKey, true);
   }, [onCancel]);
   if (!anchor || !size) return null;
+  const safe = phoneSafe(safeProp, size.w);
   const plate = { w: 316, h: 118 + legs.length * 50 + (note ? 30 : 0) + (block ? 30 : 0) + Math.ceil(chips.length / 2) * 4 };
   // The Ficha stands clear of the lit destinations AND of every piece, city and warrior (6 px margin).
   const place = layoutCloud(anchor, size, safe, 0, plate, lit.map(b => ({ ...b, w: b.w + 12, h: b.h + 12 })));

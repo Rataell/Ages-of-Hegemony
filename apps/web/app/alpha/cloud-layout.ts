@@ -1,6 +1,9 @@
 /** Geometry of the Table cloud, kept free of React so it can be tested: where the nodes and the plate go around an anchor. */
 export interface Safe { top: number; right: number; bottom: number; left: number }
 export const DEFAULT_SAFE: Safe = { top: 78, right: 16, bottom: 98, left: 16 };
+/** On a phone the tray is 118 px tall with the map tools and the hand drawer above it (alpha.css): a Ficha or sheet must end above all of that, or the bar hides its Confirmar button. */
+export const PHONE_BOTTOM = 174;
+export function phoneSafe(safe: Safe, width: number): Safe { return width <= 760 && safe.bottom < PHONE_BOTTOM ? { ...safe, bottom: PHONE_BOTTOM } : safe; }
 export interface Anchor { x: number; y: number; r: number }
 export interface Size { w: number; h: number }
 

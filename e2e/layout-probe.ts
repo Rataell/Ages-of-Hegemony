@@ -20,10 +20,13 @@ export async function collisions(page: Page, tol = 1.5) {
 /** Overlays (the Ficha, its title plate, warnings, the bottom tray and the hand) against the boxes of every priority illustration: during an action nothing important may be hidden. */
 export async function overlaysOver(page: Page, tol = 2) {
   return page.evaluate(tolerance => {
+    // The map is larger than the screen: pieces of a far region may sit under the permanent bars at the edge. The bars are judged against the pieces around the city being acted on (260 px); the Ficha and its plate against every piece.
+    const home = document.querySelector('.world-map g.hex.owner-1 .art-city')?.getBoundingClientRect();
+    const near = (e: { x: number; y: number; w: number; h: number }) => !home || Math.hypot(e.x + e.w / 2 - (home.left + home.width / 2), e.y + e.h / 2 - (home.top + home.height / 2)) < 260;
     const ents = [...document.querySelectorAll<SVGGraphicsElement>('.world-map .art-city, .world-map .art-piece, .world-map .threat-art [data-class], .world-map .threat-tent')].map(el => { const b = el.getBoundingClientRect(); return { n: el.getAttribute('class')?.split(' ')[0] ?? 'ent', x: b.left, y: b.top, w: b.width, h: b.height }; }).filter(b => b.w > 0 && b.h > 0);
-    const overlays = [...document.querySelectorAll<HTMLElement>('.table-cloud .ctx-plate, .table-cloud .ctx-ficha, .alpha-tray, .alpha-ready-check, .alpha-resolution-phase')].map(el => { const b = el.getBoundingClientRect(); return { n: el.className.toString().split(' ')[0], x: b.left, y: b.top, w: b.width, h: b.height }; }).filter(b => b.w > 0 && b.h > 0);
+    const overlays = [...document.querySelectorAll<HTMLElement>('.table-cloud .ctx-plate, .table-cloud .ctx-ficha, .alpha-tray, .alpha-round-bar, .alpha-ready-check, .alpha-resolution-phase')].map(el => { const b = el.getBoundingClientRect(); return { n: el.className.toString().split(' ')[0] ?? '', x: b.left, y: b.top, w: b.width, h: b.height }; }).filter(b => b.w > 0 && b.h > 0);
     const bad: string[] = [];
-    for (const o of overlays) for (const e of ents) { const ox = Math.min(o.x + o.w, e.x + e.w) - Math.max(o.x, e.x), oy = Math.min(o.y + o.h, e.y + e.h) - Math.max(o.y, e.y); if (ox > tolerance && oy > tolerance) bad.push(`${o.n} covers ${e.n} (${ox.toFixed(0)}x${oy.toFixed(0)})`); }
+    for (const o of overlays) for (const e of ents) { if (/tray|round-bar|ready-check|resolution/.test(o.n) && !near(e)) continue; const ox = Math.min(o.x + o.w, e.x + e.w) - Math.max(o.x, e.x), oy = Math.min(o.y + o.h, e.y + e.h) - Math.max(o.y, e.y); if (ox > tolerance && oy > tolerance) bad.push(`${o.n} covers ${e.n} (${ox.toFixed(0)}x${oy.toFixed(0)})`); }
     return { overlays: overlays.length, bad };
   }, tol);
 }

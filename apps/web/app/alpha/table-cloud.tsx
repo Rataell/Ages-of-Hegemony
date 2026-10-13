@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { Icon, type IconName } from './table-icons';
-import { layoutCloud, type Anchor, type Safe, type Size } from './cloud-layout';
+import { layoutCloud, phoneSafe, type Anchor, type Safe, type Size } from './cloud-layout';
 import { useLitBoxes } from './cloud-boxes';
 import { useCompactFicha } from './action-ficha';
 
@@ -82,7 +82,7 @@ export function ContextActionNode({ node, x, y, dx, dy, index }: { node: CloudNo
   </button>;
 }
 
-export function TableContextCloud({ host, hexId, level, canBack, onBack, onClose, safe = DEFAULT_SAFE }: { host: RefObject<HTMLElement | null>; hexId: string; level: CloudLevel; canBack: boolean; onBack: () => void; onClose: () => void; safe?: Safe }) {
+export function TableContextCloud({ host, hexId, level, canBack, onBack, onClose, safe: safeProp = DEFAULT_SAFE }: { host: RefObject<HTMLElement | null>; hexId: string; level: CloudLevel; canBack: boolean; onBack: () => void; onClose: () => void; safe?: Safe }) {
   const anchor = useHexAnchor(hexId, host), size = useHostSize(host), { shown, phase } = useMorph(level);
   const root = useRef<HTMLDivElement | null>(null), compact = useCompactFicha(), avoid = useLitBoxes(host, !!shown.ficha, true);
   useEffect(() => {
@@ -92,6 +92,7 @@ export function TableContextCloud({ host, hexId, level, canBack, onBack, onClose
   }, [canBack, onBack, onClose]);
   useEffect(() => { if (phase === 'in') root.current?.querySelector<HTMLButtonElement>('button.ctx-node, .ctx-plate button')?.focus({ preventScroll: true }); }, [shown.id, phase]);
   if (!anchor || !size) return null;
+  const safe = phoneSafe(safeProp, size.w);
   const nodes = arrange(shown.nodes), room = Math.max(160, size.h - safe.top - safe.bottom);
   const plateSize = shown.ficha ? { w: 324, h: Math.min(shown.ficha.h, room) } : shown.card ? { w: 252, h: 168 } : { w: 184, h: shown.tabs?.length ? 76 : 54 };
   // Every priority illustration keeps a 6 px margin around it: the plate looks for a spot clear of those padded boxes.
@@ -132,7 +133,7 @@ export function TableContextCloud({ host, hexId, level, canBack, onBack, onClose
 }
 
 /** While the MAP is the interface (choose a destination, a Region, a target) the cloud folds into one small instruction pill beside the piece. */
-export function TargetChip({ host, hexId, text, tone = 'move', onCancel, children, safe = DEFAULT_SAFE }: { host: RefObject<HTMLElement | null>; hexId: string; text: string; tone?: string; onCancel: () => void; children?: ReactNode; safe?: Safe }) {
+export function TargetChip({ host, hexId, text, tone = 'move', onCancel, children, safe: safeProp = DEFAULT_SAFE }: { host: RefObject<HTMLElement | null>; hexId: string; text: string; tone?: string; onCancel: () => void; children?: ReactNode; safe?: Safe }) {
   const anchor = useHexAnchor(hexId, host), size = useHostSize(host);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); onCancel(); } };
@@ -140,7 +141,7 @@ export function TargetChip({ host, hexId, text, tone = 'move', onCancel, childre
     return () => window.removeEventListener('keydown', onKey, true);
   }, [onCancel]);
   if (!anchor || !size) return null;
-  const place = layoutCloud(anchor, size, safe, 0, { w: 268, h: 40 });
+  const place = layoutCloud(anchor, size, phoneSafe(safeProp, size.w), 0, { w: 268, h: 40 });
   return <div className="table-cloud is-target" data-phase="in" role="status">
     <svg className="ctx-stems" width={size.w} height={size.h} aria-hidden="true"><line x1={anchor.x} y1={anchor.y} x2={place.plate.x} y2={place.plate.y} className="is-plate" /></svg>
     <i className="ctx-halo" style={{ left: anchor.x, top: anchor.y, width: anchor.r * 2 + 8, height: anchor.r * 2 + 8 }} aria-hidden="true" />
