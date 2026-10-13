@@ -201,7 +201,7 @@ describe('B-06/B-07 · naval corner cases', () => {
 });
 
 describe('B-08/B-09/B-10 · the resolution log the clients read', () => {
-  it.fails('REPRO: a failed ATTACK (target moved away) appears in the round report resolution of the attacker', () => {
+  it('a failed ATTACK (target moved away) appears in the round report resolution of the attacker (fixed by V12-UX-04: a failed order is a FAILURE resolution line)', () => {
     let state = line(); state.wars = [[P1, P2]];
     const a = put(state, P1, 'INFANTRY', 3, 'a1'); put(state, P2, 'INFANTRY', 4, 'd1');
     state = must(state, P1, { type: 'QUEUE_ORDER', order: attackOrder([a], 4) });
@@ -209,7 +209,7 @@ describe('B-08/B-09/B-10 · the resolution log the clients read', () => {
     state = completeRound(state);
     expect(state.events.some(e => e.type === 'ORDER_FAILED' && e.message === 'Não há adversário conhecido nesse destino.')).toBe(true); // it IS in the chronicle...
     const report = state.roundReports.find(r => r.playerId === P1 && r.round === 1)!;
-    expect(report.resolution.some(e => e.type === 'FAILURE' && e.actorId === P1)).toBe(true); // ...but not in the "Resultados" overlay the player sees
+    expect(report.resolution.some(e => e.type === 'FAILURE' && e.actorId === P1)).toBe(true); // ...and in the "Resultados" overlay the player sees
   });
   it.fails('REPRO: entering a war through a defensive pact is announced (p3 is dragged into war with p1 silently today)', () => {
     let state = line({ players: 3, cities: [['c1', P1, 0], ['c2', P2, 4], ['c3', P3, 8]] });

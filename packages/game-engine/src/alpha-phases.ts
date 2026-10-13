@@ -173,7 +173,10 @@ export function resolveOrders(state: AlphaState, types: readonly StrategicOrder[
         const leg = legOf.get(order), reason = `${leg ? `Mover coordenado, trajeto ${leg.index + 1} de ${leg.total}: ` : ''}${error instanceof Error ? error.message : 'Ordem não pôde ser executada.'}`;
         // A plan made against the fog that arrives after a rival opened the Region is an ordinary move now; say why it could not be made.
         const last = order.type === 'MOVE' ? moveLegs(order)[0]!.path.at(-1) : undefined, region = last ? state.regions.find(candidate => candidate.hexIds.includes(last)) : undefined;
-        alphaEvent(state, 'ORDER_FAILED', order.type === 'MOVE' && order.rotation !== undefined && region && regionOpenFor(state, region, id) ? `A Região já havia sido revelada; o movimento não pôde ser feito: ${reason}` : reason, [id]);
+        const failure = order.type === 'MOVE' && order.rotation !== undefined && region && regionOpenFor(state, region, id) ? `A Região já havia sido revelada; o movimento não pôde ser feito: ${reason}` : reason;
+        alphaEvent(state, 'ORDER_FAILED', failure, [id]);
+        // The failed leg is also a line of the round's resolution (a coordinated Move reports each leg on its own): never silent.
+        resolutionEvent(state, { type: 'FAILURE', actorId: id, visibleTo: [id], message: failure, ...(last ? { hexId: last } : {}), unitIds: orderUnitIds(order) });
       }
     }
   }
