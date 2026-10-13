@@ -9,7 +9,8 @@ import { type CivilizationMark } from '@aoh/game-domain';
 import { CIVIL_PIECES, DISCOVERY_MARKERS, bannerArt, borderStrokes, cityPieceArt, dangerMarkArt, discoveryArt, harborArt, orientationArt, pieceArt, seatSealSvg, seedOf, threatFigureArt, threatMarkArt, threatName, THREAT_ROMAN } from '../alpha/table-art';
 import { moodLabel, moodSealArt } from '../alpha/mood-seal';
 import { roadCanStand, roadTileArt } from '../alpha/road-art';
-import { EXTRA_FREE, EXTRA_OCCUPIED, extraId, featureId, improvementId, isFeatureKey, isImprovementKey, isTerrainKey, occupiedHexes, sealsOf, terrainDefs, terrainId, terrainSummary, terrainVariant } from '../alpha/terrain-art';
+import { composeHex, type HexLayout } from '../alpha/hex-compose';
+import { HEX_RADIUS, EXTRA_FREE, EXTRA_OCCUPIED, extraId, featureId, improvementId, isFeatureKey, isImprovementKey, isTerrainKey, occupiedHexes, sealsOf, terrainDefs, terrainId, terrainSummary, terrainVariant } from '../alpha/terrain-art';
 
 /** Experience V2.2 table art (Alpha only): seat color says whose, the civilization mark says which civilization. */
 export type MapArt = {
@@ -276,6 +277,24 @@ export const HexMap = memo(function HexMap({
     return out;
   }, [art?.roads, art?.routes, cities.length]);
   const capitalId = data.view.player.civilization.capitalCityId;
+  /** Composition of a hex (docs/product/ux-board-layering.md): where the city, the troops, the threat and every marker stand INSIDE the hex, from the real entities of the projection. */
+  const layoutFor = (tile: HexTile, city: (typeof cities)[number] | undefined, workedSeal: boolean): HexLayout | null => {
+    if (!art) return null;
+    const selfId = data.view.player.id, here = units.filter(u => u.hexId === tile.id && !u.carrierId);
+    const classes = (ownerId: string) => new Set(here.filter(u => u.ownerId === ownerId).map(u => u.kind)).size;
+    const foreignOwner = [...new Set(here.map(u => u.ownerId))].find(id => id !== selfId);
+    const threat = threats.find(r => r.hexId === tile.id), people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null);
+    const camp = Boolean(threat && threat.kind !== 'PIRATE' && threat.status === 'CAMPED');
+    const mark = city ? art.cityMarks.find(m => m.cityId === city.id) : undefined;
+    const name = city ? `${city.id === capitalId ? '★ ' : ''}${city.name}` : '';
+    return composeHex(HEX_RADIUS, {
+      feature: city ? 'city' : camp ? 'camp' : 'none', own: classes(selfId), foreign: foreignOwner ? classes(foreignOwner) : 0, threat: threat?.composition?.length ?? 0, people: Boolean(people),
+      level: Boolean(city), mood: mark?.mood !== undefined, worked: workedSeal, resourceSeals: sealsOf({ features: tile.features, improvement: tile.improvement, city: Boolean(city) }).length,
+      label: Boolean(city), labelWidth: name.length * 5.4, cost: (targetSet.has(tile.id) && targets?.labels?.[tile.id] !== undefined) || Boolean(draftLegs?.some(leg => (leg.path.at(-1) ?? leg.origin) === tile.id)),
+      ghost: new Set((draftLegs ?? []).filter(leg => (leg.path.at(-1) ?? leg.origin) === tile.id).flatMap(leg => leg.kinds)).size,
+      status: Boolean(threat && (threat.intent?.state === 'WITHDRAWING' || (threat.status === 'CAMPED' && (threat.fresh || threat.reorganizing)))),
+    });
+  };
 
   /** The physical reveal of a Region animates its hexes AND their ground (relief, resource, roads), so both carry the same classes. */
   const revealClass = (id: string) => (flipping.has(id) && !revealHexes.has(id) ? ' flip-in' : '') + (revealHexes.has(id) ? (revealing?.phase === 'land' ? ' reveal-land' : ' reveal-hidden') : '');
@@ -478,6 +497,40 @@ export const HexMap = memo(function HexMap({
             </>;
           })()}
         </g>}
+        {/* Trails UNDER the miniatures: the planned path of a Bando or camp, a step it just made, and the draft legs. */}
+        {threats.some(t => t.intent?.pathHexIds?.length || t.intent?.nextHexId || t.intent?.targetHexId) && <g className="threat-heading" aria-hidden="true">{threats.flatMap(threat => {
+          // Authoritative intention from the engine, cut at the fog by the projection: the planned path hex by hex (dashed polyline with an arrow); without it, the old line to the target or the next step. Nothing is estimated here.
+          const exact = threat.intent?.targetKnown === true;
+          const what = threat.intent?.targetKind === 'CITY' ? 'cidade' : threat.intent?.targetKind === 'PORT' ? 'porto' : 'rota';
+          const note = exact ? `Alvo de ${threat.id}: ${what} ${threat.intent!.targetId}, a ${threat.intent!.distance} hex(es).` : `Caminho de ${threat.id}; o alvo está além da névoa.`;
+          const path = threat.intent?.pathHexIds ?? [];
+          if (path.length) {
+            const points = [threat.hexId, ...path].map(id => { const c = centreOf(id); return `${Math.round(c.x * 10) / 10},${Math.round(c.y * 10) / 10}`; }).join(' ');
+            const end = centreOf(path[path.length - 1]!);
+            return [<g key={threat.id} className={`alpha-threat-intent has-path${exact ? ' is-target' : ' is-step'}`}><polyline points={points} className="alpha-threat-path" markerEnd="url(#threat-arrow)" />{exact && <circle cx={end.x} cy={end.y} r={15} className="alpha-threat-aim" />}<title>{note}</title></g>];
+          }
+          const aim = exact && threat.intent!.targetHexId ? threat.intent!.targetHexId : threat.intent?.nextHexId;
+          if (!aim || aim === threat.hexId) return [];
+          const from = centreOf(threat.hexId), to = centreOf(aim);
+          return [<g key={threat.id} className={`alpha-threat-intent${exact ? ' is-target' : ' is-step'}`}><line x1={from.x} y1={from.y} x2={to.x} y2={to.y} className="alpha-threat-heading" /><circle cx={to.x} cy={to.y} r={exact ? 15 : 6} className="alpha-threat-aim" /><title>{exact ? note : `Próximo passo de ${threat.id}; o alvo está além da névoa.`}</title></g>];
+        })}</g>}
+        {/* A step of a Bando or camp (MOVEMENT with fromHexId): origin ghost and an arrow to where it arrived, for about a second. */}
+        {trails.length > 0 && <g className="art-trails" aria-hidden="true">{trails.map(trail => {
+          const a = centreOf(trail.from), b = centreOf(trail.to), len = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
+          return <g key={trail.id} className="art-trail">
+            {trail.kind && <g transform={`translate(${a.x} ${a.y})`} opacity=".5" dangerouslySetInnerHTML={svgFragment(threatFigureArt(trail.kind, 22, 0, true))} />}
+            <line x1={a.x + ux * 20} y1={a.y + uy * 20} x2={b.x - ux * 20} y2={b.y - uy * 20} className="art-trail-line" markerEnd="url(#threat-arrow)" />
+          </g>;
+        })}</g>}
+        {/* Mover coordenado (Cena B), lines: each leg's path in its own colour UNDER the miniatures (layer 7 of docs/product/ux-board-layering.md). */}
+        {draftLegs && draftLegs.length > 0 && <g className="art-draft-lines" aria-hidden="true" pointerEvents="none">{draftLegs.map(leg => {
+          const chain = [leg.origin, ...leg.path], pts = chain.map(id => { const c = centreOf(id); return `${Math.round(c.x * 10) / 10},${Math.round(c.y * 10) / 10}`; }).join(' ');
+          return <g key={leg.index} className="art-draft-lineleg" data-leg={leg.index} style={{ ['--leg' as string]: leg.color }}>
+            <defs><marker id={`draft-arrow-${leg.index}`} viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill={leg.color} /></marker></defs>
+            <polyline points={pts} className="art-draft-under" /><polyline points={pts} className="art-draft-line" stroke={leg.color} markerEnd={`url(#draft-arrow-${leg.index})`} />
+            {chain.slice(1, -1).map(id => { const c = centreOf(id); return <circle key={id} cx={c.x} cy={c.y} r={3.2} fill={leg.color} className="art-draft-dot" />; })}
+          </g>;
+        })}</g>}
         {tiles.map(tile => {
           const p = position(tile.q, tile.r);
           const city = cities.find(c => c.hexId === tile.id);
@@ -489,6 +542,8 @@ export const HexMap = memo(function HexMap({
           const eligible = working ? data.workable.includes(tile.id) : data.claimable.includes(tile.id);
           const isSelected = selected === tile.id;
           const isCapital = city?.id === capitalId;
+          const lay = layoutFor(tile, city, working ? worked.includes(tile.id) : isWorked);
+          const slotOf = (id: string) => lay?.items.find(i => i.id === id);
 
           const relief = art && isTerrainKey(tile.terrain);
 
@@ -554,11 +609,16 @@ export const HexMap = memo(function HexMap({
               {/* Territorial border outline */}
               <polygon className="hex-border" points={points} />
 
+              {/* Lit-target halo UNDER the content: it contours the pieces instead of drawing over their details. */}
+              {targetSet.has(tile.id) && <polygon className="target-under" points={innerPoints} />}
+              {targetSet.has(tile.id) && <polygon className="target-pulse" points={innerPoints} />}
+
               {/* Content: City Monument or Rural Terrain */}
               {city && art ? (() => {
                 const mark = art.cityMarks.find(m => m.cityId === city.id), seat = art.seats[city.ownerId];
                 const level = mark?.level ?? 1, color = seat?.color ?? '#9aa4a2', harbor = mark?.harbor ? harborAngle(tile.id, mark.harbor) : null;
-                return <g className="city-anchor art-city" data-level={level} data-fortification={mark?.fortification.level ?? 'NONE'} data-culture={mark?.civilization ?? 'neutral'} data-work={mark?.work?.workId}>
+                const feat = slotOf('feature');
+                return <g className="city-anchor art-city" transform={feat ? `translate(0 ${(feat.y + feat.scale).toFixed(1)}) scale(${feat.scale.toFixed(3)})` : undefined} data-level={level} data-fortification={mark?.fortification.level ?? 'NONE'} data-culture={mark?.civilization ?? 'neutral'} data-work={mark?.work?.workId}>
                   <g dangerouslySetInnerHTML={svgFragment(cityPieceArt({ level, color, seed: seedOf(city.id), civilization: mark?.civilization ?? null, lod, fortification: mark?.fortification ?? null, harbor, work: mark?.work ?? null, mark: seat?.mark ?? null, seat: seat?.seat ?? null }, 50))} />
                 </g>;
               })() : city ? (
@@ -628,15 +688,17 @@ export const HexMap = memo(function HexMap({
               {(() => {
                 const people = peoples.find(p => p.hexId === tile.id && p.integratedBy === null), threat = threats.find(r => r.hexId === tile.id), hasPieces = units.some(u => u.hexId === tile.id);
                 return <>
-                  {people && <g transform={city && art ? 'translate(0 -40)' : 'translate(0 -28)'} className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
+                  {people && <g transform={slotOf('people') ? `translate(${slotOf('people')!.x} ${slotOf('people')!.y})` : city && art ? 'translate(0 -40)' : 'translate(0 -28)'} className={`alpha-people attitude-${people.attitude}`}><rect x="-13" y="-10" width="26" height="20" rx="4" className="people-badge" /><path d="M-7 5V-1L0 -6L7 -1V5Z M-2 5V1H2V5" className="people-glyph" /><title>Povo independente ({label(people.type)} · {label(people.attitude)})</title></g>}
                   {threat && art && threat.composition?.length ? (() => {
                     // Mesa Viva D3: the real classes of the composition on the iron base (never a generic badge); fog is decided by the projection.
                     const compact = Boolean(city) || hasPieces, retreat = threat.intent?.state === 'WITHDRAWING';
                     const parts = threat.composition!.map(entry => `${label(entry.kind)}${entry.count > 1 ? ` ×${entry.count}` : ''}`).join(', ');
                     const mood = retreat ? 'em recuo ao Acampamento' : threat.status === 'CAMPED' ? (threat.fresh ? 'recém-surgido, ainda não parte' : threat.reorganizing ? 'reorganizando, ainda não parte' : 'à espera') : threat.intent?.targetKnown ? `rumo a ${threat.intent.targetKind === 'CITY' ? 'cidade' : threat.intent.targetKind === 'PORT' ? 'porto' : 'rota'} ${threat.intent.targetId}, a ${threat.intent.distance} hex(es)` : 'em marcha';
-                    return <g transform={`translate(0 ${city ? -40 : hasPieces ? -30 : 0})`} className={`alpha-threat kind-${threat.kind} status-${threat.status}${threat.fresh ? ' is-fresh' : ''}${retreat ? ' is-retreat' : ''}`} data-level={threat.level} data-threat={threat.id}>
+                    const place = slotOf('threat'), tent = slotOf('feature');
+                    if (!place) return null;
+                    return <g className={`alpha-threat kind-${threat.kind} status-${threat.status}${threat.fresh ? ' is-fresh' : ''}${retreat ? ' is-retreat' : ''}`} data-level={threat.level} data-threat={threat.id}>
                       <title>{threatName(threat.kind, threat.status)} {THREAT_ROMAN[threat.level - 1]}: {parts} · {mood}</title>
-                      <g dangerouslySetInnerHTML={svgFragment(threatMarkArt({ kind: threat.kind, status: threat.status, level: threat.level, composition: threat.composition!, state: threat.intent?.state, fresh: threat.fresh, reorganizing: threat.reorganizing, compact }))} />
+                      <g dangerouslySetInnerHTML={svgFragment(threatMarkArt({ kind: threat.kind, status: threat.status, level: threat.level, composition: threat.composition!, state: threat.intent?.state, fresh: threat.fresh, reorganizing: threat.reorganizing, compact, slot: { x: place.x, y: place.y, px: place.px, figs: place.figs, overflow: place.overflow, tent: !city && tent ? { y: tent.y, scale: tent.scale } : null } }))} />
                     </g>;
                   })() : threat && <g transform={city && art ? 'translate(0 -40)' : 'translate(0 -28)'} className={`alpha-raid alpha-threat kind-${threat.kind} status-${threat.status}${threat.fresh ? ' is-fresh' : ''}`} data-level={threat.level}><rect x="-19" y="-10" width="38" height="20" rx="4" className="raid-badge" />{threat.kind === 'PIRATE' ? <path d="M-14 6L-3 6L-9 -6Z M-9 -6V7" className="raid-glyph" /> : threat.status === 'CAMPED' ? <path d="M-14 6L-8 -6L-2 6Z M-8 -6V6" className="raid-glyph" /> : <path d="M-13 6L-3 -5M-13 -5L-3 6" className="raid-glyph" />}<text x="9" y="4" className="raid-count" textAnchor="middle">{['I', 'II', 'III'][threat.level - 1]}</text><title>{threat.kind === 'PIRATE' ? (threat.status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : (threat.status === 'CAMPED' ? 'Acampamento de Saqueadores' : 'Saqueadores em marcha')} · Ameaça {['I', 'II', 'III'][threat.level - 1]}</title></g>}
                 </>;
@@ -646,24 +708,24 @@ export const HexMap = memo(function HexMap({
                 const here = units.filter(u => u.hexId === tile.id);
                 if (!here.length) return null;
                 const owners = [...new Set(here.map(u => u.ownerId))].sort((a, b) => Number(b === data.view.player.id) - Number(a === data.view.player.id));
-                // On a city the pieces stand at its lower corners, so the plan stays readable; in the field they take the centre.
-                return owners.slice(0, 2).map((ownerId, slot) => {
+                // The troops stand where hex-compose puts them: bottom band on a city or camp, centre in the field; figures keep their size, a stack that does not fit shows a "+N" pill.
+                return owners.slice(0, 2).map(ownerId => {
                   const all = here.filter(u => u.ownerId === ownerId), color = art.seats[ownerId]?.color ?? '#9aa4a2', own = ownerId === data.view.player.id;
                   // Cargo rides inside its fleet: the fleet is drawn, the cargo is a count on it.
                   const cargo = all.filter(u => u.carrierId), mine = all.filter(u => !u.carrierId);
                   if (!mine.length) return null;
-                  // Mesa Viva: one miniature per CLASS of the stack (ships first, then by number), up to 3 and a "+N" for the rest; ids are stable (data-unit-ids).
+                  const place = slotOf(own ? 'own' : 'foreign');
+                  if (!place) return null;
+                  // Mesa Viva: one miniature per CLASS of the stack (ships first, then by number); ids are stable (data-unit-ids).
                   const byKind = [...mine.reduce((m, u) => m.set(u.kind, [...(m.get(u.kind) ?? []), u.id]), new Map<string, string[]>())].map(([kind, ids]) => ({ kind, ids })).sort((a, b) => rankKind(b.kind, b.ids.length) - rankKind(a.kind, a.ids.length));
-                  const crowded = owners.length > 1, maxFigs = city && crowded ? 2 : crowded ? 2 : 3, shown = byKind.slice(0, maxFigs), more = byKind.slice(maxFigs).reduce((n, c) => n + c.ids.length, 0);
-                  const px = city ? (crowded ? 20 : 24) : crowded ? 22 : 30, gap = px * 0.8, half = ((shown.length - 1) / 2) * gap + px / 2;
-                  // Inside the hex: the lower corners of a city hex are narrow (apothem 45, circumradius 52), so pieces sit higher and smaller there.
-                  const x = city ? (slot === 0 ? -23 : 23) : crowded ? (slot === 0 ? -21 : 19) : -2, y = city ? 17 : 0;
+                  const px = place.px, gap = px * 0.8, shown = byKind.slice(0, place.figs), more = byKind.slice(place.figs).reduce((n, c) => n + c.ids.length, 0), slots = place.figs + (more > 0 ? 1 : 0);
+                  const at = (i: number) => Math.round((i - (slots - 1) / 2) * gap * 10) / 10;
                   const kinds = byKind.map(c => `${label(c.kind)} ×${c.ids.length}`).join(', ') + (cargo.length ? ` · carga ${cargo.length}` : '');
-                  return <g key={ownerId} transform={`translate(${x} ${y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={shown[0]!.kind} data-pieces={mine.length} style={own && onSelectPieces ? { cursor: 'pointer' } : undefined} onClick={own && onSelectPieces ? (e => { if (!moved) { e.stopPropagation(); onSelectPieces(tile.id); } }) : undefined}>
+                  return <g key={ownerId} transform={`translate(${place.x} ${place.y})`} className={`art-stack ${own ? 'own' : 'foreign'}`} data-lead={shown[0]!.kind} data-pieces={mine.length} style={own && onSelectPieces ? { cursor: 'pointer' } : undefined} onClick={own && onSelectPieces ? (e => { if (!moved) { e.stopPropagation(); onSelectPieces(tile.id); } }) : undefined}>
                     <title>{own ? 'Suas peças' : `Peças de ${data.players.find(p => p.id === ownerId)?.name ?? 'outra civilização'}`}: {kinds}</title>
-                    {shown.map((entry, i) => <g key={entry.kind} className="art-piece" data-kind={entry.kind} data-unit-ids={entry.ids.join(',')} transform={`translate(${Math.round((i - (shown.length - 1) / 2) * gap * 10) / 10} 0)`} dangerouslySetInnerHTML={svgFragment(pieceArt(entry.kind, color, px, entry.ids.length, art.seats[ownerId]?.signature === entry.kind, art.seats[ownerId]?.seat ?? null))} />)}
-                    {more > 0 && <g className="art-more" transform={`translate(${half + 8} ${px * 0.3})`}><rect x="-9" y="-7" width="18" height="14" rx="7" /><text y="3.4">+{more}</text></g>}
-                    {cargo.length > 0 && <g transform="translate(0 -24)" className="art-cargo"><rect x="-22" y="-8" width="44" height="15" rx="7" /><text y="3">carga {cargo.length}</text></g>}
+                    {shown.map((entry, i) => <g key={entry.kind} className="art-piece" data-kind={entry.kind} data-unit-ids={entry.ids.join(',')} transform={`translate(${at(i)} 0)`} dangerouslySetInnerHTML={svgFragment(pieceArt(entry.kind, color, px, entry.ids.length, art.seats[ownerId]?.signature === entry.kind, art.seats[ownerId]?.seat ?? null))} />)}
+                    {more > 0 && <g className="art-more" transform={`translate(${at(slots - 1)} 0)`}><rect x="-9" y="-7" width="18" height="14" rx="7" /><text y="3.4">+{more}</text></g>}
+                    {cargo.length > 0 && <g transform={`translate(0 ${-px * 0.9 - 8})`} className="art-cargo"><rect x="-22" y="-8" width="44" height="15" rx="7" /><text y="3">carga {cargo.length}</text></g>}
                   </g>;
                 });
               })()}
@@ -688,26 +750,25 @@ export const HexMap = memo(function HexMap({
               {/* Layer 8 of the table: markers over the pieces (level seal and Ânimo of the city, worked-territory seal). */}
               {city && art && (() => {
                 const mark = art.cityMarks.find(m => m.cityId === city.id), color = art.seats[city.ownerId]?.color ?? '#9aa4a2';
+                const lv = slotOf('level'), md = slotOf('mood');
                 return <g className="art-markers">
                   {/* The seal reads N·Capacidade (canon §4): level built and the power of one activation. */}
-                  <g transform="translate(-21 -23)"><rect x={mark?.capacity ? -15 : -9} y="-9" width={mark?.capacity ? 30 : 18} height="18" rx="9" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{mark?.capacity ? `${mark.level}·${mark.capacity}` : (mark?.level ?? 1)}</text></g>
+                  <g transform={`translate(${lv?.x ?? -21} ${lv?.y ?? -23})`}><rect x="-10" y="-7" width="20" height="14" rx="7" className="art-level-seal" style={{ stroke: color }} /><text className="art-level" y="4">{mark?.capacity ? `${mark.level}·${mark.capacity}` : (mark?.level ?? 1)}</text></g>
                   {/* Ânimo of the viewer's own city (the projection sends it only for them): ring + expression + number, 4 states. */}
-                  {mark?.mood !== undefined && <g className="art-mood" transform="translate(23 -23)" role="img" aria-label={moodLabel(mark.mood)} data-mood={mark.mood}><title>{moodLabel(mark.mood)}</title><g transform="scale(.56)" dangerouslySetInnerHTML={svgFragment(moodSealArt(mark.mood))} /></g>}
+                  {mark?.mood !== undefined && <g className="art-mood" transform={`translate(${md?.x ?? 23} ${md?.y ?? -23})`} role="img" aria-label={moodLabel(mark.mood)} data-mood={mark.mood}><title>{moodLabel(mark.mood)}</title><g transform="scale(.42)" dangerouslySetInnerHTML={svgFragment(moodSealArt(mark.mood))} /></g>}
                 </g>;
               })()}
               {/* Worked Territory Seal (Top Right) */}
               {(working ? worked.includes(tile.id) : isWorked) && (
-                <g transform="translate(25, -23)" className="worked-seal">
+                <g transform={`translate(${slotOf('worked')?.x ?? 25} ${slotOf('worked')?.y ?? -23})`} className="worked-seal">
                   <title>Território trabalhado</title>
-                  <circle cx="0" cy="0" r="8.5" className="worked-bg" />
-                  <circle cx="0" cy="0" r="5" className="worked-inner" />
+                  <circle cx="0" cy="0" r="6.4" className="worked-bg" />
+                  <circle cx="0" cy="0" r="3.8" className="worked-inner" />
                 </g>
               )}
 
               {/* Layer 7: lit targets and halos over the pieces, each with a dark outline underneath so they read on any ground. */}
-              {targetSet.has(tile.id) && <polygon className="target-under" points={innerPoints} />}
-              {targetSet.has(tile.id) && <polygon className="target-pulse" points={innerPoints} />}
-              {targetSet.has(tile.id) && targets?.labels?.[tile.id] !== undefined && <text className={`target-cost tone-${targets.tones?.[tile.id] ?? 'base'}`} y="33" textAnchor="middle" pointerEvents="none">{targets.labels[tile.id]}</text>}
+              {targetSet.has(tile.id) && targets?.labels?.[tile.id] !== undefined && <text className={`target-cost tone-${targets.tones?.[tile.id] ?? 'base'}`} x={slotOf('cost')?.x ?? 0} y={(slotOf('cost')?.y ?? 29) + 4} textAnchor="middle" pointerEvents="none">{targets.labels[tile.id]}</text>}
               {/* Claimable frontier indicator */}
               {eligible && !working && (
                 <polygon className="frontier-pulse" points={innerPoints} />
@@ -739,12 +800,14 @@ export const HexMap = memo(function HexMap({
           </g>;
         })}</g>}
         {art && <g className="art-labels" aria-hidden="true">{cities.flatMap(city => {
-          // City names sit above every tile, so the next row never covers them.
+          // The name sits in the free bottom slot INSIDE the hex; with troops standing there it is dropped (the aria label and the title still carry it).
           const tile = tiles.find(t => t.id === city.hexId);
           if (!tile) return [];
-          const p = position(tile.q, tile.r), name = `${city.id === capitalId ? '★ ' : ''}${city.name}`, natural = name.length * 6.2, fitted = Math.min(natural, 88);
-          return [<g key={city.id} transform={`translate(${p.x} ${p.y + 50})`} className="art-label">
-            <rect x={-Math.max(26, fitted / 2 + 5)} y="-7" width={Math.max(52, fitted + 10)} height="13" rx="3" className="city-banner-bg" />
+          const lay = layoutFor(tile, city, false), slot = lay?.items.find(i => i.id === 'label');
+          if (!slot) return [];
+          const p = position(tile.q, tile.r), name = `${city.id === capitalId ? '★ ' : ''}${city.name}`, natural = name.length * 5.4, fitted = Math.min(natural, slot.box.w - 6);
+          return [<g key={city.id} transform={`translate(${p.x + slot.x} ${p.y + slot.y})`} className="art-label">
+            <rect x={-slot.box.w / 2} y={-slot.box.h / 2} width={slot.box.w} height={slot.box.h} rx="3" className="city-banner-bg" />
             <text className="city-name art-city-name" y="3" {...(natural > fitted ? { textLength: fitted, lengthAdjust: 'spacingAndGlyphs' } : {})}>{name}</text>
           </g>];
         })}</g>}
@@ -759,22 +822,6 @@ export const HexMap = memo(function HexMap({
             <text className="home-banner-sub" y="52" textAnchor="middle">Região Pátria · conteúdo oculto</text>
           </g>;
         })}</g>}
-        {threats.some(t => t.intent?.pathHexIds?.length || t.intent?.nextHexId || t.intent?.targetHexId) && <g className="threat-heading" aria-hidden="true">{threats.flatMap(threat => {
-          // Authoritative intention from the engine, cut at the fog by the projection: the planned path hex by hex (dashed polyline with an arrow); without it, the old line to the target or the next step. Nothing is estimated here.
-          const exact = threat.intent?.targetKnown === true;
-          const what = threat.intent?.targetKind === 'CITY' ? 'cidade' : threat.intent?.targetKind === 'PORT' ? 'porto' : 'rota';
-          const note = exact ? `Alvo de ${threat.id}: ${what} ${threat.intent!.targetId}, a ${threat.intent!.distance} hex(es).` : `Caminho de ${threat.id}; o alvo está além da névoa.`;
-          const path = threat.intent?.pathHexIds ?? [];
-          if (path.length) {
-            const points = [threat.hexId, ...path].map(id => { const c = centreOf(id); return `${Math.round(c.x * 10) / 10},${Math.round(c.y * 10) / 10}`; }).join(' ');
-            const end = centreOf(path[path.length - 1]!);
-            return [<g key={threat.id} className={`alpha-threat-intent has-path${exact ? ' is-target' : ' is-step'}`}><polyline points={points} className="alpha-threat-path" markerEnd="url(#threat-arrow)" />{exact && <circle cx={end.x} cy={end.y} r={15} className="alpha-threat-aim" />}<title>{note}</title></g>];
-          }
-          const aim = exact && threat.intent!.targetHexId ? threat.intent!.targetHexId : threat.intent?.nextHexId;
-          if (!aim || aim === threat.hexId) return [];
-          const from = centreOf(threat.hexId), to = centreOf(aim);
-          return [<g key={threat.id} className={`alpha-threat-intent${exact ? ' is-target' : ' is-step'}`}><line x1={from.x} y1={from.y} x2={to.x} y2={to.y} className="alpha-threat-heading" /><circle cx={to.x} cy={to.y} r={exact ? 15 : 6} className="alpha-threat-aim" /><title>{exact ? note : `Próximo passo de ${threat.id}; o alvo está além da névoa.`}</title></g>];
-        })}</g>}
         {/* Perigo e perdas (D2): a red halo for one round on the hex where a LOSSES event happened, with the lost pieces as dashed ghosts. */}
         {resolution.some(event => event.type === 'LOSSES') && <g className="art-losses" aria-hidden="true">{resolution.filter(event => event.type === 'LOSSES').map(event => {
           const hexId = event.hexId ?? cities.find(c => c.id === event.cityId)?.hexId;
@@ -786,27 +833,18 @@ export const HexMap = memo(function HexMap({
             {gone.map((piece, i) => <g key={i} transform={`translate(${Math.round((i - (gone.length - 1) / 2) * 22)} 6)`} opacity=".5"><g dangerouslySetInnerHTML={svgFragment(pieceArt(piece.kind, art?.seats[piece.ownerId]?.color ?? '#9aa4a2', 24) + '<circle r="15" fill="none" stroke="#e0583f" stroke-dasharray="3 3" stroke-width="1.4"/>')} /></g>)}
           </g>;
         })}</g>}
-        {/* A step of a Bando or camp (MOVEMENT with fromHexId): origin ghost and an arrow to where it arrived, for about a second. */}
-        {trails.length > 0 && <g className="art-trails" aria-hidden="true">{trails.map(trail => {
-          const a = centreOf(trail.from), b = centreOf(trail.to), len = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
-          return <g key={trail.id} className="art-trail">
-            {trail.kind && <g transform={`translate(${a.x} ${a.y})`} opacity=".5" dangerouslySetInnerHTML={svgFragment(threatFigureArt(trail.kind, 22, 0, true))} />}
-            <line x1={a.x + ux * 20} y1={a.y + uy * 20} x2={b.x - ux * 20} y2={b.y - uy * 20} className="art-trail-line" markerEnd="url(#threat-arrow)" />
-          </g>;
-        })}</g>}
-        {/* Mover coordenado (Cena B): each leg of the draft Order, in its own colour, with an arrow, ghost pieces and a tag (n · custo/orçamento) at the destination. */}
+        {/* Mover coordenado (Cena B), above the miniatures but inside their free slots: the ghosts of the pieces on the 'ghost' slot of the destination, the tag (n · custo/orçamento) on its cost slot, the leg number on the origin. */}
         {draftLegs && draftLegs.length > 0 && <g className="art-draft" aria-hidden="true" pointerEvents="none">{draftLegs.map(leg => {
-          const chain = [leg.origin, ...leg.path], pts = chain.map(id => { const c = centreOf(id); return `${Math.round(c.x * 10) / 10},${Math.round(c.y * 10) / 10}`; }).join(' ');
-          const end = centreOf(leg.path.at(-1) ?? leg.origin), start = centreOf(leg.origin), seat = art?.seats[data.view.player.id]?.color ?? '#60a3e9', ghosts = leg.kinds.slice(0, 3);
-          const sameOrigin = draftLegs.filter(other => other.origin === leg.origin && other.index < leg.index).length, sameDest = draftLegs.filter(other => other.index < leg.index && (other.path.at(-1) ?? other.origin) === (leg.path.at(-1) ?? leg.origin)).length;
-          const unit = Math.max(1, 0.55 / camera.scale);
+          const destId = leg.path.at(-1) ?? leg.origin, end = centreOf(destId), start = centreOf(leg.origin), seat = art?.seats[data.view.player.id]?.color ?? '#60a3e9', ghosts = [...new Set(leg.kinds)];
+          const destTile = tiles.find(t => t.id === destId), originTile = tiles.find(t => t.id === leg.origin);
+          const dest = destTile ? layoutFor(destTile, cities.find(c => c.hexId === destId), false) : null, ghostSlot = dest?.items.find(i => i.id === 'ghost'), tagSlot = dest?.items.find(i => i.id === 'cost');
+          const first = !draftLegs.some(other => other.index < leg.index && (other.path.at(-1) ?? other.origin) === destId);
+          const sameOrigin = draftLegs.filter(other => other.origin === leg.origin && other.index < leg.index).length, sameDest = draftLegs.filter(other => other.index < leg.index && (other.path.at(-1) ?? other.origin) === destId).length;
+          const gpx = ghostSlot?.px ?? 24, gfigs = ghostSlot ? ghostSlot.figs : Math.min(3, ghosts.length);
           return <g key={leg.index} className="art-draft-leg" data-leg={leg.index} style={{ ['--leg' as string]: leg.color }}>
-            <defs><marker id={`draft-arrow-${leg.index}`} viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill={leg.color} /></marker></defs>
-            <polyline points={pts} className="art-draft-under" /><polyline points={pts} className="art-draft-line" stroke={leg.color} markerEnd={`url(#draft-arrow-${leg.index})`} />
-            {chain.slice(1, -1).map(id => { const c = centreOf(id); return <circle key={id} cx={c.x} cy={c.y} r={3.2} fill={leg.color} className="art-draft-dot" />; })}
-            <g transform={`translate(${end.x} ${end.y + 4})`}>{ghosts.map((kind, i) => <g key={i} transform={`translate(${Math.round((i - (ghosts.length - 1) / 2) * 20)} 0)`} opacity=".62" dangerouslySetInnerHTML={svgFragment(pieceArt(kind, seat, 24) + `<circle r="15" fill="none" stroke="${leg.color}" stroke-dasharray="3 3" stroke-width="1.6"/>`)} />)}</g>
-            <g transform={`translate(${end.x + 8 + sameDest * 6} ${end.y - 40 - sameDest * 14}) scale(${unit.toFixed(2)})`} className="art-draft-tag"><rect x="-28" y="-8.5" width="56" height="17" rx="8.5" stroke={leg.color} /><text y="4" textAnchor="middle">{leg.tag}</text></g>
-            <g transform={`translate(${start.x - 28 + sameOrigin * 17} ${start.y - 26}) scale(${unit.toFixed(2)})`} className="art-draft-ring"><circle r="8.5" fill={leg.color} /><text y="3.7" textAnchor="middle">{leg.index + 1}</text></g>
+            {first && ghostSlot && <g transform={`translate(${end.x + ghostSlot.x} ${end.y + ghostSlot.y})`}>{ghosts.slice(0, gfigs).map((kind, i) => <g key={i} transform={`translate(${Math.round((i - (gfigs - 1) / 2) * gpx * 0.8 * 10) / 10} 0)`} opacity=".7" dangerouslySetInnerHTML={svgFragment(pieceArt(kind, seat, gpx) + `<circle r="${Math.round(gpx * 0.62)}" fill="none" stroke="${leg.color}" stroke-dasharray="3 3" stroke-width="1.6"/>`)} />)}</g>}
+            <g transform={`translate(${end.x + (tagSlot?.x ?? 0)} ${end.y + (tagSlot?.y ?? -34) + sameDest * 13})`} className="art-draft-tag"><rect x="-18" y="-6.5" width="36" height="13" rx="6.5" stroke={leg.color} /><text y="3.4" textAnchor="middle">{leg.tag}</text></g>
+            <g transform={`translate(${start.x - 12 + sameOrigin * 17} ${start.y - 31})`} className="art-draft-ring" data-origin={originTile?.id}><circle r="7.5" fill={leg.color} /><text y="3.4" textAnchor="middle">{leg.index + 1}</text></g>
           </g>;
         })}</g>}
         {/* Exploring a closed Region may meet a Perigo (frontierRisk POSSIBLE): the amber warning of the concept, never whether one exists. */}

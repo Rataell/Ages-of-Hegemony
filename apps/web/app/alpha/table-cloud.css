@@ -322,7 +322,7 @@ button.alpha-socket:disabled { cursor: default; opacity: 1; }
 .world-map .art-draft-line { fill: none; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
 .world-map .art-draft-dot { stroke: #0b1114; stroke-width: 1.2; }
 .world-map .art-draft-tag rect { fill: #0f181c; stroke-width: 1.5; }
-.world-map .art-draft-tag text { font: 700 10.5px/1 var(--font-body, 'Source Sans 3', sans-serif); fill: #f4ecd8; }
+.world-map .art-draft-tag text { font: 700 9.5px/1 var(--font-body, 'Source Sans 3', sans-serif); fill: #f4ecd8; }
 .world-map .art-draft-ring text { font: 700 10px/1 var(--font-body, 'Source Sans 3', sans-serif); fill: #0b1114; }
 .world-map .art-draft-ring circle { stroke: #0b1114; stroke-width: 1.4; }
 

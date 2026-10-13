@@ -158,11 +158,11 @@ describe('visual layering of the table (docs/product/ux-board-layering.md)', () 
     expect(forest).not.toContain('#274a35');
     expect(defs.indexOf(`id="${extraId('FOREST')}"`)).toBeGreaterThan(-1);
   });
-  it('turns the resource/improvement of an occupied hex into a seal: improvement wins, a city hex keeps one seal at its left edge', () => {
+  it('turns the resource/improvement of an occupied hex into a seal: improvement wins, a city hex keeps its seals on the left edge (hex-compose slots)', () => {
     expect(sealsOf({ features: ['METAL'], improvement: 'MINE', city: false }).map(s => s.kind)).toEqual(['MINE']);
     const two = sealsOf({ features: ['RIVER', 'FERTILE'], city: false });
     expect(two.map(s => [s.x, s.y])).toEqual(SEAL_SPOTS.field.map(spot => [...spot]));
-    expect(sealsOf({ features: ['RIVER', 'FERTILE'], city: true })).toHaveLength(1);
+    expect(sealsOf({ features: ['RIVER', 'FERTILE'], city: true })).toHaveLength(2);
     expect(sealsOf({ features: ['RIVER'], city: true })[0]!.x).toBeLessThan(sealsOf({ features: ['RIVER'], city: false })[0]!.x);
     expect(sealsOf({ features: [], improvement: null, city: false })).toEqual([]);
   });
@@ -188,9 +188,13 @@ describe('visual layering of the table (docs/product/ux-board-layering.md)', () 
     expect([ground, relief, territory, borders, detail, roads]).toEqual([...[ground, relief, territory, borders, detail, roads]].sort((a, b) => a - b));
     const hexes = at('data-hex={tile.id}'), city = at('className="city-anchor art-city"'), pieces = at('className={`art-stack'), markers = at('className="art-markers"'), targets = at('className="target-pulse"');
     expect(roads).toBeLessThan(hexes);
+    expect(targets).toBeLessThan(city);                       // the lit-target halo is an underlay: it contours the pieces instead of covering them
     expect(city).toBeLessThan(pieces);
     expect(pieces).toBeLessThan(markers);
-    expect(pieces).toBeLessThan(targets);
+    // Trails (a Bando's path, its last step, the draft legs) are drawn UNDER every hex group, so a miniature always covers the line, never the reverse.
+    expect(at('className="threat-heading"')).toBeLessThan(hexes);
+    expect(at('className="art-trails"')).toBeLessThan(hexes);
+    expect(at('className="art-draft-lines"')).toBeLessThan(hexes);
     // Nothing of the terrain remains inside the hex group in art mode: relief and roads live only in the ground.
     const hexBody = src.slice(hexes, at('className="art-harbors"'));
     expect(hexBody).not.toContain('className="hex-relief"');

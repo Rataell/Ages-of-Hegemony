@@ -893,11 +893,14 @@ export interface ThreatMarkOptions {
   state?: string | undefined; fresh?: boolean | undefined; reorganizing?: boolean | undefined;
   /** On a city or sharing the hex with pieces: a smaller row without the plaque. */
   compact?: boolean;
+  /** A slot of hex-compose: the row is drawn exactly there (centre, figure size, figures, overflow pill), without the name plaque; `tent` also draws the camp or anchorage. */
+  slot?: { x: number; y: number; px: number; figs: number; overflow: number; tent?: { y: number; scale: number } | null } | undefined;
 }
 export const THREAT_ROMAN = ['I', 'II', 'III'] as const;
 export function threatName(kind: string, status: string): string { return kind === 'PIRATE' ? (status === 'CAMPED' ? 'Ancoradouro pirata' : 'Piratas') : status === 'CAMPED' ? 'Acampamento' : 'Bando'; }
 /** Fragment centred on the hex: background (camp/anchorage), up to 3 classes of the composition, "+N", the Grau plaque and the state badge. */
 export function threatMarkArt(o: ThreatMarkOptions): string {
+  if (o.slot) return slottedThreatMark(o, o.slot);
   const camped = o.status === 'CAMPED', roman = THREAT_ROMAN[Math.max(0, Math.min(2, o.level - 1))]!;
   const classes = [...o.composition].sort((a, b) => b.count - a.count), shown = classes.slice(0, 3), extra = classes.slice(3).reduce((n, c) => n + c.count, 0);
   const px = o.compact ? 18 : camped ? 20 : 28, gap = o.compact ? 16 : camped ? 18 : 24, rowY = o.compact ? 0 : camped ? 17 : -2;
@@ -918,4 +921,19 @@ export function threatMarkArt(o: ThreatMarkOptions): string {
 export function dangerMarkArt(size = 12): string {
   const s = size / 12;
   return `<g class="danger-mark" transform="scale(${f1(s * 100) / 100})"><path d="M0,-11 L11,9 H-11Z" fill="#e6a03c" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/><path d="M0,-3 V3.4" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/><circle cy="6.2" r="1.3" fill="${INK}"/></g>`;
+}
+
+/** The threat of a hex placed by hex-compose: warriors in a row at the slot, tent or anchorage behind them, a Grau pill on the tent, the state badge near the row. Nothing here leaves its slot. */
+function slottedThreatMark(o: ThreatMarkOptions, slot: NonNullable<ThreatMarkOptions['slot']>): string {
+  const camped = o.status === 'CAMPED';
+  const classes = [...o.composition].sort((a, b) => b.count - a.count), shown = classes.slice(0, slot.figs), step = slot.px * 0.8;
+  const positions = slot.figs + (slot.overflow > 0 ? 1 : 0), at = (i: number) => f1(slot.x + (i - (positions - 1) / 2) * step);
+  const wait = camped && (o.fresh || o.reorganizing), retreat = o.state === 'WITHDRAWING';
+  let g = '';
+  if (slot.tent) g += `<g class="threat-tent" transform="translate(0 ${f1(slot.tent.y)}) scale(${f1(slot.tent.scale * 100) / 100})">${o.kind === 'PIRATE' ? discoveryArt('ANCHORAGE', 34) : campArt('active', 0.98)}</g>`;
+  g += shown.map((c, i) => `<g transform="translate(${at(i)} ${f1(slot.y)})" data-class="${c.kind}">${threatFigureArt(c.kind, slot.px, c.count)}</g>`).join('');
+  if (slot.overflow > 0) g += `<g transform="translate(${at(positions - 1)} ${f1(slot.y)})"><rect x="-8" y="-6.5" width="16" height="13" rx="6.5" fill="${INK}" stroke="${THREAT_COLOR}" stroke-width="1.1"/><text y="3.2" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="700" font-size="8.5" fill="${LIGHT}">+${slot.overflow}</text></g>`;
+  const bx = slot.tent || slot.y > 10 ? 29 : 0, by = slot.tent || slot.y > 10 ? -12 : -30;
+  if (retreat) g += retreatBadge(bx, by); else if (wait) g += hourglassBadge(bx, by);
+  return `<g class="threat-art" data-kind="${o.kind}" data-status="${o.status}" data-level="${o.level}"${retreat ? ' data-retreat="1"' : ''}${wait ? ' data-wait="1"' : ''}>${g}</g>`;
 }
