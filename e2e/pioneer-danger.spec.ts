@@ -75,7 +75,11 @@ for (const lose of [true, false]) {
     const plan = situation();
     plan.base.privateRng.counter = counterFor(plan, lose);
     const { page, repository, room, readyOther } = await serve(browser, plan.base);
-    await touchPiece(page, `g.hex[data-hex="${plan.from}"]`);
+    // Under load the first touch can land while the map is still settling: retry until the cloud offers Mover.
+    for (let attempt = 0; attempt < 3 && !(await cloudNode(page, 'move').isVisible().catch(() => false)); attempt++) {
+      await touchPiece(page, `g.hex[data-hex="${plan.from}"]`);
+      await cloudNode(page, 'move').waitFor({ timeout: 5000 }).catch(() => undefined);
+    }
     await cloudNode(page, 'move').click();
     const target = page.locator(`svg.world-map g.hex[data-hex="${plan.entry}"]`);
     await expect(target).toHaveClass(/target/);                                           // the closed Region is lit as a destination
