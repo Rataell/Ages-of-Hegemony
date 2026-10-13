@@ -100,3 +100,11 @@
   .afi-stepper button { min-width: 44px; min-height: 44px; }
   .ctx-plate.is-sheet { width: min(420px, calc(100% - 20px)) !important; box-sizing: border-box; }
 }
+
+/* Inside "Resolvendo a rodada" the generic `li span { display: block }` would stack the Resultado's seals and chips: restore the Ficha's own layout there. */
+.alpha-resolution-phase .afi-applied-block span { display: inline; margin-top: 0; color: inherit; }
+.alpha-resolution-phase .afi-applied-block .afi-chip,
+.alpha-resolution-phase .afi-applied-block .afi-mood-change,
+.alpha-resolution-phase .afi-applied-block .afi-seal { display: inline-flex; }
+.alpha-resolution-phase .afi-applied-block .afi-effects li { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
+.alpha-resolution-phase .afi-applied-block .afi-mute, .alpha-resolution-phase .afi-applied-block .afi-note, .alpha-resolution-phase .afi-applied-block .afi-tag { color: var(--text-secondary); }
