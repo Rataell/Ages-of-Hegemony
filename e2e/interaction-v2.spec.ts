@@ -39,7 +39,13 @@ async function serve(browser: import('@playwright/test').Browser, state: AlphaSt
   await page.goto(`/alpha?game=${room.id}`);
   await expect(page.locator('.world-map')).toBeVisible();
   const later = page.getByRole('button', { name: /Ver o mapa primeiro/ }); if (await later.isVisible().catch(() => false)) await later.click();
-  return { page, repository, room };
+  // The other seat confirms through the same boundary, so the round resolves as soon as p1 confirms.
+  const readyOther = async () => {
+    const read = await http.handle(new Request(`${origin}/api/alpha?gameId=${room.id}`, { headers: { Cookie: `aoh_alpha_session=${other.token}` } }));
+    const view = (await read.json()) as { value: { game: { version: number } } };
+    return http.handle(new Request(`${origin}/api/alpha`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin, Cookie: `aoh_alpha_session=${other.token}` }, body: JSON.stringify({ operation: 'command', gameId: room.id, payload: { type: 'READY', expectedVersion: view.value.game.version } }) }));
+  };
+  return { page, repository, room, readyOther };
 }
 /** Screenshots wait for the 150 ms cloud transition to settle. */
 const shot = async (page: Page, name: string) => { await page.waitForTimeout(350); await page.screenshot({ path: `${evidence}/${name}.png` }); };
@@ -340,9 +346,9 @@ test('D-A: a +2 card played from the hand WHILE Mover is open extends the lit de
   const card = ALPHA_CARDS.find(c => c.id === 'strategy-22')!;
   state.cards.strategyDeck = state.cards.strategyDeck.filter(id => id !== card.id); state.cards.discarded = state.cards.discarded.filter(id => id !== card.id);
   for (const player of state.players) player.hand = player.hand.filter(id => id !== card.id);
-  state.players[0]!.hand.push(card.id); state.players[0]!.ambitionsChosen = true;
+  state.players[0]!.hand.push(card.id); state.players.forEach(player => { player.ambitionsChosen = true; });
   const far = line[4]!;
-  const { page, repository, room } = await serve(browser, state);
+  const { page, repository, room, readyOther } = await serve(browser, state);
   await touchPiece(page, `g.hex[data-hex="${start}"]`);
   await cloudNode(page, 'move').click();
   await expect(hexAt(page, line[2]!)).toHaveClass(/target-move/);
@@ -361,6 +367,16 @@ test('D-A: a +2 card played from the hand WHILE Mover is open extends the lit de
   await expect(page.locator('.ctx-ficha .ctx-legs li')).toHaveCount(1);
   await confirmMove(page);
   await expect.poll(async () => (await repository.find(room.id))!.game!.players[0]!.orders.find(o => o.type === 'MOVE' && o.path?.at(-1) === far) !== undefined).toBe(true);
+  // ...and the extra destination RESOLVES: the engine moves the piece to the hex only the +2 made reachable (select → confirm → resolve, end to end).
+  await page.getByRole('button', { name: /Confirmar planejamento/ }).click();
+  const anyway = page.getByRole('button', { name: /Confirmar mesmo assim/ });
+  await anyway.waitFor({ timeout: 3000 }).then(() => anyway.click()).catch(() => undefined);
+  expect((await readyOther()).status).toBe(200);
+  await expect.poll(async () => (await repository.find(room.id))!.game!.units.find(u => u.id === 'v2-bonus-scout')?.hexId, { timeout: 30000 }).toBe(far);
+  const resolved = page.locator('.alpha-resolution-phase');
+  await expect(resolved).toBeVisible({ timeout: 40000 });
+  await expect(resolved).not.toContainText(/não pôde|Alcance insuficiente/);
+  await shot(page, 'M-bonus-resolved');
 });
 
 test('Mover coordenado: two legs from one stack are drafted on the map and confirmed as ONE Order; the tray lists them as a set', async ({ browser }) => {
